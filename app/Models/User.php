@@ -5,12 +5,14 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use App\Enums\UserType;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -26,6 +28,7 @@ class User extends Authenticatable
         'email',
         'password',
         'type',
+        'phone',
     ];
 
     /**
@@ -67,5 +70,12 @@ class User extends Authenticatable
         ]);
 
         return new \Laravel\Sanctum\NewAccessToken($token, $token->getKey() . '|' . $plainTextToken);
+    }
+
+    protected function password(): Attribute
+    {
+        return Attribute::make(
+            set: fn (string $value) => bcrypt($value),
+        );
     }
 }
