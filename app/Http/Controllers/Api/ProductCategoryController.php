@@ -7,12 +7,17 @@ use App\Http\Requests\Api\ProductCategoryStoreRequest;
 use App\Http\Resources\ProductCategoryResource;
 use App\Models\ProductCategory;
 use Illuminate\Http\Response;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class ProductCategoryController extends Controller
 {
     public function index()
     {
-        $productCategories = ProductCategory::simplePaginate();
+        // $productCategories = ProductCategory::simplePaginate();
+        $productCategories = QueryBuilder::for(ProductCategory::class)
+            ->allowedFilters(['name', 'description'])
+            ->allowedSorts(['id', 'name', 'created_at'])
+            ->simplePaginate();
 
         return ProductCategoryResource::collection($productCategories);
     }
