@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ProductBrandController;
 use App\Http\Controllers\Api\ProductCategoryController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProductUnitController;
@@ -25,6 +26,7 @@ Route::post('auth/register', [AuthController::class, 'register']);
 Route::middleware('auth:sanctum')->group(function ($route) {
     Route::resource('users', UserController::class);
     Route::resource('product-categories', ProductCategoryController::class);
+    Route::resource('product-brands', ProductBrandController::class);
     Route::resource('products', ProductController::class);
     Route::resource('product-units', ProductUnitController::class);
 });
