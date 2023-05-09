@@ -15,8 +15,8 @@ class ProductUnitController extends Controller
     {
         // $productCategories = ProductCategory::simplePaginate();
         $productUnits = QueryBuilder::for(ProductUnit::class)
-            ->allowedFilters(['name', 'description'])
-            ->allowedSorts(['id', 'name', 'created_at'])
+            ->allowedFilters(['product_id', 'name', 'price', 'description'])
+            ->allowedSorts(['id', 'product_id', 'name', 'price', 'created_at'])
             ->simplePaginate();
 
         return ProductUnitResource::collection($productUnits);
