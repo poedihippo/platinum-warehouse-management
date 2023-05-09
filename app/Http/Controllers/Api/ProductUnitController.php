@@ -14,12 +14,12 @@ class ProductUnitController extends Controller
     public function index()
     {
         // $productCategories = ProductCategory::simplePaginate();
-        $productunits = QueryBuilder::for(ProductUnit::class)
+        $productUnits = QueryBuilder::for(ProductUnit::class)
             ->allowedFilters(['name', 'description'])
             ->allowedSorts(['id', 'name', 'created_at'])
             ->simplePaginate();
 
-        return ProductUnitResource::collection($productunits);
+        return ProductUnitResource::collection($productUnits);
     }
 
     public function show(ProductUnit $productUnit)

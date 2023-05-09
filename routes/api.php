@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\ProductCategoryController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProductUnitController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\RoleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -24,6 +25,7 @@ Route::post('auth/token', [AuthController::class, 'token']);
 Route::post('auth/register', [AuthController::class, 'register']);
 
 Route::middleware('auth:sanctum')->group(function ($route) {
+    Route::resource('roles', RoleController::class);
     Route::resource('users', UserController::class);
     Route::resource('product-categories', ProductCategoryController::class);
     Route::resource('product-brands', ProductBrandController::class);
