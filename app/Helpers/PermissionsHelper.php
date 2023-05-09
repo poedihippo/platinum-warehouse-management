@@ -115,13 +115,12 @@ class PermissionsHelper
 
     public static function generateChilds(Permission $headSubPermissions, array $subPermissions)
     {
-        // $guard = 'sanctum';
-        $guard = '';
+        $guard = 'sanctum';
         collect($subPermissions)->each(function ($permission, $key) use ($headSubPermissions, $guard) {
             if (is_array($permission)) {
                 $hsp = Permission::firstOrCreate([
                     'name' => $key,
-                    // 'guard_name' => $guard,
+                    'guard_name' => $guard,
                     'parent_id' => $headSubPermissions->id
                 ]);
 
@@ -129,7 +128,7 @@ class PermissionsHelper
             } else {
                 $hsp = Permission::firstOrCreate([
                     'name' => $permission,
-                    // 'guard_name' => $guard,
+                    'guard_name' => $guard,
                     'parent_id' => $headSubPermissions->id
                 ]);
             }

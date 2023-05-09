@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\ProductUnitController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\UomController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -28,13 +29,16 @@ Route::post('auth/register', [AuthController::class, 'register']);
 Route::middleware('auth:sanctum')->group(function ($route) {
     Route::resource('roles', RoleController::class);
     Route::resource('permissions', PermissionController::class);
+    Route::get('users/me', [UserController::class, 'me']);
     Route::resource('users', UserController::class);
     Route::resource('product-categories', ProductCategoryController::class);
     Route::resource('product-brands', ProductBrandController::class);
     Route::resource('products', ProductController::class);
     Route::resource('product-units', ProductUnitController::class);
+    Route::resource('product-units', ProductUnitController::class);
+    Route::resource('uoms', UomController::class);
 });
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+//     return $request->user();
+// });

@@ -31,6 +31,6 @@ class UserSeeder extends Seeder
             'phone' => '0987654321'
         ]);
 
-        $superAdmin->assignRole($superAdminRole);
+        // $superAdmin->assignRole($superAdminRole);
     }
 }
