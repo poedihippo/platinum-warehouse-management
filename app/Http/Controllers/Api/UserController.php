@@ -18,6 +18,11 @@ class UserController extends Controller
         return UserResource::collection($productCategories);
     }
 
+    public function me()
+    {
+        return new UserResource(auth()->user());
+    }
+
     public function show(User $user)
     {
         return new UserResource($user);

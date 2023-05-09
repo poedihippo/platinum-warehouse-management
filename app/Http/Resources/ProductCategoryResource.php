@@ -15,18 +15,5 @@ class ProductCategoryResource extends JsonResource
     public function toArray($request)
     {
         return parent::toArray($request);
-
-        // return [
-        //     'id' => $this->id,
-        //     'name' => $this->name,
-        //     'description' => $this->description,
-        // ];
-    }
-
-    public function paginationInformation($request, $paginated, $default)
-    {
-        $default['links']['custom'] = 'https://example.com';
-
-        return $default;
     }
 }

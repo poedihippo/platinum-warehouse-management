@@ -18,8 +18,8 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained();
             $table->string('name');
             $table->text('description');
-            $table->dateTime('request_datetime');
-            $table->dateTime('receive_datetime')->nullable();
+            $table->dateTime('receive_datetime');
+            // $table->dateTime('request_datetime');
             $table->timestamps();
         });
     }
