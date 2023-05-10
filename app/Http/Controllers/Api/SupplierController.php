@@ -14,8 +14,8 @@ class SupplierController extends Controller
     public function index()
     {
         $suppliers = QueryBuilder::for(Supplier::class)
-            ->allowedFilters(['product_category_id', 'product_brand_id', 'name', 'description'])
-            ->allowedSorts(['id', 'product_category_id', 'product_brand_id', 'name', 'created_at'])
+            ->allowedFilters(['name'])
+            ->allowedSorts(['id', 'name'])
             ->simplePaginate();
 
         return SupplierResource::collection($suppliers);
