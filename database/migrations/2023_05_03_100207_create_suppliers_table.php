@@ -18,7 +18,8 @@ return new class extends Migration
             $table->string('name', 100);
             $table->string('email', 100);
             $table->string('phone', 20);
-            $table->text('description');
+            $table->text('description')->nullable();
+            $table->text('address');
             $table->timestamps();
             $table->softDeletes();
         });

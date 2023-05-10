@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProductBrandController;
 use App\Http\Controllers\Api\ProductCategoryController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\ProductUnitController;
 use App\Http\Controllers\Api\UserController;
@@ -31,6 +32,7 @@ Route::middleware('auth:sanctum')->group(function ($route) {
     Route::resource('permissions', PermissionController::class);
     Route::get('users/me', [UserController::class, 'me']);
     Route::resource('users', UserController::class);
+    Route::resource('suppliers', SupplierController::class);
     Route::resource('product-categories', ProductCategoryController::class);
     Route::resource('product-brands', ProductBrandController::class);
     Route::resource('products', ProductController::class);

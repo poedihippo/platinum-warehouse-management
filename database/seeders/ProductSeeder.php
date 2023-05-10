@@ -6,10 +6,10 @@ use App\Enums\UserType;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Product;
-use Spatie\Permission\Models\ProductCategory;
-use Spatie\Permission\Models\ProductBrand;
-use Spatie\Permission\Models\ProductUnit;
+use App\Models\Product;
+use App\Models\ProductCategory;
+use App\Models\ProductBrand;
+use App\Models\ProductUnit;
 
 class ProductSeeder extends Seeder
 {

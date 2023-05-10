@@ -79,15 +79,6 @@ class PermissionsHelper
                 ],
             ],
 
-            'product_category_access' => [
-                'tenants_access' => [
-                    'tenants_view',
-                    'tenants_create',
-                    'tenants_edit',
-                    'tenants_delete',
-                ],
-            ],
-
             // 'petty_cashes_management' => [
             //     'petty_cashes_access' => [
             //         'petty_cash_view',
