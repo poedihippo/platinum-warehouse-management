@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Enums\UserType;
+use BenSampo\Enum\Rules\EnumValue;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UserStoreRequest extends FormRequest
@@ -28,6 +30,7 @@ class UserStoreRequest extends FormRequest
             'email' => 'required|email|unique:users,email',
             'password' => 'required',
             'phone' => 'required',
+            'type' => ['nullable', new EnumValue(UserType::class, false)],
         ];
     }
 }

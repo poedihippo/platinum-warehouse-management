@@ -8,14 +8,18 @@ use App\Http\Requests\Api\UserUpdateRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Response;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class UserController extends Controller
 {
     public function index()
     {
-        $productCategories = User::simplePaginate();
+        $users = QueryBuilder::for(User::class)
+            ->allowedFilters(['name', 'email', 'phone', 'type'])
+            ->allowedSorts(['name', 'email', 'phone', 'type'])
+            ->simplePaginate();
 
-        return UserResource::collection($productCategories);
+        return UserResource::collection($users);
     }
 
     public function me()
