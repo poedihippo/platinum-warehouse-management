@@ -30,6 +30,7 @@ class UserStoreRequest extends FormRequest
             'email' => 'required|email|unique:users,email',
             'password' => 'required',
             'phone' => 'required',
+            'address' => 'nullable',
             'type' => ['nullable', new EnumValue(UserType::class, false)],
         ];
     }
