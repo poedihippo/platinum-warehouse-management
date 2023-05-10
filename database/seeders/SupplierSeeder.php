@@ -2,12 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Enums\UserType;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Supplier;
 
-class ProductSeeder extends Seeder
+class SupplierSeeder extends Seeder
 {
     /**
      * Run the database seeds.
