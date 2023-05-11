@@ -3,9 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\SocialAccount;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -13,7 +11,6 @@ class SocialiteController extends Controller
 {
     public function redirectToProvider($provider)
     {
-        // dd(Socialite::driver($provider));
         return Socialite::driver($provider)->stateless()->redirect();
     }
 
@@ -33,10 +30,13 @@ class SocialiteController extends Controller
         // login user
         Auth()->login($authUser, true);
 
+        $token = $authUser->tokens()->latest()->first()->plain_text_token ?? $authUser->createToken('default')->plainTextToken;
+
         // setelah login redirect ke dashboard
         return response()->json([
             'message' => 'SUCCESS',
             'user' => $authUser,
+            'token' => $token,
 
         ], Response::HTTP_ACCEPTED);
     }
@@ -50,7 +50,7 @@ class SocialiteController extends Controller
 
         // Jika sudah ada
         if (!$user) {
-            // User berdasarkan email 
+            // User berdasarkan email
             $user = User::where('email', $socialUser->getEmail())->first();
 
             // Jika Tidak ada user
