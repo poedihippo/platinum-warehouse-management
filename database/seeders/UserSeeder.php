@@ -28,7 +28,9 @@ class UserSeeder extends Seeder
             'email' => 'admin@gmail.com',
             'password' => bcrypt('admin'),
             'type' => UserType::Admin,
-            'phone' => '0987654321'
+            'phone' => '0987654321',
+            'provider_id' => '8484840303',
+            'provider_name' => 'Google'
         ]);
 
         // $superAdmin->assignRole($superAdminRole);

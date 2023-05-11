@@ -30,6 +30,8 @@ class User extends Authenticatable
         'type',
         'phone',
         'address',
+        'provider_id',
+        'provider_name',
     ];
 
     /**
@@ -78,5 +80,13 @@ class User extends Authenticatable
         return Attribute::make(
             set: fn (string $value) => bcrypt($value),
         );
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function socialAccounts()
+    {
+        return $this->hasMany(SocialAccount::class);
     }
 }
