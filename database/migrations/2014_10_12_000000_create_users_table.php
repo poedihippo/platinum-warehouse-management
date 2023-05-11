@@ -19,10 +19,17 @@ return new class extends Migration
             $table->string('email')->unique()->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password')->nullable();
-            $table->string('phone', 20)->nullable();
             $table->text('address')->nullable();
+            $table->string('tax_address')->nullable();
             $table->string('provider_id')->unique()->nullable();
             $table->string('provider_name')->nullable();
+            $table->string('city')->nullable();
+            $table->string('province')->nullable();
+            $table->string('zip_code')->nullable();
+            $table->string('country')->nullable();
+            $table->string('phone', 20)->nullable();
+            $table->string('contact_person')->nullable();
+            $table->string('web_page')->nullable();
             $table->unsignedTinyInteger('type')->default(3);
             $table->rememberToken();
             $table->timestamps();
