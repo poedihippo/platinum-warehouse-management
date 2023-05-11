@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('password')->nullable();
             $table->string('phone', 20)->nullable();
             $table->text('address')->nullable();
-            $table->text('provider_id')->unique()->nullable();
+            $table->string('provider_id')->unique()->nullable();
             $table->string('provider_name')->nullable();
             $table->unsignedTinyInteger('type')->default(3);
             $table->rememberToken();
