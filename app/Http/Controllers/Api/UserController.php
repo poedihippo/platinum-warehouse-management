@@ -17,7 +17,7 @@ class UserController extends Controller
         $users = QueryBuilder::for(User::class)
             ->allowedFilters(['name', 'email', 'phone', 'type'])
             ->allowedSorts(['name', 'email', 'phone', 'type'])
-            ->simplePaginate();
+            ->paginate();
 
         return UserResource::collection($users);
     }

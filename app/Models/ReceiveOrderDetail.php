@@ -7,9 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 class ReceiveOrderDetail extends Model
 {
     protected $guarded = [];
+    protected $casts = [
+        'is_package' => 'boolean'
+    ];
 
     public function receiveOrder()
     {
-        $this->belongsTo(ReceiveOrder::class);
+        return $this->belongsTo(ReceiveOrder::class);
+    }
+
+    public function productUnit()
+    {
+        return $this->belongsTo(ProductUnit::class);
     }
 }
