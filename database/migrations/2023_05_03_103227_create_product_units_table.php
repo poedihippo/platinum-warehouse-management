@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('name', 100);
             $table->integer('price')->default(0);
             $table->text('description');
+            $table->string('code', 50);
             $table->timestamps();
             $table->softDeletes();
         });
