@@ -8,12 +8,12 @@ class Product extends Model
 {
     protected $guarded = [];
 
-    public function product_category()
+    public function productCategory()
     {
         return $this->belongsTo(ProductCategory::class);
     }
 
-    public function product_brand()
+    public function productBrand()
     {
         return $this->belongsTo(ProductBrand::class);
     }

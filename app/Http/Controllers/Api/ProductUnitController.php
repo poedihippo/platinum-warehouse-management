@@ -13,8 +13,7 @@ class ProductUnitController extends Controller
 {
     public function index()
     {
-        // $productCategories = ProductCategory::simplePaginate();
-        $productUnits = QueryBuilder::for(ProductUnit::class)
+        $productUnits = QueryBuilder::for(ProductUnit::with('product'))
             ->allowedFilters(['product_id', 'name', 'price', 'description'])
             ->allowedSorts(['id', 'product_id', 'name', 'price', 'created_at'])
             ->simplePaginate();
