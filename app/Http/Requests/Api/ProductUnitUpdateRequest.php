@@ -4,7 +4,7 @@ namespace App\Http\Requests\Api;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class WarehouseStoreRequest extends FormRequest
+class ProductUnitUpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,8 +24,11 @@ class WarehouseStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'code' => 'required|unique:warehouses,code',
+            'code' => 'required|unique:product_units,code,' . $this->productUnit->id,
             'name' => 'required',
+            'description' => 'required',
+            'product_id' => 'required',
+            'price' => 'required',
         ];
     }
 }

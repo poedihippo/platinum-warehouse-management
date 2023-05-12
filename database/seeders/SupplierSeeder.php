@@ -15,7 +15,8 @@ class SupplierSeeder extends Seeder
      */
     public function run()
     {
-        $supplier = Supplier::create([
+        Supplier::create([
+            'code' => 'V-004',
             'name' => 'Tjut Nyak Dhien Corp',
             'email' => 'supplier@gmail.com',
             'phone' => '085777007002',
@@ -23,7 +24,8 @@ class SupplierSeeder extends Seeder
             'address' => 'Jalan Penuh Kenangan Blok 38D No 25 Jawa Tengah.',
         ]);
 
-        $supplier = Supplier::create([
+        Supplier::create([
+            'code' => 'V-001',
             'name' => 'Platinum Adi Sentosa Corp',
             'email' => 'platinumadisentosa@gmail.com',
             'phone' => '08500000007',

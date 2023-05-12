@@ -24,7 +24,7 @@ class UserController extends Controller
 
     public function me()
     {
-        return new UserResource(auth()->user());
+        return new UserResource(user());
     }
 
     public function show(User $user)

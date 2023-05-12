@@ -2,8 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Enums\UserType;
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Product;
@@ -21,34 +19,52 @@ class ProductSeeder extends Seeder
     public function run()
     {
         $productCategory = ProductCategory::create([
-            'name' => 'JPD Kingyo Zen Gain Weight & Color Enhancer',
-            'description' => 'JPD Goldfish Food Kingyo Zen Gain Weight & Color Enhancer merupakan pakan premium dari JPD yang di import oleh PT Platinum Adi Sentosa. Pakan ini mengandung beta glucan dan ragi toruta yang berfungsi menjaga daya tahan tubuh goldfish dan juga mempercepaat pertumbuhannya.'
+            'name' => 'Pakan ikan air tawar',
+            'description' => 'Pakan ikan air tawar merupakan pakan premium dari JPD yang di import oleh PT Platinum Adi Sentosa. Pakan ini mengandung beta glucan dan ragi toruta yang berfungsi menjaga daya tahan tubuh goldfish dan juga mempercepaat pertumbuhannya.'
         ]);
 
         $productBrand = ProductBrand::create([
-            'name' => 'Goldfish',
-            'description' => 'Pakan Ikan merk Goldfish'
+            'name' => 'Mizuho',
+            'description' => 'Pakan Ikan merk Mizuho'
         ]);
 
         $product = Product::create([
-            'name' => 'Goldfish',
-            'description' => 'Pakan Ikan merk Goldfish',
+            'name' => 'Mizuho Wesi-wesi',
+            'description' => 'Mizuho Wesi-wesi Mizuho Wesi-wesi',
             'product_category_id' => $productCategory->id,
             'product_brand_id' => $productBrand->id
         ]);
 
-        $productUnit = ProductUnit::create([
-            'name' => 'Goldfish Merah',
+        ProductUnit::create([
+            'code' => 'MIGF06',
+            'name' => 'Mizuho GF Sinking @ 20kg',
             'product_id' => $product->id,
-            'price' => '25000',
-            'description' => 'Pakan Ikan merk Goldfish Merah',
+            'price' => '1000000',
+            'description' => 'Mizuho GF Sinking @ 20kg',
         ]);
 
-        $productUnit = ProductUnit::create([
-            'name' => 'Goldfish Biru',
+        ProductUnit::create([
+            'code' => 'MISS01',
+            'name' => 'Mizuho Sinking S @ 20kg',
             'product_id' => $product->id,
-            'price' => '100000',
-            'description' => 'Pakan Ikan merk Goldfish Biru',
+            'price' => '1193100',
+            'description' => 'Mizuho Sinking S @ 20kg',
+        ]);
+
+        ProductUnit::create([
+            'code' => 'MISM01',
+            'name' => 'Mizuho Sinking M @ 20kg',
+            'product_id' => $product->id,
+            'price' => '1193100',
+            'description' => 'Mizuho Sinking M @ 20kg',
+        ]);
+
+        ProductUnit::create([
+            'code' => 'MISL01',
+            'name' => 'Mizuho Sinking L @ 20kg',
+            'product_id' => $product->id,
+            'price' => '1193100',
+            'description' => 'Mizuho Sinking L @ 20kg',
         ]);
     }
 }

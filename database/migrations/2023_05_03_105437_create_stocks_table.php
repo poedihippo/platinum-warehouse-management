@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('product_unit_id')->constrained();
             $table->foreignId('warehouse_id')->constrained();
-            $table->foreignId('purchase_order_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('receive_order_id')->constrained()->cascadeOnDelete();
             $table->text('qr_code')->nullable();
             $table->foreignId('scanned_by')->nullable()->constrained('users');
             $table->dateTime('scanned_datetime')->nullable();

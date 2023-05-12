@@ -24,6 +24,7 @@ class ProductUnitStoreRequest extends FormRequest
     public function rules()
     {
         return [
+            'code' => 'required|unique:product_units,code',
             'name' => 'required',
             'description' => 'required',
             'product_id' => 'required',

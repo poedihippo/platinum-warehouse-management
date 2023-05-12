@@ -24,7 +24,8 @@ if (!function_exists('activeTenant')) {
 if (!function_exists('user')) {
     function user(): ?\App\Models\User
     {
-        return tenancy()->checkUserLogin();
+        return auth()->user() ?? auth('sanctum')->user();
+        // return tenancy()->checkUserLogin();
     }
 }
 

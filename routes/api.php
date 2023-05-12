@@ -7,12 +7,12 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\ProductUnitController;
+use App\Http\Controllers\Api\ReceiveOrderController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\WarehouseController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\UomController;
 use App\Http\Controllers\Api\SocialiteController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -29,7 +29,7 @@ use Illuminate\Support\Facades\Route;
 Route::post('auth/token', [AuthController::class, 'token']);
 Route::post('auth/register', [AuthController::class, 'register']);
 
-/* Google Social Login */
+/* Media Social Login */
 Route::get('/auth/{provider}', [SocialiteController::class, 'redirectToProvider']);
 Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProvideCallback']);
 
@@ -46,8 +46,5 @@ Route::middleware('auth:sanctum')->group(function ($route) {
     Route::resource('product-units', ProductUnitController::class);
     Route::resource('product-units', ProductUnitController::class);
     Route::resource('uoms', UomController::class);
+    Route::resource('receive-orders', ReceiveOrderController::class);
 });
-
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });

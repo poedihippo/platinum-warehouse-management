@@ -4,7 +4,7 @@ namespace App\Http\Requests\Api;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class WarehouseStoreRequest extends FormRequest
+class ReceiveOrderStoreRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,8 +24,11 @@ class WarehouseStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'code' => 'required|unique:warehouses,code',
+            // 'supplier_id' => 'required|exists:suppliers,id',
             'name' => 'required',
+            'description' => 'nullable',
+            'receive_datetime' => 'required|date_format:Y-m-d H:i:s',
+            'file' => 'required|mimes:xml',
         ];
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\WarehouseStoreRequest;
+use App\Http\Requests\Api\WarehouseUpdateRequest;
 use App\Http\Resources\WarehouseResource;
 use App\Models\Warehouse;
 use Illuminate\Http\Response;
@@ -33,7 +34,7 @@ class WarehouseController extends Controller
         return new WarehouseResource($warehouse);
     }
 
-    public function update(Warehouse $warehouse, WarehouseStoreRequest $request)
+    public function update(Warehouse $warehouse, WarehouseUpdateRequest $request)
     {
         $warehouse->update($request->validated());
 

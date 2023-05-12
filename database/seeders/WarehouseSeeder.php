@@ -16,10 +16,12 @@ class WarehouseSeeder extends Seeder
     public function run()
     {
         Warehouse::create([
-            'name' => 'Warehouse Jakarta Timur',
+            'code' => 'Iconic',
+            'name' => 'Iconic',
         ]);
 
         Warehouse::create([
+            'code' => 'Jkt',
             'name' => 'Warehouse Jakarta Raya',
         ]);
     }

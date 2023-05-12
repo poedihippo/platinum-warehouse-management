@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\SupplierStoreRequest;
+use App\Http\Requests\Api\SupplierUpdateRequest;
 use App\Http\Resources\SupplierResource;
 use App\Models\Supplier;
 use Illuminate\Http\Response;
@@ -33,7 +34,7 @@ class SupplierController extends Controller
         return new SupplierResource($supplier);
     }
 
-    public function update(Supplier $supplier, SupplierStoreRequest $request)
+    public function update(Supplier $supplier, SupplierUpdateRequest $request)
     {
         $supplier->update($request->validated());
 
