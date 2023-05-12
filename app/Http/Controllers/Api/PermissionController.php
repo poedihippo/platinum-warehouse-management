@@ -2,14 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Exports\PermissionsExport;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PermissionResource;
 use App\Http\Requests\Api\PermissionStoreRequest;
-use App\Jobs\NotifyUserOfCompletedExport;
-use App\Models\Export;
 use App\Models\Permission;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Spatie\QueryBuilder\QueryBuilder;
 
