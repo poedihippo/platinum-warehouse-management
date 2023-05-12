@@ -13,7 +13,7 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = QueryBuilder::for(Product::with(['category', 'brand']))
+        $products = QueryBuilder::for(Product::with(['productCategory', 'productBrand']))
             ->allowedFilters(['product_category_id', 'product_brand_id', 'name', 'description'])
             ->allowedSorts(['id', 'product_category_id', 'product_brand_id', 'name', 'created_at'])
             ->simplePaginate();
