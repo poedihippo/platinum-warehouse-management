@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\ProductUnitController;
 use App\Http\Controllers\Api\ReceiveOrderController;
+use App\Http\Controllers\Api\ReceiveOrderDetailController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\WarehouseController;
 use App\Http\Controllers\Api\RoleController;
@@ -46,5 +47,13 @@ Route::middleware('auth:sanctum')->group(function ($route) {
     Route::resource('product-units', ProductUnitController::class);
     Route::resource('product-units', ProductUnitController::class);
     Route::resource('uoms', UomController::class);
+
+    Route::group(['prefix' => 'receive-orders/{receiveOrder}/details'], function () {
+        Route::get('/', [ReceiveOrderDetailController::class, 'index']);
+        Route::get('{receiveOrderDetail}', [ReceiveOrderDetailController::class, 'show']);
+        Route::post('/', [ReceiveOrderDetailController::class, 'store']);
+        Route::put('{receiveOrderDetail}', [ReceiveOrderDetailController::class, 'update']);
+        Route::delete('{receiveOrderDetail}', [ReceiveOrderDetailController::class, 'destroy']);
+    });
     Route::resource('receive-orders', ReceiveOrderController::class);
 });

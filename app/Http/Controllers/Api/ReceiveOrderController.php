@@ -5,10 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ReceiveOrderStoreRequest;
 use App\Http\Resources\ReceiveOrderResource;
-use App\Models\Product;
 use App\Models\ProductUnit;
 use App\Models\ReceiveOrder;
-use App\Models\ReceiveOrderDetail;
 use App\Models\Supplier;
 use App\Models\Warehouse;
 use Illuminate\Http\Response;
@@ -22,6 +20,7 @@ class ReceiveOrderController extends Controller
         $receiveOrders = QueryBuilder::for(ReceiveOrder::class)
             // ->allowedFilters('name')
             // ->allowedSorts(['id', 'name', 'created_at'])
+            ->allowedIncludes(['details'])
             ->simplePaginate();
 
         return ReceiveOrderResource::collection($receiveOrders);
@@ -29,12 +28,11 @@ class ReceiveOrderController extends Controller
 
     public function show(ReceiveOrder $receiveOrder)
     {
-        return new ReceiveOrderResource($receiveOrder);
+        return new ReceiveOrderResource($receiveOrder->load('details'));
     }
 
     public function store(ReceiveOrderStoreRequest $request)
     {
-        // dump($request->validated());
         DB::beginTransaction();
         try {
             $xmlString = file_get_contents($request->file);
@@ -74,7 +72,7 @@ class ReceiveOrderController extends Controller
 
             DB::commit();
         } catch (\Throwable $th) {
-            //throw $th;
+            throw $th;
         }
 
         return new ReceiveOrderResource($receiveOrder);
