@@ -19,7 +19,7 @@ class ReceiveOrderDetailController extends Controller
         $receiveOrderDetails = QueryBuilder::for(ReceiveOrderDetail::class)
             // ->allowedFilters('name')
             // ->allowedSorts(['id', 'name', 'created_at'])
-            ->simplePaginate();
+            ->paginate();
 
         return ReceiveOrderDetailResource::collection($receiveOrderDetails);
     }

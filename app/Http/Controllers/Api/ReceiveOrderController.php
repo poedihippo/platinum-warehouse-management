@@ -21,7 +21,7 @@ class ReceiveOrderController extends Controller
             // ->allowedFilters('name')
             // ->allowedSorts(['id', 'name', 'created_at'])
             ->allowedIncludes(['details'])
-            ->simplePaginate();
+            ->paginate();
 
         return ReceiveOrderResource::collection($receiveOrders);
     }

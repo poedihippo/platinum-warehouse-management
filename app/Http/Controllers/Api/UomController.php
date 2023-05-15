@@ -16,7 +16,7 @@ class UomController extends Controller
         $uoms = QueryBuilder::for(Uom::class)
             ->allowedFilters('name')
             ->allowedSorts(['id', 'name', 'created_at'])
-            ->simplePaginate();
+            ->paginate();
 
         return UomResource::collection($uoms);
     }

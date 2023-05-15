@@ -17,7 +17,7 @@ class SupplierController extends Controller
         $suppliers = QueryBuilder::for(Supplier::class)
             ->allowedFilters(['name'])
             ->allowedSorts(['id', 'name'])
-            ->simplePaginate();
+            ->paginate();
 
         return SupplierResource::collection($suppliers);
     }

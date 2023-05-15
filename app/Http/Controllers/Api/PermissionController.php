@@ -9,8 +9,6 @@ use App\Models\Permission;
 use Illuminate\Http\Response;
 use Spatie\QueryBuilder\QueryBuilder;
 
-use Yajra\DataTables\Facades\DataTables;
-
 class PermissionController extends Controller
 {
     // public function __construct()
@@ -27,7 +25,7 @@ class PermissionController extends Controller
             ->allowedFilters(['name'])
             ->allowedSorts(['id', 'name', 'created_at'])
             ->orderBy('id', 'DESC')
-            ->simplePaginate();
+            ->paginate();
 
         return PermissionResource::collection($roles);
     }

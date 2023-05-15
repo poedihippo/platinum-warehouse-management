@@ -16,7 +16,7 @@ class ProductBrandController extends Controller
         $productCategories = QueryBuilder::for(ProductBrand::class)
             ->allowedFilters(['name', 'description'])
             ->allowedSorts(['id', 'name', 'created_at'])
-            ->simplePaginate();
+            ->paginate();
 
         return ProductBrandResource::collection($productCategories);
     }

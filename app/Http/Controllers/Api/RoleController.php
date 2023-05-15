@@ -36,7 +36,7 @@ class RoleController extends Controller
             ->allowedFilters(['name'])
             ->allowedSorts(['id', 'name', 'created_at'])
             ->orderBy('id', 'DESC')
-            ->simplePaginate();
+            ->paginate();
 
         return RoleResource::collection($roles);
     }
