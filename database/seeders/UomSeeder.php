@@ -16,9 +16,11 @@ class UomSeeder extends Seeder
     public function run()
     {
         collect([
-            'Kardus',
-            'Lusin',
-            'Kg',
+            'pack',
+            'sak',
+            'kardus',
+            'kg',
+            'gr',
         ])->each(fn ($uom) => Uom::create(['name' => $uom]));
     }
 }

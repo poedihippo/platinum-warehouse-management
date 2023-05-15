@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api;
 
+use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ReceiveOrderDetailUpdateRequest extends FormRequest
@@ -23,8 +24,18 @@ class ReceiveOrderDetailUpdateRequest extends FormRequest
      */
     public function rules()
     {
+        // dump($this->adjust_qty);
+        // dd($this->receiveOrderDetail);
         return [
-            'adjust_qty' => 'required|integer',
+            'adjust_qty' => [
+                'required',
+                'integer',
+                function (string $attribute, mixed $value, Closure $fail) {
+                    if(($this->receiveOrderDetail->qty % $this->adjust_qty) > 0){
+                        $fail('Pembagian quantity tidak sesuai');
+                    }
+                },
+            ],
             'uom_id' => 'required|exists:uoms,id',
             'is_package' => 'nullable|boolean'
         ];

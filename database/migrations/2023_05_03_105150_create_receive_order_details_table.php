@@ -23,6 +23,7 @@ return new class extends Migration
             $table->integer('adjust_qty')->default(0);
             $table->foreignId('uom_id')->nullable()->constrained();
             $table->unsignedTinyInteger('is_package')->default(0);
+            $table->unsignedTinyInteger('is_verified')->default(0);
             $table->timestamps();
         });
     }

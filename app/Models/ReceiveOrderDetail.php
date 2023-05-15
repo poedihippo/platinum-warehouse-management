@@ -8,8 +8,19 @@ class ReceiveOrderDetail extends Model
 {
     protected $guarded = [];
     protected $casts = [
-        'is_package' => 'boolean'
+        'qty' => 'integer',
+        'bruto_unit_price' => 'integer',
+        'adjust_qty' => 'integer',
+        'is_package' => 'boolean',
+        'is_verified' => 'boolean',
     ];
+
+    protected static function booted()
+    {
+        static::updated(function ($model) {
+            // dd($model);
+        });
+    }
 
     public function receiveOrder()
     {
@@ -19,5 +30,10 @@ class ReceiveOrderDetail extends Model
     public function productUnit()
     {
         return $this->belongsTo(ProductUnit::class);
+    }
+
+    public function uom()
+    {
+        return $this->belongsTo(Uom::class);
     }
 }

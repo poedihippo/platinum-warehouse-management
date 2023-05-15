@@ -36,6 +36,7 @@ class ProductSeeder extends Seeder
         ]);
 
         ProductUnit::create([
+            'uom_id' => 1,
             'code' => 'MIGF06',
             'name' => 'Mizuho GF Sinking @ 20kg',
             'product_id' => $product->id,
@@ -44,6 +45,7 @@ class ProductSeeder extends Seeder
         ]);
 
         ProductUnit::create([
+            'uom_id' => 1,
             'code' => 'MISS01',
             'name' => 'Mizuho Sinking S @ 20kg',
             'product_id' => $product->id,
@@ -52,6 +54,7 @@ class ProductSeeder extends Seeder
         ]);
 
         ProductUnit::create([
+            'uom_id' => 1,
             'code' => 'MISM01',
             'name' => 'Mizuho Sinking M @ 20kg',
             'product_id' => $product->id,
@@ -60,6 +63,7 @@ class ProductSeeder extends Seeder
         ]);
 
         ProductUnit::create([
+            'uom_id' => 1,
             'code' => 'MISL01',
             'name' => 'Mizuho Sinking L @ 20kg',
             'product_id' => $product->id,

@@ -12,4 +12,9 @@ class ProductUnit extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    public function uom()
+    {
+        return $this->belongsTo(Uom::class);
+    }
 }
