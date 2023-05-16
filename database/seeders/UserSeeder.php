@@ -21,7 +21,7 @@ class UserSeeder extends Seeder
         Role::create([
             'id' => 1,
             'name' => 'admin',
-            // 'guard_name' => 'sanctum',
+            // 'guard_name' => 'web',
         ]);
 
         $user = User::create([

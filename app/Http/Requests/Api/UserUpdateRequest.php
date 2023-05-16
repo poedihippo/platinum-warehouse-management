@@ -15,7 +15,7 @@ class UserUpdateRequest extends FormRequest
      */
     public function authorize()
     {
-        return true;
+        return user()->tokenCan('user_update');
     }
 
     /**

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ProductBrandStoreRequest;
+use App\Http\Requests\ProductBrandUpdateRequest;
 use App\Http\Resources\ProductBrandResource;
 use App\Models\ProductBrand;
 use Illuminate\Http\Response;
@@ -13,6 +14,7 @@ class ProductBrandController extends Controller
 {
     public function index()
     {
+        abort_if(!user()->tokenCan('product_brands_access'), 403);
         $productCategories = QueryBuilder::for(ProductBrand::class)
             ->allowedFilters(['name', 'description'])
             ->allowedSorts(['id', 'name', 'created_at'])
@@ -23,6 +25,7 @@ class ProductBrandController extends Controller
 
     public function show(ProductBrand $productBrand)
     {
+        abort_if(!user()->tokenCan('product_brands_view'), 403);
         return new ProductBrandResource($productBrand);
     }
 
@@ -33,7 +36,7 @@ class ProductBrandController extends Controller
         return new ProductBrandResource($productBrand);
     }
 
-    public function update(ProductBrand $productBrand, ProductBrandStoreRequest $request)
+    public function update(ProductBrand $productBrand, ProductBrandUpdateRequest $request)
     {
         $productBrand->update($request->validated());
 
@@ -42,6 +45,7 @@ class ProductBrandController extends Controller
 
     public function destroy(ProductBrand $productBrand)
     {
+        abort_if(!user()->tokenCan('product_brands_delete'), 403);
         $productBrand->delete();
         return $this->deletedResponse();
     }

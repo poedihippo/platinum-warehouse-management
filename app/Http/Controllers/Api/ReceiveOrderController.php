@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ReceiveOrderStoreRequest;
+use App\Http\Requests\Api\ReceiveOrderUpdateRequest;
 use App\Http\Resources\ReceiveOrderResource;
 use App\Models\ProductUnit;
 use App\Models\ReceiveOrder;
@@ -17,6 +18,7 @@ class ReceiveOrderController extends Controller
 {
     public function index()
     {
+        abort_if(!user()->tokenCan('receive_orders_access'), 403);
         $receiveOrders = QueryBuilder::for(ReceiveOrder::class)
             // ->allowedFilters('name')
             // ->allowedSorts(['id', 'name', 'created_at'])
@@ -28,6 +30,7 @@ class ReceiveOrderController extends Controller
 
     public function show(ReceiveOrder $receiveOrder)
     {
+        abort_if(!user()->tokenCan('receive_order_create'), 403);
         return new ReceiveOrderResource($receiveOrder->load('details'));
     }
 
@@ -78,7 +81,7 @@ class ReceiveOrderController extends Controller
         return new ReceiveOrderResource($receiveOrder);
     }
 
-    public function update(ReceiveOrder $receiveOrder, ReceiveOrderStoreRequest $request)
+    public function update(ReceiveOrder $receiveOrder, ReceiveOrderUpdateRequest $request)
     {
         dump($request->all());
         dd($request->validated());
@@ -89,6 +92,7 @@ class ReceiveOrderController extends Controller
 
     public function destroy(ReceiveOrder $receiveOrder)
     {
+        abort_if(!user()->tokenCan('receive_order_delete'), 403);
         $receiveOrder->delete();
         return $this->deletedResponse();
     }

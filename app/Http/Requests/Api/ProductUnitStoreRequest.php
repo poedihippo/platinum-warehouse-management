@@ -13,7 +13,7 @@ class ProductUnitStoreRequest extends FormRequest
      */
     public function authorize()
     {
-        return true;
+        return user()->tokenCan('product_unit_create');
     }
 
     /**

@@ -27,6 +27,7 @@ class AuthController extends Controller
 
         $validatePassword = true;
         $user = User::where('email', $request->email)->first();
+        $permissions = $user->roles[0]->permissions->pluck('name')->toArray();
 
         if ($checkToken) {
             $validatePassword = true;
@@ -41,7 +42,7 @@ class AuthController extends Controller
         }
 
         // return $user->createToken('default')->plainTextToken;
-        $token = $user->tokens()->latest()->first()->plain_text_token ?? $user->createToken('default')->plainTextToken;
+        $token = $user->tokens()->latest()->first()->plain_text_token ?? $user->createToken('default', $permissions)->plainTextToken;
         return response()->json(['data' => ['token' => $token]]);
     }
 

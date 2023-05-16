@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ProductCategoryStoreRequest;
+use App\Http\Requests\ProductCategoryUpdateRequest;
 use App\Http\Resources\ProductCategoryResource;
 use App\Models\ProductCategory;
 use Illuminate\Http\Response;
@@ -13,6 +14,7 @@ class ProductCategoryController extends Controller
 {
     public function index()
     {
+        abort_if(!user()->tokenCan('product_categories_access'), 403);
         $productCategories = QueryBuilder::for(ProductCategory::class)
             ->allowedFilters(['name', 'description'])
             ->allowedSorts(['id', 'name', 'created_at'])
@@ -23,6 +25,7 @@ class ProductCategoryController extends Controller
 
     public function show(ProductCategory $productCategory)
     {
+        abort_if(!user()->tokenCan('product_category_view'), 403);
         return new ProductCategoryResource($productCategory);
     }
 
@@ -33,7 +36,7 @@ class ProductCategoryController extends Controller
         return new ProductCategoryResource($productCategory);
     }
 
-    public function update(ProductCategory $productCategory, ProductCategoryStoreRequest $request)
+    public function update(ProductCategory $productCategory, ProductCategoryUpdateRequest $request)
     {
         $productCategory->update($request->validated());
 
@@ -42,6 +45,7 @@ class ProductCategoryController extends Controller
 
     public function destroy(ProductCategory $productCategory)
     {
+        abort_if(!user()->tokenCan('product_category_delete'), 403);
         $productCategory->delete();
         return $this->deletedResponse();
     }

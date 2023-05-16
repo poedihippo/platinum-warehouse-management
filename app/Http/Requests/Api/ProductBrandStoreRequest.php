@@ -13,7 +13,7 @@ class ProductBrandStoreRequest extends FormRequest
      */
     public function authorize()
     {
-        return true;
+        return user()->tokenCan('product_brands_create');
     }
 
     /**

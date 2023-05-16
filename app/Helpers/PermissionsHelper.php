@@ -43,41 +43,96 @@ class PermissionsHelper
         return [
             'dashboard_access',
 
-            'user_management_access' => [
+            'users_management_access' => [
                 'users_access' => [
-                    'users_view',
-                    'users_create',
-                    'users_edit',
-                    'users_delete',
+                    'user_view',
+                    'user_create',
+                    'user_edit',
+                    'user_delete',
                 ],
                 'roles_access' => [
-                    // 'roles_view',
-                    'roles_create',
-                    'roles_edit',
-                    'roles_delete',
+                    'role_view',
+                    'role_create',
+                    'role_edit',
+                    'role_delete',
                 ],
                 'permissions_access' => [
-                    'permissions_view',
-                    'permissions_create',
-                    'permissions_edit',
-                    'permissions_delete',
+                    'permission_view',
+                    'permission_create',
+                    'permission_edit',
+                    'permission_delete',
                 ],
             ],
 
-            'corporate_management_access' => [
+            'products_management_access' => [
+                'products_access' => [
+                    'product_view',
+                    'product_create',
+                    'product_edit',
+                    'product_delete',
+                ],
+                'product_categories_access' => [
+                    'product_category_view',
+                    'product_category_create',
+                    'product_category_edit',
+                    'product_category_delete',
+                ],
+                'product_brands_access' => [
+                    'product_brand_view',
+                    'product_brand_create',
+                    'product_brand_edit',
+                    'product_brand_delete',
+                ],
+                'product_units_access' => [
+                    'product_unit_view',
+                    'product_unit_create',
+                    'product_unit_edit',
+                    'product_unit_delete',
+                ],
+            ],
+
+            'suppliers_access' => [
+                'supplier_view',
+                'supplier_create',
+                'supplier_edit',
+                'supplier_delete',
+            ],
+
+            'warehouses_access' => [
+                'warehouse_view',
+                'warehouse_create',
+                'warehouse_edit',
+                'warehouse_delete',
+            ],
+
+            'uoms_access' => [
+                'uom_view',
+                'uom_create',
+                'uom_edit',
+                'uom_delete',
+            ],
+
+            'receive_orders_access' => [
+                'receive_order_view',
+                'receive_order_create',
+                'receive_order_edit',
+                'receive_order_delete',
+            ],
+
+            // 'corporate_management_access' => [
                 // 'companies_access' => [
                 //     'companies_view',
                 //     'companies_create',
                 //     'companies_edit',
                 //     'companies_delete',
                 // ],
-                'tenants_access' => [
-                    'tenants_view',
-                    'tenants_create',
-                    'tenants_edit',
-                    'tenants_delete',
-                ],
-            ],
+                // 'tenants_access' => [
+                //     'tenants_view',
+                //     'tenants_create',
+                //     'tenants_edit',
+                //     'tenants_delete',
+                // ],
+            // ],
 
             // 'petty_cashes_management' => [
             //     'petty_cashes_access' => [
@@ -106,7 +161,7 @@ class PermissionsHelper
 
     public static function generateChilds(Permission $headSubPermissions, array $subPermissions)
     {
-        $guard = 'sanctum';
+        $guard = 'web';
         collect($subPermissions)->each(function ($permission, $key) use ($headSubPermissions, $guard) {
             if (is_array($permission)) {
                 $hsp = Permission::firstOrCreate([

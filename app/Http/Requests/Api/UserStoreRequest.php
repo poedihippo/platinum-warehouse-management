@@ -15,7 +15,7 @@ class UserStoreRequest extends FormRequest
      */
     public function authorize()
     {
-        return true;
+        return user()->tokenCan('user_create');
     }
 
     /**
@@ -31,7 +31,18 @@ class UserStoreRequest extends FormRequest
             'password' => 'nullable|required_unless:type,' . UserType::Reseller,
             'phone' => 'required',
             'address' => 'nullable',
+            'tax_address' => 'nullable',
+            'provider_id' => 'nullable|unique:provider,id',
+            'provider_name' => 'nullable',
+            'city' => 'nullable',
+            'province' => 'nullable',
+            'zip_code' => 'nullable',
+            'country' => 'nullable',
+            'phone' => 'nullable|unique:users,phone',
+            'contact_person' => 'nullable',
+            'web_page' => 'nullable',
             'type' => ['nullable', new EnumValue(UserType::class, false)],
+            'role_id' => 'nullable|exists:roles,id',
         ];
     }
 }

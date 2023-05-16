@@ -18,7 +18,7 @@ class PermissionSeeder extends Seeder
     {
         $permissions = PermissionsHelper::getAllPermissions();
 
-        $guard = 'sanctum';
+        $guard = 'web';
         $permissions->each(function ($permission, $key) use ($guard) {
             if (is_array($permission)) {
                 $headSubPermissions = Permission::firstOrCreate([

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ProductStoreRequest;
+use App\Http\Requests\ProductUpdateRequest;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use Illuminate\Http\Response;
@@ -13,6 +14,7 @@ class ProductController extends Controller
 {
     public function index()
     {
+        abort_if(!user()->tokenCan('products_access'), 403);
         $products = QueryBuilder::for(Product::with(['productCategory', 'productBrand']))
             ->allowedFilters(['product_category_id', 'product_brand_id', 'name', 'description'])
             ->allowedSorts(['id', 'product_category_id', 'product_brand_id', 'name', 'created_at'])
@@ -23,6 +25,7 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
+        abort_if(!user()->tokenCan('product_create'), 403);
         return new ProductResource($product);
     }
 
@@ -33,7 +36,7 @@ class ProductController extends Controller
         return new ProductResource($product);
     }
 
-    public function update(Product $product, ProductStoreRequest $request)
+    public function update(Product $product, ProductUpdateRequest $request)
     {
         $product->update($request->validated());
 
@@ -42,6 +45,7 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
+        abort_if(!user()->tokenCan('product_delete'), 403);
         $product->delete();
         return $this->deletedResponse();
     }

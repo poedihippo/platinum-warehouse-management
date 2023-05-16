@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Api;
+namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ProductUnitUpdateRequest extends FormRequest
+class PermissionUpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -13,7 +13,7 @@ class ProductUnitUpdateRequest extends FormRequest
      */
     public function authorize()
     {
-        return user()->tokenCan('product_unit_update');
+        return user()->tokenCan('permission_update');
     }
 
     /**
@@ -24,11 +24,8 @@ class ProductUnitUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'code' => 'required|unique:product_units,code,' . $this->productUnit->id,
-            'name' => 'required',
-            'description' => 'required',
-            'product_id' => 'required',
-            'price' => 'required',
+            'name' => 'required|unique:roles,name' . $this->permission?->id,
+            'parent_id' => 'nullable',
         ];
     }
 }

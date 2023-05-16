@@ -13,7 +13,7 @@ class WarehouseUpdateRequest extends FormRequest
      */
     public function authorize()
     {
-        return true;
+        return user()->tokenCan('warehouse_update');
     }
 
     /**

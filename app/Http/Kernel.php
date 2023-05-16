@@ -67,4 +67,9 @@ class Kernel extends HttpKernel
         'permission' => \Spatie\Permission\Middlewares\PermissionMiddleware::class,
         'role_or_permission' => \Spatie\Permission\Middlewares\RoleOrPermissionMiddleware::class,
     ];
+
+    protected $middlewareAliases = [
+        'abilities' => \Laravel\Sanctum\Http\Middleware\CheckAbilities::class,
+        'ability' => \Laravel\Sanctum\Http\Middleware\CheckForAnyAbility::class,
+    ];
 }
