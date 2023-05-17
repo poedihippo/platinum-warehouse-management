@@ -10,7 +10,6 @@ use App\Models\ReceiveOrder;
 use App\Models\ReceiveOrderDetail;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class ReceiveOrderDetailController extends Controller
@@ -28,13 +27,6 @@ class ReceiveOrderDetailController extends Controller
     public function show(ReceiveOrder $receiveOrder, $receiveOrderDetailId)
     {
         $receiveOrderDetail = $receiveOrder->details()->where('id', $receiveOrderDetailId)->firstOrFail();
-
-        // $qr = QrCode::size(300)
-        //     ->format('svg')
-        //     ->generate('01h0f8j05z7r0sp42ynm0jf2bs');
-
-        // echo(str_replace("\n", '',$qr));
-        // die;
 
         return new ReceiveOrderDetailResource($receiveOrderDetail);
     }
@@ -69,5 +61,11 @@ class ReceiveOrderDetailController extends Controller
     {
         $receiveOrderDetail->delete();
         return $this->deletedResponse();
+    }
+
+    public function grouping(ReceiveOrderDetail $receiveOrderDetail, Request $request)
+    {
+        dump($request);
+        dd($receiveOrderDetail);
     }
 }

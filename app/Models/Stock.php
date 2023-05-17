@@ -11,6 +11,16 @@ class Stock extends Model
     use HasUlids, InteractsWithMedia;
     protected $guarded = [];
 
+    public function parent()
+    {
+        return $this->belongsTo(Stock::class, 'parent_id');
+    }
+
+    public function childs()
+    {
+        return $this->hasMany(Stock::class, 'parent_id');
+    }
+
     public function productUnit()
     {
         return $this->belongsTo(ProductUnit::class);

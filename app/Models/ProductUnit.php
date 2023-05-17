@@ -17,4 +17,9 @@ class ProductUnit extends Model
     {
         return $this->belongsTo(Uom::class);
     }
+
+    public function stocks()
+    {
+        return $this->hasMany(Stock::class);
+    }
 }

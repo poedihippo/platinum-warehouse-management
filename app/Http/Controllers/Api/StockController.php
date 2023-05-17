@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StockStoreRequest;
 use App\Http\Requests\Api\StockUpdateRequest;
+use App\Http\Resources\ProductUnitStockResource;
 use App\Http\Resources\StockResource;
 use App\Models\ProductUnit;
 use App\Models\Stock;
@@ -17,6 +18,18 @@ use Spatie\QueryBuilder\QueryBuilder;
 class StockController extends Controller
 {
     public function index()
+    {
+        // abort_if(!user()->tokenCan('receive_orders_access'), 403);
+        $stocks = QueryBuilder::for(ProductUnit::withCount('stocks'))
+            ->allowedFilters(['code', 'name', 'warehouse_id', 'receive_order_detail_id', 'uom_id'])
+            ->allowedSorts(['product_unit_id', 'warehouse_id', 'created_at'])
+            // ->allowedIncludes(['productUnit', 'warehouse', 'receiveOrderDetail'])
+            ->paginate();
+
+        return ProductUnitStockResource::collection($stocks);
+    }
+
+    public function details()
     {
         // abort_if(!user()->tokenCan('receive_orders_access'), 403);
         $stocks = QueryBuilder::for(Stock::class)
