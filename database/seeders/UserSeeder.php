@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
      */
     public function run()
     {
-        Role::create([
+        $adminRole = Role::create([
             'id' => 1,
             'name' => 'admin',
             // 'guard_name' => 'web',
@@ -41,6 +41,6 @@ class UserSeeder extends Seeder
             'abilities' => ["*"],
         ]);
 
-        // $superAdmin->assignRole($superAdminRole);
+        $user->assignRole($adminRole);
     }
 }

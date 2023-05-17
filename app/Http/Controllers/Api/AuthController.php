@@ -27,7 +27,6 @@ class AuthController extends Controller
 
         $validatePassword = true;
         $user = User::where('email', $request->email)->first();
-        $permissions = $user->roles[0]->permissions->pluck('name')->toArray();
 
         if ($checkToken) {
             $validatePassword = true;
@@ -41,6 +40,16 @@ class AuthController extends Controller
             ]);
         }
 
+        $permissions = ["*"];
+        if (!$user->hasRole('admin')) {
+            $roles = $user->roles;
+            if ($roles->count() > 0) {
+                $permissions = $roles[0]->permissions->pluck('name')->toArray() ?? [];
+            } else {
+                return response()->json(['message' => 'User has no role'], 401);
+            }
+        }
+
         // return $user->createToken('default')->plainTextToken;
         $token = $user->tokens()->latest()->first()->plain_text_token ?? $user->createToken('default', $permissions)->plainTextToken;
         return response()->json(['data' => ['token' => $token]]);
@@ -51,7 +60,8 @@ class AuthController extends Controller
      *
      * Manual user register
      */
-    public function register(Request $request){
+    public function register(Request $request)
+    {
         $this->validate($request, [
             'name' => 'required',
             'email' => 'required|email|unique:users,email',
