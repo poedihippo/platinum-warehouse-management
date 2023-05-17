@@ -14,10 +14,10 @@ return new class extends Migration
     public function up()
     {
         Schema::create('stocks', function (Blueprint $table) {
-            $table->id();
+            $table->ulid('id')->primary();
             $table->foreignId('product_unit_id')->constrained();
             $table->foreignId('warehouse_id')->constrained();
-            $table->foreignId('receive_order_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('receive_order_detail_id')->constrained()->cascadeOnDelete();
             $table->text('qr_code')->nullable();
             $table->foreignId('scanned_by')->nullable()->constrained('users');
             $table->dateTime('scanned_datetime')->nullable();

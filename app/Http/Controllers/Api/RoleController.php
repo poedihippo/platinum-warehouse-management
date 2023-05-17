@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\RoleStoreRequest;
 use App\Http\Requests\Api\RoleUpdateRequest;
 use App\Http\Resources\RoleResource;
-use Illuminate\Support\Facades\Gate;
 use Spatie\Permission\Models\Role;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -32,7 +31,6 @@ class RoleController extends Controller
      */
     public function index()
     {
-        abort_if(!user()->tokenCan('roles_access'), 403);
         $roles = QueryBuilder::for(Role::class)
             ->with('permissions')
             ->allowedFilters(['name'])
@@ -67,7 +65,6 @@ class RoleController extends Controller
      */
     public function show(Role $role)
     {
-        abort_if(!user()->tokenCan('role_view'), 403);
         return new RoleResource($role->load('permissions'));
     }
 
@@ -94,7 +91,6 @@ class RoleController extends Controller
      */
     public function destroy(Role $role)
     {
-        abort_if(!user()->tokenCan('role_delete'), 403);
         $role->delete();
         return $this->deletedResponse();
     }

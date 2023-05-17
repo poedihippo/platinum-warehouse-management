@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Events\VerifiedRODetailEvent;
 use Illuminate\Database\Eloquent\Model;
 
 class ReceiveOrderDetail extends Model
@@ -18,7 +19,9 @@ class ReceiveOrderDetail extends Model
     protected static function booted()
     {
         static::updated(function ($model) {
-            // dd($model);
+            if ($model->is_verified === true) {
+                VerifiedRODetailEvent::dispatch($model);
+            }
         });
     }
 
@@ -35,5 +38,10 @@ class ReceiveOrderDetail extends Model
     public function uom()
     {
         return $this->belongsTo(Uom::class);
+    }
+
+    public function stocks()
+    {
+        return $this->hasMany(Stock::class);
     }
 }

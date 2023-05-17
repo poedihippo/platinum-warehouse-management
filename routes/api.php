@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\WarehouseController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\UomController;
 use App\Http\Controllers\Api\SocialiteController;
+use App\Http\Controllers\Api\StockController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -57,4 +58,6 @@ Route::middleware('auth:sanctum')->group(function ($route) {
         Route::delete('{receiveOrderDetail}', [ReceiveOrderDetailController::class, 'destroy']);
     });
     Route::resource('receive-orders', ReceiveOrderController::class);
+
+    Route::resource('stocks', StockController::class);
 });

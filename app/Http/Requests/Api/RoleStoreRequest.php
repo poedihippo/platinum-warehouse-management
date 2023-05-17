@@ -13,7 +13,8 @@ class RoleStoreRequest extends FormRequest
      */
     public function authorize()
     {
-        return user()->tokenCan('role_create');
+        // return user()->tokenCan('role_create');
+        return true;
     }
 
     /**

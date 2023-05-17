@@ -24,14 +24,14 @@ class ReceiveOrderDetailUpdateRequest extends FormRequest
      */
     public function rules()
     {
-        // dump($this->adjust_qty);
-        // dd($this->receiveOrderDetail);
+        $receiveOrderDetail = $this->receiveOrder->details()->where('id', $this->receiveOrderDetail)->firstOrFail();
+
         return [
             'adjust_qty' => [
                 'required',
                 'integer',
-                function (string $attribute, mixed $value, Closure $fail) {
-                    if(($this->receiveOrderDetail->qty % $this->adjust_qty) > 0){
+                function (string $attribute, mixed $value, Closure $fail) use ($receiveOrderDetail) {
+                    if (($receiveOrderDetail->qty % $value) > 0) {
                         $fail('Pembagian quantity tidak sesuai');
                     }
                 },
