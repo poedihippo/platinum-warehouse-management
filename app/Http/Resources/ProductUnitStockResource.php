@@ -21,6 +21,7 @@ class ProductUnitStockResource extends JsonResource
             'code' => $this->code,
             'qty' => $this->qty,
             'warehouse' => $this->warehouse,
+            'warehouse_id' => $this->warehouse_id,
             'uom' => new UomResource($this->uom),
             'product' => new ProductResource($this->product),
         ];
