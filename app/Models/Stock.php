@@ -13,12 +13,12 @@ class Stock extends Model
 
     public function parent()
     {
-        return $this->belongsTo(Stock::class, 'parent_id');
+        return $this->belongsTo(self::class, 'parent_id');
     }
 
     public function childs()
     {
-        return $this->hasMany(Stock::class, 'parent_id');
+        return $this->hasMany(self::class, 'parent_id', 'id');
     }
 
     public function productUnit()
