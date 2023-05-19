@@ -31,6 +31,11 @@ class Stock extends Model
         return $this->belongsTo(Warehouse::class);
     }
 
+    public function receiveOrder()
+    {
+        return $this->belongsTo(ReceiveOrder::class);
+    }
+
     public function receiveOrderDetail()
     {
         return $this->belongsTo(ReceiveOrderDetail::class);

@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\VerifiedRODetailEvent;
+use App\Models\Stock;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -29,15 +30,19 @@ class CreateStockRODetailListener
     {
         $receiveOrderDetail = $event->receiveOrderDetail->load('receiveOrder');
         for ($i = 0; $i < $receiveOrderDetail->adjust_qty ?? 0; $i++) {
-            $qr = QrCode::size(300)
-                ->format('svg')
-                ->generate('01h0f8j05z7r0sp42ynm0jf2bs');
 
-            $receiveOrderDetail->stocks()->create([
+            $stock = Stock::create([
+                'receive_order_id' => $receiveOrderDetail->receive_order_id,
+                'receive_order_detail_id' => $receiveOrderDetail->id,
                 'product_unit_id' => $receiveOrderDetail->product_unit_id,
                 'warehouse_id' => $receiveOrderDetail->receiveOrder->warehouse_id,
-                'qr_code' => $qr,
             ]);
+
+            $qr = QrCode::size(300)
+                ->format('svg')
+                ->generate($stock->id);
+
+            $stock->update(['qr_code' => $qr]);
         }
     }
 }

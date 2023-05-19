@@ -49,7 +49,6 @@ Route::middleware('auth:sanctum')->group(function ($route) {
     Route::resource('product-units', ProductUnitController::class);
     Route::resource('uoms', UomController::class);
 
-    Route::post('receive-order-details/{receiveOrderDetail}/grouping', [ReceiveOrderDetailController::class, 'grouping']);
     Route::group(['prefix' => 'receive-orders/{receiveOrder}/details'], function () {
         Route::get('/', [ReceiveOrderDetailController::class, 'index']);
         Route::get('{receiveOrderDetail}', [ReceiveOrderDetailController::class, 'show']);
@@ -60,6 +59,7 @@ Route::middleware('auth:sanctum')->group(function ($route) {
     });
     Route::resource('receive-orders', ReceiveOrderController::class);
 
+    Route::post('stocks/{productUnit}/grouping', [StockController::class, 'grouping']);
     Route::get('stocks/details', [StockController::class, 'details']);
     Route::resource('stocks', StockController::class);
 });

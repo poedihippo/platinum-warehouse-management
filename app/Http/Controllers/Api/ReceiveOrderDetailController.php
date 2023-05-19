@@ -62,10 +62,4 @@ class ReceiveOrderDetailController extends Controller
         $receiveOrderDetail->delete();
         return $this->deletedResponse();
     }
-
-    public function grouping(ReceiveOrderDetail $receiveOrderDetail, Request $request)
-    {
-        dump($request);
-        dd($receiveOrderDetail);
-    }
 }

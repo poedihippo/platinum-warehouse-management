@@ -21,17 +21,29 @@ class StockController extends Controller
 {
     public function index()
     {
-        $query = ProductUnit::selectRaw('product_units.id, product_units.product_id, product_units.uom_id, product_units.name, product_units.code, stocks.warehouse_id, warehouses.name as warehouse, COUNT(stocks.warehouse_id) as qty')
-            ->leftJoin('stocks', 'stocks.product_unit_id', '=', 'product_units.id')
-            ->leftJoin('warehouses', 'warehouses.id', '=', 'stocks.warehouse_id')
-            ->groupBy('product_units.id', 'product_units.product_id', 'product_units.uom_id', 'product_units.name', 'product_units.code', 'stocks.warehouse_id', 'warehouse');
+        $query = Stock::selectRaw('stocks.product_unit_id, stocks.warehouse_id, COUNT(stocks.warehouse_id) as qty')
+            ->with([
+                'productUnit' => function ($q) {
+                    $q->select('id', 'name', 'code', 'product_id', 'uom_id')
+                        ->with('uom', fn ($q) => $q->select('id', 'name'))
+                        ->with('product', function ($q) {
+                            $q->select('id', 'name', 'product_category_id', 'product_brand_id')
+                                ->with([
+                                    'productCategory' => fn ($q) => $q->select('id', 'name'),
+                                    'productBrand' => fn ($q) => $q->select('id', 'name'),
+                                ]);
+                        });
+                },
+                'warehouse' => fn ($q) => $q->select('id', 'name', 'code')
+            ])
+            ->groupBy('stocks.product_unit_id', 'stocks.warehouse_id');
 
-        // return response()->json($stocks);
         $stocks = QueryBuilder::for($query)
-            ->allowedFilters(['code', 'name', 'warehouse_id', 'receive_order_detail_id', 'uom_id'])
-            ->allowedSorts(['product_unit_id', 'warehouse_id', 'created_at'])
+            // ->allowedFilters(['code', 'name', 'warehouse_id', 'receive_order_detail_id', 'uom_id'])
+            // ->allowedSorts(['product_unit_id', 'warehouse_id', 'created_at'])
             // ->allowedIncludes(['productUnit', 'warehouse', 'receiveOrderDetail'])
             ->paginate();
+        // return response()->json($stocks);
 
         return ProductUnitStockResource::collection($stocks);
     }

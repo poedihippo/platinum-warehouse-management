@@ -19,6 +19,7 @@ class StockResource extends JsonResource
             'product_unit_id' => $this->product_unit_id,
             'warehouse_id' => $this->warehouse_id,
             'receive_order_detail_id' => $this->receive_order_detail_id,
+            'description' => $this->description,
             'qr_code' => $this->qr_code,
             'scanned_by' => $this->scanned_by,
             'scanned_datetime' => $this->scanned_datetime,

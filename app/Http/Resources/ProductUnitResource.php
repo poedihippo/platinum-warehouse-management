@@ -16,7 +16,6 @@ class ProductUnitResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'uom' => new UomResource($this->uom),
             'name' => $this->name,
             'price' => $this->price,
             'description' => $this->description,
@@ -24,6 +23,7 @@ class ProductUnitResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'deleted_at' => $this->deleted_at,
+            'uom' => new UomResource($this->uom),
             'product' => new ProductResource($this->product)
         ];
     }
