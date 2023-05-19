@@ -21,8 +21,6 @@ class ReceiveOrderDetail extends Model
         static::updated(function ($model) {
             if ($model->is_verified === true) {
                 VerifiedRODetailEvent::dispatch($model);
-            } else {
-                UnverifiedRODetailEvent::dispatch($model);
             }
         });
     }
