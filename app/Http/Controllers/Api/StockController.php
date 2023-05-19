@@ -28,7 +28,7 @@ class StockController extends Controller
 
         // return response()->json($stocks);
         $stocks = QueryBuilder::for($query)
-            ->allowedFilters(['code', 'name', 'warehouse_id', 'receive_order_detail_id', 'uom_id'])
+            ->allowedFilters(['code', 'name', 'warehouse_id', 'receive_order_id', 'receive_order_detail_id', 'uom_id'])
             ->allowedSorts(['product_unit_id', 'warehouse_id', 'created_at'])
             // ->allowedIncludes(['productUnit', 'warehouse', 'receiveOrderDetail'])
             ->paginate();
@@ -39,8 +39,17 @@ class StockController extends Controller
     public function details()
     {
         // abort_if(!user()->tokenCan('receive_orders_access'), 403);
-        $stocks = QueryBuilder::for(Stock::class)
-            ->allowedFilters(['id', 'product_unit_id', 'warehouse_id', 'receive_order_detail_id'])
+
+        $filter = request()->filter;
+
+        if (isset($filter) && isset($filter['parent_id']) && $filter['parent_id'] != '') {
+            $query = Stock::whereNotNull('parent_id');
+        } else {
+            $query = Stock::withCount('childs')->whereNull('parent_id');
+        }
+
+        $stocks = QueryBuilder::for($query)
+            ->allowedFilters(['id', 'parent_id', 'product_unit_id', 'warehouse_id', 'receive_order_id', 'receive_order_detail_id'])
             ->allowedSorts(['product_unit_id', 'warehouse_id', 'created_at'])
             ->allowedIncludes(['productUnit', 'warehouse', 'receiveOrderDetail'])
             ->paginate();
@@ -125,12 +134,20 @@ class StockController extends Controller
             'description' => 'required|string',
         ]);
 
-        dump($request->all());
-        dump($productUnit);
+        // dump($request->all());
+        // dump($productUnit);
 
         $qtyGrouping = $request->qty ?? 0;
-        $totalStock = $productUnit->stocks()->whereNull('parent_id')->count() ?? 0;
-        dump($totalStock);
+        $stockQuery = $productUnit->stocks()->whereNull('parent_id');
+
+        $totalStock = $stockQuery->count() ?? 0;
+        // dump($totalStock);
+        // dump($stockQuery);
+        // dd($stocks);
+
+        // 1. hitung total stock dari product unit tsb yang parent_id nya null (stock tanpa gruping)
+        // 2. qty grouping harus lebih kecil dari total stock
+        // 3.
 
         if ($totalStock == 0) {
             return response()->json(['message' => 'Not enough stock'], 400);
@@ -149,10 +166,14 @@ class StockController extends Controller
             ->format('svg')
             ->generate($groupStock->id);
 
-        $groupStock->update(['qr_code' => $qr]);
-        dd($groupStock);
-        // 1. hitung total stock dari product unit tsb yang parent_id nya null (stock tanpa gruping)
-        // 2. qty grouping harus lebih kecil dari total stock
-        // 3.
+        $groupStock->update([
+            'qr_code' => $qr,
+        ]);
+
+        $stockQuery->where('id', '<>', $groupStock->id)->orderByDesc('created_at')->limit($qtyGrouping)->update([
+            'parent_id' => $groupStock->id
+        ]);
+
+        return response()->json($groupStock);
     }
 }
