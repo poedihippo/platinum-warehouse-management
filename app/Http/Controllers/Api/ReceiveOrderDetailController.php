@@ -16,7 +16,7 @@ class ReceiveOrderDetailController extends Controller
 {
     public function index(ReceiveOrder $receiveOrder)
     {
-        $receiveOrderDetails = QueryBuilder::for(ReceiveOrderDetail::class)
+        $receiveOrderDetails = QueryBuilder::for(ReceiveOrderDetail::where('receive_order_id', $receiveOrder->id))
             // ->allowedFilters('name')
             // ->allowedSorts(['id', 'name', 'created_at'])
             ->paginate();

@@ -130,21 +130,14 @@ class StockController extends Controller
     {
         $request->validate([
             'warehouse_id' => 'required|exists:warehouses,id',
-            'qty' => 'required|integer',
-            'description' => 'required|string',
+            'total_group' => 'required|integer|gt:0',
+            'qty' => 'required|integer|gt:0'
         ]);
 
-        // dump($request->all());
-        // dump($productUnit);
-
-        $qtyGrouping = $request->qty ?? 0;
+        $totalQtyGrouping = $request->total_group * $request->qty;
         $stockQuery = $productUnit->stocks()->whereNull('parent_id');
 
-        $totalStock = $stockQuery->count() ?? 0;
-        // dump($totalStock);
-        // dump($stockQuery);
-        // dd($stocks);
-
+        $totalStock = $stockQuery->doesntHave('childs')->count() ?? 0;
         // 1. hitung total stock dari product unit tsb yang parent_id nya null (stock tanpa gruping)
         // 2. qty grouping harus lebih kecil dari total stock
         // 3.
@@ -153,27 +146,33 @@ class StockController extends Controller
             return response()->json(['message' => 'Not enough stock'], 400);
         }
 
-        if ($qtyGrouping == 0 || ($qtyGrouping >= $totalStock)) {
+        if ($totalQtyGrouping == 0 || ($totalQtyGrouping >= $totalStock)) {
             return response()->json(['message' => 'Total amount of grouping stock exceeds the total stock'], 400);
         }
 
-        $groupStock = Stock::create([
-            'product_unit_id' => $productUnit->id,
-            'warehouse_id' => $request->warehouse_id,
-        ]);
+        $totalGroupStock = $stockQuery->has('childs')->count() ?? 0;
 
-        $qr = QrCode::size(300)
-            ->format('svg')
-            ->generate($groupStock->id);
+        for ($i = 0; $i < $request->total_group; $i++) {
+            $totalGroupStock += 1;
+            $groupStock = Stock::create([
+                'product_unit_id' => $productUnit->id,
+                'warehouse_id' => $request->warehouse_id,
+                'description' => 'Group ' . $totalGroupStock . ' - ' . $productUnit->name,
+            ]);
 
-        $groupStock->update([
-            'qr_code' => $qr,
-        ]);
+            $qr = QrCode::size(300)
+                ->format('svg')
+                ->generate($groupStock->id);
 
-        $stockQuery->where('id', '<>', $groupStock->id)->orderByDesc('created_at')->limit($qtyGrouping)->update([
-            'parent_id' => $groupStock->id
-        ]);
+            $groupStock->update([
+                'qr_code' => $qr,
+            ]);
 
-        return response()->json($groupStock);
+            $stockQuery->doesntHave('childs')->where('id', '<>', $groupStock->id)->orderByDesc('created_at')->limit($request->qty)->update([
+                'parent_id' => $groupStock->id
+            ]);
+        }
+
+        return response()->json(['message' => 'Stock group created successfully'], 201);
     }
 }

@@ -15,12 +15,12 @@ class ReceiveOrderResource extends JsonResource
     public function toArray($request)
     {
         return array_merge(
+            parent::toArray($request),
             [
                 'details' => ReceiveOrderDetailResource::collection($this->whenLoaded('details')),
                 'supplier' => new SupplierResource($this->supplier),
                 'warehouse' => new WarehouseResource($this->warehouse)
-            ],
-            parent::toArray($request)
+            ]
         );
     }
 }
