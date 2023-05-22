@@ -29,6 +29,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::get('phpinfo', [TestController::class, 'phpinfo']);
 Route::get('test', [TestController::class, 'index']);
 Route::post('auth/token', [AuthController::class, 'token']);
 Route::post('auth/register', [AuthController::class, 'register']);

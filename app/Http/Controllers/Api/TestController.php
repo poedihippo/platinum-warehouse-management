@@ -18,4 +18,9 @@ class TestController extends Controller
         return response($data)
             ->header('Content-type', 'image/png');
     }
+
+    public function phpinfo()
+    {
+        phpinfo();
+    }
 }
