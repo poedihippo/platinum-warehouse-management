@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class StockResource extends JsonResource
 {
@@ -22,7 +23,7 @@ class StockResource extends JsonResource
             'receive_order_id' => $this->receive_order_id,
             'receive_order_detail_id' => $this->receive_order_detail_id,
             'description' => $this->description,
-            'qr_code' => $this->qr_code,
+            'qr_code' => url(Storage::url($this->qr_code)),
             'scanned_by' => $this->scanned_by,
             'scanned_datetime' => $this->scanned_datetime,
             'stocks_count' => $this->whenCounted('childs'),
