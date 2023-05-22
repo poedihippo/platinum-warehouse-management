@@ -36,6 +36,14 @@ return [
             'throw' => false,
         ],
 
+        'qrcode' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/qrcode'),
+            'url' => env('APP_URL').'/qrcode',
+            'visibility' => 'public',
+            'throw' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

@@ -6,6 +6,7 @@ use App\Events\VerifiedRODetailEvent;
 use App\Models\Stock;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class CreateStockRODetailListener
@@ -29,8 +30,9 @@ class CreateStockRODetailListener
     public function handle(VerifiedRODetailEvent $event)
     {
         $receiveOrderDetail = $event->receiveOrderDetail->load('receiveOrder');
-        for ($i = 0; $i < $receiveOrderDetail->adjust_qty ?? 0; $i++) {
+        $disk = 'qrcode';
 
+        for ($i = 0; $i < $receiveOrderDetail->adjust_qty ?? 0; $i++) {
             $stock = Stock::create([
                 'receive_order_id' => $receiveOrderDetail->receive_order_id,
                 'receive_order_detail_id' => $receiveOrderDetail->id,
@@ -38,11 +40,16 @@ class CreateStockRODetailListener
                 'warehouse_id' => $receiveOrderDetail->receiveOrder->warehouse_id,
             ]);
 
-            $qr = QrCode::size(300)
-                ->format('svg')
+            $data = QrCode::size(114)
+                ->format('png')
+                ->merge(public_path('images/logo-platinum.png'), absolute: true)
                 ->generate($stock->id);
 
-            $stock->update(['qr_code' => $qr]);
+            $fileName = $stock->id . '.png';
+            $fullPath = $disk . '/' . $fileName;
+            Storage::disk($disk)->put($fileName, $data);
+
+            $stock->update(['qr_code' => $fullPath]);
         }
     }
 }

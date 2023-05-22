@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\ReceiveOrderDetailStoreRequest;
 use App\Http\Requests\Api\ReceiveOrderDetailUpdateRequest;
 use App\Http\Resources\ReceiveOrderDetailResource;
 use App\Models\ReceiveOrder;
