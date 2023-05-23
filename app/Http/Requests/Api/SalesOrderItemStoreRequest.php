@@ -24,7 +24,7 @@ class SalesOrderItemStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'stock_id' => 'required',
+            'stock_id' => 'required|exists:stocks,id',
         ];
     }
 }

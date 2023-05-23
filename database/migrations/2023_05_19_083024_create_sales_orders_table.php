@@ -17,8 +17,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id');
             $table->foreignId('reseller_id');
-            $table->date('transaction_date');
-            $table->string('status');
+            $table->string('code', 50);
+            $table->dateTime('transaction_date');
+            $table->string('status', 20);
             $table->timestamps();
         });
     }

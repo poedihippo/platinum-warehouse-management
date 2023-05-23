@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources;
 
-use App\Models\SalesOrderDetail;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class SalesOrderResource extends JsonResource
@@ -16,12 +15,12 @@ class SalesOrderResource extends JsonResource
     public function toArray($request)
     {
         return array_merge(
+            parent::toArray($request),
             [
                 'user' => new UserResource($this->user),
                 'reseller' => new UserResource($this->reseller),
                 'details' => SalesOrderDetailResource::collection($this->whenLoaded('details'))
-            ],
-            parent::toArray($request)
+            ]
         );
     }
 }

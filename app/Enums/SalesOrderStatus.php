@@ -15,9 +15,9 @@ use BenSampo\Enum\Enum;
  */
 final class SalesOrderStatus extends Enum
 {
-    const Pending = 'pending';
-    const Processing = 'processing';
-    const Processed = 'processed';
-    const Done = 'done';
-    const Cancelled = 'cancelled';
+    const PENDING = 'pending';
+    const PROCESSING = 'processing';
+    const PROCESSED = 'processed';
+    const DONE = 'done';
+    const CANCELLED = 'cancelled';
 }

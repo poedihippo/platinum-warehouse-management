@@ -9,8 +9,6 @@ use App\Models\ReceiveOrder;
 use App\Models\ReceiveOrderDetail;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Storage;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class ReceiveOrderDetailController extends Controller

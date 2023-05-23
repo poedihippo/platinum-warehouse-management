@@ -30,6 +30,7 @@ class CreateStockRODetailListener
     public function handle(VerifiedRODetailEvent $event)
     {
         $receiveOrderDetail = $event->receiveOrderDetail->load('receiveOrder');
+        $folder = 'qrcode/';
 
         for ($i = 0; $i < $receiveOrderDetail->adjust_qty ?? 0; $i++) {
             $stock = Stock::create([
@@ -45,10 +46,10 @@ class CreateStockRODetailListener
                 ->generate($stock->id);
 
             $fileName = $receiveOrderDetail->id . '/' . $stock->id . '.png';
-            // $fullPath = $disk . '/' .  $fileName;
-            Storage::disk('s3')->put($fileName, $data);
+            $fullPath = $folder .  $fileName;
+            Storage::put($fullPath, $data);
 
-            $stock->update(['qr_code' => $fileName]);
+            $stock->update(['qr_code' => $fullPath]);
         }
     }
 }

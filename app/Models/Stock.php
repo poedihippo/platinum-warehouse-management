@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 // use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Stock extends Model
@@ -39,5 +41,17 @@ class Stock extends Model
     public function receiveOrderDetail()
     {
         return $this->belongsTo(ReceiveOrderDetail::class);
+    }
+
+    protected function qrCode(): Attribute
+    {
+        return Attribute::make(
+            get: function (string $value) {
+                if (is_null($value) || $value == '') return null;
+                if (config('app.env') === 'production') return Storage::temporaryUrl($value, now()->addMinutes(5));
+
+                return url(Storage::url($value));
+            },
+        );
     }
 }

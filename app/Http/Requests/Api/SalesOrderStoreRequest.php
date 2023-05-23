@@ -2,8 +2,6 @@
 
 namespace App\Http\Requests\Api;
 
-use App\Enums\SalesOrderStatus;
-use BenSampo\Enum\Rules\EnumValue;
 use Illuminate\Foundation\Http\FormRequest;
 
 class SalesOrderStoreRequest extends FormRequest
@@ -26,10 +24,13 @@ class SalesOrderStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'user_id' => 'required',
-            'reseller_id' => 'required',
+            'code' => 'required|unique:sales_orders,code',
+            'reseller_id' => 'required|exists:users,id',
             'transaction_date' => 'required|date_format:Y-m-d H:i:s',
-            'status' => ['required', new EnumValue(SalesOrderStatus::class, false)],
+            'product_unit_ids' => 'required|array',
+            'product_unit_ids.*' => 'exists:product_units,id',
+            'qty' => 'required|array',
+            'qty.*' => 'integer',
         ];
     }
 }

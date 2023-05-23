@@ -16,11 +16,10 @@ class SalesOrderItemResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'stock' => new StockResource($this->stock),
-            'sales_order_detail' => new SalesOrderDetailResource($this->salesOrderDetail),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'deleted_at' => $this->deleted_at,
+            'stock' => new StockResource($this->stock),
+            'sales_order_detail' => new SalesOrderDetailResource($this->salesOrderDetail),
         ];
     }
 }

@@ -6,16 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\SalesOrderDetailResource;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderDetail;
-use App\Models\SalesOrderItem;
-use Illuminate\Http\Request;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class SalesOrderDetailController extends Controller
 {
     public function index(SalesOrder $salesOrder)
     {
-        $salesOrderDetails = QueryBuilder::for(SalesOrderDetail::class)
+        $query = SalesOrderDetail::where('sales_order_id', $salesOrder->id);
+        $salesOrderDetails = QueryBuilder::for($query)
             ->paginate();
+
         return SalesOrderDetailResource::collection($salesOrderDetails);
     }
 

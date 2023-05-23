@@ -6,11 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\SalesOrderResource;
 use App\Http\Requests\Api\SalesOrderStoreRequest;
 use App\Http\Requests\Api\SalesOrderUpdateRequest;
-use App\Models\ProductUnit;
 use App\Models\SalesOrder;
-use App\Models\SalesOrderDetail;
 use Illuminate\Http\Response;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class SalesOrderController extends Controller
@@ -33,19 +31,21 @@ class SalesOrderController extends Controller
 
     public function store(SalesOrderStoreRequest $request)
     {
-        // dd(user());
-        $salesOrder = SalesOrder::create([
-            'user_id' => user()->id,
-            'reseller_id' => $request->reseller_id,
-            'transaction_date' => $request->transaction_date,
-            'status' => $request->status
-        ]);
-        for ($i = 0; $i < count($request->product_unit_ids); $i++) {
-            $salesOrder->details()->create([
-                'sales_order_id' => $salesOrder->id,
-                'product_unit_id' => $request->product_unit_ids[$i],
-                'qty' => $request->qty[$i],
-            ]);
+        DB::beginTransaction();
+        try {
+            $salesOrder = SalesOrder::create($request->validated());
+
+            for ($i = 0; $i < count($request->product_unit_ids); $i++) {
+                $salesOrder->details()->create([
+                    'sales_order_id' => $salesOrder->id,
+                    'product_unit_id' => $request->product_unit_ids[$i],
+                    'qty' => $request->qty[$i],
+                ]);
+            }
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json(['message' => $th->getMessage()], 500);
         }
 
         return new SalesOrderResource($salesOrder);
