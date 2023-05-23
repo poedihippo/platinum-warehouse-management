@@ -12,6 +12,9 @@ use App\Http\Controllers\Api\ReceiveOrderDetailController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\WarehouseController;
 use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\SalesOrderController;
+use App\Http\Controllers\Api\SalesOrderDetailController;
+use App\Http\Controllers\Api\SalesOrderItemController;
 use App\Http\Controllers\Api\UomController;
 use App\Http\Controllers\Api\SocialiteController;
 use App\Http\Controllers\Api\StockController;
@@ -61,6 +64,15 @@ Route::middleware('auth:sanctum')->group(function ($route) {
         Route::delete('{receiveOrderDetail}', [ReceiveOrderDetailController::class, 'destroy']);
     });
     Route::resource('receive-orders', ReceiveOrderController::class);
+
+    Route::group(['prefix' => 'sales-orders/{salesOrder}/details'], function () {
+        Route::get('/', [SalesOrderDetailController::class, 'index']);
+        Route::get('{salesOrderDetail}', [SalesOrderDetailController::class, 'show']);
+        Route::put('{salesOrderDetail}', [SalesOrderDetailController::class, 'update']);
+        Route::delete('{salesOrderDetail}', [SalesOrderDetailController::class, 'destroy']);
+    });
+    Route::resource('sales-orders', SalesOrderController::class);
+    Route::post('sales-order-items/{salesOrderDetail}', [SalesOrderItemController::class, 'store']);
 
     Route::post('stocks/{productUnit}/grouping', [StockController::class, 'grouping']);
     Route::get('stocks/details', [StockController::class, 'details']);
