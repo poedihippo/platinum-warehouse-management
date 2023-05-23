@@ -45,8 +45,8 @@ class CreateStockRODetailListener
                 ->merge(public_path('images/logo-platinum.png'), absolute: true)
                 ->generate($stock->id);
 
-            $fileName = $stock->id . '.png';
-            $fullPath = $disk . '/' . $fileName;
+            $fileName = $receiveOrderDetail->id . '/' . $stock->id . '.png';
+            $fullPath = $disk . '/' .  $fileName;
             Storage::disk($disk)->put($fileName, $data);
 
             $stock->update(['qr_code' => $fullPath]);

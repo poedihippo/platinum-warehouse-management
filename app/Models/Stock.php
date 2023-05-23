@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\MediaLibrary\InteractsWithMedia;
+// use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Stock extends Model
 {
-    use HasUlids, InteractsWithMedia;
+    use HasUlids;
     protected $guarded = [];
 
     public function parent()

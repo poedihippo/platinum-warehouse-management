@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Events\UnverifiedRODetailEvent;
 use App\Events\VerifiedRODetailEvent;
 use Illuminate\Database\Eloquent\Model;
 
@@ -19,8 +20,12 @@ class ReceiveOrderDetail extends Model
     protected static function booted()
     {
         static::updated(function ($model) {
-            if ($model->is_verified === true) {
-                VerifiedRODetailEvent::dispatch($model);
+            if ($model->isDirty('is_verified')) {
+                if ($model->is_verified === true) {
+                    VerifiedRODetailEvent::dispatch($model);
+                } else {
+                    UnverifiedRODetailEvent::dispatch($model);
+                }
             }
         });
     }

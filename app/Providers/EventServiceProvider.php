@@ -2,12 +2,13 @@
 
 namespace App\Providers;
 
+use App\Events\UnverifiedRODetailEvent;
 use App\Events\VerifiedRODetailEvent;
 use App\Listeners\CreateStockRODetailListener;
+use App\Listeners\DeleteStockRODetailListener;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Event;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -23,6 +24,10 @@ class EventServiceProvider extends ServiceProvider
 
         VerifiedRODetailEvent::class => [
             CreateStockRODetailListener::class,
+        ],
+
+        UnverifiedRODetailEvent::class => [
+            DeleteStockRODetailListener::class,
         ],
     ];
 
