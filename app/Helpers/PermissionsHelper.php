@@ -119,19 +119,26 @@ class PermissionsHelper
                 'receive_order_delete',
             ],
 
+            'sales_orders_access' => [
+                'sales_order_view',
+                'sales_order_create',
+                'sales_order_edit',
+                'sales_order_delete',
+            ],
+
             // 'corporate_management_access' => [
-                // 'companies_access' => [
-                //     'companies_view',
-                //     'companies_create',
-                //     'companies_edit',
-                //     'companies_delete',
-                // ],
-                // 'tenants_access' => [
-                //     'tenants_view',
-                //     'tenants_create',
-                //     'tenants_edit',
-                //     'tenants_delete',
-                // ],
+            // 'companies_access' => [
+            //     'companies_view',
+            //     'companies_create',
+            //     'companies_edit',
+            //     'companies_delete',
+            // ],
+            // 'tenants_access' => [
+            //     'tenants_view',
+            //     'tenants_create',
+            //     'tenants_edit',
+            //     'tenants_delete',
+            // ],
             // ],
 
             // 'petty_cashes_management' => [
