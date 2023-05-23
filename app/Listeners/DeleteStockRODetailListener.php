@@ -29,8 +29,7 @@ class DeleteStockRODetailListener implements ShouldQueue
     {
         $receiveOrderDetail = $event->receiveOrderDetail;
 
-        $disk = 'qrcode';
         $receiveOrderDetail->stocks->each->delete();
-        Storage::disk($disk)->deleteDirectory($receiveOrderDetail->id);
+        Storage::disk('s3')->deleteDirectory($receiveOrderDetail->id);
     }
 }
