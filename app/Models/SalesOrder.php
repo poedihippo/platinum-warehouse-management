@@ -10,9 +10,11 @@ class SalesOrder extends Model
     protected $fillable = [
         'user_id',
         'reseller_id',
+        'warehouse_id',
         'invoice_no',
         'code',
         'transaction_date',
+        'shipment_estimation_datetime',
         'status',
         'price',
     ];
@@ -43,5 +45,10 @@ class SalesOrder extends Model
     public function reseller()
     {
         return $this->belongsTo(User::class, 'reseller_id');
+    }
+
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class, 'warehouse_id');
     }
 }

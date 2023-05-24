@@ -26,8 +26,19 @@ class UserSeeder extends Seeder
 
         $user = User::create([
             'name' => 'Admin',
+            'code' => '1234567890',
             'email' => 'admin@gmail.com',
             'password' => bcrypt('admin'),
+            'tax_address' => 'jalan kenangan',
+            'provider_id' => '1',
+            'provider_name' => 'Iconic',
+            'city' => 'Tangerang',
+            'province' => 'Tangerang',
+            'zip_code' => '56311',
+            'country' => 'Indonesia',
+            'phone' => '08577700702',
+            'contact_person' => 'Ryan Dmasiv',
+            'web_page' => 'jalan kenangan',
             'type' => UserType::Admin,
             'phone' => '0987654321',
         ]);

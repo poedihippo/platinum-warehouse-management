@@ -106,5 +106,16 @@ class SalesOrderController extends Controller
         // function export xml
         // $pdf = Pdf::loadView('pdf.salesOrders.salesOrder', ['salesOrder' => $salesOrder->load(['reseller', 'details' => fn ($q) => $q->with('productUnit.product')])]);
         // return $pdf->download('sales-order-' . $salesOrder->code . '.pdf');
+        $cashAdvance = $cashAdvance->load(['details' => function ($q) {
+            $q->where('is_summary', 0);
+        }]);
+
+        $salesOrder->load([
+            'reseller',
+            'details' => function ($q) use ($type) {
+                $q->with('productUnit.product');
+                $q->when($type === 'do', fn ($q) => $q->withCount('salesOrderItems'));
+            }
+        ]);
     }
 }
