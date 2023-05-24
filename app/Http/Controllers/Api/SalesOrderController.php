@@ -103,7 +103,8 @@ class SalesOrderController extends Controller
 
     public function exportXml(SalesOrder $salesOrder)
     {
-        $pdf = Pdf::loadView('pdf.salesOrders.salesOrder', ['salesOrder' => $salesOrder->load(['reseller', 'details' => fn ($q) => $q->with('productUnit.product')])]);
-        return $pdf->download('sales-order-' . $salesOrder->code . '.pdf');
+        // function export xml
+        // $pdf = Pdf::loadView('pdf.salesOrders.salesOrder', ['salesOrder' => $salesOrder->load(['reseller', 'details' => fn ($q) => $q->with('productUnit.product')])]);
+        // return $pdf->download('sales-order-' . $salesOrder->code . '.pdf');
     }
 }

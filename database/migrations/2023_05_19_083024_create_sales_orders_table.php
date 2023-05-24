@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignId('user_id');
             $table->foreignId('reseller_id');
             $table->string('code', 50);
+            $table->string('invoice_no', 20);
             $table->string('status', 20);
             $table->integer('price')->default(0);
             $table->dateTime('transaction_date');
