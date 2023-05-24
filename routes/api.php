@@ -71,7 +71,11 @@ Route::middleware('auth:sanctum')->group(function ($route) {
         Route::put('{salesOrderDetail}', [SalesOrderDetailController::class, 'update']);
         Route::delete('{salesOrderDetail}', [SalesOrderDetailController::class, 'destroy']);
     });
+
     Route::resource('sales-orders', SalesOrderController::class);
+    Route::get('sales-orders/{salesOrder}/print', [SalesOrderController::class, 'print']);
+    Route::get('sales-orders/{salesOrder}/export-xml', [SalesOrderController::class, 'exportXml']);
+    Route::put('sales-orders/{salesOrder}/update-status', [SalesOrderController::class, 'updateStatus']);
     Route::post('sales-order-items/{salesOrderDetail}', [SalesOrderItemController::class, 'store']);
 
     Route::post('stocks/{productUnit}/grouping', [StockController::class, 'grouping']);

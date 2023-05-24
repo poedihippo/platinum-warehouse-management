@@ -18,8 +18,11 @@ return new class extends Migration
             $table->foreignId('user_id');
             $table->foreignId('reseller_id');
             $table->string('code', 50);
-            $table->dateTime('transaction_date');
             $table->string('status', 20);
+            $table->integer('price')->default(0);
+            $table->dateTime('transaction_date');
+            $table->dateTime('shipment_estimation_datetime');
+            $table->text('note')->nullable();
             $table->timestamps();
         });
     }

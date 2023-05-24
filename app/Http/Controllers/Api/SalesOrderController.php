@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\SalesOrderStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SalesOrderResource;
 use App\Http\Requests\Api\SalesOrderStoreRequest;
 use App\Http\Requests\Api\SalesOrderUpdateRequest;
 use App\Models\SalesOrder;
+use Barryvdh\DomPDF\Facade\Pdf;
+use BenSampo\Enum\Rules\EnumValue;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -65,5 +69,41 @@ class SalesOrderController extends Controller
         abort_if(!user()->tokenCan('sales_order_delete'), 403);
         $salesOrder->delete();
         return $this->deletedResponse();
+    }
+
+    public function updateStatus(SalesOrder $salesOrder, Request $request)
+    {
+        $request->validate([
+            'status' => ['required', new EnumValue(SalesOrderStatus::class, false)],
+        ]);
+
+        $salesOrder->update([
+            'status' => $request->status
+        ]);
+
+        return new SalesOrderResource($salesOrder);
+    }
+
+    public function print(SalesOrder $salesOrder, Request $request)
+    {
+        $type = isset($request->type) && $request->type === 'do' ? 'do' : 'so';
+
+        $salesOrder->load([
+            'reseller',
+            'details' => function ($q) use ($type) {
+                $q->with('productUnit.product');
+                $q->when($type === 'do', fn ($q) => $q->withCount('salesOrderItems'));
+            }
+        ]);
+
+        $pdf = Pdf::loadView('pdf.salesOrders.salesOrder', ['salesOrder' => $salesOrder, 'type' => $type]);
+
+        return $pdf->download('sales-order-' . $salesOrder->code . '.pdf');
+    }
+
+    public function exportXml(SalesOrder $salesOrder)
+    {
+        $pdf = Pdf::loadView('pdf.salesOrders.salesOrder', ['salesOrder' => $salesOrder->load(['reseller', 'details' => fn ($q) => $q->with('productUnit.product')])]);
+        return $pdf->download('sales-order-' . $salesOrder->code . '.pdf');
     }
 }

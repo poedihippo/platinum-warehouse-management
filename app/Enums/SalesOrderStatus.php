@@ -7,11 +7,11 @@ namespace App\Enums;
 use BenSampo\Enum\Enum;
 
 /**
- * @method static static Pending()
- * @method static static Processing()
- * @method static static Processed()
- * @method static static Done()
- * @method static static Cancelled()
+ * @method static static PENDING()
+ * @method static static PROCESSING()
+ * @method static static PROCESSED()
+ * @method static static DONE()
+ * @method static static CANCELLED()
  */
 final class SalesOrderStatus extends Enum
 {

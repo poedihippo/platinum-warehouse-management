@@ -13,9 +13,11 @@ class SalesOrder extends Model
         'code',
         'transaction_date',
         'status',
+        'price',
     ];
 
     protected $casts = [
+        'price' => 'integer',
         'status' => SalesOrderStatus::class,
     ];
 
