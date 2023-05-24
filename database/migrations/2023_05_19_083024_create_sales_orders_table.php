@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id');
             $table->foreignId('reseller_id');
+            $table->foreignId('warehouse_id');
             $table->string('code', 50);
             $table->string('invoice_no', 20);
             $table->string('status', 20);
