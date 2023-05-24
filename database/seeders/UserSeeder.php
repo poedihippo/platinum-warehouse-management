@@ -42,5 +42,23 @@ class UserSeeder extends Seeder
         ]);
 
         $user->assignRole($adminRole);
+
+        User::create([
+            'name' => 'Emporium Fish',
+            'code' => 'CE007',
+            'email' => 'emporium.fish@gmail.com',
+            'password' => bcrypt('12345678'),
+            'type' => UserType::Reseller,
+            'phone' => '098709870987',
+        ]);
+
+        User::create([
+            'name' => 'Customer Pameran',
+            'code' => 'CC001',
+            'email' => 'customer.pameran@gmail.com',
+            'password' => bcrypt('12345678'),
+            'type' => UserType::Reseller,
+            'phone' => '098765098765',
+        ]);
     }
 }

@@ -15,7 +15,6 @@ class CustomerSeeder extends Seeder
      */
     public function run()
     {
-        User::factory()->count(50)->create(['type' => 2]); //suppliers
         User::factory()->count(50)->create(['type' => 3]); //customers
     }
 }
