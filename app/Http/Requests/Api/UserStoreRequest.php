@@ -28,6 +28,7 @@ class UserStoreRequest extends FormRequest
         return [
             'name' => 'required',
             'email' => 'required|email|unique:users,email',
+            'code' => 'nullable|required_if:type,' . UserType::Reseller,
             'password' => 'nullable|required_unless:type,' . UserType::Reseller,
             'phone' => 'required',
             'address' => 'nullable',
