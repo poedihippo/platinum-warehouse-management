@@ -32,6 +32,11 @@ class SalesOrder extends Model
         });
     }
 
+    public function deliveryOrder()
+    {
+        return $this->hasOne(DeliveryOrder::class);
+    }
+
     public function details()
     {
         return $this->hasMany(SalesOrderDetail::class);

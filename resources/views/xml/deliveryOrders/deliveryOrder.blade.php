@@ -5,7 +5,7 @@
             @php
                 $keyId = 0;
             @endphp
-            @foreach ($salesOrder->details ?? [] as $detail)
+            @foreach ($deliveryOrder->salesOrder?->details ?? [] as $detail)
                 <ITEMLINE operation="Add">
                     <KeyID>{{ $keyId++ }}</KeyID>
                     <ITEMNO>{{ $detail->productUnit?->code }}</ITEMNO>
@@ -24,42 +24,34 @@
                     <ITEMRESERVED10 />
                     <ITEMOVDESC>{{ $detail->productUnit->name }}</ITEMOVDESC>
                     <UNITPRICE>{{ $detail->productUnit->price }}</UNITPRICE>
-                    <DISCPC />
+                    <ITEMDISCPC />
                     <TAXCODES />
                     <GROUPSEQ />
-                    <QTYSHIPPED>{{ $detail->qty }}</QTYSHIPPED>
+                    <SOSEQ>1</SOSEQ>
+                    <BRUTOUNITPRICE>0</BRUTOUNITPRICE>
+                    <WAREHOUSEID>{{ $deliveryOrder->salesOrder?->warehouse?->code }}</WAREHOUSEID>
+                    <QTYCONTROL>0</QTYCONTROL>
+                    <DOSEQ />
+                    <SOID>{{ $deliveryOrder->salesOrder?->invoice_no }}</SOID>
+                    <DOID />
                 </ITEMLINE>
             @endforeach
-            <SONO>{{ $salesOrder->invoice_no }}</SONO>
-            <SODATE>{{ date('Y-m-d', strtotime($salesOrder->transaction_date)) }}</SODATE>
-            <TAX1ID>T</TAX1ID>
-            <TAX1CODE>T</TAX1CODE>
-            <TAX2CODE />
-            <TAX1RATE>11</TAX1RATE>
-            <TAX2RATE>0</TAX2RATE>
-            <TAX1AMOUNT>0</TAX1AMOUNT>
-            <TAX2AMOUNT>0</TAX2AMOUNT>
-            <RATE>1</RATE>
-            <TAXINCLUSIVE>0</TAXINCLUSIVE>
-            <CUSTOMERISTAXABLE>1</CUSTOMERISTAXABLE>
-            <CASHDISCOUNT>0</CASHDISCOUNT>
-            <CASHDISCPC />
-            <FREIGHT>0</FREIGHT>
-            <TERMSID>C.O.D</TERMSID>
-            <FOB />
-            <ESTSHIPDATE>{{ date('Y-m-d', strtotime($salesOrder->shipment_estimation_datetime)) }}</ESTSHIPDATE>
-            <DESCRIPTION>{{ $detail->note }}</DESCRIPTION>
-            <SHIPTO1>{{ $salesOrder->reseller?->name }}</SHIPTO1>
-            <SHIPTO2>{{ $salesOrder->reseller?->tax_address }}</SHIPTO2>
+            <INVOICENO>{{ $deliveryOrder->invoice_no }}</INVOICENO>
+            <INVOICEDATE>{{ date('Y-m-d', strtotime($deliveryOrder->salesOrder?->transaction_date)) }}</INVOICEDATE>
+            <INVOICEAMOUNT>0</INVOICEAMOUNT>
+            <PURCHASEORDERNO />
+            <WAREHOUSEID>{{ $deliveryOrder->salesOrder?->warehouse?->code }}</WAREHOUSEID>
+            <DESCRIPTION>{{ $deliveryOrder->description }}</DESCRIPTION>
+            <SHIPDATE>{{ date('Y-m-d', strtotime($deliveryOrder->salesOrder?->shipment_estimation_datetime)) }}</SHIPDATE>
+            <DELIVERYORDER />
+            <CUSTOMERID>{{ $deliveryOrder->salesOrder?->reseller?->code }}</CUSTOMERID>
+            <SHIPTO1>{{ $deliveryOrder->salesOrder?->reseller?->name }}</SHIPTO1>
+            <SHIPTO2>{{ $deliveryOrder->salesOrder?->reseller?->tax_address }}</SHIPTO2>
             <SHIPTO3 />
-            <SHIPTO4> </SHIPTO4>
+            <SHIPTO4 />
             <SHIPTO5 />
-            <DP>0</DP>
-            <DPACCOUNTID>2102.001</DPACCOUNTID>
-            <DPUSED />
-            <CUSTOMERID>{{ $salesOrder->reseller?->code }}</CUSTOMERID>
-            <PONO />
             <CURRENCYNAME>IDR</CURRENCYNAME>
+            <AUTOMATICINSERTGROUPING />
         </SALESORDER>
     </TRANSACTIONS>
 </NMEXML>

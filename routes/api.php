@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\DeliveryOrderController;
 use App\Http\Controllers\Api\ProductBrandController;
 use App\Http\Controllers\Api\ProductCategoryController;
 use App\Http\Controllers\Api\ProductController;
@@ -77,6 +78,10 @@ Route::middleware('auth:sanctum')->group(function ($route) {
     Route::get('sales-orders/{salesOrder}/export-xml', [SalesOrderController::class, 'exportXml']);
     Route::put('sales-orders/{salesOrder}/update-status', [SalesOrderController::class, 'updateStatus']);
     Route::post('sales-order-items/{salesOrderDetail}', [SalesOrderItemController::class, 'store']);
+
+    Route::resource('delivery-orders', DeliveryOrderController::class);
+    Route::get('delivery-orders/{deliveryOrder}/print', [DeliveryOrderController::class, 'print']);
+    Route::get('delivery-orders/{deliveryOrder}/export-xml', [DeliveryOrderController::class, 'exportXml']);
 
     Route::post('stocks/{productUnit}/grouping', [StockController::class, 'grouping']);
     Route::get('stocks/details', [StockController::class, 'details']);

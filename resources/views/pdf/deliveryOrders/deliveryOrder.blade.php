@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>Sales Order {{ $salesOrder->code }}</title>
+    <title>Sales Order {{ $deliveryOrder->salesOrder?->code }}</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 </head>
+
 <body>
-    <p>SO : {{ $salesOrder->code }}</p>
-    <p>Date : {{ date('d-m-Y H:i:s', strtotime($salesOrder->transaction_date)) }}</p>
-    <p>Customer : {{ $salesOrder->reseller?->name ?? '' }}</p>
-    <p>Phone Number : {{ $salesOrder->reseller?->phone ?? '' }}</p>
-    <p>Items : {{ $salesOrder->details->count() }}</p>
-    <p>Amount : {{ $salesOrder->price ?? 0 }}</p>
-    <p>Est. Shipment : {{ date('d-m-Y H:i:s', strtotime($salesOrder->shipment_estimation_datetime)) }}</p>
+    <p>DO : {{ $deliveryOrder->code }}</p>
+    <p>Date : {{ date('d-m-Y H:i:s', strtotime($deliveryOrder->salesOrder?->transaction_date)) }}</p>
+    <p>Customer : {{ $deliveryOrder->salesOrder?->reseller?->name ?? '' }}</p>
+    <p>Phone Number : {{ $deliveryOrder->salesOrder?->reseller?->phone ?? '' }}</p>
+    <p>Items : {{ $deliveryOrder->salesOrder?->details->count() }}</p>
+    <p>Amount : {{ $deliveryOrder->salesOrder?->price ?? 0 }}</p>
+    <p>Est. Shipment : {{ date('d-m-Y H:i:s', strtotime($deliveryOrder->salesOrder?->shipment_estimation_datetime)) }}</p>
     <table border="1">
         <thead>
             <tr>
@@ -21,12 +23,11 @@
                 <th>Brand</th>
                 <th>Qty</th>
                 <th>Unit</th>
-                <th>Price</th>
-                <th>Amount</th>
+                <th>Verified</th>
             </tr>
         </thead>
         <tbody>
-            @foreach ($salesOrder->details ?? [] as $detail)
+            @foreach ($deliveryOrder->salesOrder?->details ?? [] as $detail)
                 <tr>
                     <td>{{ $detail->productUnit?->code ?? '' }}</td>
                     <td>{{ $detail->productUnit?->name ?? '' }}</td>
@@ -34,11 +35,11 @@
                     <td>{{ $detail->productUnit?->product?->productBrand?->name ?? '' }}</td>
                     <td>{{ $detail->qty ?? 0 }}</td>
                     <td>{{ $detail->productUnit?->uom?->name ?? '' }}</td>
-                    <td>{{ $detail->productUnit?->price ?? 0 }}</td>
-                    <td>{{ $detail->productUnit?->price * $detail->qty }}</td>
+                    <td>{{ $detail->sales_order_items_count ?? 0 }}/({{ $detail->qty }})</td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 </body>
+
 </html>

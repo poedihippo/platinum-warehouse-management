@@ -84,19 +84,14 @@ class SalesOrderController extends Controller
         return new SalesOrderResource($salesOrder);
     }
 
-    public function print(SalesOrder $salesOrder, Request $request)
+    public function print(SalesOrder $salesOrder)
     {
-        $type = isset($request->type) && $request->type === 'do' ? 'do' : 'so';
-
         $salesOrder->load([
             'reseller',
-            'details' => function ($q) use ($type) {
-                $q->with('productUnit.product');
-                $q->when($type === 'do', fn ($q) => $q->withCount('salesOrderItems'));
-            }
+            'details' => fn ($q) => $q->with('productUnit.product')
         ]);
 
-        $pdf = Pdf::loadView('pdf.salesOrders.salesOrder', ['salesOrder' => $salesOrder, 'type' => $type]);
+        $pdf = Pdf::loadView('pdf.salesOrders.salesOrder', ['salesOrder' => $salesOrder]);
 
         return $pdf->download('sales-order-' . $salesOrder->code . '.pdf');
     }

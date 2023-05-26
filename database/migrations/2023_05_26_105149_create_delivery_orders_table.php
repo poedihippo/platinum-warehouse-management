@@ -13,18 +13,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('sales_orders', function (Blueprint $table) {
+        Schema::create('delivery_orders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained();
-            $table->foreignId('reseller_id')->constrained('users', 'id');
-            $table->foreignId('warehouse_id')->constrained();
+            $table->foreignId('sales_order_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->string('code', 50);
             $table->string('invoice_no', 20);
-            $table->string('status', 20);
-            $table->integer('price')->default(0);
-            $table->dateTime('transaction_date');
-            $table->dateTime('shipment_estimation_datetime');
-            $table->text('note')->nullable();
+            // $table->dateTime('transaction_date');
+            // $table->dateTime('shipment_estimation_datetime');
+            $table->text('description')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
@@ -37,6 +33,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('sales_orders');
+        Schema::dropIfExists('delivery_orders');
     }
 };
