@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api;
 
+use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 
 class SalesOrderStoreRequest extends FormRequest
@@ -31,10 +32,11 @@ class SalesOrderStoreRequest extends FormRequest
             'transaction_date' => 'required|date_format:Y-m-d H:i:s',
             'shipment_estimation_datetime' => 'required|date_format:Y-m-d H:i:s',
             'note' => 'nullable|string',
-            'product_unit_ids' => 'required|array',
-            'product_unit_ids.*' => 'exists:product_units,id',
-            'qty' => 'required|array',
-            'qty.*' => 'integer',
+            'items' => ['required', 'array', function (string $attribute, mixed $value, Closure $fail) {
+                if (count($value) <= 0) $fail('items required');
+            }],
+            'items.*.product_unit_id' => 'integer|exists:product_units,id',
+            'items.*.qty' => 'integer',
         ];
     }
 }

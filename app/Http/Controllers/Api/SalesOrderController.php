@@ -39,11 +39,12 @@ class SalesOrderController extends Controller
         try {
             $salesOrder = SalesOrder::create($request->validated());
 
-            for ($i = 0; $i < count($request->product_unit_ids); $i++) {
+            $items = $request->items ?? [];
+            for ($i = 0; $i < count($items); $i++) {
                 $salesOrder->details()->create([
                     'sales_order_id' => $salesOrder->id,
-                    'product_unit_id' => $request->product_unit_ids[$i],
-                    'qty' => $request->qty[$i],
+                    'product_unit_id' => $items[$i]['product_unit_id'],
+                    'qty' => $items[$i]['qty'],
                 ]);
             }
             DB::commit();
