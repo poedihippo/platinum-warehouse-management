@@ -25,7 +25,17 @@ class DeliveryOrderController extends Controller
     public function show(DeliveryOrder $deliveryOrder)
     {
         abort_if(!user()->tokenCan('delivery_order_create'), 403);
-        return new DeliveryOrderResource($deliveryOrder->load('details'));
+
+        $deliveryOrder->load([
+            'salesOrder' => function ($q) {
+                $q->with('reseller');
+                $q->with('details', function ($q) {
+                    $q->with('productUnit.product');
+                });
+            }
+        ]);
+
+        return new DeliveryOrderResource($deliveryOrder);
     }
 
     public function store(DeliveryOrderStoreRequest $request)
