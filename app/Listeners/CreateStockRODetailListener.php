@@ -40,7 +40,7 @@ class CreateStockRODetailListener
                 'warehouse_id' => $receiveOrderDetail->receiveOrder->warehouse_id,
             ]);
 
-            $data = QrCode::size(114)
+            $data = QrCode::size(350)
                 ->format('png')
                 ->merge(public_path('images/logo-platinum.png'), absolute: true)
                 ->generate($stock->id);
