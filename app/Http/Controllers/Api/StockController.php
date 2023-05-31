@@ -14,6 +14,7 @@ use App\Models\Warehouse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -131,7 +132,8 @@ class StockController extends Controller
         $request->validate([
             'warehouse_id' => 'required|exists:warehouses,id',
             'total_group' => 'required|integer|gt:0',
-            'qty' => 'required|integer|gt:0'
+            'qty' => 'required|integer|gt:0',
+            'receive_order_detail_id' => 'nullable|exists:receive_order_details,id',
         ]);
 
         $totalQtyGrouping = $request->total_group * $request->qty;
@@ -156,23 +158,56 @@ class StockController extends Controller
             $totalGroupStock += 1;
             $groupStock = Stock::create([
                 'product_unit_id' => $productUnit->id,
+                'receive_order_detail_id' => $request->receive_order_detail_id ?? null,
                 'warehouse_id' => $request->warehouse_id,
-                'description' => 'Group ' . $totalGroupStock . ' - ' . $productUnit->name,
+                'description' => 'Group ' . $totalGroupStock . ' - ' . $productUnit->code,
             ]);
 
-            $qr = QrCode::size(300)
-                ->format('svg')
+            // $qr = QrCode::size(300)
+            // ->format('svg')
+            // ->generate($groupStock->id);
+
+            // $groupStock->update([
+            //     'qr_code' => $qr,
+            // ]);
+
+            $data = QrCode::size(350)
+                ->format('png')
+                ->merge(public_path('images/logo-platinum.png'), absolute: true)
                 ->generate($groupStock->id);
 
-            $groupStock->update([
-                'qr_code' => $qr,
-            ]);
+            $folder = 'qrcode/';
+            $fileName = 'group/' . $groupStock->id . '.png';
+            $fullPath = $folder .  $fileName;
+            Storage::put($fullPath, $data);
 
-            $stockQuery->doesntHave('childs')->where('id', '<>', $groupStock->id)->orderByDesc('created_at')->limit($request->qty)->update([
+            $groupStock->update(['qr_code' => $fullPath]);
+
+            $productUnit->stocks()->whereNull('parent_id')->doesntHave('childs')->where('id', '<>', $groupStock->id)->orderByDesc('created_at')->limit($request->qty)->update([
                 'parent_id' => $groupStock->id
             ]);
         }
 
         return response()->json(['message' => 'Stock group created successfully'], 201);
+    }
+
+    public function printAll(Request $request)
+    {
+        $filter = $request->filter;
+        $query = Stock::select('id', 'qr_code', 'description');
+
+        if (isset($filter) && isset($filter['parent_id']) && $filter['parent_id'] != '') {
+            $query->where(fn ($q) => $q->where('parent_id', $filter['parent_id'])->orWhere('id', $filter['parent_id']))->orderBy('parent_id');
+        } else {
+            $query->whereNull('parent_id')->with('childs', fn ($q) => $q->select('id', 'parent_id', 'qr_code', 'description'));
+        }
+
+        $stocks = QueryBuilder::for($query)
+            // ->allowedFilters(['id', 'parent_id', 'product_unit_id', 'warehouse_id', 'receive_order_id', 'receive_order_detail_id'])
+            ->allowedFilters(['receive_order_detail_id'])
+            ->allowedSorts(['product_unit_id', 'warehouse_id', 'created_at'])
+            ->get();
+        return response()->json($stocks);
+        return StockResource::collection($stocks);
     }
 }

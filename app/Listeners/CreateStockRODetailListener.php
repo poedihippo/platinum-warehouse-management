@@ -9,7 +9,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
-class CreateStockRODetailListener
+class CreateStockRODetailListener implements ShouldQueue
 {
     /**
      * Create the event listener.
