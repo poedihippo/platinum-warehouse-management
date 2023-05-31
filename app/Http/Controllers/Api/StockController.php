@@ -183,9 +183,13 @@ class StockController extends Controller
 
             $groupStock->update(['qr_code' => $fullPath]);
 
-            $productUnit->stocks()->whereNull('parent_id')->doesntHave('childs')->where('id', '<>', $groupStock->id)->orderByDesc('created_at')->limit($request->qty)->update([
+            Stock::where('product_unit_id', $productUnit->id)->whereNull('parent_id')->doesntHave('childs')->where('id', '<>', $groupStock->id)->orderByDesc('created_at')->limit($request->qty)->update([
                 'parent_id' => $groupStock->id
             ]);
+
+            // $productUnit->stocks()->whereNull('parent_id')->doesntHave('childs')->where('id', '<>', $groupStock->id)->orderByDesc('created_at')->limit($request->qty)->update([
+            //     'parent_id' => $groupStock->id
+            // ]);
         }
 
         return response()->json(['message' => 'Stock group created successfully'], 201);
