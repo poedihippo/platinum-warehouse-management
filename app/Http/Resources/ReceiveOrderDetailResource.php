@@ -20,7 +20,6 @@ class ReceiveOrderDetailResource extends JsonResource
             'item_unit' => $this->item_unit,
             'bruto_unit_price' => $this->bruto_unit_price,
             'adjust_qty' => $this->adjust_qty,
-            'is_package' => $this->is_package,
             'is_verified' => $this->is_verified,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

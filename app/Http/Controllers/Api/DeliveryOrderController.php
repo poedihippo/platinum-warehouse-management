@@ -6,9 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\DeliveryOrderResource;
 use App\Http\Requests\Api\DeliveryOrderStoreRequest;
 use App\Http\Requests\Api\DeliveryOrderUpdateRequest;
+use App\Http\Requests\Api\SalesOrderItemStoreRequest;
+use App\Http\Resources\SalesOrderItemResource;
 use App\Models\DeliveryOrder;
+use App\Models\SalesOrderDetail;
+use App\Models\Stock;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class DeliveryOrderController extends Controller
@@ -94,5 +99,29 @@ class DeliveryOrderController extends Controller
             'Content-Type' => 'application/xml', // use your required mime type
             'Content-Disposition' => 'attachment; filename="Delivery Order ' . $deliveryOrder->code . '.xml"',
         ]);
+    }
+
+    public function verification(DeliveryOrder $deliveryOrder, SalesOrderDetail $salesOrderDetail, SalesOrderItemStoreRequest $request)
+    {
+        $stock = Stock::findOrFail($request->stock_id);
+
+        $cek = $salesOrderDetail->salesOrderItems()->where('stock_id', $stock->id)->exists();
+
+        if ($cek) return response()->json(['message' => 'The product has been scanned'], 400);
+
+        DB::beginTransaction();
+        try {
+            $salesOrderItem = $salesOrderDetail->salesOrderItems()->create([
+                'stock_id' => $stock->id
+            ]);
+
+            $salesOrderDetail->update([
+                'fulfilled_qty' => $salesOrderDetail->salesOrderItems->count()
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json(['message' => $th->getMessage()], 500);
+        }
+
+        return new SalesOrderItemResource($salesOrderItem);
     }
 }

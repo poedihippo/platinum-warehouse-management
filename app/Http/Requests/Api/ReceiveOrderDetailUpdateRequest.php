@@ -37,30 +37,30 @@ class ReceiveOrderDetailUpdateRequest extends FormRequest
                 },
             ],
             'uom_id' => 'required|exists:uoms,id',
-            'is_package' => 'nullable|boolean'
+            // 'is_package' => 'nullable|boolean'
         ];
     }
 
-    /**
-     * Prepare inputs for validation.
-     *
-     * @return void
-     */
-    protected function prepareForValidation()
-    {
-        $this->merge([
-            'is_package' => $this->toBoolean($this->is_package),
-        ]);
-    }
+    // /**
+    //  * Prepare inputs for validation.
+    //  *
+    //  * @return void
+    //  */
+    // protected function prepareForValidation()
+    // {
+    //     $this->merge([
+    //         'is_package' => $this->toBoolean($this->is_package),
+    //     ]);
+    // }
 
-    /**
-     * Convert to boolean
-     *
-     * @param $booleable
-     * @return boolean
-     */
-    private function toBoolean($booleable)
-    {
-        return filter_var($booleable, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-    }
+    // /**
+    //  * Convert to boolean
+    //  *
+    //  * @param $booleable
+    //  * @return boolean
+    //  */
+    // private function toBoolean($booleable)
+    // {
+    //     return filter_var($booleable, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+    // }
 }

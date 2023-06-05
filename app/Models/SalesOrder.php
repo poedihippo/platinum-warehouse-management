@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\SalesOrderStatus;
+// use App\Enums\SalesOrderStatus;
 use Illuminate\Database\Eloquent\Model;
 
 class SalesOrder extends Model
@@ -15,20 +15,20 @@ class SalesOrder extends Model
         'code',
         'transaction_date',
         'shipment_estimation_datetime',
-        'status',
+        // 'status',
         'price',
     ];
 
     protected $casts = [
         'price' => 'integer',
-        'status' => SalesOrderStatus::class,
+        // // 'status' => SalesOrderStatus::class,
     ];
 
     protected static function booted()
     {
         static::creating(function ($model) {
             $model->user_id = user()->id;
-            $model->status = SalesOrderStatus::PENDING;
+            // // $model->status = SalesOrderStatus::PENDING;
         });
     }
 

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('sales_order_id');
             $table->foreignId('product_unit_id');
             $table->integer('qty')->default(0);
-            $table->integer('real_qty')->default(0);
+            $table->integer('fulfilled_qty')->default(0);
             $table->timestamps();
         });
     }

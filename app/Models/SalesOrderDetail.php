@@ -8,6 +8,11 @@ class SalesOrderDetail extends Model
 {
     protected $guarded = [];
 
+    protected $casts = [
+        'qty' => 'integer',
+        'fulfilled_qty' => 'integer',
+    ];
+
     public function salesOrder()
     {
         return $this->belongsTo(SalesOrder::class);

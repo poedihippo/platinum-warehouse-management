@@ -13,7 +13,6 @@ class ReceiveOrderDetail extends Model
         'qty' => 'integer',
         'bruto_unit_price' => 'integer',
         'adjust_qty' => 'integer',
-        'is_package' => 'boolean',
         'is_verified' => 'boolean',
     ];
 

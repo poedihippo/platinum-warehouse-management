@@ -80,6 +80,7 @@ Route::middleware('auth:sanctum')->group(function ($route) {
     Route::post('sales-order-items/{salesOrderDetail}', [SalesOrderItemController::class, 'store']);
 
     Route::resource('delivery-orders', DeliveryOrderController::class);
+    Route::post('delivery-orders/{deliveryOrder}/verification/{salesOrderDetail}', [DeliveryOrderController::class, 'verification']);
     Route::get('delivery-orders/{deliveryOrder}/print', [DeliveryOrderController::class, 'print']);
     Route::get('delivery-orders/{deliveryOrder}/export-xml', [DeliveryOrderController::class, 'exportXml']);
 
