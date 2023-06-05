@@ -52,8 +52,6 @@ class DeliveryOrderController extends Controller
 
     public function update(DeliveryOrder $deliveryOrder, DeliveryOrderUpdateRequest $request)
     {
-        // dump($request->all());
-        // dd($request->validated());
         $deliveryOrder->update($request->validated());
 
         return (new DeliveryOrderResource($deliveryOrder))->response()->setStatusCode(Response::HTTP_ACCEPTED);
@@ -118,7 +116,9 @@ class DeliveryOrderController extends Controller
             $salesOrderDetail->update([
                 'fulfilled_qty' => $salesOrderDetail->salesOrderItems->count()
             ]);
+            DB::commit();
         } catch (\Throwable $th) {
+            DB::rollBack();
             return response()->json(['message' => $th->getMessage()], 500);
         }
 
