@@ -107,6 +107,8 @@ class DeliveryOrderController extends Controller
 
         if ($cek) return response()->json(['message' => 'The product has been scanned'], 400);
 
+        if ($salesOrderDetail->fulfilled_qty >= $salesOrderDetail->qty) return response()->json(['message' => 'Delivery orders have been fulfilled'], 400);
+
         DB::beginTransaction();
         try {
             $salesOrderItem = $salesOrderDetail->salesOrderItems()->create([
