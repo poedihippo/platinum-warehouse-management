@@ -27,7 +27,7 @@ class SalesOrder extends Model
     protected static function booted()
     {
         static::creating(function ($model) {
-            $model->user_id = user()->id;
+            $model->user_id = auth()->user()->id;
             // // $model->status = SalesOrderStatus::PENDING;
         });
     }

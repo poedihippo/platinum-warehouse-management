@@ -23,7 +23,7 @@ class Role extends ModelsRole
     //     $hasActiveCompany = tenancy()->getActiveCompany();
     //     if ($hasActiveCompany) return $query->whereHas('companies', fn ($q) => $q->where('company_id', $hasActiveCompany->id));
 
-    //     $user = user();
+    //     $user = auth()->user();
     //     return $user->is_super_admin ? $query : $query->whereHas('tenants', fn ($q) => $q->whereIn('tenant_id', tenancy()->getTenants()->pluck('id')));
     // }
 
