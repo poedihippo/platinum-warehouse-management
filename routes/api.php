@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ProductCategoryController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\PermissionController;
+use App\Http\Controllers\Api\ProductUnitBlacklistController;
 use App\Http\Controllers\Api\ProductUnitController;
 use App\Http\Controllers\Api\ReceiveOrderController;
 use App\Http\Controllers\Api\ReceiveOrderDetailController;
@@ -54,6 +55,8 @@ Route::middleware('auth:sanctum')->group(function ($route) {
     Route::resource('products', ProductController::class);
     Route::resource('product-units', ProductUnitController::class);
     Route::resource('product-units', ProductUnitController::class);
+    Route::resource('product-unit-blacklists', ProductUnitBlacklistController::class)->only(['index', 'store', 'destroy']);
+
     Route::resource('uoms', UomController::class);
 
     Route::group(['prefix' => 'receive-orders/{receiveOrder}/details'], function () {
