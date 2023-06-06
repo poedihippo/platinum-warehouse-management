@@ -19,7 +19,7 @@ class ReceiveOrderController extends Controller
     public function index()
     {
         abort_if(!auth()->user()->tokenCan('receive_orders_access'), 403);
-        $receiveOrders = QueryBuilder::for(ReceiveOrder::class)
+        $receiveOrders = QueryBuilder::for(ReceiveOrder::withCount('details'))
             // ->allowedFilters('name')
             // ->allowedSorts(['id', 'name', 'created_at'])
             ->allowedIncludes(['details'])

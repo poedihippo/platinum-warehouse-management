@@ -17,6 +17,7 @@ class ReceiveOrderResource extends JsonResource
         return array_merge(
             parent::toArray($request),
             [
+                'details_count' => $this->whenCounted('details'),
                 'details' => ReceiveOrderDetailResource::collection($this->whenLoaded('details')),
                 'supplier' => new SupplierResource($this->supplier),
                 'warehouse' => new WarehouseResource($this->warehouse)

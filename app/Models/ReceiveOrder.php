@@ -8,6 +8,10 @@ class ReceiveOrder extends Model
 {
     protected $guarded = [];
 
+    protected $casts = [
+        'is_complete' => 'boolean'
+    ];
+
     public function details()
     {
         return $this->hasMany(ReceiveOrderDetail::class);
@@ -21,5 +25,11 @@ class ReceiveOrder extends Model
     public function warehouse()
     {
         return $this->belongsTo(Warehouse::class);
+    }
+
+    public function refreshStatus(): void
+    {
+        if ($this->details->every(fn ($detail) => $detail->is_verified === 1) === true) $this->update(['is_complete' => 1]);
+        $this->update(['is_complete' => 0]);
     }
 }

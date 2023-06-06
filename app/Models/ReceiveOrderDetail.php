@@ -18,6 +18,10 @@ class ReceiveOrderDetail extends Model
 
     protected static function booted()
     {
+        static::saved(function ($model) {
+            if ($model->isDirty('is_verified')) $model->receiveOrder->refreshStatus();
+        });
+
         static::updated(function ($model) {
             if ($model->isDirty('is_verified')) {
                 if ($model->is_verified === true) {

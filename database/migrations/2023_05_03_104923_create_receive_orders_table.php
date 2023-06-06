@@ -32,6 +32,7 @@ return new class extends Migration
             $table->string('name');
             $table->text('description');
             $table->dateTime('receive_datetime');
+            $table->boolean('is_complete')->default(0);
             $table->timestamps();
         });
     }
