@@ -22,7 +22,7 @@ class PermissionController extends Controller
 
     public function index()
     {
-        abort_if(!user()->tokenCan('permissions_access'), 403);
+        abort_if(!auth()->user()->tokenCan('permissions_access'), 403);
         $roles = QueryBuilder::for(Permission::class)
             ->allowedFilters(['name'])
             ->allowedSorts(['id', 'name', 'created_at'])
@@ -34,7 +34,7 @@ class PermissionController extends Controller
 
     public function show(Permission $permission)
     {
-        abort_if(!user()->tokenCan('permission_view'), 403);
+        abort_if(!auth()->user()->tokenCan('permission_view'), 403);
 
         return new PermissionResource($permission);
     }
@@ -53,7 +53,7 @@ class PermissionController extends Controller
 
     public function destroy(Permission $permission)
     {
-        abort_if(!user()->tokenCan('permission_delete'), 403);
+        abort_if(!auth()->user()->tokenCan('permission_delete'), 403);
         $permission->delete();
         return $this->deletedResponse();
     }

@@ -13,7 +13,7 @@ class UomUpdateRequest extends FormRequest
      */
     public function authorize()
     {
-        return user()->tokenCan('uom_update');
+        return auth()->user()->tokenCan('uom_update');
     }
 
     /**

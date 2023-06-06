@@ -13,7 +13,7 @@ class SalesOrderItemStoreRequest extends FormRequest
      */
     public function authorize()
     {
-        return user()->tokenCan('sales_order_create');
+        return auth()->user()->tokenCan('sales_order_create');
     }
 
     /**

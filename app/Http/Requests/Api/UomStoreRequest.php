@@ -13,7 +13,7 @@ class UomStoreRequest extends FormRequest
      */
     public function authorize()
     {
-        return user()->tokenCan('uom_create');
+        return auth()->user()->tokenCan('uom_create');
     }
 
     /**

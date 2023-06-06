@@ -20,7 +20,7 @@ class DeliveryOrderController extends Controller
 {
     public function index()
     {
-        abort_if(!user()->tokenCan('delivery_orders_access'), 403);
+        abort_if(!auth()->user()->tokenCan('delivery_orders_access'), 403);
         $deliveryOrders = QueryBuilder::for(DeliveryOrder::class)
             ->paginate();
 
@@ -29,7 +29,7 @@ class DeliveryOrderController extends Controller
 
     public function show(DeliveryOrder $deliveryOrder)
     {
-        abort_if(!user()->tokenCan('delivery_order_create'), 403);
+        abort_if(!auth()->user()->tokenCan('delivery_order_create'), 403);
 
         $deliveryOrder->load([
             'salesOrder' => function ($q) {
@@ -59,7 +59,7 @@ class DeliveryOrderController extends Controller
 
     public function destroy(DeliveryOrder $deliveryOrder)
     {
-        abort_if(!user()->tokenCan('delivery_order_delete'), 403);
+        abort_if(!auth()->user()->tokenCan('delivery_order_delete'), 403);
         $deliveryOrder->delete();
         return $this->deletedResponse();
     }

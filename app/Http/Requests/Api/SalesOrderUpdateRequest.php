@@ -13,7 +13,7 @@ class SalesOrderUpdateRequest extends FormRequest
      */
     public function authorize()
     {
-        return user()->tokenCan('sales_order_update');
+        return auth()->user()->tokenCan('sales_order_update');
     }
 
     /**

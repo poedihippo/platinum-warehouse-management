@@ -13,7 +13,7 @@ class ProductStoreRequest extends FormRequest
      */
     public function authorize()
     {
-        return user()->tokenCan('product_create');
+        return auth()->user()->tokenCan('product_create');
     }
 
     /**

@@ -15,7 +15,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        abort_if(!user()->tokenCan('users_access'), 403);
+        abort_if(!auth()->user()->tokenCan('users_access'), 403);
         $users = QueryBuilder::for(User::class)
             ->allowedFilters(['name', 'email', 'phone', 'type'])
             ->allowedSorts(['name', 'email', 'phone', 'type'])
@@ -26,12 +26,12 @@ class UserController extends Controller
 
     public function me()
     {
-        return new UserResource(user());
+        return new UserResource(auth()->user());
     }
 
     public function show(User $user)
     {
-        abort_if(!user()->tokenCan('user_view'), 403);
+        abort_if(!auth()->user()->tokenCan('user_view'), 403);
         return new UserResource($user);
     }
 
@@ -89,7 +89,7 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        abort_if(!user()->tokenCan('user_delete'), 403);
+        abort_if(!auth()->user()->tokenCan('user_delete'), 403);
         $user->delete();
         return $this->deletedResponse();
     }

@@ -14,7 +14,7 @@ class ProductBrandController extends Controller
 {
     public function index()
     {
-        abort_if(!user()->tokenCan('product_brands_access'), 403);
+        abort_if(!auth()->user()->tokenCan('product_brands_access'), 403);
         $productCategories = QueryBuilder::for(ProductBrand::class)
             ->allowedFilters(['name', 'description'])
             ->allowedSorts(['id', 'name', 'created_at'])
@@ -25,7 +25,7 @@ class ProductBrandController extends Controller
 
     public function show(ProductBrand $productBrand)
     {
-        abort_if(!user()->tokenCan('product_brands_view'), 403);
+        abort_if(!auth()->user()->tokenCan('product_brands_view'), 403);
         return new ProductBrandResource($productBrand);
     }
 
@@ -45,7 +45,7 @@ class ProductBrandController extends Controller
 
     public function destroy(ProductBrand $productBrand)
     {
-        abort_if(!user()->tokenCan('product_brands_delete'), 403);
+        abort_if(!auth()->user()->tokenCan('product_brands_delete'), 403);
         $productBrand->delete();
         return $this->deletedResponse();
     }

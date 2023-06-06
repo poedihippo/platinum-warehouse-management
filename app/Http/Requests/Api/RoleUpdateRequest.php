@@ -13,7 +13,7 @@ class RoleUpdateRequest extends FormRequest
      */
     public function authorize()
     {
-        // return user()->tokenCan('role_update');
+        // return auth()->user()->tokenCan('role_update');
         return true;
     }
 

@@ -18,7 +18,7 @@ class ReceiveOrderController extends Controller
 {
     public function index()
     {
-        abort_if(!user()->tokenCan('receive_orders_access'), 403);
+        abort_if(!auth()->user()->tokenCan('receive_orders_access'), 403);
         $receiveOrders = QueryBuilder::for(ReceiveOrder::class)
             // ->allowedFilters('name')
             // ->allowedSorts(['id', 'name', 'created_at'])
@@ -30,7 +30,7 @@ class ReceiveOrderController extends Controller
 
     public function show(ReceiveOrder $receiveOrder)
     {
-        abort_if(!user()->tokenCan('receive_order_create'), 403);
+        abort_if(!auth()->user()->tokenCan('receive_order_create'), 403);
         return new ReceiveOrderResource($receiveOrder->load('details'));
     }
 
@@ -47,7 +47,7 @@ class ReceiveOrderController extends Controller
             $warehouse = Warehouse::where('code', $xmlArray['TRANSACTIONS']['RECIEVEITEM']['WAREHOUSEID'])->first();
 
             $receiveOrder = ReceiveOrder::create([
-                'user_id' => user()->id,
+                'user_id' => auth()->user()->id,
                 'supplier_id' => $supplier?->id ?? null,
                 'warehouse_id' => $warehouse?->id ?? null,
                 'name' => $request->name,
@@ -92,7 +92,7 @@ class ReceiveOrderController extends Controller
 
     public function destroy(ReceiveOrder $receiveOrder)
     {
-        abort_if(!user()->tokenCan('receive_order_delete'), 403);
+        abort_if(!auth()->user()->tokenCan('receive_order_delete'), 403);
         $receiveOrder->delete();
         return $this->deletedResponse();
     }

@@ -19,7 +19,7 @@ class SalesOrderController extends Controller
 {
     public function index()
     {
-        abort_if(!user()->tokenCan('sales_orders_access'), 403);
+        abort_if(!auth()->user()->tokenCan('sales_orders_access'), 403);
         $salesOrders = QueryBuilder::for(SalesOrder::class)
             ->allowedIncludes(['details'])
             ->paginate();
@@ -29,7 +29,7 @@ class SalesOrderController extends Controller
 
     public function show(SalesOrder $salesOrder)
     {
-        abort_if(!user()->tokenCan('sales_order_create'), 403);
+        abort_if(!auth()->user()->tokenCan('sales_order_create'), 403);
         return new SalesOrderResource($salesOrder->load('details'));
     }
 
@@ -67,7 +67,7 @@ class SalesOrderController extends Controller
 
     public function destroy(SalesOrder $salesOrder)
     {
-        abort_if(!user()->tokenCan('sales_order_delete'), 403);
+        abort_if(!auth()->user()->tokenCan('sales_order_delete'), 403);
         $salesOrder->delete();
         return $this->deletedResponse();
     }

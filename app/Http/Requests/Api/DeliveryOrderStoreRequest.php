@@ -13,7 +13,7 @@ class DeliveryOrderStoreRequest extends FormRequest
      */
     public function authorize()
     {
-        return user()->tokenCan('delivery_order_create');
+        return auth()->user()->tokenCan('delivery_order_create');
     }
 
     /**

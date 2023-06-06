@@ -14,7 +14,7 @@ class ProductUnitController extends Controller
 {
     public function index()
     {
-        abort_if(!user()->tokenCan('product_units_access'), 403);
+        abort_if(!auth()->user()->tokenCan('product_units_access'), 403);
         $productUnits = QueryBuilder::for(ProductUnit::with('product'))
             ->allowedFilters(['product_id', 'name', 'price', 'description'])
             ->allowedSorts(['id', 'product_id', 'name', 'price', 'created_at'])
@@ -25,7 +25,7 @@ class ProductUnitController extends Controller
 
     public function show(ProductUnit $productUnit)
     {
-        abort_if(!user()->tokenCan('product_unit_view'), 403);
+        abort_if(!auth()->user()->tokenCan('product_unit_view'), 403);
         return new ProductUnitResource($productUnit);
     }
 
@@ -45,7 +45,7 @@ class ProductUnitController extends Controller
 
     public function destroy(ProductUnit $productUnit)
     {
-        abort_if(!user()->tokenCan('product_unit_delete'), 403);
+        abort_if(!auth()->user()->tokenCan('product_unit_delete'), 403);
         $productUnit->delete();
         return $this->deletedResponse();
     }

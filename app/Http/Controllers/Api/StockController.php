@@ -39,7 +39,7 @@ class StockController extends Controller
 
     public function details()
     {
-        // abort_if(!user()->tokenCan('receive_orders_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('receive_orders_access'), 403);
 
         $filter = request()->filter;
 
@@ -60,7 +60,7 @@ class StockController extends Controller
 
     public function show(Stock $stock)
     {
-        // abort_if(!user()->tokenCan('receive_order_create'), 403);
+        // abort_if(!auth()->user()->tokenCan('receive_order_create'), 403);
         return new StockResource($stock->load('details'));
     }
 
@@ -77,7 +77,7 @@ class StockController extends Controller
             $warehouse = Warehouse::where('code', $xmlArray['TRANSACTIONS']['RECIEVEITEM']['WAREHOUSEID'])->first();
 
             $stock = Stock::create([
-                'user_id' => user()->id,
+                'user_id' => auth()->user()->id,
                 'supplier_id' => $supplier?->id ?? null,
                 'warehouse_id' => $warehouse?->id ?? null,
                 'name' => $request->name,
@@ -122,7 +122,7 @@ class StockController extends Controller
 
     public function destroy(Stock $stock)
     {
-        // abort_if(!user()->tokenCan('receive_order_delete'), 403);
+        // abort_if(!auth()->user()->tokenCan('receive_order_delete'), 403);
         $stock->delete();
         return $this->deletedResponse();
     }

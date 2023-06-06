@@ -21,7 +21,7 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
             WarehouseSeeder::class,
             SupplierSeeder::class,
-            CustomerSeeder::class,
+            // CustomerSeeder::class,
         ]);
         // \App\Models\User::factory(10)->create();
 
