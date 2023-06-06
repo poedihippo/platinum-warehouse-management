@@ -199,21 +199,20 @@ class StockController extends Controller
 
     public function printAll(Request $request)
     {
-        $filter = $request->filter;
-        $query = Stock::select('id', 'qr_code', 'description');
+        // $filter = $request->filter;
+        $query = Stock::select('id', 'parent_id', 'qr_code');
 
-        if (isset($filter) && isset($filter['parent_id']) && $filter['parent_id'] != '') {
-            $query->where(fn ($q) => $q->where('parent_id', $filter['parent_id'])->orWhere('id', $filter['parent_id']))->orderBy('parent_id');
-        } else {
-            $query->whereNull('parent_id')->with('childs', fn ($q) => $q->select('id', 'parent_id', 'qr_code', 'description'));
-        }
+        // if (isset($filter) && isset($filter['parent_id']) && $filter['parent_id'] != '') {
+        //     $query->where(fn ($q) => $q->where('parent_id', $filter['parent_id'])->orWhere('id', $filter['parent_id']))->orderBy('parent_id');
+        // } else {
+        //     $query->whereNull('parent_id')->with('childs', fn ($q) => $q->select('id', 'parent_id', 'qr_code', 'description'));
+        // }
 
         $stocks = QueryBuilder::for($query)
             // ->allowedFilters(['id', 'parent_id', 'product_unit_id', 'warehouse_id', 'receive_order_id', 'receive_order_detail_id'])
-            ->allowedFilters(['receive_order_detail_id'])
+            ->allowedFilters(['id', 'receive_order_detail_id', 'parent_id', 'product_unit_id', 'warehouse_id'])
             ->allowedSorts(['product_unit_id', 'warehouse_id', 'created_at'])
             ->get();
         return response()->json($stocks);
-        return StockResource::collection($stocks);
     }
 }
