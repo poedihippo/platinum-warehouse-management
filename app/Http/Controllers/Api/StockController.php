@@ -183,9 +183,11 @@ class StockController extends Controller
 
             $groupStock->update(['qr_code' => $fullPath]);
 
-            Stock::where('product_unit_id', $productUnit->id)->whereNull('parent_id')->doesntHave('childs')->where('id', '<>', $groupStock->id)->limit($request->qty)->update([
-                'parent_id' => $groupStock->id
-            ]);
+            Stock::where('product_unit_id', $productUnit->id)->whereNull('parent_id')->doesntHave('childs')->where('id', '<>', $groupStock->id)
+                ->limit($request->qty)->get()
+                ->each->update([
+                    'parent_id' => $groupStock->id
+                ]);
 
             // $productUnit->stocks()->whereNull('parent_id')->doesntHave('childs')->where('id', '<>', $groupStock->id)->orderByDesc('created_at')->limit($request->qty)->update([
             //     'parent_id' => $groupStock->id
