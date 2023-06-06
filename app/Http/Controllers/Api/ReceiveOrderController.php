@@ -31,7 +31,7 @@ class ReceiveOrderController extends Controller
     public function show(ReceiveOrder $receiveOrder)
     {
         abort_if(!auth()->user()->tokenCan('receive_order_create'), 403);
-        return new ReceiveOrderResource($receiveOrder->load('details'));
+        return new ReceiveOrderResource($receiveOrder->load('details')->loadCount('details'));
     }
 
     public function store(ReceiveOrderStoreRequest $request)

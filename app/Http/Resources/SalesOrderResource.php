@@ -17,6 +17,7 @@ class SalesOrderResource extends JsonResource
         return array_merge(
             parent::toArray($request),
             [
+                'details_count' => $this->whenCounted('details'),
                 'user' => new UserResource($this->user),
                 'reseller' => new UserResource($this->reseller),
                 'details' => SalesOrderDetailResource::collection($this->whenLoaded('details'))

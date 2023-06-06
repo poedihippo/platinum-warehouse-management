@@ -20,7 +20,7 @@ class SalesOrderController extends Controller
     public function index()
     {
         abort_if(!auth()->user()->tokenCan('sales_orders_access'), 403);
-        $salesOrders = QueryBuilder::for(SalesOrder::class)
+        $salesOrders = QueryBuilder::for(SalesOrder::withCount('details'))
             ->allowedIncludes(['details'])
             ->paginate();
 
@@ -30,7 +30,7 @@ class SalesOrderController extends Controller
     public function show(SalesOrder $salesOrder)
     {
         abort_if(!auth()->user()->tokenCan('sales_order_create'), 403);
-        return new SalesOrderResource($salesOrder->load('details'));
+        return new SalesOrderResource($salesOrder->load('details')->loadCount('details'));
     }
 
     public function store(SalesOrderStoreRequest $request)
