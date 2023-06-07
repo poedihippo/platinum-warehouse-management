@@ -130,46 +130,43 @@ class StockController extends Controller
     public function grouping(ProductUnit $productUnit, Request $request)
     {
         $request->validate([
-            'warehouse_id' => 'required|exists:warehouses,id',
             'total_group' => 'required|integer|gt:0',
             'qty' => 'required|integer|gt:0',
+            'warehouse_id' => 'required|exists:warehouses,id',
             'receive_order_detail_id' => 'nullable|exists:receive_order_details,id',
         ]);
 
         $totalQtyGrouping = $request->total_group * $request->qty;
-        $stockQuery = $productUnit->stocks()->whereNull('parent_id');
+        $receiveOrderDetailId = $request->receive_order_detail_id ?? null;
 
-        $totalStock = $stockQuery->doesntHave('childs')->count() ?? 0;
+        $totalStock = $productUnit->stocks()->whereNull('parent_id')->doesntHave('childs');
+        if (!is_null($receiveOrderDetailId)) {
+            $totalStock->where('receive_order_detail_id', $receiveOrderDetailId);
+        }
+
         // 1. hitung total stock dari product unit tsb yang parent_id nya null (stock tanpa gruping)
         // 2. qty grouping harus lebih kecil dari total stock
         // 3.
 
+        $totalStock = $totalStock->count() ?? 0;
         if ($totalStock == 0) {
             return response()->json(['message' => 'Not enough stock'], 400);
         }
 
-        if ($totalQtyGrouping == 0 || ($totalQtyGrouping >= $totalStock)) {
+        if ($totalQtyGrouping == 0 || ($totalQtyGrouping > $totalStock)) {
             return response()->json(['message' => 'Total amount of grouping stock exceeds the total stock'], 400);
         }
 
-        $totalGroupStock = $stockQuery->has('childs')->count() ?? 0;
+        $totalGroupStock = $productUnit->stocks()->whereNull('parent_id')->has('childs')->count() ?? 0;
 
         for ($i = 0; $i < $request->total_group; $i++) {
-            $totalGroupStock += 1;
+            $totalGroupStock++;
             $groupStock = Stock::create([
                 'product_unit_id' => $productUnit->id,
-                'receive_order_detail_id' => $request->receive_order_detail_id ?? null,
                 'warehouse_id' => $request->warehouse_id,
+                'receive_order_detail_id' => $receiveOrderDetailId,
                 'description' => 'Group ' . $totalGroupStock . ' - ' . $productUnit->code,
             ]);
-
-            // $qr = QrCode::size(300)
-            // ->format('svg')
-            // ->generate($groupStock->id);
-
-            // $groupStock->update([
-            //     'qr_code' => $qr,
-            // ]);
 
             $data = QrCode::size(350)
                 ->format('png')
@@ -183,11 +180,15 @@ class StockController extends Controller
 
             $groupStock->update(['qr_code' => $fullPath]);
 
-            Stock::where('product_unit_id', $productUnit->id)->whereNull('parent_id')->doesntHave('childs')->where('id', '<>', $groupStock->id)
-                ->limit($request->qty)->get()
-                ->each->update([
-                    'parent_id' => $groupStock->id
-                ]);
+            $stocks = Stock::where('product_unit_id', $productUnit->id)->whereNull('parent_id')->doesntHave('childs')->where('id', '<>', $groupStock->id)->limit($request->qty);
+
+            if (!is_null($groupStock->receive_order_detail_id)) {
+                $stocks->orderBy('receive_order_detail_id');
+            }
+
+            $stocks->get()?->each->update([
+                'parent_id' => $groupStock->id
+            ]);
 
             // $productUnit->stocks()->whereNull('parent_id')->doesntHave('childs')->where('id', '<>', $groupStock->id)->orderByDesc('created_at')->limit($request->qty)->update([
             //     'parent_id' => $groupStock->id
@@ -199,11 +200,11 @@ class StockController extends Controller
 
     public function printAll(Request $request)
     {
-        // $filter = $request->filter;
+        $filter = $request->filter;
         $query = Stock::select('id', 'parent_id', 'qr_code');
 
         if (isset($filter) && isset($filter['parent_id']) && $filter['parent_id'] != '') {
-            $query->where(fn ($q) => $q->where('parent_id', $filter['parent_id']));
+            $query->where('parent_id', $filter['parent_id']);
         } else {
             $query->whereNull('parent_id');
         }
@@ -212,7 +213,6 @@ class StockController extends Controller
         // }
 
         $stocks = QueryBuilder::for($query)
-            // ->allowedFilters(['id', 'parent_id', 'product_unit_id', 'warehouse_id', 'receive_order_id', 'receive_order_detail_id'])
             ->allowedFilters(['id', 'receive_order_detail_id', 'parent_id', 'product_unit_id', 'warehouse_id'])
             ->allowedSorts(['product_unit_id', 'warehouse_id', 'created_at'])
             ->get();
