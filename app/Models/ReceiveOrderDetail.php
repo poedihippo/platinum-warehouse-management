@@ -31,6 +31,10 @@ class ReceiveOrderDetail extends Model
                 }
             }
         });
+
+        static::deleting(function ($model) {
+            UnverifiedRODetailEvent::dispatch($model);
+        });
     }
 
     public function receiveOrder()

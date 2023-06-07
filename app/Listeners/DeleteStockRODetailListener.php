@@ -29,7 +29,7 @@ class DeleteStockRODetailListener implements ShouldQueue
     {
         $receiveOrderDetail = $event->receiveOrderDetail;
 
-        $receiveOrderDetail->stocks->each->delete();
-        Storage::disk('s3')->deleteDirectory($receiveOrderDetail->id);
+        $receiveOrderDetail->stocks?->each->delete();
+        Storage::deleteDirectory($receiveOrderDetail->id);
     }
 }

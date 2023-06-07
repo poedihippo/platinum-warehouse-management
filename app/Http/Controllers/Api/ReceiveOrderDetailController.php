@@ -10,6 +10,7 @@ use App\Models\ReceiveOrder;
 use App\Models\ReceiveOrderDetail;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class ReceiveOrderDetailController extends Controller
@@ -41,6 +42,9 @@ class ReceiveOrderDetailController extends Controller
         return new ReceiveOrderDetailResource($receiveOrderDetail);
     }
 
+    /**
+     * adjust qty RO detail
+     */
     public function update(ReceiveOrder $receiveOrder, $receiveOrderDetailId, ReceiveOrderDetailUpdateRequest $request)
     {
         $receiveOrderDetail = $receiveOrder->details()->where('id', $receiveOrderDetailId)->firstOrFail();
@@ -50,6 +54,9 @@ class ReceiveOrderDetailController extends Controller
         return (new ReceiveOrderDetailResource($receiveOrderDetail))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
+    /**
+     * verify RO detail and insert to stocks
+     */
     public function verify(ReceiveOrder $receiveOrder, $receiveOrderDetailId, Request $request)
     {
         $receiveOrderDetail = $receiveOrder->details()->where('id', $receiveOrderDetailId)->firstOrFail();
@@ -69,7 +76,15 @@ class ReceiveOrderDetailController extends Controller
 
     public function destroy(ReceiveOrder $receiveOrder, ReceiveOrderDetail $receiveOrderDetail)
     {
-        $receiveOrderDetail->delete();
+        DB::beginTransaction();
+        try {
+            $receiveOrderDetail->delete();
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json($th, 500);
+        }
+
         return $this->deletedResponse();
     }
 }
