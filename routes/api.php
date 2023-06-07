@@ -62,7 +62,7 @@ Route::middleware('auth:sanctum')->group(function ($route) {
     Route::group(['prefix' => 'receive-orders/{receiveOrder}/details'], function () {
         Route::get('/', [ReceiveOrderDetailController::class, 'index']);
         Route::get('{receiveOrderDetail}', [ReceiveOrderDetailController::class, 'show']);
-        // Route::post('/', [ReceiveOrderDetailController::class, 'store']);
+        Route::post('/', [ReceiveOrderDetailController::class, 'store']);
         Route::put('{receiveOrderDetail}', [ReceiveOrderDetailController::class, 'update']);
         Route::put('{receiveOrderDetail}/verify', [ReceiveOrderDetailController::class, 'verify']);
         Route::delete('{receiveOrderDetail}', [ReceiveOrderDetailController::class, 'destroy']);

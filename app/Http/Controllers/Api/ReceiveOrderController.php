@@ -43,8 +43,8 @@ class ReceiveOrderController extends Controller
             $json = json_encode($xmlObject);
             $xmlArray = json_decode($json, true);
 
-            $supplier = Supplier::where('code', $xmlArray['TRANSACTIONS']['RECIEVEITEM']['VENDORID'])->first();
-            $warehouse = Warehouse::where('code', $xmlArray['TRANSACTIONS']['RECIEVEITEM']['WAREHOUSEID'])->first();
+            $supplier = Supplier::where('code', $xmlArray['TRANSACTIONS']['RECIEVEITEM']['VENDORID'])->firstOrFail();
+            $warehouse = Warehouse::where('code', $xmlArray['TRANSACTIONS']['RECIEVEITEM']['WAREHOUSEID'])->firstOrFail();
 
             $receiveOrder = ReceiveOrder::create([
                 'user_id' => auth()->user()->id,

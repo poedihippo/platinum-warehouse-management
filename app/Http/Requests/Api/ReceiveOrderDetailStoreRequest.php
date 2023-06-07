@@ -13,7 +13,7 @@ class ReceiveOrderDetailStoreRequest extends FormRequest
      */
     public function authorize()
     {
-        return true;
+        return auth()->user()->tokenCan('receive_order_detail_create');
     }
 
     /**
@@ -24,11 +24,10 @@ class ReceiveOrderDetailStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            // 'supplier_id' => 'required|exists:suppliers,id',
-            'name' => 'required',
-            'description' => 'nullable',
-            'receive_datetime' => 'required|date_format:Y-m-d H:i:s',
-            'file' => 'required|mimes:xml',
+            'product_unit_id' => 'required|exists:product_units,id',
+            'qty' => 'required|integer',
+            'item_unit' => 'required',
+            'bruto_unit_price' => 'required|integer',
         ];
     }
 }

@@ -14,7 +14,7 @@ class ReceiveOrderDetailUpdateRequest extends FormRequest
      */
     public function authorize()
     {
-        return true;
+        return auth()->user()->tokenCan('receive_order_detail_update');
     }
 
     /**

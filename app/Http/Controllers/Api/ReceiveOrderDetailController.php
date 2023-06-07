@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\ReceiveOrderDetailStoreRequest;
 use App\Http\Requests\Api\ReceiveOrderDetailUpdateRequest;
 use App\Http\Resources\ReceiveOrderDetailResource;
 use App\Models\ReceiveOrder;
@@ -26,6 +27,16 @@ class ReceiveOrderDetailController extends Controller
     public function show(ReceiveOrder $receiveOrder, $receiveOrderDetailId)
     {
         $receiveOrderDetail = $receiveOrder->details()->where('id', $receiveOrderDetailId)->firstOrFail();
+
+        return new ReceiveOrderDetailResource($receiveOrderDetail);
+    }
+
+    /**
+     * manual create RO detail
+     */
+    public function store(ReceiveOrder $receiveOrder, ReceiveOrderDetailStoreRequest $request)
+    {
+        $receiveOrderDetail = $receiveOrder->details()->create($request->validated());
 
         return new ReceiveOrderDetailResource($receiveOrderDetail);
     }
