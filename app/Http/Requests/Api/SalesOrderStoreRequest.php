@@ -31,12 +31,12 @@ class SalesOrderStoreRequest extends FormRequest
             'warehouse_id' => 'required|exists:warehouses,id',
             'transaction_date' => 'required|date_format:Y-m-d H:i:s',
             'shipment_estimation_datetime' => 'required|date_format:Y-m-d H:i:s',
-            'note' => 'nullable|string',
+            'description' => 'nullable|string',
             'items' => ['required', 'array', function (string $attribute, mixed $value, Closure $fail) {
                 if (count($value) <= 0) $fail('items required');
             }],
-            'items.*.product_unit_id' => 'integer|exists:product_units,id',
-            'items.*.qty' => 'integer',
+            'items.*.product_unit_id' => 'required|integer|exists:product_units,id',
+            'items.*.qty' => 'required|integer',
         ];
     }
 }

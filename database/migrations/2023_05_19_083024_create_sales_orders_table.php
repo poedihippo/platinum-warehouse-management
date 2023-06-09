@@ -24,7 +24,7 @@ return new class extends Migration
             $table->integer('price')->default(0);
             $table->dateTime('transaction_date');
             $table->dateTime('shipment_estimation_datetime');
-            $table->text('note')->nullable();
+            $table->text('description')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
