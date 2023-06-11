@@ -16,8 +16,9 @@ return new class extends Migration
         Schema::create('stocks', function (Blueprint $table) {
             $table->ulid('id')->primary();
             $table->ulid('parent_id')->nullable()->constrained('stocks', 'id');
-            $table->foreignId('product_unit_id')->constrained();
-            $table->foreignId('warehouse_id')->constrained();
+            $table->foreignId('stock_product_unit_id')->constrained();
+            // $table->foreignId('product_unit_id')->constrained();
+            // $table->foreignId('warehouse_id')->constrained();
             $table->foreignId('receive_order_id')->nullable()->constrained();
             $table->foreignId('receive_order_detail_id')->nullable()->constrained();
             $table->string('description')->nullable();
@@ -25,6 +26,7 @@ return new class extends Migration
             $table->foreignId('scanned_by')->nullable()->constrained('users');
             $table->dateTime('scanned_datetime')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

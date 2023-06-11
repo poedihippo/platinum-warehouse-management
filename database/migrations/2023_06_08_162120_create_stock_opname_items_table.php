@@ -13,12 +13,13 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('warehouses', function (Blueprint $table) {
+        Schema::create('stock_opname_items', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 100);
-            $table->string('name', 100);
-            $table->timestamps();
-            $table->softDeletes();
+            $table->foreignId('stock_opname_detail_id')->constrained();
+            $table->ulid('stock_id')->constrained('stocks', 'id');
+            $table->boolean('is_scanned')->default(0);
+            $table->boolean('is_new')->default(0);
+            $table->timestamp('created_at');
         });
     }
 
@@ -29,6 +30,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('warehouses');
+        Schema::dropIfExists('stock_opname_items');
     }
 };

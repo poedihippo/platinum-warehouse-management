@@ -101,9 +101,15 @@ class DeliveryOrderController extends Controller
 
     public function verification(DeliveryOrder $deliveryOrder, SalesOrderDetail $salesOrderDetail, SalesOrderItemStoreRequest $request)
     {
-        $stock = Stock::findOrFail($request->stock_id);
+        // 1. cek berdasarkan uom dari SO detail nya
+        $stock = Stock::where('id', $request->stock_id)
+            ->whereHas('stockProductUnit', fn ($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id)->where('warehouse_id', $salesOrderDetail->salesOrder?->warehouse_id))
+            // ->where('product_unit_id', $salesOrderDetail->product_unit_id)
+            // ->where('warehouse_id', $salesOrderDetail->salesOrder?->warehouse_id)
+            ->first();
+        if (!$stock) return response()->json(['message' => 'Stock of product not found'], 400);
 
-        $cek = $salesOrderDetail->salesOrderItems()->where('stock_id', $stock->id)->exists();
+        $cek = $salesOrderDetail->salesOrderItems()->where('stock_id', $stock?->id)->exists();
 
         if ($cek) return response()->json(['message' => 'The product has been scanned'], 400);
 

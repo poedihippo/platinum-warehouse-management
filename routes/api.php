@@ -20,6 +20,8 @@ use App\Http\Controllers\Api\SalesOrderItemController;
 use App\Http\Controllers\Api\UomController;
 use App\Http\Controllers\Api\SocialiteController;
 use App\Http\Controllers\Api\StockController;
+use App\Http\Controllers\Api\StockOpnameController;
+use App\Http\Controllers\Api\StockOpnameDetailController;
 use App\Http\Controllers\Api\TestController;
 use Illuminate\Support\Facades\Route;
 
@@ -91,4 +93,14 @@ Route::middleware('auth:sanctum')->group(function ($route) {
     Route::get('stocks/details', [StockController::class, 'details']);
     Route::get('stocks/print-all', [StockController::class, 'printAll']);
     Route::resource('stocks', StockController::class);
+
+    Route::group(['prefix' => 'stock-opnames/{stockOpname}/details'], function(){
+        Route::get('/', [StockOpnameDetailController::class, 'index']);
+        Route::get('{stockOpnameDetail}', [StockOpnameDetailController::class, 'show']);
+        Route::put('{stockOpnameDetail}', [StockOpnameDetailController::class, 'update']);
+        Route::delete('{stockOpnameDetail}', [StockOpnameDetailController::class, 'destroy']);
+    });
+
+    Route::put('stock-opnames/{stockOpname}/verification', [StockOpnameController::class, 'verification']);
+    Route::resource('stock-opnames', StockOpnameController::class);
 });

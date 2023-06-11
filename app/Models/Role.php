@@ -9,12 +9,6 @@ class Role extends ModelsRole
     public $table = 'roles';
     protected $guarded = [];
 
-    protected static function booted()
-    {
-        static::retrieved(function ($model) {
-        });
-    }
-
     // public function scopeTenanted($query)
     // {
     //     $hasActiveTenant = tenancy()->getActiveTenant();

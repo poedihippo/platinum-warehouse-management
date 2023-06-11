@@ -126,6 +126,20 @@ class PermissionsHelper
                 'sales_order_delete',
             ],
 
+            'stocks_access' => [
+                'stock_view',
+                'stock_create',
+                'stock_edit',
+                'stock_delete',
+            ],
+
+            'stock_opnames_access' => [
+                'stock_opname_view',
+                'stock_opname_create',
+                'stock_opname_edit',
+                'stock_opname_delete',
+            ],
+
             // 'corporate_management_access' => [
             // 'companies_access' => [
             //     'companies_view',

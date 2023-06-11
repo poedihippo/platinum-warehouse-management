@@ -2,10 +2,16 @@
 
 namespace App\Providers;
 
+use App\Events\ProductUnits\ProductUnitCreated;
+use App\Events\Stocks\StockOpnameCreated;
+use App\Events\Stocks\StockOpnameDetailCreated;
 use App\Events\UnverifiedRODetailEvent;
 use App\Events\VerifiedRODetailEvent;
 use App\Listeners\CreateStockRODetailListener;
 use App\Listeners\DeleteStockRODetailListener;
+use App\Listeners\ProductUnits\CreateStockProductUnit;
+use App\Listeners\Stocks\CreateStockOpnameDetail;
+use App\Listeners\Stocks\CreateStockOpnameItems;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -28,6 +34,18 @@ class EventServiceProvider extends ServiceProvider
 
         UnverifiedRODetailEvent::class => [
             DeleteStockRODetailListener::class,
+        ],
+
+        ProductUnitCreated::class => [
+            CreateStockProductUnit::class,
+        ],
+
+        StockOpnameCreated::class => [
+            CreateStockOpnameDetail::class,
+        ],
+
+        StockOpnameDetailCreated::class => [
+            CreateStockOpnameItems::class,
         ],
     ];
 

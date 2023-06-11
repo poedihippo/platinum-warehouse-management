@@ -4,7 +4,7 @@ namespace App\Http\Requests\Api;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class SalesOrderItemStoreRequest extends FormRequest
+class StockOpnameDetailStoreRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -13,7 +13,7 @@ class SalesOrderItemStoreRequest extends FormRequest
      */
     public function authorize()
     {
-        return auth()->user()->tokenCan('sales_order_create');
+        return auth()->user()->tokenCan('stock_opname_detail_create');
     }
 
     /**
@@ -24,8 +24,7 @@ class SalesOrderItemStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'stock_id' => 'required',
-            // 'stock_id' => 'required|exists:stocks,id',
+            'product_unit_id' => 'required|exists:product_units,id',
         ];
     }
 }

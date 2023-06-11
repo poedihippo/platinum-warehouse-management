@@ -5,12 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 // use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Stock extends Model
 {
-    use HasUlids;
+    use HasUlids, SoftDeletes;
     protected $guarded = [];
 
     public function parent()
@@ -18,20 +19,25 @@ class Stock extends Model
         return $this->belongsTo(self::class, 'parent_id');
     }
 
+    public function stockProductUnit()
+    {
+        return $this->belongsTo(StockProductUnit::class);
+    }
+
     public function childs()
     {
         return $this->hasMany(self::class, 'parent_id', 'id');
     }
 
-    public function productUnit()
-    {
-        return $this->belongsTo(ProductUnit::class);
-    }
+    // public function productUnit()
+    // {
+    //     return $this->belongsTo(ProductUnit::class);
+    // }
 
-    public function warehouse()
-    {
-        return $this->belongsTo(Warehouse::class);
-    }
+    // public function warehouse()
+    // {
+    //     return $this->belongsTo(Warehouse::class);
+    // }
 
     public function receiveOrder()
     {

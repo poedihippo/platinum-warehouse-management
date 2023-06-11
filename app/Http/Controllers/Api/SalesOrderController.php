@@ -42,7 +42,7 @@ class SalesOrderController extends Controller
             $items = $request->items ?? [];
             for ($i = 0; $i < count($items); $i++) {
                 $salesOrder->details()->create([
-                    'sales_order_id' => $salesOrder->id,
+                    // 'sales_order_id' => $salesOrder->id,
                     'product_unit_id' => $items[$i]['product_unit_id'],
                     'qty' => $items[$i]['qty'],
                 ]);
