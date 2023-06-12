@@ -54,7 +54,7 @@ class CreateStockRODetailListener implements ShouldQueue
 
             $data = QrCode::size(350)
                 ->format('png')
-                ->merge($logo, absolute: true)
+                // ->merge($logo, absolute: true)
                 ->generate($stock->id);
 
             $fileName = $receiveOrderDetail->id . '/' . $stock->id . '.png';
