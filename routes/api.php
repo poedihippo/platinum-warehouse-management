@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\StockController;
 use App\Http\Controllers\Api\StockOpnameController;
 use App\Http\Controllers\Api\StockOpnameDetailController;
 use App\Http\Controllers\Api\TestController;
+use App\Http\Controllers\Api\UserDiscountController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -48,8 +49,19 @@ Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProv
 Route::middleware('auth:sanctum')->group(function ($route) {
     Route::resource('roles', RoleController::class);
     Route::resource('permissions', PermissionController::class);
+
+    Route::group(['prefix' => 'users/{user}/discounts'], function () {
+        Route::get('/', [UserDiscountController::class, 'index']);
+        Route::get('{id}', [UserDiscountController::class, 'show']);
+        Route::post('/', [UserDiscountController::class, 'store']);
+        Route::put('{id}', [UserDiscountController::class, 'update']);
+    });
+
+    Route::put('users/{user}/restore', [UserController::class, 'restore']);
+    Route::delete('users/{user}/force-delete', [UserController::class, 'forceDelete']);
     Route::get('users/me', [UserController::class, 'me']);
     Route::resource('users', UserController::class);
+
     Route::resource('warehouses', WarehouseController::class);
     Route::resource('suppliers', SupplierController::class);
     Route::resource('product-categories', ProductCategoryController::class);
@@ -78,10 +90,12 @@ Route::middleware('auth:sanctum')->group(function ($route) {
         Route::delete('{salesOrderDetail}', [SalesOrderDetailController::class, 'destroy']);
     });
 
-    Route::resource('sales-orders', SalesOrderController::class);
+    // Route::get('sales-orders/get-price', [SalesOrderController::class, 'getPrice']);
+    Route::get('sales-orders/product-units', [SalesOrderController::class, 'productUnits']);
     Route::get('sales-orders/{salesOrder}/print', [SalesOrderController::class, 'print']);
     Route::get('sales-orders/{salesOrder}/export-xml', [SalesOrderController::class, 'exportXml']);
     Route::put('sales-orders/{salesOrder}/update-status', [SalesOrderController::class, 'updateStatus']);
+    Route::resource('sales-orders', SalesOrderController::class);
     Route::post('sales-order-items/{salesOrderDetail}', [SalesOrderItemController::class, 'store']);
 
     Route::resource('delivery-orders', DeliveryOrderController::class);
@@ -94,7 +108,7 @@ Route::middleware('auth:sanctum')->group(function ($route) {
     Route::get('stocks/print-all', [StockController::class, 'printAll']);
     Route::resource('stocks', StockController::class);
 
-    Route::group(['prefix' => 'stock-opnames/{stockOpname}/details'], function(){
+    Route::group(['prefix' => 'stock-opnames/{stockOpname}/details'], function () {
         Route::get('/', [StockOpnameDetailController::class, 'index']);
         Route::get('{stockOpnameDetail}', [StockOpnameDetailController::class, 'show']);
         Route::put('{stockOpnameDetail}', [StockOpnameDetailController::class, 'update']);

@@ -7,7 +7,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\SalesOrderResource;
 use App\Http\Requests\Api\SalesOrderStoreRequest;
 use App\Http\Requests\Api\SalesOrderUpdateRequest;
+use App\Models\ProductUnit;
 use App\Models\SalesOrder;
+use App\Models\UserDiscount;
 use Barryvdh\DomPDF\Facade\Pdf;
 use BenSampo\Enum\Rules\EnumValue;
 use Illuminate\Http\Request;
@@ -35,11 +37,19 @@ class SalesOrderController extends Controller
 
     public function store(SalesOrderStoreRequest $request)
     {
+
+        $items = $request->items ?? [];
+        dump($items);
+        dd(collect($items));
+        $data = array_push($request->validated(), ['price' => collect($items)->sum('price')]);
+        dd($data);
         DB::beginTransaction();
         try {
+            $items = $request->items ?? [];
+            $data = array_push($request->validated(), ['price' => collect($items)->sum('price')]);
+
             $salesOrder = SalesOrder::create($request->validated());
 
-            $items = $request->items ?? [];
             for ($i = 0; $i < count($items); $i++) {
                 $salesOrder->details()->create([
                     // 'sales_order_id' => $salesOrder->id,
@@ -104,4 +114,76 @@ class SalesOrderController extends Controller
             'Content-Disposition' => 'attachment; filename="Sales Order ' . $salesOrder->code . '.xml"',
         ]);
     }
+
+    public function productUnits(Request $request)
+    {
+        $userDiscount = UserDiscount::select('product_brand_id', 'value', 'is_percentage')->where('user_id', $request->customer_id)->get();
+
+        $productUnits = ProductUnit::select('id', 'uom_id', 'product_id', 'name', 'price')
+            ->with([
+                'uom' => fn ($q) => $q->select('id', 'name'),
+                'product' => fn ($q) => $q->select('id', 'product_brand_id')
+            ])
+            ->paginate();
+
+        $productUnits->each(function ($productUnit) use ($userDiscount) {
+            $productUnit->price_discount = $productUnit->price;
+
+            $productBrandId = $productUnit?->product?->product_brand_id ?? null;
+            if ($userDiscount->contains('product_brand_id', $productBrandId)) {
+                $discount = $userDiscount->firstWhere('product_brand_id', $productBrandId);
+
+                if ($discount->is_percentage) {
+                    $totalDiscount = $productUnit->price * $discount->value;
+                    $totalDiscount = $totalDiscount <= 0 ? 0 : ($totalDiscount / 100);
+                    $totalPrice = $productUnit->price - $totalDiscount;
+                } else {
+                    $totalPrice = $productUnit->price - $discount->value;
+                }
+
+                $productUnit->price_discount = $totalPrice <= 0 ? 0 : $totalPrice;
+            }
+
+            unset($productUnit->product);
+            unset($productUnit->uom_id);
+            unset($productUnit->product_id);
+        });
+
+        return response()->json($productUnits);
+    }
+
+    // public function getPrice(Request $request)
+    // {
+    //     $request->validate([
+    //         'customer_id' => 'required',
+    //         'product_unit_id' => 'required',
+    //         'qty' => 'required|numeric',
+    //     ]);
+
+    //     $productUnit = ProductUnit::findOrFail($request->product_unit_id);
+
+    //     $originalPrice = ($productUnit->price ?? 0) * ($request->qty ?? 0);
+    //     $totalPrice = 0;
+    //     $discount = 0;
+    //     $isPercentage = 0;
+    //     $userDiscount = UserDiscount::where('user_id', $request->customer_id)->where('product_brand_id', $productUnit?->product?->productBrand?->id)->first();
+    //     if ($userDiscount) {
+    //         $discount = $userDiscount->value;
+    //         $isPercentage = $userDiscount->is_percentage;
+    //     }
+
+    //     if ($isPercentage) {
+    //         $totalDiscount = $originalPrice * $discount;
+    //         $totalDiscount = $totalDiscount <= 0 ? 0 : ($totalDiscount / 100);
+    //         $totalPrice = $originalPrice - $totalDiscount;
+    //     } else {
+    //         $totalPrice = $originalPrice - $discount;
+    //     }
+
+    //     $totalPrice = $totalPrice <= 0 ? 0 : $totalPrice;
+
+    //     return response()->json([
+    //         'price' => $totalPrice
+    //     ]);
+    // }
 }

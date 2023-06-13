@@ -28,6 +28,11 @@ class ProductSeeder extends Seeder
             'description' => 'Pakan Ikan merk Mizuho'
         ]);
 
+        ProductBrand::create([
+            'name' => 'Shori',
+            'description' => 'Pakan Ikan merk Shori'
+        ]);
+
         $product = Product::create([
             'name' => 'Mizuho Wesi-wesi',
             'description' => 'Mizuho Wesi-wesi Mizuho Wesi-wesi',

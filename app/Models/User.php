@@ -54,6 +54,14 @@ class User extends Authenticatable
         'type' => UserType::class
     ];
 
+    protected static function booted()
+    {
+        static::created(function ($model) {
+            // if user type is reseller, create user discounts
+            if ($model->type->is(UserType::Reseller)) ProductBrand::select('id')->pluck('id')?->each(fn ($id) => $model->userDiscounts()->create(['product_brand_id' => $id]));
+        });
+    }
+
     /**
      * Create a new personal access token for the user.
      *
@@ -88,5 +96,10 @@ class User extends Authenticatable
     public function socialAccounts()
     {
         return $this->hasMany(SocialAccount::class);
+    }
+
+    public function userDiscounts()
+    {
+        return $this->hasMany(UserDiscount::class);
     }
 }

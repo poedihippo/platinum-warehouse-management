@@ -93,4 +93,20 @@ class UserController extends Controller
         $user->delete();
         return $this->deletedResponse();
     }
+
+    public function forceDelete($id)
+    {
+        abort_if(!auth()->user()->tokenCan('user_delete'), 403);
+        $user = User::withTrashed()->findOrFail($id);
+        $user->forceDelete();
+        return $this->deletedResponse();
+    }
+
+    public function restore($id)
+    {
+        abort_if(!auth()->user()->tokenCan('user_delete'), 403);
+        $user = User::withTrashed()->findOrFail($id);
+        $user->restore();
+        return new UserResource($user);
+    }
 }
