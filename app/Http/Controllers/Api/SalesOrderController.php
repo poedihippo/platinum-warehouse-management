@@ -37,22 +37,19 @@ class SalesOrderController extends Controller
 
     public function store(SalesOrderStoreRequest $request)
     {
-
         $items = $request->items ?? [];
-        dump($items);
-        dd(collect($items));
-        $data = array_push($request->validated(), ['price' => collect($items)->sum('price')]);
-        dd($data);
+        $totalPrice = collect($items)->sum('price') ?? 0;
+        $data = [
+            ...$request->validated(),
+            'price' => $totalPrice
+        ];
+
         DB::beginTransaction();
         try {
-            $items = $request->items ?? [];
-            $data = array_push($request->validated(), ['price' => collect($items)->sum('price')]);
-
-            $salesOrder = SalesOrder::create($request->validated());
+            $salesOrder = SalesOrder::create($data);
 
             for ($i = 0; $i < count($items); $i++) {
                 $salesOrder->details()->create([
-                    // 'sales_order_id' => $salesOrder->id,
                     'product_unit_id' => $items[$i]['product_unit_id'],
                     'qty' => $items[$i]['qty'],
                 ]);
