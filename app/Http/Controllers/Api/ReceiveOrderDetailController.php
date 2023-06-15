@@ -65,7 +65,7 @@ class ReceiveOrderDetailController extends Controller
             'is_verified' => 'required|boolean'
         ]);
 
-        if (is_null($receiveOrderDetail->uom_id)) return response()->json(['message' => 'Data must be verified first'], 400);
+        // if (is_null($receiveOrderDetail->uom_id)) return response()->json(['message' => 'Data must be verified first'], 400);
 
         $receiveOrderDetail->is_verified = boolval($request->is_verified);
         if ($receiveOrderDetail->isDirty('is_verified') === false) return response()->json(['message' => 'Unable to update with the same status'], 400);

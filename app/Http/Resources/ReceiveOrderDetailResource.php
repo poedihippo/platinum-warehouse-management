@@ -23,7 +23,7 @@ class ReceiveOrderDetailResource extends JsonResource
             'is_verified' => $this->is_verified,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'uom' => new UomResource($this->uom),
+            // 'uom' => new UomResource($this->uom),
             'receive_order' => new ReceiveOrderResource($this->receiveOrder),
             'product_unit' => new ProductUnitResource($this->productUnit)
         ];

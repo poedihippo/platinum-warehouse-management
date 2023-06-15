@@ -47,10 +47,10 @@ class ReceiveOrderDetail extends Model
         return $this->belongsTo(ProductUnit::class);
     }
 
-    public function uom()
-    {
-        return $this->belongsTo(Uom::class);
-    }
+    // public function uom()
+    // {
+    //     return $this->belongsTo(Uom::class);
+    // }
 
     public function stocks()
     {

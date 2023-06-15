@@ -36,7 +36,7 @@ class ReceiveOrderDetailUpdateRequest extends FormRequest
                     }
                 },
             ],
-            'uom_id' => 'required|exists:uoms,id',
+            // 'uom_id' => 'required|exists:uoms,id',
             // 'is_package' => 'nullable|boolean'
         ];
     }

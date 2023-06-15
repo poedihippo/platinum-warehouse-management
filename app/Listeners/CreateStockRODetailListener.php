@@ -33,7 +33,8 @@ class CreateStockRODetailListener implements ShouldQueue
         $receiveOrderDetail = $event->receiveOrderDetail->load('receiveOrder');
         $folder = 'qrcode/';
 
-        for ($i = 0; $i < $receiveOrderDetail->adjust_qty ?? 0; $i++) {
+        $qty = $receiveOrderDetail->adjust_qty > 0 ? $receiveOrderDetail->adjust_qty : $receiveOrderDetail->qty;
+        for ($i = 0; $i < $qty ?? 0; $i++) {
             $stockProductUnit = StockProductUnit::where('warehouse_id', $receiveOrderDetail->receiveOrder->warehouse_id)
                 ->where('product_unit_id', $receiveOrderDetail->product_unit_id)
                 ->first();
