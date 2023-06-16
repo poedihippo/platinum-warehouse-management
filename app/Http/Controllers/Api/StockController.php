@@ -17,7 +17,7 @@ class StockController extends Controller
 {
     public function index()
     {
-        $stockProductUnits = QueryBuilder::for(StockProductUnit::with(['warehouse', 'productUnit']))
+        $stockProductUnits = QueryBuilder::for(StockProductUnit::with(['warehouse', 'productUnit'])->withCount('stocks'))
             ->allowedSorts(['id', 'qty', 'product_unit_id', 'warehouse_id', 'created_at'])
             ->paginate();
 
