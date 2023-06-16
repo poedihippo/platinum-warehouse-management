@@ -11,6 +11,7 @@ use App\Http\Resources\SalesOrderItemResource;
 use App\Models\DeliveryOrder;
 use App\Models\SalesOrderDetail;
 use App\Models\Stock;
+use App\Services\SalesOrderService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -121,9 +122,10 @@ class DeliveryOrderController extends Controller
                 'stock_id' => $stock->id
             ]);
 
-            $salesOrderDetail->update([
-                'fulfilled_qty' => $salesOrderDetail->salesOrderItems->count()
-            ]);
+            SalesOrderService::countFulfilledQty($salesOrderDetail);
+            // $salesOrderDetail->update([
+            //     'fulfilled_qty' => $salesOrderDetail->salesOrderItems->count()
+            // ]);
             DB::commit();
         } catch (\Throwable $th) {
             DB::rollBack();

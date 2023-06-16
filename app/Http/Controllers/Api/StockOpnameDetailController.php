@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StockOpnameDetailStoreRequest;
-use App\Http\Requests\StockOpnameDetailUpdateRequest;
 use App\Http\Resources\StockOpnameDetailResource;
 use App\Models\StockOpname;
 use App\Models\StockOpnameDetail;

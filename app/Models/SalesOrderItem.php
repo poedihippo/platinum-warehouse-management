@@ -2,12 +2,18 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class SalesOrderItem extends Model
 {
     protected $guarded = [];
+
+    // protected static function booted()
+    // {
+    //     static::deleted(function ($model) {
+
+    //     });
+    // }
 
     public function stock()
     {

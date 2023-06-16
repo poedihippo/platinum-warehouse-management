@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\SocialiteController;
 use App\Http\Controllers\Api\StockController;
 use App\Http\Controllers\Api\StockOpnameController;
 use App\Http\Controllers\Api\StockOpnameDetailController;
+use App\Http\Controllers\Api\StockOpnameItemController;
 use App\Http\Controllers\Api\TestController;
 use App\Http\Controllers\Api\UserDiscountController;
 use Illuminate\Support\Facades\Route;
@@ -88,6 +89,7 @@ Route::middleware('auth:sanctum')->group(function ($route) {
         Route::get('{salesOrderDetail}', [SalesOrderDetailController::class, 'show']);
         Route::put('{salesOrderDetail}', [SalesOrderDetailController::class, 'update']);
         Route::delete('{salesOrderDetail}', [SalesOrderDetailController::class, 'destroy']);
+
     });
 
     // Route::get('sales-orders/get-price', [SalesOrderController::class, 'getPrice']);
@@ -96,7 +98,10 @@ Route::middleware('auth:sanctum')->group(function ($route) {
     Route::get('sales-orders/{salesOrder}/export-xml', [SalesOrderController::class, 'exportXml']);
     Route::put('sales-orders/{salesOrder}/update-status', [SalesOrderController::class, 'updateStatus']);
     Route::resource('sales-orders', SalesOrderController::class);
+
+    Route::get('sales-order-items/{salesOrderDetail}', [SalesOrderItemController::class, 'index']);
     Route::post('sales-order-items/{salesOrderDetail}', [SalesOrderItemController::class, 'store']);
+    Route::delete('sales-order-items/{salesOrderDetail}', [SalesOrderItemController::class, 'destroy']);
 
     Route::resource('delivery-orders', DeliveryOrderController::class);
     Route::post('delivery-orders/{deliveryOrder}/verification/{salesOrderDetail}', [DeliveryOrderController::class, 'verification']);
@@ -109,10 +114,13 @@ Route::middleware('auth:sanctum')->group(function ($route) {
     Route::resource('stocks', StockController::class);
 
     Route::group(['prefix' => 'stock-opnames/{stockOpname}/details'], function () {
+        Route::get('{stockOpnameDetail}/items', [StockOpnameItemController::class, 'index']);
+
         Route::get('/', [StockOpnameDetailController::class, 'index']);
         Route::get('{stockOpnameDetail}', [StockOpnameDetailController::class, 'show']);
         Route::put('{stockOpnameDetail}', [StockOpnameDetailController::class, 'update']);
         Route::delete('{stockOpnameDetail}', [StockOpnameDetailController::class, 'destroy']);
+
     });
 
     Route::put('stock-opnames/{stockOpname}/verification', [StockOpnameController::class, 'verification']);
