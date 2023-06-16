@@ -20,6 +20,7 @@ return new class extends Migration
             $table->boolean('is_scanned')->default(0);
             $table->boolean('is_new')->default(0);
             $table->timestamps();
+            // $table->timestamps();
         });
     }
 
