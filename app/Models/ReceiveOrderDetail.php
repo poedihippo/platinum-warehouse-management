@@ -54,6 +54,6 @@ class ReceiveOrderDetail extends Model
 
     public function stocks()
     {
-        return $this->hasMany(Stock::class);
+        return $this->hasMany(Stock::class, 'receive_order_detail_id');
     }
 }

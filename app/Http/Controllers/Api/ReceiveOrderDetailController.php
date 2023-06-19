@@ -76,6 +76,10 @@ class ReceiveOrderDetailController extends Controller
 
     public function destroy(ReceiveOrder $receiveOrder, ReceiveOrderDetail $receiveOrderDetail)
     {
+        if ($receiveOrderDetail->is_verified === true) {
+            return response()->json(['message' => 'Data must be unverified']);
+        }
+
         DB::beginTransaction();
         try {
             $receiveOrderDetail->delete();

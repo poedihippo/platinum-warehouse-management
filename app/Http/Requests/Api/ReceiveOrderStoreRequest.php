@@ -24,9 +24,6 @@ class ReceiveOrderStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            // 'supplier_id' => 'required|exists:suppliers,id',
-            'name' => 'required',
-            'description' => 'nullable',
             'receive_datetime' => 'required|date_format:Y-m-d H:i:s',
             'file' => 'required|mimes:xml',
         ];

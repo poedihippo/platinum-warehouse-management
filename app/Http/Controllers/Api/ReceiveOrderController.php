@@ -50,8 +50,6 @@ class ReceiveOrderController extends Controller
                 'user_id' => auth()->user()->id,
                 'supplier_id' => $supplier?->id ?? null,
                 'warehouse_id' => $warehouse?->id ?? null,
-                'name' => $request->name,
-                'description' => $request->description,
                 'receive_datetime' => date('Y-m-d H:i:s', strtotime($request->receive_datetime)),
                 'invoice_no' => $xmlArray['TRANSACTIONS']['RECIEVEITEM']['INVOICENO'],
                 'invoice_date' => date('Y-m-d', strtotime($xmlArray['TRANSACTIONS']['RECIEVEITEM']['INVOICEDATE'])),
@@ -93,6 +91,11 @@ class ReceiveOrderController extends Controller
     public function destroy(ReceiveOrder $receiveOrder)
     {
         abort_if(!auth()->user()->tokenCan('receive_order_delete'), 403);
+
+        if (!$receiveOrder->details->every(fn ($detail) => $detail->is_verified === false)) {
+            return response()->json(['message' => 'All orders received must be unverified']);
+        }
+
         $receiveOrder->delete();
         return $this->deletedResponse();
     }

@@ -29,8 +29,8 @@ return new class extends Migration
             $table->string('sequence_no')->nullable();
             // data xml
 
-            $table->string('name');
-            $table->text('description');
+            // $table->string('name');
+            // $table->text('description');
             $table->dateTime('receive_datetime');
             $table->boolean('is_complete')->default(0);
             $table->timestamps();
