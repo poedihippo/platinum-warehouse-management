@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Enums\SalesOrderStatus;
+use App\Enums\SettingEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SalesOrderResource;
 use App\Http\Requests\Api\SalesOrderStoreRequest;
@@ -101,14 +102,14 @@ class SalesOrderController extends Controller
 
         $pdf = Pdf::loadView('pdf.salesOrders.salesOrder', ['salesOrder' => $salesOrder]);
 
-        return $pdf->download('sales-order-' . $salesOrder->code . '.pdf');
+        return $pdf->download('sales-order-' . $salesOrder->invoice_no . '.pdf');
     }
 
     public function exportXml(SalesOrder $salesOrder)
     {
         return response(view('xml.salesOrders.salesOrder')->with(compact('salesOrder')), 200, [
             'Content-Type' => 'application/xml', // use your required mime type
-            'Content-Disposition' => 'attachment; filename="Sales Order ' . $salesOrder->code . '.xml"',
+            'Content-Disposition' => 'attachment; filename="Sales Order ' . $salesOrder->invoice_no . '.xml"',
         ]);
     }
 

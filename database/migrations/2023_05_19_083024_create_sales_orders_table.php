@@ -18,8 +18,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained();
             $table->foreignId('reseller_id')->constrained('users', 'id');
             $table->foreignId('warehouse_id')->constrained();
-            $table->string('code', 50);
-            $table->string('invoice_no', 20);
+            $table->string('invoice_no', 20)->nullable()->unique();
             // $table->string('status', 20);
             $table->integer('price')->default(0);
             $table->dateTime('transaction_date');

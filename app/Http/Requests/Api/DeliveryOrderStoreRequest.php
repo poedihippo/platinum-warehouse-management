@@ -25,8 +25,6 @@ class DeliveryOrderStoreRequest extends FormRequest
     {
         return [
             'sales_order_id' => 'required|exists:sales_orders,id',
-            'invoice_no' => 'required|unique:delivery_orders,invoice_no',
-            'code' => 'required|unique:delivery_orders,code',
             'description' => 'nullable|string',
         ];
     }

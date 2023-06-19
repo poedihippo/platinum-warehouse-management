@@ -25,8 +25,6 @@ class SalesOrderStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'invoice_no' => 'required|unique:sales_orders,invoice_no',
-            'code' => 'required|unique:sales_orders,code',
             'reseller_id' => 'required|exists:users,id',
             'warehouse_id' => 'required|exists:warehouses,id',
             'transaction_date' => 'required|date_format:Y-m-d H:i:s',

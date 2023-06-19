@@ -15,9 +15,9 @@ return new class extends Migration
     {
         Schema::create('delivery_orders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('sales_order_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
-            $table->string('code', 50);
-            $table->string('invoice_no', 20);
+            $table->foreignId('user_id')->constrained();
+            $table->foreignId('sales_order_id')->unique()->constrained()->cascadeOnDelete()->cascadeOnUpdate();
+            $table->string('invoice_no', 20)->nullable()->unique();
             // $table->dateTime('transaction_date');
             // $table->dateTime('shipment_estimation_datetime');
             $table->text('description')->nullable();
