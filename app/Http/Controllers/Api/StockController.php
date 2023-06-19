@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\StockProductUnitResource;
 use App\Http\Resources\StockResource;
-use App\Models\ProductUnit;
-use App\Models\ReceiveOrder;
 use App\Models\ReceiveOrderDetail;
 use App\Models\Stock;
 use App\Models\StockProductUnit;
@@ -19,7 +17,7 @@ class StockController extends Controller
 {
     public function index()
     {
-        $stockProductUnits = QueryBuilder::for(StockProductUnit::with(['warehouse', 'productUnit'])->withCount('stocks'))
+        $stockProductUnits = QueryBuilder::for(StockProductUnit::with(['warehouse', 'productUnit'])->withCount(['stocks' => fn ($q) => $q->whereNull('description')]))
             ->allowedSorts(['id', 'qty', 'product_unit_id', 'warehouse_id', 'created_at'])
             ->paginate();
 
