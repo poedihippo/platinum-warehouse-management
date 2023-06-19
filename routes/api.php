@@ -108,7 +108,7 @@ Route::middleware('auth:sanctum')->group(function ($route) {
     Route::get('delivery-orders/{deliveryOrder}/print', [DeliveryOrderController::class, 'print']);
     Route::get('delivery-orders/{deliveryOrder}/export-xml', [DeliveryOrderController::class, 'exportXml']);
 
-    Route::post('stocks/{productUnit}/grouping', [StockController::class, 'grouping']);
+    Route::post('stocks/grouping', [StockController::class, 'grouping']);
     Route::get('stocks/details', [StockController::class, 'details']);
     Route::get('stocks/print-all', [StockController::class, 'printAll']);
     Route::resource('stocks', StockController::class);

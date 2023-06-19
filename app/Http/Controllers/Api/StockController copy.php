@@ -6,8 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\StockProductUnitResource;
 use App\Http\Resources\StockResource;
 use App\Models\ProductUnit;
-use App\Models\ReceiveOrder;
-use App\Models\ReceiveOrderDetail;
 use App\Models\Stock;
 use App\Models\StockProductUnit;
 use Illuminate\Http\Request;
@@ -15,7 +13,7 @@ use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Spatie\QueryBuilder\QueryBuilder;
 
-class StockController extends Controller
+class StockControllerCopy extends Controller
 {
     public function index()
     {
@@ -74,7 +72,7 @@ class StockController extends Controller
     //     return $this->deletedResponse();
     // }
 
-    public function grouping(Request $request)
+    public function grouping(ProductUnit $productUnit, Request $request)
     {
         $request->validate([
             'total_group' => 'required|integer|gt:0',
@@ -88,54 +86,41 @@ class StockController extends Controller
         $receiveOrderDetailId = $request->receive_order_detail_id ?? null;
         $warehouseId = $request->warehouse_id;
 
-        // grouping dari page stock
-        if ($request->stock_product_unit_id) {
-            $stockProductUnit = StockProductUnit::findOrFail($request->stock_product_unit_id);
-            $totalStock = $stockProductUnit->stocks()->whereNull('parent_id')->doesntHave('childs')->count() ?? 0;
 
-            if ($totalStock == 0) {
-                return response()->json(['message' => 'Not enough stock'], 400);
-            }
+        if($request->stock_product_unit_id){
 
-            if ($totalQtyGrouping == 0 || ($totalQtyGrouping > $totalStock)) {
-                return response()->json(['message' => 'Total amount of grouping stock exceeds the total stock'], 400);
-            }
+        } elseif($request->receive_order_detail_id) {
 
-            $totalGroupStock = $stockProductUnit->stocks()->whereNull('parent_id')->has('childs')->count() ?? 0;
+        }
 
-            $productUnit = $stockProductUnit->productUnit;
-        } elseif ($request->receive_order_detail_id) {
-            //grouping dari page RO
-            $receiveOrderDetail = ReceiveOrderDetail::findOrFail($request->receive_order_detail_id);
-            $totalStock = $receiveOrderDetail->stocks()->whereNull('parent_id')->doesntHave('childs')->count() ?? 0;
 
-            if ($totalStock == 0) {
-                return response()->json(['message' => 'Not enough stock'], 400);
-            }
 
-            if ($totalQtyGrouping == 0 || ($totalQtyGrouping > $totalStock)) {
-                return response()->json(['message' => 'Total amount of grouping stock exceeds the total stock'], 400);
-            }
-
-            $totalGroupStock = $receiveOrderDetail->stocks()->whereNull('parent_id')->has('childs')->count() ?? 0;
-
-            $productUnit = $receiveOrderDetail->productUnit;
-            $stockProductUnit = StockProductUnit::where('warehouse_id', $receiveOrderDetail->receiveOrder->warehouse_id)
-                ->where('product_unit_id', $receiveOrderDetail->product_unit_id)
-                ->first();
+        $totalStock = $productUnit->stocks()->where('warehouse_id', $warehouseId)->whereNull('parent_id')->doesntHave('childs');
+        if (!is_null($receiveOrderDetailId)) {
+            $totalStock->where('receive_order_detail_id', $receiveOrderDetailId);
         }
 
         // 1. hitung total stock dari product unit tsb yang parent_id nya null (stock tanpa gruping)
         // 2. qty grouping harus lebih kecil dari total stock
         // 3.
 
+        $totalStock = $totalStock->count() ?? 0;
+        dd($totalStock);
+        if ($totalStock == 0) {
+            return response()->json(['message' => 'Not enough stock'], 400);
+        }
+
+        if ($totalQtyGrouping == 0 || ($totalQtyGrouping > $totalStock)) {
+            return response()->json(['message' => 'Total amount of grouping stock exceeds the total stock'], 400);
+        }
+
+        $totalGroupStock = $productUnit->stocks()->where('warehouse_id', $warehouseId)->whereNull('parent_id')->has('childs')->count() ?? 0;
 
         for ($i = 0; $i < $request->total_group; $i++) {
             $totalGroupStock++;
             $groupStock = Stock::create([
-                'stock_product_unit_id' => $stockProductUnit->id,
-                // 'product_unit_id' => $productUnit->id,
-                // 'warehouse_id' => $warehouseId,
+                'product_unit_id' => $productUnit->id,
+                'warehouse_id' => $warehouseId,
                 'receive_order_detail_id' => $receiveOrderDetailId,
                 'description' => 'Group ' . $totalGroupStock . ' - ' . $productUnit->code,
             ]);
@@ -153,12 +138,6 @@ class StockController extends Controller
             $groupStock->update(['qr_code' => $fullPath]);
 
             $stocks = Stock::where('product_unit_id', $productUnit->id)->where('warehouse_id', $warehouseId)->whereNull('parent_id')->where('id', '<>', $groupStock->id)->doesntHave('childs');
-
-            if ($request->stock_product_unit_id) {
-                $stocks = $stockProductUnit->stocks()->whereNull('parent_id')->where('id', '<>', $groupStock->id)->doesntHave('childs');
-            } else {
-                $stocks = $receiveOrderDetail->stocks()->whereNull('parent_id')->where('id', '<>', $groupStock->id)->doesntHave('childs');
-            }
 
             if (is_null($groupStock->receive_order_detail_id)) {
                 $stocks->orderBy('receive_order_detail_id');
