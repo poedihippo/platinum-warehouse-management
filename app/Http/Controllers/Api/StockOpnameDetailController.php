@@ -75,7 +75,9 @@ class StockOpnameDetailController extends Controller
         $stockOpnameItem = $stockOpnameDetail->stockOpnameItems()->where('stock_id', $request->stock_id)->firstOrFail();
 
         $isScanned = $request->is_scanned ?? 1;
-        $stockOpnameItem->update(['is_scanned' => $isScanned]);
+        $stockOpnameItem->is_scanned = $isScanned;
+        if (!$stockOpnameItem->isDirty('is_scanned') && $stockOpnameItem->is_scanned == 1) return response()->json(['message' => 'Stock has been scanned'], 400);
+        $stockOpnameItem->save();
 
         return response()->json(['message' => 'Stock scanned successfully'], Response::HTTP_ACCEPTED);
     }
