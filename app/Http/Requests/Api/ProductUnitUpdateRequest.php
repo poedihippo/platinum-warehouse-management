@@ -25,6 +25,7 @@ class ProductUnitUpdateRequest extends FormRequest
     {
         return [
             'code' => 'required|unique:product_units,code,' . $this->productUnit->id,
+            'uom_id' => 'required|exists:uoms,id',
             'name' => 'required',
             'description' => 'required',
             'product_id' => 'required',
