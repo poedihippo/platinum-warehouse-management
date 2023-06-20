@@ -177,11 +177,11 @@ class StockController extends Controller
         $filter = $request->filter;
         $query = Stock::select('id', 'parent_id', 'qr_code');
 
-        if(isset($filter) && isset($filter['stock_product_unit_id']) && $filter['stock_product_unit_id'] != ''){
+        if (isset($filter) && isset($filter['stock_product_unit_id']) && $filter['stock_product_unit_id'] != '') {
             $query->where('stock_product_unit_id', $filter['stock_product_unit_id']);
         }
 
-        if(isset($filter) && isset($filter['receive_order_detail_id']) && $filter['receive_order_detail_id'] != ''){
+        if (isset($filter) && isset($filter['receive_order_detail_id']) && $filter['receive_order_detail_id'] != '') {
             $query->where('receive_order_detail_id', $filter['receive_order_detail_id']);
         }
 
@@ -192,7 +192,7 @@ class StockController extends Controller
         }
 
         $stocks = QueryBuilder::for($query)
-            ->allowedFilters(['id', 'receive_order_detail_id', 'parent_id', 'product_unit_id', 'warehouse_id'])
+            ->allowedFilters(['id', 'receive_order_detail_id', 'stock_product_unit_id', 'parent_id', 'product_unit_id', 'warehouse_id'])
             ->allowedSorts(['product_unit_id', 'warehouse_id', 'created_at'])
             ->get();
 
