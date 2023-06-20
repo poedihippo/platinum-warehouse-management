@@ -33,6 +33,11 @@ class DeliveryOrder extends Model
         return $this->belongsTo(SalesOrder::class);
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public static function getSoNumber(): string
     {
         $key = SettingEnum::DO_NUMBER;

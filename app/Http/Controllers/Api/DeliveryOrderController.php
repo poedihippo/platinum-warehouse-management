@@ -22,7 +22,7 @@ class DeliveryOrderController extends Controller
     public function index()
     {
         abort_if(!auth()->user()->tokenCan('delivery_orders_access'), 403);
-        $deliveryOrders = QueryBuilder::for(DeliveryOrder::class)
+        $deliveryOrders = QueryBuilder::for(DeliveryOrder::with('user'))
             ->paginate();
 
         return DeliveryOrderResource::collection($deliveryOrders);
@@ -123,9 +123,6 @@ class DeliveryOrderController extends Controller
             ]);
 
             SalesOrderService::countFulfilledQty($salesOrderDetail);
-            // $salesOrderDetail->update([
-            //     'fulfilled_qty' => $salesOrderDetail->salesOrderItems->count()
-            // ]);
             DB::commit();
         } catch (\Throwable $th) {
             DB::rollBack();

@@ -18,6 +18,7 @@ class DeliveryOrderResource extends JsonResource
             parent::toArray($request),
             [
                 'sales_order' => new SalesOrderResource($this->salesOrder->loadCount('details')),
+                'user' => new UserResource($this->user),
             ]
         );
     }

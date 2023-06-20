@@ -150,7 +150,7 @@ class StockController extends Controller
 
             $groupStock->update(['qr_code' => $fullPath]);
 
-            $stocks = Stock::where('product_unit_id', $productUnit->id)->where('warehouse_id', $warehouseId)->whereNull('parent_id')->where('id', '<>', $groupStock->id)->doesntHave('childs');
+            // $stocks = Stock::where('product_unit_id', $productUnit->id)->where('warehouse_id', $warehouseId)->whereNull('parent_id')->where('id', '<>', $groupStock->id)->doesntHave('childs');
 
             if ($request->stock_product_unit_id) {
                 $stocks = $stockProductUnit->stocks()->whereNull('parent_id')->where('id', '<>', $groupStock->id)->doesntHave('childs');
@@ -176,6 +176,14 @@ class StockController extends Controller
     {
         $filter = $request->filter;
         $query = Stock::select('id', 'parent_id', 'qr_code');
+
+        if(isset($filter) && isset($filter['stock_product_unit_id']) && $filter['stock_product_unit_id'] != ''){
+            $query->where('stock_product_unit_id', $filter['stock_product_unit_id']);
+        }
+
+        if(isset($filter) && isset($filter['receive_order_detail_id']) && $filter['receive_order_detail_id'] != ''){
+            $query->where('receive_order_detail_id', $filter['receive_order_detail_id']);
+        }
 
         if (isset($filter) && isset($filter['parent_id']) && $filter['parent_id'] != '') {
             $query->where('parent_id', $filter['parent_id']);

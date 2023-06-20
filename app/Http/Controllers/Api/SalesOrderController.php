@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Enums\SalesOrderStatus;
-use App\Enums\SettingEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SalesOrderResource;
 use App\Http\Requests\Api\SalesOrderStoreRequest;
@@ -24,7 +23,7 @@ class SalesOrderController extends Controller
     {
         abort_if(!auth()->user()->tokenCan('sales_orders_access'), 403);
         $salesOrders = QueryBuilder::for(SalesOrder::withCount('details'))
-            ->allowedIncludes(['details'])
+            ->allowedIncludes(['details', 'warehouse'])
             ->paginate();
 
         return SalesOrderResource::collection($salesOrders);
