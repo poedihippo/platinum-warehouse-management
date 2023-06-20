@@ -20,7 +20,7 @@ return new class extends Migration
             $table->foreignId('warehouse_id')->nullable()->constrained();
 
             // data xml
-            $table->string('invoice_no')->nullable();
+            $table->string('invoice_no')->nullable()->unique();
             $table->date('invoice_date')->nullable();
             $table->integer('invoice_amount')->default(0);
             $table->string('purchase_order_no')->nullable();

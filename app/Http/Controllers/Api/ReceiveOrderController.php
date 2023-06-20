@@ -36,13 +36,17 @@ class ReceiveOrderController extends Controller
 
     public function store(ReceiveOrderStoreRequest $request)
     {
+        $xmlString = file_get_contents($request->file);
+        $xmlObject = simplexml_load_string($xmlString);
+        $json = json_encode($xmlObject);
+        $xmlArray = json_decode($json, true);
+
+        $invoiceNo = $xmlArray['TRANSACTIONS']['RECIEVEITEM']['INVOICENO'];
+
+        if (ReceiveOrder::where('invoice_no', $invoiceNo)->exists()) return response()->json(['message' => 'Invoice number is already in use']);
+
         DB::beginTransaction();
         try {
-            $xmlString = file_get_contents($request->file);
-            $xmlObject = simplexml_load_string($xmlString);
-            $json = json_encode($xmlObject);
-            $xmlArray = json_decode($json, true);
-
             $supplier = Supplier::where('code', $xmlArray['TRANSACTIONS']['RECIEVEITEM']['VENDORID'])->firstOrFail();
             $warehouse = Warehouse::where('code', $xmlArray['TRANSACTIONS']['RECIEVEITEM']['WAREHOUSEID'])->firstOrFail();
 
@@ -51,7 +55,7 @@ class ReceiveOrderController extends Controller
                 'supplier_id' => $supplier?->id ?? null,
                 'warehouse_id' => $warehouse?->id ?? null,
                 'receive_datetime' => date('Y-m-d H:i:s', strtotime($request->receive_datetime)),
-                'invoice_no' => $xmlArray['TRANSACTIONS']['RECIEVEITEM']['INVOICENO'],
+                'invoice_no' => $invoiceNo,
                 'invoice_date' => date('Y-m-d', strtotime($xmlArray['TRANSACTIONS']['RECIEVEITEM']['INVOICEDATE'])),
                 'invoice_amount' => $xmlArray['TRANSACTIONS']['RECIEVEITEM']['INVOICEAMOUNT'],
                 'purchase_order_no' => $xmlArray['TRANSACTIONS']['RECIEVEITEM']['PURCHASEORDERNO'],
