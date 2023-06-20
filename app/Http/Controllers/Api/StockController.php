@@ -198,4 +198,6 @@ class StockController extends Controller
 
         return response()->json($stocks);
     }
+
+    // search stock by scan or input code
 }
