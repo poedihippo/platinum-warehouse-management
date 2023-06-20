@@ -14,6 +14,12 @@ class DeliveryOrder extends Model
         'invoice_no',
         'code',
         'description',
+        'is_done',
+        'done_at',
+    ];
+
+    protected $casts = [
+        'is_done' => 'boolean'
     ];
 
     protected static function booted()
@@ -25,6 +31,12 @@ class DeliveryOrder extends Model
         static::created(function ($model) {
             $model->invoice_no = self::getSoNumber();
             $model->save();
+        });
+
+        static::saved(function ($model) {
+            // if ($model->isDirty('is_done')) {
+                $model->done_at = now();
+            // }
         });
     }
 

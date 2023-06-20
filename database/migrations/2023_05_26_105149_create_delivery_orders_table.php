@@ -21,6 +21,8 @@ return new class extends Migration
             // $table->dateTime('transaction_date');
             // $table->dateTime('shipment_estimation_datetime');
             $table->text('description')->nullable();
+            $table->boolean('is_done')->default(0);
+            $table->timestamp('done_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

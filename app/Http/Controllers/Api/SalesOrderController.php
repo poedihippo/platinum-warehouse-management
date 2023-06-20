@@ -23,7 +23,7 @@ class SalesOrderController extends Controller
     {
         abort_if(!auth()->user()->tokenCan('sales_orders_access'), 403);
         $salesOrders = QueryBuilder::for(SalesOrder::withCount('details'))
-            ->allowedIncludes(['details', 'warehouse'])
+            ->allowedIncludes(['details', 'warehouse', 'user'])
             ->paginate();
 
         return SalesOrderResource::collection($salesOrders);

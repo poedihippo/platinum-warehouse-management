@@ -22,6 +22,7 @@ class StockOpnameDetailResource extends JsonResource
             'qty' => $this->whenCounted('stockOpnameItems'),
             'adjust_qty' => $this->total_adjust_qty ?? 0,
             // 'adjust_qty' => $this->adjust_qty,
+            'is_done' => $this->is_done,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'stock_product_unit' =>  new StockProductUnitResource($this->whenLoaded('stockProductUnit')),

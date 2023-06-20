@@ -13,6 +13,7 @@ use App\Models\SalesOrderDetail;
 use App\Models\Stock;
 use App\Services\SalesOrderService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -23,6 +24,7 @@ class DeliveryOrderController extends Controller
     {
         abort_if(!auth()->user()->tokenCan('delivery_orders_access'), 403);
         $deliveryOrders = QueryBuilder::for(DeliveryOrder::with('user'))
+            ->allowedIncludes('salesOrder')
             ->paginate();
 
         return DeliveryOrderResource::collection($deliveryOrders);
@@ -130,5 +132,20 @@ class DeliveryOrderController extends Controller
         }
 
         return new SalesOrderItemResource($salesOrderItem);
+    }
+
+    public function done(DeliveryOrder $deliveryOrder, Request $request)
+    {
+        $request->validate(['is_done' => 'required|boolean']);
+
+        if (!$deliveryOrder->salesOrder?->details->every(fn ($detail) => $detail->fulfilled_qty >= $detail->qty)) return response()->json(['message' => 'All delivery order data must be done'], 400);
+
+        $deliveryOrder->update([
+            'is_done' => $request->is_done,
+            'done_at' => now(),
+        ]);
+
+        $message = 'Data set as ' . ($deliveryOrder->is_done ? 'Done' : 'Pending');
+        return response()->json(['message' => $message])->setStatusCode(Response::HTTP_ACCEPTED);
     }
 }

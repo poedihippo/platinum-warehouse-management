@@ -22,7 +22,7 @@ class ReceiveOrderController extends Controller
         $receiveOrders = QueryBuilder::for(ReceiveOrder::withCount('details'))
             // ->allowedFilters('name')
             // ->allowedSorts(['id', 'name', 'created_at'])
-            ->allowedIncludes(['details'])
+            ->allowedIncludes(['details', 'user'])
             ->paginate();
 
         return ReceiveOrderResource::collection($receiveOrders);

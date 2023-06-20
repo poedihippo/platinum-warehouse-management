@@ -18,8 +18,8 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained();
             $table->foreignId('warehouse_id')->constrained();
             $table->text('description')->nullable();
-            $table->boolean('is_verified')->default(0);
-            $table->timestamp('verified_at')->nullable();
+            $table->boolean('is_done')->default(0);
+            $table->timestamp('done_at')->nullable();
             $table->timestamps();
         });
     }

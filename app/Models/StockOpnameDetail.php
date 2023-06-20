@@ -11,12 +11,19 @@ class StockOpnameDetail extends Model
     protected $casts = [
         'qty' => 'integer',
         'adjust_qty' => 'integer',
+        'is_done' => 'boolean',
     ];
 
     protected static function booted()
     {
         static::created(function ($model) {
             StockOpnameDetailCreated::dispatch($model);
+        });
+
+        static::saved(function ($model) {
+            if ($model->isDirty('is_done')) {
+                $model->done_at = now();
+            }
         });
     }
 

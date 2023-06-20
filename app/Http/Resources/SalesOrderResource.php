@@ -18,8 +18,8 @@ class SalesOrderResource extends JsonResource
             parent::toArray($request),
             [
                 'details_count' => $this->whenCounted('details'),
-                'warehouse' => $this->whenLoaded('warehouse'),
-                'user' => new UserResource($this->user),
+                'warehouse' => new WarehouseResource($this->whenLoaded('warehouse')),
+                'user' => new UserResource($this->whenLoaded('user')),
                 'reseller' => new UserResource($this->reseller),
                 'details' => SalesOrderDetailResource::collection($this->whenLoaded('details'))
             ]

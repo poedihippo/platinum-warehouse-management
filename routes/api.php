@@ -106,6 +106,7 @@ Route::middleware('auth:sanctum')->group(function ($route) {
     Route::resource('delivery-orders', DeliveryOrderController::class);
     Route::post('delivery-orders/{deliveryOrder}/verification/{salesOrderDetail}', [DeliveryOrderController::class, 'verification']);
     Route::get('delivery-orders/{deliveryOrder}/print', [DeliveryOrderController::class, 'print']);
+    Route::put('delivery-orders/{deliveryOrder}/done', [DeliveryOrderController::class, 'done']);
     Route::get('delivery-orders/{deliveryOrder}/export-xml', [DeliveryOrderController::class, 'exportXml']);
 
     Route::post('stocks/grouping', [StockController::class, 'grouping']);
@@ -118,11 +119,14 @@ Route::middleware('auth:sanctum')->group(function ($route) {
 
         Route::get('/', [StockOpnameDetailController::class, 'index']);
         Route::get('{stockOpnameDetail}', [StockOpnameDetailController::class, 'show']);
+        Route::put('{stockOpnameDetail}/done', [StockOpnameDetailController::class, 'done']);
+        Route::put('{stockOpnameDetail}/scan', [StockOpnameDetailController::class, 'scan']);
         Route::put('{stockOpnameDetail}', [StockOpnameDetailController::class, 'update']);
         Route::delete('{stockOpnameDetail}', [StockOpnameDetailController::class, 'destroy']);
 
     });
 
-    Route::put('stock-opnames/{stockOpname}/verification', [StockOpnameController::class, 'verification']);
+    Route::put('stock-opnames/{stockOpname}/done', [StockOpnameController::class, 'done']);
+    Route::put('stock-opnames/{stockOpname}/set-done', [StockOpnameController::class, 'setDone']);
     Route::resource('stock-opnames', StockOpnameController::class);
 });

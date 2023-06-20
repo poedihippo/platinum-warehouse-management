@@ -51,10 +51,27 @@ class StockOpnameController extends Controller
         return $this->deletedResponse();
     }
 
-    public function verification(StockOpname $stockOpname, Request $request)
+    public function done(StockOpname $stockOpname, Request $request)
     {
-        $stockOpname->update(['is_verified' => $request->is_verified]);
+        $request->validate(['is_done' => 'required|boolean']);
 
-        return (new StockOpnameResource($stockOpname))->response()->setStatusCode(Response::HTTP_ACCEPTED);
+        if (!$stockOpname->details->every(fn ($detail) => $detail->is_done === true)) return response()->json(['message' => 'All stock opname data must be set done'], 400);
+        $stockOpname->update(['is_done' => $request->is_done]);
+
+        $message = 'Data set as ' . ($stockOpname->is_done ? 'Done' : 'Pending');
+        return response()->json(['message' => $message])->setStatusCode(Response::HTTP_ACCEPTED);
+    }
+
+    public function setDone(StockOpname $stockOpname, Request $request)
+    {
+        $request->validate(['is_done' => 'required|boolean']);
+
+        $stockOpname->details->each->update([
+            'is_done' => $request->is_done,
+            'done_at' => now(),
+        ]);
+
+        $message = 'All data set as ' . ($request->is_done ? 'Done' : 'Pending');
+        return response()->json(['message' => $message])->setStatusCode(Response::HTTP_ACCEPTED);
     }
 }

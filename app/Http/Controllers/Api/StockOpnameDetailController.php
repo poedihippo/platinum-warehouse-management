@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StockOpnameDetailStoreRequest;
+use App\Http\Requests\Api\StockOpnameDetailUpdateRequest;
 use App\Http\Resources\StockOpnameDetailResource;
 use App\Models\StockOpname;
 use App\Models\StockOpnameDetail;
@@ -64,7 +65,14 @@ class StockOpnameDetailController extends Controller
         return new StockOpnameDetailResource($stockOpnameDetail);
     }
 
-    public function update(StockOpname $stockOpname, $stockOpnameDetailId, Request $request)
+    public function update(StockOpname $stockOpname, $id, StockOpnameDetailUpdateRequest $request)
+    {
+        $stockOpnameDetail = $stockOpname->details()->where('id', $id)->update($request->validated());
+
+        return (new StockOpnameDetailResource($stockOpnameDetail))->response()->setStatusCode(Response::HTTP_ACCEPTED);
+    }
+
+    public function scan(StockOpname $stockOpname, $stockOpnameDetailId, Request $request)
     {
         $request->validate([
             'stock_id' => 'required|exists:stocks,id'
@@ -84,10 +92,16 @@ class StockOpnameDetailController extends Controller
         return response()->json(['message' => 'Stock scanned successfully'], Response::HTTP_ACCEPTED);
     }
 
-    // public function destroy(StockOpname $stockOpname, $stockOpnameDetailId)
-    // {
-    //     abort_if(!auth()->user()->tokenCan('stock_opname_detail_delete'), 403);
-    //     $stockOpname->details()->where('id', $stockOpnameDetailId)->delete();
-    //     return $this->deletedResponse();
-    // }
+    public function done(StockOpname $stockOpname, string $id, Request $request)
+    {
+        $stockOpnameDetail = $stockOpname->details()->where('id', $id)->first();
+        if (!$stockOpnameDetail) return response()->json(['message' => 'Data stock opname not match'], 400);
+
+        $stockOpnameDetail->update([
+            'is_done' => $request->is_done,
+            'done_at' => now(),
+        ]);
+        $message = 'Data set as ' . ($stockOpnameDetail->is_done ? 'Done' : 'Pending');
+        return response()->json(['message' => $message])->setStatusCode(Response::HTTP_ACCEPTED);
+    }
 }

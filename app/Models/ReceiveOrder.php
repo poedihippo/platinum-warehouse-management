@@ -27,6 +27,11 @@ class ReceiveOrder extends Model
         return $this->belongsTo(Warehouse::class);
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function refreshStatus(): void
     {
         if ($this->details->every(fn ($detail) => $detail->is_verified === 1) === true) $this->update(['is_complete' => 1]);

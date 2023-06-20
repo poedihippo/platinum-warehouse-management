@@ -17,7 +17,7 @@ class DeliveryOrderResource extends JsonResource
         return array_merge(
             parent::toArray($request),
             [
-                'sales_order' => new SalesOrderResource($this->salesOrder->loadCount('details')),
+                'sales_order' => new SalesOrderResource($this->whenLoaded('salesOrder')),
                 'user' => new UserResource($this->user),
             ]
         );

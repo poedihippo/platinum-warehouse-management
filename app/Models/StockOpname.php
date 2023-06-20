@@ -9,7 +9,7 @@ class StockOpname extends Model
 {
     protected $guarded = [];
     protected $casts = [
-        'is_verified' => 'boolean'
+        'is_done' => 'boolean'
     ];
 
     protected static function booted()
@@ -22,15 +22,11 @@ class StockOpname extends Model
             StockOpnameCreated::dispatch($model);
         });
 
-        // static::saving(function ($model) {
-        //     if ($model->isDirty('is_verified')) $model->verified_at = now();
-        // });
-
         static::saved(function ($model) {
-            if ($model->isDirty('is_verified')) {
-                $model->verified_at = now();
+            if ($model->isDirty('is_done')) {
+                $model->done_at = now();
 
-                if ($model->is_verified) {
+                if ($model->is_done) {
                     $model->details?->each(function ($stockOpnameDetail) {
                         $stockOpnameDetail->stockOpnameItems()->where('is_scanned', 0)->get()?->each(function ($stockOpnameItem) {
                             // if (!$stockOpnameItem->is_scanned) {
