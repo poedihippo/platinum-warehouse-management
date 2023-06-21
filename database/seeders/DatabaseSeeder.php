@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             CustomerSeeder::class,
             SettingSeeder::class,
+            UserDiscountSeeder::class,
         ]);
         // \App\Models\User::factory(10)->create();
 

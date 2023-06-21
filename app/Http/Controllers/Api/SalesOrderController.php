@@ -122,7 +122,7 @@ class SalesOrderController extends Controller
 
     public function productUnits(Request $request)
     {
-        $userDiscount = UserDiscount::select('product_brand_id', 'value', 'is_percentage')->where('user_id', $request->customer_id)->get();
+        $userDiscounts = UserDiscount::select('product_brand_id', 'value', 'is_percentage')->where('user_id', $request->customer_id)->get();
 
         $productUnits = ProductUnit::select('id', 'uom_id', 'product_id', 'name', 'price')
             ->with([
@@ -131,13 +131,12 @@ class SalesOrderController extends Controller
             ])
             ->paginate();
 
-        $productUnits->each(function ($productUnit) use ($userDiscount) {
+        $productUnits->each(function ($productUnit) use ($userDiscounts) {
             $productUnit->price_discount = $productUnit->price;
 
             $productBrandId = $productUnit?->product?->product_brand_id ?? null;
-            if ($userDiscount->contains('product_brand_id', $productBrandId)) {
-                $discount = $userDiscount->firstWhere('product_brand_id', $productBrandId);
-
+            if ($userDiscounts->contains('product_brand_id', $productBrandId)) {
+                $discount = $userDiscounts->firstWhere('product_brand_id', $productBrandId);
                 if ($discount->is_percentage) {
                     $totalDiscount = $productUnit->price * $discount->value;
                     $totalDiscount = $totalDiscount <= 0 ? 0 : ($totalDiscount / 100);
@@ -147,6 +146,8 @@ class SalesOrderController extends Controller
                 }
 
                 $productUnit->price_discount = $totalPrice <= 0 ? 0 : $totalPrice;
+                $productUnit->discount = $discount->value;
+                $productUnit->is_percentage = $discount->is_percentage;
             }
 
             unset($productUnit->product);
@@ -171,10 +172,10 @@ class SalesOrderController extends Controller
     //     $totalPrice = 0;
     //     $discount = 0;
     //     $isPercentage = 0;
-    //     $userDiscount = UserDiscount::where('user_id', $request->customer_id)->where('product_brand_id', $productUnit?->product?->productBrand?->id)->first();
-    //     if ($userDiscount) {
-    //         $discount = $userDiscount->value;
-    //         $isPercentage = $userDiscount->is_percentage;
+    //     $userDiscounts = UserDiscount::where('user_id', $request->customer_id)->where('product_brand_id', $productUnit?->product?->productBrand?->id)->first();
+    //     if ($userDiscounts) {
+    //         $discount = $userDiscounts->value;
+    //         $isPercentage = $userDiscounts->is_percentage;
     //     }
 
     //     if ($isPercentage) {
