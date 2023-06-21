@@ -7,7 +7,9 @@ use App\Http\Requests\Api\SupplierStoreRequest;
 use App\Http\Requests\Api\SupplierUpdateRequest;
 use App\Http\Resources\SupplierResource;
 use App\Models\Supplier;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Response;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class SupplierController extends Controller
@@ -16,7 +18,13 @@ class SupplierController extends Controller
     {
         abort_if(!auth()->user()->tokenCan('suppliers_access'), 403);
         $suppliers = QueryBuilder::for(Supplier::class)
-            ->allowedFilters(['name'])
+            ->allowedFilters([
+                AllowedFilter::callback('search', function (Builder $query, $value) {
+                    $query->where('name', 'like', '%' . $value . '%')
+                        ->orWhere('email', 'like', '%' . $value . '%')
+                        ->orWhere('phone', 'like', '%' . $value . '%');
+                }),
+            ])
             ->allowedSorts(['id', 'name'])
             ->paginate();
 

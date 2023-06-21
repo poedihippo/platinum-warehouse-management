@@ -39,14 +39,14 @@ class AdjustmentRequestController extends Controller
     {
         $adjustmentRequest = AdjustmentRequest::create($request->validated());
 
-        return new AdjustmentRequestResource($adjustmentRequest);
+        return new AdjustmentRequestResource($adjustmentRequest->load('stockProductUnit'));
     }
 
-    public function update(AdjustmentRequest $adjustmentRequest, AdjustmentRequestUpdateRequest $request)
+    public function update(AdjustmentRequest $adjustmentRequest, AdjustmentRequestStoreRequest $request)
     {
         $adjustmentRequest->update($request->validated());
 
-        return (new AdjustmentRequestResource($adjustmentRequest))->response()->setStatusCode(Response::HTTP_ACCEPTED);
+        return (new AdjustmentRequestResource($adjustmentRequest->load('stockProductUnit')))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
     public function destroy(AdjustmentRequest $adjustmentRequest)

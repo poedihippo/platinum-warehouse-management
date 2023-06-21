@@ -20,6 +20,9 @@ return new class extends Migration
             $table->boolean('is_increment')->default(1);
             $table->unsignedInteger('value')->default(0);
             $table->text('description')->nullable();
+            $table->boolean('is_approved')->default(0);
+            $table->integer('approved_by')->nullable()->index();
+            $table->timestamp('approved_datetime')->nullable();
             $table->timestamps();
         });
     }

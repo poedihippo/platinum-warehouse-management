@@ -9,7 +9,8 @@ class AdjustmentRequest extends Model
 {
     protected $guarded = [];
     protected $casts = [
-        'is_increment' => 'boolean'
+        'is_increment' => 'boolean',
+        'is_approved' => 'boolean',
     ];
 
     protected static function booted()
@@ -22,6 +23,11 @@ class AdjustmentRequest extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function approvedBy()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 
     public function stockProductUnit()

@@ -24,7 +24,7 @@ class AdjustmentRequestStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'stock_product_unit_id' => 'required|unique:roles,name',
+            'stock_product_unit_id' => 'required|exists:stock_product_units,id',
             'value' => 'required|integer|min:1',
             'is_increment' => 'nullable|boolean',
             'description' => 'nullable',
