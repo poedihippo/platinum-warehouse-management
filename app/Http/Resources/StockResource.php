@@ -28,8 +28,8 @@ class StockResource extends JsonResource
             'stocks_count' => $this->whenCounted('childs'),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'product_unit' =>  new ProductUnitResource($this->whenLoaded('productUnit')),
-            'warehouse' =>  new WarehouseResource($this->whenLoaded('warehouse')),
+            'stock_product_unit' =>  new StockProductUnitResource($this->whenLoaded('stockProductUnit')->load(['productUnit', 'warehouse'])),
+            // 'warehouse' =>  new WarehouseResource($this->whenLoaded('warehouse')),
             'receive_order_detail' =>  new ReceiveOrderDetailResource($this->whenLoaded('receiveOrderDetail')),
         ];
     }
