@@ -47,8 +47,12 @@ class StockController extends Controller
         }
 
         $stocks = QueryBuilder::for($query)
-            ->allowedFilters(['id', 'parent_id', 'stock_product_unit_id', 'warehouse_id', 'receive_order_id', 'receive_order_detail_id'])
-            ->allowedSorts(['warehouse_id', 'created_at'])
+            ->allowedFilters([
+                'id', 'parent_id', 'stock_product_unit_id', 'warehouse_id', 'receive_order_id', 'receive_order_detail_id',
+                AllowedFilter::scope('startDate'),
+                AllowedFilter::scope('endDate'),
+            ])
+            ->allowedSorts(['scanned_count', 'scanned_datetime', 'warehouse_id', 'created_at'])
             // ->allowedIncludes(['productUnit', 'warehouse', 'receiveOrderDetail'])
             ->paginate();
 

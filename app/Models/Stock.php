@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -62,5 +63,17 @@ class Stock extends Model
                 return url(Storage::url($value));
             },
         );
+    }
+
+    public function scopeStartDate(Builder $query, $value = null)
+    {
+        $value = is_null($value) ? date('Y-m-d') : date('Y-m-d', strtotime($value));
+        return $query->whereDate('created_at', '>=', $value);
+    }
+
+    public function scopeEndDate(Builder $query, $value = null)
+    {
+        $value = is_null($value) ? date('Y-m-d') : date('Y-m-d', strtotime($value));
+        return $query->whereDate('created_at', '<=', $value);
     }
 }
