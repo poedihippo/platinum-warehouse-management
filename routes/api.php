@@ -113,6 +113,7 @@ Route::middleware('auth:sanctum')->group(function ($route) {
     Route::put('adjustment-requests/{adjustmentRequest}/approve', [AdjustmentRequestController::class, 'approve']);
     Route::resource('adjustment-requests', AdjustmentRequestController::class);
 
+    Route::post('stocks/record', [StockController::class, 'record']);
     Route::post('stocks/grouping', [StockController::class, 'grouping']);
     Route::get('stocks/details', [StockController::class, 'details']);
     Route::get('stocks/print-all', [StockController::class, 'printAll']);

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\StockRecordRequest;
 use App\Http\Resources\StockProductUnitResource;
 use App\Http\Resources\Stocks\BaseStockResource;
 use App\Http\Resources\Stocks\StockProductUnitResource as StocksStockProductUnitResource;
@@ -10,6 +11,7 @@ use App\Models\ReceiveOrderDetail;
 use App\Models\Stock;
 use App\Models\StockProductUnit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -207,5 +209,49 @@ class StockController extends Controller
         return response()->json($stocks);
     }
 
-    // search stock by scan or input code
+    public function record(StockRecordRequest $request)
+    {
+        $stockIds = $request->stock_ids;
+        $stockIds = is_array($stockIds) && count($stockIds) > 0 ? $stockIds : [];
+        $columnName = '';
+        $value = '';
+        if ($stockProductUnitId = $request->stock_product_unit_id) {
+            $columnName = 'stock_product_unit_id';
+            $value = $stockProductUnitId;
+        } elseif ($receiveOrderDetailId = $request->receive_order_detail_id) {
+            $columnName = 'receive_order_detail_id';
+            $value = $receiveOrderDetailId;
+        }
+
+        if ($columnName != '' && $value != '') {
+            DB::beginTransaction();
+            try {
+                $time = now();
+                if (count($stockIds) > 0) {
+                    foreach ($stockIds as $id) {
+                        $stock = Stock::where($columnName, $value)->where('id', $id)->first();
+                        if ($stock) {
+                            if ($stock->childs->count() > 0) {
+                                // as parent & has childs
+                                $stock->increment('scanned_count', 1, ['scanned_datetime' => $time]);
+                                $stock->childs->each->increment('scanned_count', 1, ['scanned_datetime' => $time]);
+                            } else {
+                                $stock->increment('scanned_count', 1, ['scanned_datetime' => $time]);
+                            }
+                        }
+                    }
+                } elseif ($request->is_print_all) {
+                    DB::table('stocks')->where($columnName, $value)->increment('scanned_count', 1, ['scanned_datetime' => $time]);
+                }
+                DB::commit();
+            } catch (\Throwable $th) {
+                DB::rollBack();
+                return response()->json(['message' => $th->getMessage()], 400);
+            }
+
+            return response()->json(['message' => 'Data updated successfully']);
+        }
+
+        return response()->json(['message' => 'No data updated']);
+    }
 }

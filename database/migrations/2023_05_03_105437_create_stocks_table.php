@@ -24,7 +24,7 @@ return new class extends Migration
             $table->foreignId('receive_order_detail_id')->nullable()->constrained();
             $table->string('description')->nullable();
             $table->text('qr_code')->nullable();
-            $table->foreignId('scanned_by')->nullable()->constrained('users');
+            $table->integer('scanned_count')->default(0);
             $table->dateTime('scanned_datetime')->nullable();
             $table->timestamps();
             $table->softDeletes();
