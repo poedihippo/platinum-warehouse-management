@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\SettingEnum;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
@@ -60,6 +61,12 @@ class SalesOrder extends Model
     public function warehouse()
     {
         return $this->belongsTo(Warehouse::class, 'warehouse_id');
+    }
+
+    public function scopeHasDeliveryOrder(Builder $query, $value = 1)
+    {
+        if ($value == 1) return $query->has('deliveryOrder');
+        return $query->doesntHave('deliveryOrder');
     }
 
     public static function getSoNumber(): string

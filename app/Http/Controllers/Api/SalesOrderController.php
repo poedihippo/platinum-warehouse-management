@@ -15,6 +15,7 @@ use BenSampo\Enum\Rules\EnumValue;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class SalesOrderController extends Controller
@@ -23,7 +24,10 @@ class SalesOrderController extends Controller
     {
         abort_if(!auth()->user()->tokenCan('sales_orders_access'), 403);
         $salesOrders = QueryBuilder::for(SalesOrder::withCount('details'))
-            ->allowedFilters(['invoice_no', 'user_id', 'reseller_id', 'warehouse_id'])
+            ->allowedFilters([
+                'invoice_no', 'user_id', 'reseller_id', 'warehouse_id',
+                AllowedFilter::scope('has_delivery_order'),
+            ])
             ->allowedSorts(['id', 'invoice_no', 'user_id', 'reseller_id', 'warehouse_id', 'created_at'])
             ->allowedIncludes(['details', 'warehouse', 'user'])
             ->paginate();

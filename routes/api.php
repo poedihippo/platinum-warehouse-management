@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AdjustmentRequestController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DeliveryOrderController;
 use App\Http\Controllers\Api\ProductBrandController;
@@ -108,6 +109,8 @@ Route::middleware('auth:sanctum')->group(function ($route) {
     Route::get('delivery-orders/{deliveryOrder}/print', [DeliveryOrderController::class, 'print']);
     Route::put('delivery-orders/{deliveryOrder}/done', [DeliveryOrderController::class, 'done']);
     Route::get('delivery-orders/{deliveryOrder}/export-xml', [DeliveryOrderController::class, 'exportXml']);
+
+    Route::resource('adjustment-requests', AdjustmentRequestController::class);
 
     Route::post('stocks/grouping', [StockController::class, 'grouping']);
     Route::get('stocks/details', [StockController::class, 'details']);
