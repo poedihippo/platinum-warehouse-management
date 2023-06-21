@@ -1,10 +1,12 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Stocks;
 
+use App\Http\Resources\ReceiveOrderDetailResource;
+use App\Http\Resources\StockProductUnitResource as ResourcesStockProductUnitResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class StockResource extends JsonResource
+class StockProductUnitResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -28,9 +30,8 @@ class StockResource extends JsonResource
             'stocks_count' => $this->whenCounted('childs'),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'stock_product_unit' =>  new StockProductUnitResource($this->whenLoaded('stockProductUnit')->load(['productUnit', 'warehouse'])),
-            // 'warehouse' =>  new WarehouseResource($this->whenLoaded('warehouse')),
             'receive_order_detail' =>  new ReceiveOrderDetailResource($this->whenLoaded('receiveOrderDetail')),
+            'stock_product_unit' =>  new ResourcesStockProductUnitResource($this->whenLoaded('stockProductUnit')->load(['productUnit', 'warehouse'])),
         ];
     }
 }

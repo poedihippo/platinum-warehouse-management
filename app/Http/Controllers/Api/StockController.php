@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\StockProductUnitResource;
-use App\Http\Resources\StockResource;
+use App\Http\Resources\Stocks\BaseStockResource;
+use App\Http\Resources\Stocks\StockProductUnitResource as StocksStockProductUnitResource;
 use App\Models\ReceiveOrderDetail;
 use App\Models\Stock;
 use App\Models\StockProductUnit;
@@ -49,13 +50,13 @@ class StockController extends Controller
             // ->allowedIncludes(['productUnit', 'warehouse', 'receiveOrderDetail'])
             ->paginate();
 
-        return StockResource::collection($stocks);
+        return BaseStockResource::collection($stocks);
     }
 
     public function show(Stock $stock)
     {
         // abort_if(!auth()->user()->tokenCan('receive_order_create'), 403);
-        return new StockResource($stock->load(['stockProductUnit', 'receiveOrderDetail']));
+        return new StocksStockProductUnitResource($stock->load(['stockProductUnit', 'receiveOrderDetail']));
     }
 
     public function store(Request $request)
@@ -69,7 +70,7 @@ class StockController extends Controller
     //     dd($request->validated());
     //     $stock->update($request->validated());
 
-    //     return (new StockResource($stock))->response()->setStatusCode(Response::HTTP_ACCEPTED);
+    //     return (new BaseStockResource($stock))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     // }
 
     // public function destroy(Stock $stock)

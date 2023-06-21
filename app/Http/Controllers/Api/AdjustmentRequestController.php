@@ -44,6 +44,7 @@ class AdjustmentRequestController extends Controller
 
     public function update(AdjustmentRequest $adjustmentRequest, AdjustmentRequestStoreRequest $request)
     {
+        if ($adjustmentRequest->is_approved) return response()->json(['message' => "Can't update data if it has been approved"], 400);
         $adjustmentRequest->update($request->validated());
 
         return (new AdjustmentRequestResource($adjustmentRequest->load('stockProductUnit')))->response()->setStatusCode(Response::HTTP_ACCEPTED);
