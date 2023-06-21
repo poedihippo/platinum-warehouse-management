@@ -110,6 +110,7 @@ Route::middleware('auth:sanctum')->group(function ($route) {
     Route::put('delivery-orders/{deliveryOrder}/done', [DeliveryOrderController::class, 'done']);
     Route::get('delivery-orders/{deliveryOrder}/export-xml', [DeliveryOrderController::class, 'exportXml']);
 
+    Route::put('adjustment-requests/{adjustmentRequest}/approve', [AdjustmentRequestController::class, 'approve']);
     Route::resource('adjustment-requests', AdjustmentRequestController::class);
 
     Route::post('stocks/grouping', [StockController::class, 'grouping']);

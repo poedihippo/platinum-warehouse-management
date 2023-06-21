@@ -3,7 +3,6 @@
 namespace App\Listeners;
 
 use App\Events\VerifiedRODetailEvent;
-use App\Models\Stock;
 use App\Models\StockProductUnit;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
@@ -43,13 +42,6 @@ class CreateStockRODetailListener implements ShouldQueue
                 'receive_order_id' => $receiveOrderDetail->receive_order_id,
                 'receive_order_detail_id' => $receiveOrderDetail->id,
             ]);
-
-            // $stock = Stock::create([
-            //     'receive_order_id' => $receiveOrderDetail->receive_order_id,
-            //     'receive_order_detail_id' => $receiveOrderDetail->id,
-            //     'product_unit_id' => $receiveOrderDetail->product_unit_id,
-            //     'warehouse_id' => $receiveOrderDetail->receiveOrder->warehouse_id,
-            // ]);
 
             $logo = public_path('images/logo-platinum.png');
 

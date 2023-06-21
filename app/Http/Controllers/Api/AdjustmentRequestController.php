@@ -8,12 +8,14 @@ use App\Http\Resources\AdjustmentRequestResource;
 use App\Models\AdjustmentRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class AdjustmentRequestController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
         abort_if(!auth()->user()->tokenCan('adjustment_requests_access'), 403);
 
@@ -31,12 +33,13 @@ class AdjustmentRequestController extends Controller
 
     public function show(AdjustmentRequest $adjustmentRequest)
     {
-        abort_if(!auth()->user()->tokenCan('AdjustmentRequest_create'), 403);
-        return new AdjustmentRequestResource($adjustmentRequest);
+        abort_if(!auth()->user()->tokenCan('adjustment_requests_access'), 403);
+        return new AdjustmentRequestResource($adjustmentRequest->load('stockProductUnit'));
     }
 
     public function store(AdjustmentRequestStoreRequest $request)
     {
+        abort_if(!auth()->user()->tokenCan('adjustment_request_create'), 403);
         $adjustmentRequest = AdjustmentRequest::create($request->validated());
 
         return new AdjustmentRequestResource($adjustmentRequest->load('stockProductUnit'));
@@ -44,6 +47,7 @@ class AdjustmentRequestController extends Controller
 
     public function update(AdjustmentRequest $adjustmentRequest, AdjustmentRequestStoreRequest $request)
     {
+        abort_if(!auth()->user()->tokenCan('adjustment_request_edit'), 403);
         if ($adjustmentRequest->is_approved) return response()->json(['message' => "Can't update data if it has been approved"], 400);
         $adjustmentRequest->update($request->validated());
 
@@ -52,8 +56,54 @@ class AdjustmentRequestController extends Controller
 
     public function destroy(AdjustmentRequest $adjustmentRequest)
     {
-        abort_if(!auth()->user()->tokenCan('AdjustmentRequest_delete'), 403);
+        abort_if(!auth()->user()->tokenCan('adjustment_request_delete'), 403);
+        if ($adjustmentRequest->is_approved) return response()->json(['message' => "Can't delete data if it has been approved"], 400);
+
         $adjustmentRequest->delete();
         return $this->deletedResponse();
+    }
+
+    public function approve(AdjustmentRequest $adjustmentRequest, Request $request)
+    {
+        abort_if(!auth()->user()->tokenCan('adjustment_request_approve'), 403);
+
+        $stockProductUnit = $adjustmentRequest->stockProductUnit;
+        if (!$stockProductUnit) return response()->json(['message' => "Stock product unit not found"], 404);
+
+        $adjustmentRequest->is_approved = $request->is_approved ?? 1;
+        $adjustmentRequest->approved_by = auth()->user()->id;
+        $adjustmentRequest->approved_datetime = now();
+
+        if ($adjustmentRequest->isDirty('is_approved')) {
+            if ($adjustmentRequest->is_approved === true) {
+                $folder = 'qrcode/';
+                for ($i = 0; $i < $adjustmentRequest->value ?? 0; $i++) {
+                    $stock = $stockProductUnit->stocks()->create([
+                        'adjustment_request_id' => $adjustmentRequest->id
+                    ]);
+
+                    $logo = public_path('images/logo-platinum.png');
+
+                    $data = QrCode::size(350)
+                        ->format('png')
+                        // ->merge($logo, absolute: true)
+                        ->generate($stock->id);
+
+                    $fileName = $adjustmentRequest->id . '/' . $stock->id . '.png';
+                    $fullPath = $folder .  $fileName;
+                    Storage::put($fullPath, $data);
+
+                    $stock->update(['qr_code' => $fullPath]);
+                }
+            } else {
+                $adjustmentRequest->stocks?->each->forceDelete();
+                Storage::deleteDirectory($adjustmentRequest->id);
+            }
+        }
+
+        $adjustmentRequest->save();
+
+        $message = 'Data ' . ($adjustmentRequest->is_approved ? 'approved' : 'rejected') . ' successfully';
+        return response()->json(['message' => $message]);
     }
 }

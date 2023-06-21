@@ -24,6 +24,7 @@ return new class extends Migration
             $table->integer('approved_by')->nullable()->index();
             $table->timestamp('approved_datetime')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

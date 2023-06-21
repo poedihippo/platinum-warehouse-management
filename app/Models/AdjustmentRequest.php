@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class AdjustmentRequest extends Model
 {
+    use SoftDeletes;
+
     protected $guarded = [];
     protected $casts = [
         'is_increment' => 'boolean',
@@ -18,6 +21,11 @@ class AdjustmentRequest extends Model
         static::creating(function ($model) {
             $model->user_id = auth()->user()->id;
         });
+    }
+
+    public function stocks()
+    {
+        return $this->hasMany(Stock::class);
     }
 
     public function user()

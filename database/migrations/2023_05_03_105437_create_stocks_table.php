@@ -17,6 +17,7 @@ return new class extends Migration
             $table->ulid('id')->primary();
             $table->ulid('parent_id')->nullable()->constrained('stocks', 'id');
             $table->foreignId('stock_product_unit_id')->constrained();
+            $table->foreignId('adjustment_request_id')->nullable()->index();
             // $table->foreignId('product_unit_id')->constrained();
             // $table->foreignId('warehouse_id')->constrained();
             $table->foreignId('receive_order_id')->nullable()->constrained();
