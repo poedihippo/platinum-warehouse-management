@@ -16,7 +16,7 @@ class ProductBrandController extends Controller
     {
         abort_if(!auth()->user()->tokenCan('product_brands_access'), 403);
         $productCategories = QueryBuilder::for(ProductBrand::class)
-            ->allowedFilters(['name', 'description'])
+            ->allowedFilters(['name'])
             ->allowedSorts(['id', 'name', 'created_at'])
             ->paginate();
 

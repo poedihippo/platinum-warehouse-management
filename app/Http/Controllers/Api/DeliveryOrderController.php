@@ -16,7 +16,9 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
+use Illuminate\Database\Eloquent\Builder;
 
 class DeliveryOrderController extends Controller
 {
@@ -24,6 +26,13 @@ class DeliveryOrderController extends Controller
     {
         abort_if(!auth()->user()->tokenCan('delivery_orders_access'), 403);
         $deliveryOrders = QueryBuilder::for(DeliveryOrder::with('user'))
+            ->allowedFilters([
+                'invoice_no',
+                AllowedFilter::callback('reseller_id', function (Builder $query, $value) {
+                    $query->whereHas('salesOrder', fn ($q) => $q->where('reseller_id', $value));
+                }),
+            ])
+            ->allowedSorts(['id', 'invoice_no', 'user_id', 'reseller_id', 'warehouse_id', 'created_at'])
             ->allowedIncludes('salesOrder')
             ->paginate();
 

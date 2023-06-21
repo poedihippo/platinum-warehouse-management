@@ -23,6 +23,8 @@ class SalesOrderController extends Controller
     {
         abort_if(!auth()->user()->tokenCan('sales_orders_access'), 403);
         $salesOrders = QueryBuilder::for(SalesOrder::withCount('details'))
+            ->allowedFilters(['invoice_no', 'user_id', 'reseller_id', 'warehouse_id'])
+            ->allowedSorts(['id', 'invoice_no', 'user_id', 'reseller_id', 'warehouse_id', 'created_at'])
             ->allowedIncludes(['details', 'warehouse', 'user'])
             ->paginate();
 
@@ -32,7 +34,7 @@ class SalesOrderController extends Controller
     public function show(SalesOrder $salesOrder)
     {
         abort_if(!auth()->user()->tokenCan('sales_order_create'), 403);
-        return new SalesOrderResource($salesOrder->load('details')->loadCount('details'));
+        return new SalesOrderResource($salesOrder->load(['details', 'user'])->loadCount('details'));
     }
 
     public function store(SalesOrderStoreRequest $request)
@@ -66,7 +68,9 @@ class SalesOrderController extends Controller
     public function update(SalesOrder $salesOrder, SalesOrderUpdateRequest $request)
     {
         // dump($request->all());
-        // dd($request->validated());
+        dump($request->all());
+        dd($request->validated());
+        if ($salesOrder->deliveryOrder?->is_done) return response()->json(['message' => "Can't update SO if DO is already done"], 400);
         $salesOrder->update($request->validated());
 
         return (new SalesOrderResource($salesOrder))->response()->setStatusCode(Response::HTTP_ACCEPTED);

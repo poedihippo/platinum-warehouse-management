@@ -11,15 +11,25 @@ use App\Models\ReceiveOrderDetail;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
+use Illuminate\Database\Eloquent\Builder;
 
 class ReceiveOrderDetailController extends Controller
 {
     public function index(ReceiveOrder $receiveOrder)
     {
         $receiveOrderDetails = QueryBuilder::for(ReceiveOrderDetail::where('receive_order_id', $receiveOrder->id))
-            // ->allowedFilters('name')
-            // ->allowedSorts(['id', 'name', 'created_at'])
+            ->allowedFilters([
+                AllowedFilter::scope('product_unit'),
+                AllowedFilter::callback('product_brand_id', function (Builder $query, $value) {
+                    $query->whereHas('productUnit.product', fn ($q) => $q->where('product_brand_id', $value));
+                }),
+                AllowedFilter::callback('product_category_id', function (Builder $query, $value) {
+                    $query->whereHas('productUnit.product', fn ($q) => $q->where('product_category_id', $value));
+                }),
+            ])
+            // ->allowedSorts(['id', 'invoice_no', 'user_id', 'supplier_id', 'warehouse_id', 'created_at'])
             ->paginate();
 
         return ReceiveOrderDetailResource::collection($receiveOrderDetails);

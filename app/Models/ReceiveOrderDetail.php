@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use App\Events\UnverifiedRODetailEvent;
 use App\Events\VerifiedRODetailEvent;
 use Illuminate\Database\Eloquent\Model;
@@ -55,5 +56,10 @@ class ReceiveOrderDetail extends Model
     public function stocks()
     {
         return $this->hasMany(Stock::class, 'receive_order_detail_id');
+    }
+
+    public function scopeProductUnit(Builder $query, $value)
+    {
+        return $query->whereHas('productUnit', fn ($q) => $q->where('name', 'like', '%' . $value . '%')->orWhere('code', 'like', '%' . $value . '%'));
     }
 }

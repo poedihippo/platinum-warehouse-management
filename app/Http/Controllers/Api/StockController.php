@@ -11,6 +11,7 @@ use App\Models\StockProductUnit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class StockController extends Controller
@@ -18,6 +19,12 @@ class StockController extends Controller
     public function index()
     {
         $stockProductUnits = QueryBuilder::for(StockProductUnit::with(['warehouse', 'productUnit'])->withCount(['stocks' => fn ($q) => $q->whereNull('description')]))
+            ->allowedFilters([
+                'warehouse_id',
+                AllowedFilter::scope('product_unit'),
+                AllowedFilter::scope('product_brand_id', 'whereProductBrandId'),
+                AllowedFilter::scope('product_category_id', 'whereProductCategoryId'),
+            ])
             ->allowedSorts(['id', 'qty', 'product_unit_id', 'warehouse_id', 'created_at'])
             ->paginate();
 

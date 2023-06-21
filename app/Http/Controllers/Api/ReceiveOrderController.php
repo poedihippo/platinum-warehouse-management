@@ -20,8 +20,8 @@ class ReceiveOrderController extends Controller
     {
         abort_if(!auth()->user()->tokenCan('receive_orders_access'), 403);
         $receiveOrders = QueryBuilder::for(ReceiveOrder::withCount('details'))
-            // ->allowedFilters('name')
-            // ->allowedSorts(['id', 'name', 'created_at'])
+            ->allowedFilters(['invoice_no', 'user_id', 'supplier_id', 'warehouse_id'])
+            ->allowedSorts(['id', 'invoice_no', 'user_id', 'supplier_id', 'warehouse_id', 'created_at'])
             ->allowedIncludes(['details', 'user'])
             ->paginate();
 
@@ -43,7 +43,7 @@ class ReceiveOrderController extends Controller
 
         $invoiceNo = $xmlArray['TRANSACTIONS']['RECIEVEITEM']['INVOICENO'];
 
-        if (ReceiveOrder::where('invoice_no', $invoiceNo)->exists()) return response()->json(['message' => 'Invoice number is already in use']);
+        if (ReceiveOrder::where('invoice_no', $invoiceNo)->exists()) return response()->json(['message' => 'Invoice number is already in use'], 400);
 
         DB::beginTransaction();
         try {

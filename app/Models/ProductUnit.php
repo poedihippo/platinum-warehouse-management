@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use App\Events\ProductUnits\ProductUnitCreated;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use App\Events\ProductUnits\ProductUnitCreated;
 
 class ProductUnit extends Model
 {
@@ -34,5 +35,15 @@ class ProductUnit extends Model
     public function stocks()
     {
         return $this->hasMany(Stock::class);
+    }
+
+    public function scopeWhereProductBrandId(Builder $query, $id)
+    {
+        return $query->whereHas('product', fn ($q) => $q->where('product_brand_id', $id));
+    }
+
+    public function scopeWhereProductCategoryId(Builder $query, $id)
+    {
+        return $query->whereHas('product', fn ($q) => $q->where('product_category_id', $id));
     }
 }
