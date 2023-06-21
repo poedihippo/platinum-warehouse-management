@@ -55,7 +55,7 @@ class StockController extends Controller
     public function show(Stock $stock)
     {
         // abort_if(!auth()->user()->tokenCan('receive_order_create'), 403);
-        return new StockResource($stock->load('details'));
+        return new StockResource($stock);
     }
 
     public function store(Request $request)
