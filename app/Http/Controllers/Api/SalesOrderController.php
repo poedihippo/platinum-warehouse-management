@@ -124,11 +124,14 @@ class SalesOrderController extends Controller
     {
         $userDiscounts = UserDiscount::select('product_brand_id', 'value', 'is_percentage')->where('user_id', $request->customer_id)->get();
 
-        $productUnits = ProductUnit::select('id', 'uom_id', 'product_id', 'name', 'price')
+        $query = ProductUnit::select('id', 'uom_id', 'product_id', 'name', 'price')
             ->with([
                 'uom' => fn ($q) => $q->select('id', 'name'),
                 'product' => fn ($q) => $q->select('id', 'product_brand_id')
-            ])
+            ]);
+
+        $productUnits = QueryBuilder::for($query)
+            ->allowedFilters('name')
             ->paginate();
 
         $productUnits->each(function ($productUnit) use ($userDiscounts) {
