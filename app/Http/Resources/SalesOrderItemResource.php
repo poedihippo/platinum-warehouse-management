@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\Stocks\BaseStockResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class SalesOrderItemResource extends JsonResource
@@ -18,7 +19,7 @@ class SalesOrderItemResource extends JsonResource
             'id' => $this->id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'stock' => new StockResource($this->stock),
+            'stock' => new BaseStockResource($this->stock),
             'sales_order_detail' => new SalesOrderDetailResource($this->salesOrderDetail),
         ];
     }
