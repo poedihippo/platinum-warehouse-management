@@ -5,9 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use App\Events\ProductUnits\ProductUnitCreated;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProductUnit extends Model
 {
+    use SoftDeletes;
+
     protected $guarded = [];
 
     protected static function booted()

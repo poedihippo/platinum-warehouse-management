@@ -19,6 +19,9 @@ return new class extends Migration
             $table->foreignId('product_unit_id');
             $table->integer('qty')->default(0);
             $table->integer('fulfilled_qty')->default(0);
+            $table->integer('unit_price')->default(0);
+            $table->integer('discount')->default(0);
+            $table->integer('total_price')->default(0);
             $table->timestamps();
         });
     }

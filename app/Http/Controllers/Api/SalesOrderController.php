@@ -55,9 +55,13 @@ class SalesOrderController extends Controller
             $salesOrder = SalesOrder::create($data);
 
             for ($i = 0; $i < count($items); $i++) {
+                $productUnit = ProductUnit::withTrashed()->findOrFail($items[$i]['product_unit_id']);
                 $salesOrder->details()->create([
                     'product_unit_id' => $items[$i]['product_unit_id'],
                     'qty' => $items[$i]['qty'],
+                    'unit_price' => $productUnit->price ?? 0,
+                    'discount' => $items[$i]['discount'] ?? 0,
+                    'total_price' => $items[$i]['price'] ?? 0,
                 ]);
             }
             DB::commit();

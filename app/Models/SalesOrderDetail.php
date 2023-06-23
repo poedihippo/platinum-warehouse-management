@@ -11,6 +11,9 @@ class SalesOrderDetail extends Model
     protected $casts = [
         'qty' => 'integer',
         'fulfilled_qty' => 'integer',
+        'unit_price' => 'integer',
+        'discount' => 'integer',
+        'total_price' => 'integer',
     ];
 
     public function salesOrder()
