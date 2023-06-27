@@ -41,6 +41,7 @@ class SalesOrderUpdateRequest extends FormRequest
             'items.*.product_unit_id' => 'required|integer|exists:product_units,id',
             'items.*.qty' => 'required|integer',
             'items.*.price' => 'required|numeric|min:0',
+            'items.*.discount' => 'required|numeric|min:0',
         ];
     }
 }

@@ -55,7 +55,9 @@ class SalesOrderController extends Controller
             $salesOrder = SalesOrder::create($data);
 
             for ($i = 0; $i < count($items); $i++) {
-                $productUnit = ProductUnit::withTrashed()->findOrFail($items[$i]['product_unit_id']);
+                $productUnit = ProductUnit::withTrashed()->find($items[$i]['product_unit_id']);
+                if (!$productUnit) return response()->json(['message' => 'Product ' . $items[$i]['product_unit_id'] . ' not found on system. Please add first'], 400);
+
                 $salesOrder->details()->create([
                     'product_unit_id' => $items[$i]['product_unit_id'],
                     'qty' => $items[$i]['qty'],
@@ -75,11 +77,39 @@ class SalesOrderController extends Controller
 
     public function update(SalesOrder $salesOrder, SalesOrderUpdateRequest $request)
     {
-        // dump($request->all());
-        dump($request->all());
-        dd($request->validated());
-        if ($salesOrder->deliveryOrder?->is_done) return response()->json(['message' => "Can't update SO if DO is already done"], 400);
-        $salesOrder->update($request->validated());
+        if ($salesOrder->deliveryOrder) return response()->json(['message' => "DO must be deleted first before editing SO"], 400);
+
+        $items = $request->items ?? [];
+        $totalPrice = collect($items)->sum('price') ?? 0;
+        $data = [
+            ...$request->validated(),
+            'price' => $totalPrice
+        ];
+
+        DB::beginTransaction();
+        try {
+            $oldDetails = $salesOrder->details;
+            $salesOrder->update($data);
+
+            for ($i = 0; $i < count($items); $i++) {
+                $productUnit = ProductUnit::withTrashed()->find($items[$i]['product_unit_id']);
+                if (!$productUnit) return response()->json(['message' => 'Product ' . $items[$i]['product_unit_id'] . ' not found on system. Please add first'], 400);
+
+                $salesOrder->details()->create([
+                    'product_unit_id' => $items[$i]['product_unit_id'],
+                    'qty' => $items[$i]['qty'],
+                    'unit_price' => $productUnit->price ?? 0,
+                    'discount' => $items[$i]['discount'] ?? 0,
+                    'total_price' => $items[$i]['price'] ?? 0,
+                ]);
+            }
+
+            $oldDetails->each->delete();
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json(['message' => $th->getMessage()], 500);
+        }
 
         return (new SalesOrderResource($salesOrder))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }

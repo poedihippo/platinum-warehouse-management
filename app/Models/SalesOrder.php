@@ -14,16 +14,14 @@ class SalesOrder extends Model
         'reseller_id',
         'warehouse_id',
         'invoice_no',
-        'code',
         'transaction_date',
         'shipment_estimation_datetime',
-        // 'status',
         'price',
+        'description',
     ];
 
     protected $casts = [
         'price' => 'integer',
-        // // 'status' => SalesOrderStatus::class,
     ];
 
     protected static function booted()
