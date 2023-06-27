@@ -34,7 +34,10 @@ class ReceiveOrder extends Model
 
     public function refreshStatus(): void
     {
-        if ($this->details->every(fn ($detail) => $detail->is_verified === 1) === true) $this->update(['is_complete' => 1]);
-        $this->update(['is_complete' => 0]);
+        if ($this->details->every(fn ($detail) => $detail->is_verified === true) === true) {
+            $this->update(['is_complete' => 1]);
+        } else {
+            $this->update(['is_complete' => 0]);
+        }
     }
 }
