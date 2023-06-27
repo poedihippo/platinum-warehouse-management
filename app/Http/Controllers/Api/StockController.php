@@ -154,7 +154,7 @@ class StockController extends Controller
 
             $data = QrCode::size(350)
                 ->format('png')
-                ->merge(public_path('images/logo-platinum.png'), absolute: true)
+                // ->merge(public_path('images/logo-platinum.png'), absolute: true)
                 ->generate($groupStock->id);
 
             $folder = 'qrcode/';
