@@ -60,6 +60,11 @@ class Stock extends Model
         );
     }
 
+    public function scopeWhereAvailableStock(Builder $query)
+    {
+        return $query->doesntHave('salesOrderItems');
+    }
+
     public function scopeStartDate(Builder $query, $value = null)
     {
         $value = is_null($value) ? date('Y-m-d') : date('Y-m-d', strtotime($value));

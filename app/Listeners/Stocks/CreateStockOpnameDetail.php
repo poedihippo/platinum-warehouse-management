@@ -35,7 +35,7 @@ class CreateStockOpnameDetail implements ShouldQueue
             ->get()?->each(function ($stockProductUnit) use ($stockOpname) {
                 $stockOpname->details()->create([
                     'stock_product_unit_id' => $stockProductUnit->id,
-                    'qty' => $stockProductUnit->stocks->count() ?? 0,
+                    'qty' => $stockProductUnit->stocks()->whereAvailableStock()->count() ?? 0,
                 ]);
             });
 

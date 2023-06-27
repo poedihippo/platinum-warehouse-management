@@ -22,7 +22,7 @@ class StockController extends Controller
 {
     public function index()
     {
-        $stockProductUnits = QueryBuilder::for(StockProductUnit::with(['warehouse', 'productUnit'])->withCount(['stocks' => fn ($q) => $q->whereNull('description')]))
+        $stockProductUnits = QueryBuilder::for(StockProductUnit::with(['warehouse', 'productUnit'])->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')]))
             ->allowedFilters([
                 'warehouse_id',
                 AllowedFilter::scope('product_unit'),
@@ -63,7 +63,7 @@ class StockController extends Controller
     public function show(Stock $stock)
     {
         // abort_if(!auth()->user()->tokenCan('receive_order_create'), 403);
-        return new StocksStockProductUnitResource($stock->load(['stockProductUnit', 'receiveOrderDetail']));
+        return new StocksStockProductUnitResource($stock->load(['stockProductUnit' => fn ($q) => $q->with('stocks', fn ($q) => $q->whereAvailableStock()->whereNull('description')), 'receiveOrderDetail']));
     }
 
     public function store(Request $request)

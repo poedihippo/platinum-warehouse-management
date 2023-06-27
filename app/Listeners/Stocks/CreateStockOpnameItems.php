@@ -28,7 +28,7 @@ class CreateStockOpnameItems implements ShouldQueue
     {
         $stockOpnameDetail = $event->stockOpnameDetail;
 
-        $stockOpnameDetail->stockProductUnit?->stocks->each(function ($stock) use ($stockOpnameDetail) {
+        $stockOpnameDetail->stockProductUnit?->stocks()->whereAvailableStock()->get()->each(function ($stock) use ($stockOpnameDetail) {
             $stockOpnameDetail->stockOpnameItems()->create([
                 'stock_id' => $stock->id,
                 'is_scanned' => 0,
