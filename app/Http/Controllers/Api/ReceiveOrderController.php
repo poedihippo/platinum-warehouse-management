@@ -66,6 +66,7 @@ class ReceiveOrderController extends Controller
 
             foreach ($xmlArray['TRANSACTIONS']['RECIEVEITEM']['ITEMLINE'] as $item) {
                 $productUnit = ProductUnit::where('code', $item['ITEMNO'])->first();
+                if (!$productUnit) return response()->json(['message' => 'Product ' . $item['ITEMNO'] . ' not found on system. Please add first'], 400);
 
                 $receiveOrder->details()->create([
                     'product_unit_id' => $productUnit->id,
@@ -77,7 +78,8 @@ class ReceiveOrderController extends Controller
 
             DB::commit();
         } catch (\Throwable $th) {
-            throw $th;
+            DB::rollBack();
+            return response()->json(['message' => $th->getMessage()], 400);
         }
 
         return new ReceiveOrderResource($receiveOrder);
