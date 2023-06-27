@@ -87,6 +87,7 @@ class SalesOrderController extends Controller
     public function destroy(SalesOrder $salesOrder)
     {
         abort_if(!auth()->user()->tokenCan('sales_order_delete'), 403);
+        if ($salesOrder->deliveryOrder?->is_done) return response()->json(['message' => "Can't update SO if DO is already done"], 400);
         $salesOrder->delete();
         return $this->deletedResponse();
     }

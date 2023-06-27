@@ -13,6 +13,7 @@ use App\Models\StockProductUnit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use PDO;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -92,13 +93,12 @@ class StockController extends Controller
             'total_group' => 'required|integer|gt:0',
             'qty' => 'required|integer|gt:0',
             // 'warehouse_id' => 'required|exists:warehouses,id',
-            'stock_product_unit_id' => 'nullable|exists:stock_product_units,id',
-            'receive_order_detail_id' => 'nullable|exists:receive_order_details,id',
+            'stock_product_unit_id' => 'required_without:receive_order_detail_id|missing_with:receive_order_detail_id|exists:stock_product_units,id',
+            'receive_order_detail_id' => 'required_without:stock_product_unit_id|missing_with:stock_product_unit_id|exists:receive_order_details,id',
         ]);
 
         $totalQtyGrouping = $request->total_group * $request->qty;
         $receiveOrderDetailId = $request->receive_order_detail_id ?? null;
-        $warehouseId = $request->warehouse_id;
 
         // grouping dari page stock
         if ($request->stock_product_unit_id) {
@@ -184,6 +184,23 @@ class StockController extends Controller
         }
 
         return response()->json(['message' => 'Stock group created successfully'], 201);
+    }
+
+    public function ungrouping(Stock $stock)
+    {
+        if ($stock->childs->isEmpty()) return response()->json(['message' => 'Stock is not group / have not childs'], 400);
+
+        DB::beginTransaction();
+        try {
+            $stock->delete();
+            Stock::where('parent_id', $stock->id)->update(['parent_id' => null]);
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json(['message' => $th->getMessage()], 400);
+        }
+
+        return response()->json(['message' => 'success']);
     }
 
     public function printAll(Request $request)

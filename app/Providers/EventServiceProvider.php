@@ -5,10 +5,10 @@ namespace App\Providers;
 use App\Events\ProductUnits\ProductUnitCreated;
 use App\Events\Stocks\StockOpnameCreated;
 use App\Events\Stocks\StockOpnameDetailCreated;
-use App\Events\UnverifiedRODetailEvent;
-use App\Events\VerifiedRODetailEvent;
-use App\Listeners\CreateStockRODetailListener;
-use App\Listeners\DeleteStockRODetailListener;
+use App\Events\UnverifiedROEvent;
+use App\Events\VerifiedROEvent;
+use App\Listeners\CreateStockROListener;
+use App\Listeners\DeleteStockROListener;
 use App\Listeners\ProductUnits\CreateStockProductUnit;
 use App\Listeners\Stocks\CreateStockOpnameDetail;
 use App\Listeners\Stocks\CreateStockOpnameItems;
@@ -28,12 +28,12 @@ class EventServiceProvider extends ServiceProvider
             SendEmailVerificationNotification::class,
         ],
 
-        VerifiedRODetailEvent::class => [
-            CreateStockRODetailListener::class,
+        VerifiedROEvent::class => [
+            CreateStockROListener::class,
         ],
 
-        UnverifiedRODetailEvent::class => [
-            DeleteStockRODetailListener::class,
+        UnverifiedROEvent::class => [
+            DeleteStockROListener::class,
         ],
 
         ProductUnitCreated::class => [

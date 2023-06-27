@@ -2,7 +2,7 @@
 
 namespace App\Events;
 
-use App\Models\ReceiveOrderDetail;
+use App\Models\ReceiveOrder;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -11,7 +11,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class VerifiedRODetailEvent
+class VerifiedROEvent
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -20,7 +20,7 @@ class VerifiedRODetailEvent
      *
      * @return void
      */
-    public function __construct(public ReceiveOrderDetail $receiveOrderDetail)
+    public function __construct(public ReceiveOrder $receiveOrder)
     {
     }
 

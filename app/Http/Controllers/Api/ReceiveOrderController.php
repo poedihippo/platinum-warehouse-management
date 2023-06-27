@@ -20,7 +20,7 @@ class ReceiveOrderController extends Controller
     {
         abort_if(!auth()->user()->tokenCan('receive_orders_access'), 403);
         $receiveOrders = QueryBuilder::for(ReceiveOrder::withCount('details'))
-            ->allowedFilters(['invoice_no', 'user_id', 'supplier_id', 'warehouse_id'])
+            ->allowedFilters(['invoice_no', 'is_done', 'user_id', 'supplier_id', 'warehouse_id'])
             ->allowedSorts(['id', 'invoice_no', 'user_id', 'supplier_id', 'warehouse_id', 'created_at'])
             ->allowedIncludes(['details', 'user'])
             ->paginate();
@@ -104,5 +104,20 @@ class ReceiveOrderController extends Controller
 
         $receiveOrder->delete();
         return $this->deletedResponse();
+    }
+
+    public function done(ReceiveOrder $receiveOrder, \Illuminate\Http\Request $request)
+    {
+        $request->validate(['is_done' => 'required|boolean']);
+
+        if (!$receiveOrder->details?->every(fn ($detail) => $detail->is_verified === true)) return response()->json(['message' => 'All receive order data must be verified'], 400);
+
+        $receiveOrder->update([
+            'is_done' => $request->is_done ?? 1,
+            'done_at' => now(),
+        ]);
+
+        $message = 'Receive order set as ' . ($receiveOrder->is_done ? 'Done' : 'Pending');
+        return response()->json(['message' => $message])->setStatusCode(Response::HTTP_ACCEPTED);
     }
 }

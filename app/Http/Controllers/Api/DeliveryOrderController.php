@@ -119,7 +119,7 @@ class DeliveryOrderController extends Controller
             // ->where('product_unit_id', $salesOrderDetail->product_unit_id)
             // ->where('warehouse_id', $salesOrderDetail->salesOrder?->warehouse_id)
             ->first();
-        if (!$stock) return response()->json(['message' => 'Stock of product not found'], 400);
+        if (!$stock) return response()->json(['message' => 'Stock of product not match'], 400);
 
         $cek = $salesOrderDetail->salesOrderItems()->where('stock_id', $stock?->id)->exists();
 

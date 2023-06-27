@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Events\UnverifiedROEvent;
+use App\Events\VerifiedROEvent;
 use Illuminate\Database\Eloquent\Model;
 
 class ReceiveOrder extends Model
@@ -9,8 +11,25 @@ class ReceiveOrder extends Model
     protected $guarded = [];
 
     protected $casts = [
-        'is_complete' => 'boolean'
+        'is_done' => 'boolean'
     ];
+
+    protected static function booted()
+    {
+        static::updated(function ($model) {
+            if ($model->isDirty('is_done')) {
+                if ($model->is_done === true) {
+                    VerifiedROEvent::dispatch($model);
+                } else {
+                    UnverifiedROEvent::dispatch($model);
+                }
+            }
+        });
+
+        static::deleting(function ($model) {
+            UnverifiedROEvent::dispatch($model);
+        });
+    }
 
     public function details()
     {
@@ -35,9 +54,9 @@ class ReceiveOrder extends Model
     public function refreshStatus(): void
     {
         if ($this->details->every(fn ($detail) => $detail->is_verified === true) === true) {
-            $this->update(['is_complete' => 1]);
+            $this->update(['is_done' => 1]);
         } else {
-            $this->update(['is_complete' => 0]);
+            $this->update(['is_done' => 0]);
         }
     }
 }

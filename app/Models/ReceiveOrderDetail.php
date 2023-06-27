@@ -3,8 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
-use App\Events\UnverifiedRODetailEvent;
-use App\Events\VerifiedRODetailEvent;
 use Illuminate\Database\Eloquent\Model;
 
 class ReceiveOrderDetail extends Model
@@ -16,29 +14,6 @@ class ReceiveOrderDetail extends Model
         'adjust_qty' => 'integer',
         'is_verified' => 'boolean',
     ];
-
-    protected static function booted()
-    {
-        static::saved(function ($model) {
-            if ($model->isDirty('is_verified')) {
-                $model->receiveOrder->refreshStatus();
-            }
-        });
-
-        static::updated(function ($model) {
-            if ($model->isDirty('is_verified')) {
-                if ($model->is_verified === true) {
-                    VerifiedRODetailEvent::dispatch($model);
-                } else {
-                    UnverifiedRODetailEvent::dispatch($model);
-                }
-            }
-        });
-
-        static::deleting(function ($model) {
-            UnverifiedRODetailEvent::dispatch($model);
-        });
-    }
 
     public function receiveOrder()
     {
