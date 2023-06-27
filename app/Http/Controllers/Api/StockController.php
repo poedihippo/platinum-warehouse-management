@@ -189,7 +189,7 @@ class StockController extends Controller
     public function printAll(Request $request)
     {
         $filter = $request->filter;
-        $query = Stock::select('id', 'parent_id', 'qr_code');
+        $query = Stock::select('id', 'parent_id', 'qr_code', 'description');
 
         if (isset($filter) && isset($filter['stock_product_unit_id']) && $filter['stock_product_unit_id'] != '') {
             $query->where('stock_product_unit_id', $filter['stock_product_unit_id']);
@@ -200,7 +200,11 @@ class StockController extends Controller
         }
 
         if (isset($filter) && isset($filter['parent_id']) && $filter['parent_id'] != '') {
-            $query->where('parent_id', $filter['parent_id']);
+            if ($request->print_with_parent == 1) {
+                $query->where('id', $filter['parent_id'])->orWhere('parent_id', $filter['parent_id'])->orderBy('parent_id');
+            } else {
+                $query->where('parent_id', $filter['parent_id']);
+            }
         } else {
             $query->whereNull('parent_id');
         }
