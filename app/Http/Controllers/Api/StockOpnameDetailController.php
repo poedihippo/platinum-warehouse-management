@@ -78,10 +78,10 @@ class StockOpnameDetailController extends Controller
             'stock_id' => 'required|exists:stocks,id'
         ]);
 
-        $stockOpnameDetail = $stockOpname->details()->where('id', $stockOpnameDetailId)->find();
+        $stockOpnameDetail = $stockOpname->details()->where('id', $stockOpnameDetailId)->first();
         if (!$stockOpnameDetail) return response()->json(['message' => 'Data stock opname not match'], 400);
 
-        $stockOpnameItem = $stockOpnameDetail->stockOpnameItems()->where('stock_id', $request->stock_id)->find();
+        $stockOpnameItem = $stockOpnameDetail->stockOpnameItems()->where('stock_id', $request->stock_id)->first();
         if (!$stockOpnameItem) return response()->json(['message' => 'QR does not match the stock opname data'], 400);
 
         $isScanned = $request->is_scanned ?? 1;
