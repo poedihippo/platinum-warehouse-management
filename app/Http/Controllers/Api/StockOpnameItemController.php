@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\StockOpnameDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -30,7 +29,7 @@ class StockOpnameItemController extends Controller
     //     return new SalesOrderItemResource($salesOrderItem);
     // }
 
-    public function destroy(StockOpnameDetail $stockOpnameDetail, Request $request)
+    public function destroy(\App\Models\StockOpname $stockOpname, \App\Models\StockOpnameDetail $stockOpnameDetail, Request $request)
     {
         $request->validate([
             'stock_id' => 'required|exists:stocks,id'

@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignId('stock_product_unit_id')->constrained();
             // $table->foreignId('product_unit_id')->constrained();
             $table->integer('qty')->default(0);
-            $table->integer('adjust_qty')->default(0);
+            $table->integer('scanned_qty')->default(0);
             $table->text('description')->nullable();
             $table->boolean('is_done')->default(0);
             $table->timestamp('done_at')->nullable();

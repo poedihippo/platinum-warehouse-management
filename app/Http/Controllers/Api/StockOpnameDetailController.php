@@ -23,7 +23,7 @@ class StockOpnameDetailController extends Controller
             ->with('stockProductUnit.productUnit')
             ->withCount([
                 'stockOpnameItems',
-                'stockOpnameItems as total_adjust_qty' => fn ($q) => $q->where('is_scanned', 1)
+                'stockOpnameItems as total_scanned_qty' => fn ($q) => $q->where('is_scanned', 1)
             ]);
 
         $stockOpnameDetails = QueryBuilder::for($query)
@@ -43,7 +43,7 @@ class StockOpnameDetailController extends Controller
             ->with(['stockOpname', 'stockProductUnit.productUnit'])
             ->withCount([
                 'stockOpnameItems',
-                'stockOpnameItems as total_adjust_qty' => fn ($q) => $q->where('is_scanned', 1)
+                'stockOpnameItems as total_scanned_qty' => fn ($q) => $q->where('is_scanned', 1)
             ])
             ->firstOrFail();
 

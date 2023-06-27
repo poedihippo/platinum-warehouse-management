@@ -10,7 +10,7 @@ class StockOpnameDetail extends Model
     protected $guarded = [];
     protected $casts = [
         'qty' => 'integer',
-        'adjust_qty' => 'integer',
+        'scanned_qty' => 'integer',
         'is_done' => 'boolean',
     ];
 

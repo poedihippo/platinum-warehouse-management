@@ -25,7 +25,7 @@ class DeliveryOrderController extends Controller
     public function index()
     {
         abort_if(!auth()->user()->tokenCan('delivery_orders_access'), 403);
-        $deliveryOrders = QueryBuilder::for(DeliveryOrder::with('user'))
+        $deliveryOrders = QueryBuilder::for(DeliveryOrder::with('user', 'salesOrder'))
             ->allowedFilters([
                 'invoice_no',
                 AllowedFilter::callback('reseller_id', function (Builder $query, $value) {
@@ -33,7 +33,6 @@ class DeliveryOrderController extends Controller
                 }),
             ])
             ->allowedSorts(['id', 'invoice_no', 'user_id', 'reseller_id', 'warehouse_id', 'created_at'])
-            ->allowedIncludes('salesOrder')
             ->paginate();
 
         return DeliveryOrderResource::collection($deliveryOrders);
@@ -59,14 +58,15 @@ class DeliveryOrderController extends Controller
     {
         $deliveryOrder = DeliveryOrder::create($request->validated());
 
-        return new DeliveryOrderResource($deliveryOrder);
+        return response()->json(['data' => $deliveryOrder], 201);
     }
 
     public function update(DeliveryOrder $deliveryOrder, DeliveryOrderUpdateRequest $request)
     {
         $deliveryOrder->update($request->validated());
 
-        return (new DeliveryOrderResource($deliveryOrder))->response()->setStatusCode(Response::HTTP_ACCEPTED);
+        return response()->json(['data' => $deliveryOrder], 200);
+        // return (new DeliveryOrderResource($deliveryOrder))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
     public function destroy(DeliveryOrder $deliveryOrder)

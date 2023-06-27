@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Models\SalesOrder;
+use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 
 class DeliveryOrderStoreRequest extends FormRequest
@@ -24,7 +26,11 @@ class DeliveryOrderStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'sales_order_id' => 'required|exists:sales_orders,id',
+            'sales_order_id' => ['required', function ($attribute, $value, Closure $fail) {
+                $salesOrder = SalesOrder::find($value);
+                if (!$salesOrder) $fail('Sales order not found');
+                if ($salesOrder->deliveryOrder) $fail("Can't select a sales order that already has a delivery order");
+            }],
             'description' => 'nullable|string',
         ];
     }

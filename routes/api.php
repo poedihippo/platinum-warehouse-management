@@ -124,6 +124,7 @@ Route::middleware('auth:sanctum')->group(function ($route) {
 
     Route::group(['prefix' => 'stock-opnames/{stockOpname}/details'], function () {
         Route::get('{stockOpnameDetail}/items', [StockOpnameItemController::class, 'index']);
+        Route::delete('{stockOpnameDetail}/items', [StockOpnameItemController::class, 'destroy']);
 
         Route::get('/', [StockOpnameDetailController::class, 'index']);
         Route::get('{stockOpnameDetail}', [StockOpnameDetailController::class, 'show']);

@@ -33,15 +33,10 @@ class Stock extends Model
         return $this->hasMany(self::class, 'parent_id', 'id');
     }
 
-    // public function productUnit()
-    // {
-    //     return $this->belongsTo(ProductUnit::class);
-    // }
-
-    // public function warehouse()
-    // {
-    //     return $this->belongsTo(Warehouse::class);
-    // }
+    public function salesOrderItems()
+    {
+        return $this->hasMany(SalesOrderItem::class);
+    }
 
     public function receiveOrder()
     {

@@ -34,9 +34,13 @@ class DeliveryOrder extends Model
         });
 
         static::saved(function ($model) {
-            // if ($model->isDirty('is_done')) {
+            if ($model->isDirty('is_done')) {
                 $model->done_at = now();
-            // }
+            }
+        });
+
+        static::deleted(function ($model) {
+            $model->salesOrder?->details?->each(fn ($detail) => SalesOrderItem::where('sales_order_detail_id', $detail->id)->delete());
         });
     }
 

@@ -3,7 +3,6 @@
 namespace App\Listeners\Stocks;
 
 use App\Events\Stocks\StockOpnameCreated;
-use App\Models\Stock;
 use App\Models\StockProductUnit;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
