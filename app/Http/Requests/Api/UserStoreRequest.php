@@ -33,7 +33,7 @@ class UserStoreRequest extends FormRequest
             'phone' => 'required',
             'address' => 'nullable',
             'tax_address' => 'nullable',
-            'provider_id' => 'nullable|unique:provider,id',
+            'provider_id' => 'nullable|unique:users,provider_id',
             'provider_name' => 'nullable',
             'city' => 'nullable',
             'province' => 'nullable',
