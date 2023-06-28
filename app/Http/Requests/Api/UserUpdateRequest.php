@@ -28,7 +28,7 @@ class UserUpdateRequest extends FormRequest
         return [
             'name' => 'required',
             'email' => 'required|email|unique:users,email,' . $this->user->id,
-            'password' => 'required',
+            'password' => 'nullable',
             'phone' => 'required',
             'address' => 'nullable',
             'type' => ['nullable', new EnumValue(UserType::class, false)],
