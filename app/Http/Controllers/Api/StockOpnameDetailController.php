@@ -17,7 +17,7 @@ class StockOpnameDetailController extends Controller
 {
     public function index(StockOpname $stockOpname)
     {
-        abort_if(!auth()->user()->tokenCan('stock_opname_details_access'), 403);
+        abort_if(!auth()->user()->tokenCan('stock_opname_access'), 403);
 
         $query = StockOpnameDetail::where('stock_opname_id', $stockOpname->id)
             ->with('stockProductUnit.productUnit')
@@ -37,7 +37,7 @@ class StockOpnameDetailController extends Controller
 
     public function show(StockOpname $stockOpname, $stockOpnameDetailId)
     {
-        abort_if(!auth()->user()->tokenCan('stock_opname_detail_create'), 403);
+        abort_if(!auth()->user()->tokenCan('stock_opname_access'), 403);
 
         $stockOpnameDetail = $stockOpname->details()->where('id', $stockOpnameDetailId)
             ->with(['stockOpname', 'stockProductUnit.productUnit'])
@@ -94,6 +94,8 @@ class StockOpnameDetailController extends Controller
 
     public function done(StockOpname $stockOpname, string $id, Request $request)
     {
+        abort_if(!auth()->user()->tokenCan('stock_opname_done'), 403);
+
         $stockOpnameDetail = $stockOpname->details()->where('id', $id)->first();
         if (!$stockOpnameDetail) return response()->json(['message' => 'Data stock opname not match'], 400);
 

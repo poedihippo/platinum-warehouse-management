@@ -12,7 +12,7 @@ class ProductUnitBlacklistController extends Controller
 {
     public function index()
     {
-        abort_if(!auth()->user()->tokenCan('product_unit_blacklists_access'), 403);
+        abort_if(!auth()->user()->tokenCan('product_unit_blacklist_access'), 403);
 
         $productUnitBlacklists = QueryBuilder::for(ProductUnitBlacklist::with('productUnit'))
             ->allowedFilters('product_unit_id')
@@ -24,7 +24,7 @@ class ProductUnitBlacklistController extends Controller
 
     public function store(Request $request)
     {
-        abort_if(!auth()->user()->tokenCan('product_unit_blacklists_create'), 403);
+        abort_if(!auth()->user()->tokenCan('product_unit_blacklist_create'), 403);
 
         $request->validate([
             'product_unit_ids' => 'required|array',
@@ -44,7 +44,7 @@ class ProductUnitBlacklistController extends Controller
 
     public function destroy($productUnitId)
     {
-        abort_if(!auth()->user()->tokenCan('product_unit_blacklists_delete'), 403);
+        abort_if(!auth()->user()->tokenCan('product_unit_blacklist_delete'), 403);
 
         ProductUnitBlacklist::where('product_unit_id', $productUnitId)->delete();
         return $this->deletedResponse();

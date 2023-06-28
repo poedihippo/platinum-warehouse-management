@@ -13,7 +13,7 @@ class DeliveryOrderUpdateRequest extends FormRequest
      */
     public function authorize()
     {
-        return auth()->user()->tokenCan('sales_order_update');
+        return auth()->user()->tokenCan('delivery_order_edit');
     }
 
     /**

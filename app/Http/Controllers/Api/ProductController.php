@@ -14,7 +14,7 @@ class ProductController extends Controller
 {
     public function index()
     {
-        abort_if(!auth()->user()->tokenCan('products_access'), 403);
+        abort_if(!auth()->user()->tokenCan('product_access'), 403);
         $products = QueryBuilder::for(Product::with(['productCategory', 'productBrand']))
             ->allowedFilters(['product_category_id', 'product_brand_id', 'name'])
             ->allowedSorts(['id', 'product_category_id', 'product_brand_id', 'name', 'created_at'])
@@ -25,7 +25,7 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
-        abort_if(!auth()->user()->tokenCan('product_create'), 403);
+        abort_if(!auth()->user()->tokenCan('product_access'), 403);
         return new ProductResource($product);
     }
 

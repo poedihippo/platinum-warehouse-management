@@ -13,7 +13,7 @@ class SupplierUpdateRequest extends FormRequest
      */
     public function authorize()
     {
-        return auth()->user()->tokenCan('supplier_update');
+        return auth()->user()->tokenCan('supplier_edit');
     }
 
     /**

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Enums\SalesOrderStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SalesOrderResource;
 use App\Http\Requests\Api\SalesOrderStoreRequest;
@@ -11,7 +10,6 @@ use App\Models\ProductUnit;
 use App\Models\SalesOrder;
 use App\Models\UserDiscount;
 use Barryvdh\DomPDF\Facade\Pdf;
-use BenSampo\Enum\Rules\EnumValue;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +20,7 @@ class SalesOrderController extends Controller
 {
     public function index()
     {
-        abort_if(!auth()->user()->tokenCan('sales_orders_access'), 403);
+        abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
         $salesOrders = QueryBuilder::for(SalesOrder::withCount('details'))
             ->allowedFilters([
                 'invoice_no', 'user_id', 'reseller_id', 'warehouse_id',
@@ -37,7 +35,7 @@ class SalesOrderController extends Controller
 
     public function show(SalesOrder $salesOrder)
     {
-        abort_if(!auth()->user()->tokenCan('sales_order_create'), 403);
+        abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
         return new SalesOrderResource($salesOrder->load(['details', 'user'])->loadCount('details'));
     }
 
@@ -122,21 +120,9 @@ class SalesOrderController extends Controller
         return $this->deletedResponse();
     }
 
-    public function updateStatus(SalesOrder $salesOrder, Request $request)
-    {
-        $request->validate([
-            'status' => ['required', new EnumValue(SalesOrderStatus::class, false)],
-        ]);
-
-        $salesOrder->update([
-            'status' => $request->status
-        ]);
-
-        return new SalesOrderResource($salesOrder);
-    }
-
     public function print(SalesOrder $salesOrder)
     {
+        abort_if(!auth()->user()->tokenCan('sales_order_print'), 403);
         $salesOrder->load([
             'reseller',
             'details' => fn ($q) => $q->with('productUnit.product')
@@ -149,6 +135,7 @@ class SalesOrderController extends Controller
 
     public function exportXml(SalesOrder $salesOrder)
     {
+        abort_if(!auth()->user()->tokenCan('sales_order_export_xml'), 403);
         return response(view('xml.salesOrders.salesOrder')->with(compact('salesOrder')), 200, [
             'Content-Type' => 'application/xml', // use your required mime type
             'Content-Disposition' => 'attachment; filename="Sales Order ' . $salesOrder->invoice_no . '.xml"',

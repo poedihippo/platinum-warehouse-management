@@ -12,17 +12,9 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class PermissionController extends Controller
 {
-    // public function __construct()
-    // {
-    //     $this->middleware('permission:permissions_access', ['only' => 'index']);
-    //     $this->middleware('permission:permissions_create', ['only' => ['create', 'store']]);
-    //     $this->middleware('permission:permissions_edit', ['only' => ['edit', 'update']]);
-    //     $this->middleware('permission:permissions_delete', ['only' => ['destroy', 'massDestroy']]);
-    // }
-
     public function index()
     {
-        abort_if(!auth()->user()->tokenCan('permissions_access'), 403);
+        abort_if(!auth()->user()->tokenCan('permission_access'), 403);
         $roles = QueryBuilder::for(Permission::class)
             ->allowedFilters(['name'])
             ->allowedSorts(['id', 'name', 'created_at'])
@@ -34,7 +26,7 @@ class PermissionController extends Controller
 
     public function show(Permission $permission)
     {
-        abort_if(!auth()->user()->tokenCan('permission_view'), 403);
+        abort_if(!auth()->user()->tokenCan('permission_access'), 403);
 
         return new PermissionResource($permission);
     }

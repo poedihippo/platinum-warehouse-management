@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\SalesOrderController;
 use App\Http\Controllers\Api\SalesOrderDetailController;
 use App\Http\Controllers\Api\SalesOrderItemController;
+use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\UomController;
 use App\Http\Controllers\Api\SocialiteController;
 use App\Http\Controllers\Api\StockController;
@@ -92,14 +93,12 @@ Route::middleware('auth:sanctum')->group(function ($route) {
         Route::get('{salesOrderDetail}', [SalesOrderDetailController::class, 'show']);
         Route::put('{salesOrderDetail}', [SalesOrderDetailController::class, 'update']);
         Route::delete('{salesOrderDetail}', [SalesOrderDetailController::class, 'destroy']);
-
     });
 
     // Route::get('sales-orders/get-price', [SalesOrderController::class, 'getPrice']);
     Route::get('sales-orders/product-units', [SalesOrderController::class, 'productUnits']);
     Route::get('sales-orders/{salesOrder}/print', [SalesOrderController::class, 'print']);
     Route::get('sales-orders/{salesOrder}/export-xml', [SalesOrderController::class, 'exportXml']);
-    Route::put('sales-orders/{salesOrder}/update-status', [SalesOrderController::class, 'updateStatus']);
     Route::resource('sales-orders', SalesOrderController::class);
 
     Route::get('sales-order-items/{salesOrderDetail}', [SalesOrderItemController::class, 'index']);
@@ -132,10 +131,11 @@ Route::middleware('auth:sanctum')->group(function ($route) {
         Route::put('{stockOpnameDetail}/scan', [StockOpnameDetailController::class, 'scan']);
         Route::put('{stockOpnameDetail}', [StockOpnameDetailController::class, 'update']);
         Route::delete('{stockOpnameDetail}', [StockOpnameDetailController::class, 'destroy']);
-
     });
 
     Route::put('stock-opnames/{stockOpname}/done', [StockOpnameController::class, 'done']);
     Route::put('stock-opnames/{stockOpname}/set-done', [StockOpnameController::class, 'setDone']);
     Route::resource('stock-opnames', StockOpnameController::class);
+
+    Route::resource('settings', SettingController::class)->only(['index', 'update']);
 });

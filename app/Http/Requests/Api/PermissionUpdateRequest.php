@@ -13,7 +13,7 @@ class PermissionUpdateRequest extends FormRequest
      */
     public function authorize()
     {
-        return auth()->user()->tokenCan('permission_update');
+        return auth()->user()->tokenCan('permission_edit');
     }
 
     /**

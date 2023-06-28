@@ -13,7 +13,7 @@ class ProductUpdateRequest extends FormRequest
      */
     public function authorize()
     {
-        return auth()->user()->tokenCan('product_update');
+        return auth()->user()->tokenCan('product_edit');
     }
 
     /**

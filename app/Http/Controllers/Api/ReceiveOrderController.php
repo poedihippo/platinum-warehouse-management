@@ -18,7 +18,7 @@ class ReceiveOrderController extends Controller
 {
     public function index()
     {
-        abort_if(!auth()->user()->tokenCan('receive_orders_access'), 403);
+        abort_if(!auth()->user()->tokenCan('receive_order_access'), 403);
         $receiveOrders = QueryBuilder::for(ReceiveOrder::withCount('details'))
             ->allowedFilters(['invoice_no', 'is_done', 'user_id', 'supplier_id', 'warehouse_id'])
             ->allowedSorts(['id', 'invoice_no', 'user_id', 'supplier_id', 'warehouse_id', 'created_at'])
@@ -30,7 +30,7 @@ class ReceiveOrderController extends Controller
 
     public function show(ReceiveOrder $receiveOrder)
     {
-        abort_if(!auth()->user()->tokenCan('receive_order_create'), 403);
+        abort_if(!auth()->user()->tokenCan('receive_order_access'), 403);
         return new ReceiveOrderResource($receiveOrder->load('details')->loadCount('details'));
     }
 
@@ -108,6 +108,7 @@ class ReceiveOrderController extends Controller
 
     public function done(ReceiveOrder $receiveOrder, \Illuminate\Http\Request $request)
     {
+        abort_if(!auth()->user()->tokenCan('receive_order_done'), 403);
         $request->validate(['is_done' => 'required|boolean']);
 
         if (!$receiveOrder->details?->every(fn ($detail) => $detail->is_verified === true)) return response()->json(['message' => 'All receive order data must be verified'], 400);

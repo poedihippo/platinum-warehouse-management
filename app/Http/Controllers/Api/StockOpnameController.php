@@ -15,7 +15,7 @@ class StockOpnameController extends Controller
 {
     public function index()
     {
-        abort_if(!auth()->user()->tokenCan('stock_opnames_access'), 403);
+        abort_if(!auth()->user()->tokenCan('stock_opname_access'), 403);
         $stockOpnames = QueryBuilder::for(StockOpname::query())
             ->allowedFilters(['description'])
             ->allowedSorts(['id', 'created_at'])
@@ -26,7 +26,7 @@ class StockOpnameController extends Controller
 
     public function show(StockOpname $stockOpname)
     {
-        abort_if(!auth()->user()->tokenCan('stock_opname_create'), 403);
+        abort_if(!auth()->user()->tokenCan('stock_opname_access'), 403);
         return new StockOpnameResource($stockOpname);
     }
 
@@ -53,6 +53,8 @@ class StockOpnameController extends Controller
 
     public function done(StockOpname $stockOpname, Request $request)
     {
+        abort_if(!auth()->user()->tokenCan('stock_opname_done'), 403);
+
         $request->validate(['is_done' => 'required|boolean']);
 
         if (!$stockOpname->details->every(fn ($detail) => $detail->is_done === true)) return response()->json(['message' => 'All stock opname data must be set done'], 400);
@@ -64,6 +66,8 @@ class StockOpnameController extends Controller
 
     public function setDone(StockOpname $stockOpname, Request $request)
     {
+        abort_if(!auth()->user()->tokenCan('stock_opname_done'), 403);
+
         $request->validate(['is_done' => 'required|boolean']);
 
         $stockOpname->details->each->update([

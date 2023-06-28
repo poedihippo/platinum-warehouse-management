@@ -14,7 +14,7 @@ class ProductCategoryController extends Controller
 {
     public function index()
     {
-        abort_if(!auth()->user()->tokenCan('product_categories_access'), 403);
+        abort_if(!auth()->user()->tokenCan('product_category_access'), 403);
         $productCategories = QueryBuilder::for(ProductCategory::class)
             ->allowedFilters(['name'])
             ->allowedSorts(['id', 'name', 'created_at'])
@@ -25,7 +25,7 @@ class ProductCategoryController extends Controller
 
     public function show(ProductCategory $productCategory)
     {
-        abort_if(!auth()->user()->tokenCan('product_category_view'), 403);
+        abort_if(!auth()->user()->tokenCan('product_category_access'), 403);
         return new ProductCategoryResource($productCategory);
     }
 

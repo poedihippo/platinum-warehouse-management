@@ -40,7 +40,7 @@ class DeliveryOrderController extends Controller
 
     public function show(DeliveryOrder $deliveryOrder)
     {
-        abort_if(!auth()->user()->tokenCan('delivery_order_create'), 403);
+        abort_if(!auth()->user()->tokenCan('delivery_orders_access'), 403);
 
         $deliveryOrder->load([
             'salesOrder' => function ($q) {
@@ -78,6 +78,7 @@ class DeliveryOrderController extends Controller
 
     public function print(DeliveryOrder $deliveryOrder)
     {
+        abort_if(!auth()->user()->tokenCan('delivery_order_print'), 403);
         $deliveryOrder->load([
             'salesOrder' => function ($q) {
                 $q->with('reseller');
@@ -95,6 +96,7 @@ class DeliveryOrderController extends Controller
 
     public function exportXml(DeliveryOrder $deliveryOrder)
     {
+        abort_if(!auth()->user()->tokenCan('sales_order_export_xml'), 403);
         $deliveryOrder->load([
             'salesOrder' => function ($q) {
                 $q->with('reseller');
@@ -145,6 +147,7 @@ class DeliveryOrderController extends Controller
 
     public function done(DeliveryOrder $deliveryOrder, Request $request)
     {
+        abort_if(!auth()->user()->tokenCan('delivery_order_done'), 403);
         $request->validate(['is_done' => 'required|boolean']);
 
         if (!$deliveryOrder->salesOrder?->details->every(fn ($detail) => $detail->fulfilled_qty >= $detail->qty)) return response()->json(['message' => 'All delivery order data must be done'], 400);

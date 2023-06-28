@@ -15,7 +15,7 @@ class UserUpdateRequest extends FormRequest
      */
     public function authorize()
     {
-        return auth()->user()->tokenCan('user_update');
+        return auth()->user()->tokenCan('user_edit');
     }
 
     /**

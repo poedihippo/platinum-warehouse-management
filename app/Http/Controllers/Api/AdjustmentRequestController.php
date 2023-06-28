@@ -39,7 +39,6 @@ class AdjustmentRequestController extends Controller
 
     public function store(AdjustmentRequestStoreRequest $request)
     {
-        abort_if(!auth()->user()->tokenCan('adjustment_request_create'), 403);
         $adjustmentRequest = AdjustmentRequest::create($request->validated());
 
         return new AdjustmentRequestResource($adjustmentRequest->load('stockProductUnit'));
@@ -47,7 +46,6 @@ class AdjustmentRequestController extends Controller
 
     public function update(AdjustmentRequest $adjustmentRequest, AdjustmentRequestStoreRequest $request)
     {
-        abort_if(!auth()->user()->tokenCan('adjustment_request_edit'), 403);
         if ($adjustmentRequest->is_approved) return response()->json(['message' => "Can't update data if it has been approved"], 400);
         $adjustmentRequest->update($request->validated());
 

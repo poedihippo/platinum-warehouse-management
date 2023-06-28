@@ -13,7 +13,7 @@ class ReceiveOrderDetailStoreRequest extends FormRequest
      */
     public function authorize()
     {
-        return auth()->user()->tokenCan('receive_order_detail_create');
+        return auth()->user()->tokenCan('receive_order_create');
     }
 
     /**

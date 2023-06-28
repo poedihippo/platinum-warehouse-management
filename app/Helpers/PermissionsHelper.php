@@ -41,137 +41,120 @@ class PermissionsHelper
     public static function adminPermissions(): array
     {
         return [
-            'dashboard_access',
-
-            'users_management_access' => [
-                'users_access' => [
-                    'user_view',
-                    'user_create',
-                    'user_edit',
-                    'user_delete',
-                ],
-                'roles_access' => [
-                    'role_view',
-                    'role_create',
-                    'role_edit',
-                    'role_delete',
-                ],
-                'permissions_access' => [
-                    'permission_view',
-                    'permission_create',
-                    'permission_edit',
-                    'permission_delete',
-                ],
+            'user_access' => [
+                'user_create',
+                'user_edit',
+                'user_delete',
+            ],
+            'user_discount_access' => [
+                'user_discount_create',
+                'user_discount_edit',
+                'user_discount_delete',
+            ],
+            'role_access' => [
+                'role_create',
+                'role_edit',
+                'role_delete',
+            ],
+            'permission_access' => [
+                'permission_create',
+                'permission_edit',
+                'permission_delete',
             ],
 
-            'products_management_access' => [
-                'products_access' => [
-                    'product_view',
-                    'product_create',
-                    'product_edit',
-                    'product_delete',
-                ],
-                'product_categories_access' => [
-                    'product_category_view',
-                    'product_category_create',
-                    'product_category_edit',
-                    'product_category_delete',
-                ],
-                'product_brands_access' => [
-                    'product_brand_view',
-                    'product_brand_create',
-                    'product_brand_edit',
-                    'product_brand_delete',
-                ],
-                'product_units_access' => [
-                    'product_unit_view',
-                    'product_unit_create',
-                    'product_unit_edit',
-                    'product_unit_delete',
-                ],
+            'product_access' => [
+                'product_create',
+                'product_edit',
+                'product_delete',
+            ],
+            'product_category_access' => [
+                'product_category_create',
+                'product_category_edit',
+                'product_category_delete',
+            ],
+            'product_brand_access' => [
+                'product_brand_create',
+                'product_brand_edit',
+                'product_brand_delete',
+            ],
+            'product_unit_access' => [
+                'product_unit_create',
+                'product_unit_edit',
+                'product_unit_delete',
             ],
 
-            'suppliers_access' => [
-                'supplier_view',
+            'supplier_access' => [
                 'supplier_create',
                 'supplier_edit',
                 'supplier_delete',
             ],
 
-            'warehouses_access' => [
-                'warehouse_view',
+            'warehouse_access' => [
                 'warehouse_create',
                 'warehouse_edit',
                 'warehouse_delete',
             ],
 
-            'uoms_access' => [
-                'uom_view',
+            'uom_access' => [
                 'uom_create',
                 'uom_edit',
                 'uom_delete',
             ],
 
-            'receive_orders_access' => [
-                'receive_order_view',
+            'receive_order_access' => [
                 'receive_order_create',
                 'receive_order_edit',
                 'receive_order_delete',
+                'receive_order_done',
             ],
 
-            'sales_orders_access' => [
-                'sales_order_view',
+            'sales_order_access' => [
                 'sales_order_create',
                 'sales_order_edit',
                 'sales_order_delete',
+                'sales_order_print',
+                'sales_order_export_xml',
+                'receive_order_verify_access',
             ],
 
-            'stocks_access' => [
-                'stock_view',
+            'delivery_order_access' => [
+                'delivery_order_create',
+                'delivery_order_edit',
+                'delivery_order_delete',
+                'delivery_order_print',
+                'delivery_order_done',
+            ],
+
+            'stock_access' => [
                 'stock_create',
                 'stock_edit',
                 'stock_delete',
+                'stock_grouping',
+                'stock_print',
             ],
 
-            'stock_opnames_access' => [
-                'stock_opname_view',
+            'stock_opname_access' => [
                 'stock_opname_create',
                 'stock_opname_edit',
                 'stock_opname_delete',
+                'stock_opname_done',
             ],
 
-            // 'corporate_management_access' => [
-            // 'companies_access' => [
-            //     'companies_view',
-            //     'companies_create',
-            //     'companies_edit',
-            //     'companies_delete',
-            // ],
-            // 'tenants_access' => [
-            //     'tenants_view',
-            //     'tenants_create',
-            //     'tenants_edit',
-            //     'tenants_delete',
-            // ],
-            // ],
+            'adjustment_request_access' => [
+                'adjustment_request_create',
+                'adjustment_request_edit',
+                'adjustment_request_delete',
+                'adjustment_request_approve',
+            ],
 
-            // 'petty_cashes_management' => [
-            //     'petty_cashes_access' => [
-            //         'petty_cash_view',
-            //         'petty_cash_create',
-            //         'petty_cash_edit',
-            //         'petty_cash_delete',
-            //         'petty_cash_journals',
-            //         'petty_cash_cash_in',
-            //         'petty_cash_cash_out',
-            //     ],
-            //     'petty_cash_batches_access' => [
-            //         'petty_cash_batch_view',
-            //         'petty_cash_batch_create',
-            //         'petty_cash_batch_edit',
-            //         'petty_cash_batch_delete',
-            //     ],
-            // ],
+            'product_unit_blacklist_access' => [
+                'product_unit_blacklist_create',
+                'product_unit_blacklist_delete',
+            ],
+
+            'setting_access' => [
+                'setting_edit',
+            ],
         ];
     }
 

@@ -12,6 +12,8 @@ class SalesOrderDetailController extends Controller
 {
     public function index(SalesOrder $salesOrder)
     {
+        abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
+
         $query = SalesOrderDetail::where('sales_order_id', $salesOrder->id);
         $salesOrderDetails = QueryBuilder::for($query)
             ->paginate();
@@ -21,6 +23,8 @@ class SalesOrderDetailController extends Controller
 
     public function show(SalesOrder $salesOrder, $salesOrderDetailId)
     {
+        abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
+
         $salesOrderDetail = $salesOrder->details()->where('id', $salesOrderDetailId)->firstOrFail();
 
         return new SalesOrderDetailResource($salesOrderDetail);

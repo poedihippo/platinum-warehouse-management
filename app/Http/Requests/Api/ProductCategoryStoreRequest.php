@@ -13,7 +13,7 @@ class ProductCategoryStoreRequest extends FormRequest
      */
     public function authorize()
     {
-        return auth()->user()->tokenCan('product_categories_create');
+        return auth()->user()->tokenCan('product_category_create');
     }
 
     /**

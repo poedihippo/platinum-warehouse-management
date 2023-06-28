@@ -13,7 +13,7 @@ class UserDiscountStoreRequest extends FormRequest
      */
     public function authorize()
     {
-        return auth()->user()->tokenCan('user_create');
+        return auth()->user()->tokenCan('user_discount_edit');
     }
 
     /**

@@ -19,6 +19,8 @@ class ReceiveOrderDetailController extends Controller
 {
     public function index(ReceiveOrder $receiveOrder)
     {
+        abort_if(!auth()->user()->tokenCan('receive_order_access'), 403);
+
         $receiveOrderDetails = QueryBuilder::for(ReceiveOrderDetail::where('receive_order_id', $receiveOrder->id))
             ->allowedFilters([
                 AllowedFilter::scope('product_unit'),
@@ -37,6 +39,8 @@ class ReceiveOrderDetailController extends Controller
 
     public function show(ReceiveOrder $receiveOrder, $receiveOrderDetailId)
     {
+        abort_if(!auth()->user()->tokenCan('receive_order_access'), 403);
+
         $receiveOrderDetail = $receiveOrder->details()->where('id', $receiveOrderDetailId)->firstOrFail();
 
         return new ReceiveOrderDetailResource($receiveOrderDetail);
@@ -69,6 +73,8 @@ class ReceiveOrderDetailController extends Controller
      */
     public function verify(ReceiveOrder $receiveOrder, $receiveOrderDetailId, Request $request)
     {
+        abort_if(!auth()->user()->tokenCan('receive_order_verify_access'), 403);
+
         $receiveOrderDetail = $receiveOrder->details()->where('id', $receiveOrderDetailId)->firstOrFail();
 
         $request->validate([
@@ -86,6 +92,8 @@ class ReceiveOrderDetailController extends Controller
 
     public function destroy(ReceiveOrder $receiveOrder, ReceiveOrderDetail $receiveOrderDetail)
     {
+        abort_if(!auth()->user()->tokenCan('receive_order_delete'), 403);
+
         if ($receiveOrderDetail->is_verified === true) return response()->json(['message' => 'Data must be unverified']);
 
         DB::beginTransaction();

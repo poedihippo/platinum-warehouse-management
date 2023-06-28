@@ -15,7 +15,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        abort_if(!auth()->user()->tokenCan('users_access'), 403);
+        abort_if(!auth()->user()->tokenCan('user_access'), 403);
         $users = QueryBuilder::for(User::class)
             ->allowedFilters(['name', 'email', 'phone', 'type'])
             ->allowedSorts(['name', 'email', 'phone', 'type'])
@@ -31,7 +31,7 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        abort_if(!auth()->user()->tokenCan('user_view'), 403);
+        abort_if(!auth()->user()->tokenCan('user_access'), 403);
         return new UserResource($user);
     }
 
@@ -107,7 +107,7 @@ class UserController extends Controller
 
     public function restore($id)
     {
-        abort_if(!auth()->user()->tokenCan('user_delete'), 403);
+        abort_if(!auth()->user()->tokenCan('user_access'), 403);
         $user = User::withTrashed()->findOrFail($id);
         $user->restore();
         return new UserResource($user);

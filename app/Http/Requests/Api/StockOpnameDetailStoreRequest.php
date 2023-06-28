@@ -13,7 +13,7 @@ class StockOpnameDetailStoreRequest extends FormRequest
      */
     public function authorize()
     {
-        return auth()->user()->tokenCan('stock_opname_detail_create');
+        return auth()->user()->tokenCan('stock_opname_create');
     }
 
     /**

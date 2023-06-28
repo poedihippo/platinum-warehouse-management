@@ -13,7 +13,7 @@ class ProductCategoryUpdateRequest extends FormRequest
      */
     public function authorize()
     {
-        return auth()->user()->tokenCan('product_categories_update');
+        return auth()->user()->tokenCan('product_category_edit');
     }
 
     /**

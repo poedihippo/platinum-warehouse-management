@@ -15,7 +15,7 @@ class ProductUnitController extends Controller
 {
     public function index()
     {
-        abort_if(!auth()->user()->tokenCan('product_units_access'), 403);
+        abort_if(!auth()->user()->tokenCan('product_unit_access'), 403);
         $productUnits = QueryBuilder::for(ProductUnit::with('product'))
             ->allowedFilters([
                 'product_id', 'name',
@@ -30,7 +30,7 @@ class ProductUnitController extends Controller
 
     public function show(ProductUnit $productUnit)
     {
-        abort_if(!auth()->user()->tokenCan('product_unit_view'), 403);
+        abort_if(!auth()->user()->tokenCan('product_unit_access'), 403);
         return new ProductUnitResource($productUnit);
     }
 

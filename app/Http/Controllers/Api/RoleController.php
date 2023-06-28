@@ -16,21 +16,9 @@ class RoleController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    // function __construct()
-    // {
-    //     $this->middleware('permission:role-list|role-create|role-edit|role-delete', ['only' => ['index', 'store']]);
-    //     $this->middleware('permission:role-create', ['only' => ['create', 'store']]);
-    //     $this->middleware('permission:role-edit', ['only' => ['edit', 'update']]);
-    //     $this->middleware('permission:role-delete', ['only' => ['destroy']]);
-    // }
-
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index()
     {
+        abort_if(!auth()->user()->tokenCan('role_access'), 403);
         $roles = QueryBuilder::for(Role::class)
             ->with('permissions')
             ->allowedFilters(['name'])
@@ -65,6 +53,7 @@ class RoleController extends Controller
      */
     public function show(Role $role)
     {
+        abort_if(!auth()->user()->tokenCan('role_access'), 403);
         return new RoleResource($role->load('permissions'));
     }
 
@@ -91,6 +80,7 @@ class RoleController extends Controller
      */
     public function destroy(Role $role)
     {
+        abort_if(!auth()->user()->tokenCan('role_delete'), 403);
         $role->delete();
         return $this->deletedResponse();
     }
