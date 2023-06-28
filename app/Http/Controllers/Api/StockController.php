@@ -24,7 +24,7 @@ class StockController extends Controller
         abort_if(!auth()->user()->tokenCan('stock_access'), 403);
         $stockProductUnits = QueryBuilder::for(StockProductUnit::with(['warehouse', 'productUnit'])->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')]))
             ->allowedFilters([
-                'warehouse_id',
+                'id', 'warehouse_id',
                 AllowedFilter::scope('product_unit'),
                 AllowedFilter::scope('product_brand_id', 'whereProductBrandId'),
                 AllowedFilter::scope('product_category_id', 'whereProductCategoryId'),
@@ -63,7 +63,8 @@ class StockController extends Controller
     public function show(Stock $stock)
     {
         abort_if(!auth()->user()->tokenCan('stock_access'), 403);
-        return new StocksStockProductUnitResource($stock->load(['stockProductUnit' => fn ($q) => $q->with('stocks', fn ($q) => $q->whereAvailableStock()->whereNull('description')), 'receiveOrderDetail']));
+        return new StocksStockProductUnitResource($stock->load(['stockProductUnit' => fn ($q) => $q->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')]), 'receiveOrderDetail']));
+        // return new StocksStockProductUnitResource($stock->load(['stockProductUnit' => fn ($q) => $q->with('stocks', fn ($q) => $q->whereAvailableStock()->whereNull('description')), 'receiveOrderDetail']));
     }
 
     public function store(Request $request)
