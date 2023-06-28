@@ -69,7 +69,7 @@ class ReceiveOrderController extends Controller
                 $productUnit = ProductUnit::where('code', $item['ITEMNO'])->first();
                 if (!$productUnit) return response()->json(['message' => 'Product ' . $item['ITEMNO'] . ' not found on system. Please add first'], 400);
 
-                if (in_array($productUnit->id, $productUnitBlacklist)) {
+                if (!in_array($productUnit->id, $productUnitBlacklist)) {
                     $receiveOrder->details()->create([
                         'product_unit_id' => $productUnit->id,
                         'qty' => $item['QUANTITY'],
