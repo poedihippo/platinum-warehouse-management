@@ -56,7 +56,7 @@ class UserController extends Controller
                 'web_page' => $request->web_page,
                 'type' => $request->type,
             ]);
-            $user->syncRoles([$request->role_id]);
+            $user->syncRoles($request->role_ids);
             return $user;
         });
 
@@ -83,7 +83,7 @@ class UserController extends Controller
         $user->type = $request->type;
         $user->save();
 
-        $user->syncRoles([$request->role_id]);
+        $user->syncRoles($request->role_ids);
         return (new UserResource($user))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 

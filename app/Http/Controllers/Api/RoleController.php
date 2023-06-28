@@ -79,7 +79,7 @@ class RoleController extends Controller
     {
         $role->name = $request->input('name');
         $role->save();
-        $role->syncPermissions($request->input('permissions'));
+        $role->syncPermissions($request->permission_ids ?? []);
 
         return new RoleResource($role);
     }

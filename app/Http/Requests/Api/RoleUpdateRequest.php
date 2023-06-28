@@ -28,8 +28,8 @@ class RoleUpdateRequest extends FormRequest
 
         return [
             'name' => 'required|unique:roles,name,' . $role->id,
-            'permissions' => 'required|array',
-            'permissions.*' => 'exists:permissions,id',
+            'permission_ids' => 'nullable|array',
+            'permission_ids.*' => 'exists:permissions,id',
         ];
     }
 }

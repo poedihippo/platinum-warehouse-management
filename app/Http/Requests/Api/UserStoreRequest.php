@@ -43,7 +43,8 @@ class UserStoreRequest extends FormRequest
             'contact_person' => 'nullable',
             'web_page' => 'nullable',
             'type' => ['nullable', new EnumValue(UserType::class, false)],
-            'role_id' => 'nullable|exists:roles,id',
+            'role_ids' => 'nullable|array',
+            'role_ids.*' => 'exists:roles,id',
         ];
     }
 }
