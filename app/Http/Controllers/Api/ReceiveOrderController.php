@@ -45,11 +45,12 @@ class ReceiveOrderController extends Controller
 
         if (ReceiveOrder::where('invoice_no', $invoiceNo)->exists()) return response()->json(['message' => 'Invoice number is already in use'], 400);
 
+        $productUnitBlacklist = DB::table('product_unit_blacklists')->select('product_unit_id')->get()?->pluck('product_unit_id')?->all() ?? [];
+        $supplier = Supplier::where('code', $xmlArray['TRANSACTIONS']['RECIEVEITEM']['VENDORID'])->firstOrFail();
+        $warehouse = Warehouse::where('code', $xmlArray['TRANSACTIONS']['RECIEVEITEM']['WAREHOUSEID'])->firstOrFail();
+
         DB::beginTransaction();
         try {
-            $supplier = Supplier::where('code', $xmlArray['TRANSACTIONS']['RECIEVEITEM']['VENDORID'])->firstOrFail();
-            $warehouse = Warehouse::where('code', $xmlArray['TRANSACTIONS']['RECIEVEITEM']['WAREHOUSEID'])->firstOrFail();
-
             $receiveOrder = ReceiveOrder::create([
                 'user_id' => auth()->user()->id,
                 'supplier_id' => $supplier?->id ?? null,
@@ -68,12 +69,14 @@ class ReceiveOrderController extends Controller
                 $productUnit = ProductUnit::where('code', $item['ITEMNO'])->first();
                 if (!$productUnit) return response()->json(['message' => 'Product ' . $item['ITEMNO'] . ' not found on system. Please add first'], 400);
 
-                $receiveOrder->details()->create([
-                    'product_unit_id' => $productUnit->id,
-                    'qty' => $item['QUANTITY'],
-                    'item_unit' => $item['ITEMUNIT'],
-                    'bruto_unit_price' => $item['BRUTOUNITPRICE'],
-                ]);
+                if (in_array($productUnit->id, $productUnitBlacklist)) {
+                    $receiveOrder->details()->create([
+                        'product_unit_id' => $productUnit->id,
+                        'qty' => $item['QUANTITY'],
+                        'item_unit' => $item['ITEMUNIT'],
+                        'bruto_unit_price' => $item['BRUTOUNITPRICE'],
+                    ]);
+                }
             }
 
             DB::commit();
