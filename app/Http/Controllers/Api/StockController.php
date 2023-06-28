@@ -64,7 +64,6 @@ class StockController extends Controller
     {
         abort_if(!auth()->user()->tokenCan('stock_access'), 403);
         return new StocksStockProductUnitResource($stock->load(['stockProductUnit' => fn ($q) => $q->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')]), 'receiveOrderDetail']));
-        // return new StocksStockProductUnitResource($stock->load(['stockProductUnit' => fn ($q) => $q->with('stocks', fn ($q) => $q->whereAvailableStock()->whereNull('description')), 'receiveOrderDetail']));
     }
 
     public function store(Request $request)

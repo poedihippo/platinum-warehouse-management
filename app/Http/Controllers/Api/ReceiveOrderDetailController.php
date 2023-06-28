@@ -75,6 +75,8 @@ class ReceiveOrderDetailController extends Controller
     {
         abort_if(!auth()->user()->tokenCan('receive_order_verify_access'), 403);
 
+        if ($receiveOrder->is_done) return response()->json(['message' => "Receive order has been verified. Can't modify details"], 400);
+
         $receiveOrderDetail = $receiveOrder->details()->where('id', $receiveOrderDetailId)->firstOrFail();
 
         $request->validate([
