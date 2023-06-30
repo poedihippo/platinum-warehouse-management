@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class AdjustmentRequest extends Model
@@ -23,24 +26,29 @@ class AdjustmentRequest extends Model
         });
     }
 
-    public function stocks()
+    public function stocks(): HasMany
     {
         return $this->hasMany(Stock::class);
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function approvedBy()
+    public function approvedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
     }
 
-    public function stockProductUnit()
+    public function stockProductUnit(): BelongsTo
     {
         return $this->belongsTo(StockProductUnit::class);
+    }
+
+    public function histories(): MorphMany
+    {
+        return $this->morphMany(StockHistory::class, 'model');
     }
 
     public function scopeStartDate(Builder $query, $value = null)

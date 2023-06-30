@@ -11,6 +11,7 @@ use App\Http\Resources\SalesOrderItemResource;
 use App\Models\DeliveryOrder;
 use App\Models\SalesOrderDetail;
 use App\Models\Stock;
+use App\Models\StockProductUnit;
 use App\Services\SalesOrderService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -72,7 +73,36 @@ class DeliveryOrderController extends Controller
     public function destroy(DeliveryOrder $deliveryOrder)
     {
         abort_if(!auth()->user()->tokenCan('delivery_order_delete'), 403);
-        $deliveryOrder->delete();
+
+
+        DB::beginTransaction();
+        try {
+            $deliveryOrder->delete();
+
+            $deliveryOrder->salesOrder?->details->each(function ($detail) use ($deliveryOrder) {
+                $stockProductUnit = StockProductUnit::select('id')->where('warehouse_id', $deliveryOrder->salesOrder?->warehouse_id)
+                    ->where('product_unit_id', $detail->product_unit_id)
+                    ->first();
+
+                if ($stockProductUnit) {
+                    // create history
+                    $detail->histories()->create([
+                        'user_id' => auth()->user()->id,
+                        'stock_product_unit_id' => $stockProductUnit->id,
+                        'value' => $detail->fulfilled_qty,
+                        'is_increment' => 1,
+                        'description' => $deliveryOrder->invoice_no . ' - Delete DO',
+                        'ip' => request()->ip(),
+                        'agent' => request()->header('user-agent'),
+                    ]);
+                }
+            });
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json(['message' => $th->getMessage()], 500);
+        }
+
         return $this->deletedResponse();
     }
 
@@ -152,10 +182,36 @@ class DeliveryOrderController extends Controller
 
         if (!$deliveryOrder->salesOrder?->details->every(fn ($detail) => $detail->fulfilled_qty >= $detail->qty)) return response()->json(['message' => 'All delivery order data must be done'], 400);
 
-        $deliveryOrder->update([
-            'is_done' => $request->is_done,
-            'done_at' => now(),
-        ]);
+        DB::beginTransaction();
+        try {
+            $deliveryOrder->update([
+                'is_done' => $request->is_done,
+                'done_at' => now(),
+            ]);
+
+            $deliveryOrder->salesOrder?->details->each(function ($detail) use ($deliveryOrder) {
+                $stockProductUnit = StockProductUnit::select('id')->where('warehouse_id', $deliveryOrder->salesOrder?->warehouse_id)
+                    ->where('product_unit_id', $detail->product_unit_id)
+                    ->first();
+
+                if ($stockProductUnit) {
+                    // create history
+                    $detail->histories()->create([
+                        'user_id' => auth()->user()->id,
+                        'stock_product_unit_id' => $stockProductUnit->id,
+                        'value' => $detail->fulfilled_qty,
+                        'is_increment' => 0,
+                        'description' => $deliveryOrder->invoice_no . ' - Verified DO',
+                        'ip' => request()->ip(),
+                        'agent' => request()->header('user-agent'),
+                    ]);
+                }
+            });
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json(['message' => $th->getMessage()], 500);
+        }
 
         $message = 'Data set as ' . ($deliveryOrder->is_done ? 'Done' : 'Pending');
         return response()->json(['message' => $message])->setStatusCode(Response::HTTP_ACCEPTED);

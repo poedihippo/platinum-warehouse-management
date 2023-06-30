@@ -27,20 +27,42 @@ class StockOpname extends Model
                 $model->done_at = now();
 
                 if ($model->is_done) {
-                    $model->details?->each(function ($stockOpnameDetail) {
-                        $stockOpnameDetail->stockOpnameItems()->where('is_scanned', 0)->get()?->each(function ($stockOpnameItem) {
+                    $model->details?->each(function ($stockOpnameDetail) use ($model) {
+                        $stockOpnameItems = $stockOpnameDetail->stockOpnameItems()->where('is_scanned', 0)->get() ?? collect([]);
+                        $stockOpnameItems?->each(function ($stockOpnameItem) {
                             // if (!$stockOpnameItem->is_scanned) {
                             Stock::find($stockOpnameItem->stock_id)?->delete();
                             // }
                         });
+
+                        $stockOpnameDetail->histories()->create([
+                            'user_id' => auth()->user()->id,
+                            'stock_product_unit_id' => $stockOpnameDetail->stock_product_unit_id,
+                            'value' => $stockOpnameItems?->count() ?? 0,
+                            'is_increment' => 0,
+                            'description' => 'Stock Opname - ' . $model->description,
+                            'ip' => request()->ip(),
+                            'agent' => request()->header('user-agent'),
+                        ]);
                     });
                 } else {
-                    $model->details?->each(function ($stockOpnameDetail) {
-                        $stockOpnameDetail->stockOpnameItems()->where('is_scanned', 0)->get()?->each(function ($stockOpnameItem) {
+                    $model->details?->each(function ($stockOpnameDetail) use ($model) {
+                        $stockOpnameItems = $stockOpnameDetail->stockOpnameItems()->where('is_scanned', 0)->get() ?? collect([]);
+                        $stockOpnameItems?->each(function ($stockOpnameItem) {
                             // if (!$stockOpnameItem->is_scanned) {
                             Stock::withTrashed()->find($stockOpnameItem->stock_id)?->restore();
                             // }
                         });
+
+                        $stockOpnameDetail->histories()->create([
+                            'user_id' => auth()->user()->id,
+                            'stock_product_unit_id' => $stockOpnameDetail->stock_product_unit_id,
+                            'value' => $stockOpnameItems?->count() ?? 0,
+                            'is_increment' => 1,
+                            'description' => 'Stock Opname - ' . $model->description,
+                            'ip' => request()->ip(),
+                            'agent' => request()->header('user-agent'),
+                        ]);
                     });
                 }
             }

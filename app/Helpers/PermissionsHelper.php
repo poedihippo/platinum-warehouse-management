@@ -140,6 +140,13 @@ class PermissionsHelper
                 'stock_opname_done',
             ],
 
+            'stock_history_access' => [
+                'stock_history_create',
+                'stock_history_edit',
+                'stock_history_delete',
+                'stock_history_done',
+            ],
+
             'adjustment_request_access' => [
                 'adjustment_request_create',
                 'adjustment_request_edit',

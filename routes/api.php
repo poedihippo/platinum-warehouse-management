@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AdjustmentRequestController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DeliveryOrderController;
@@ -22,12 +23,12 @@ use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\UomController;
 use App\Http\Controllers\Api\SocialiteController;
 use App\Http\Controllers\Api\StockController;
+use App\Http\Controllers\Api\StockHistoryController;
 use App\Http\Controllers\Api\StockOpnameController;
 use App\Http\Controllers\Api\StockOpnameDetailController;
 use App\Http\Controllers\Api\StockOpnameItemController;
 use App\Http\Controllers\Api\TestController;
 use App\Http\Controllers\Api\UserDiscountController;
-use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -136,6 +137,8 @@ Route::middleware('auth:sanctum')->group(function ($route) {
     Route::put('stock-opnames/{stockOpname}/done', [StockOpnameController::class, 'done']);
     Route::put('stock-opnames/{stockOpname}/set-done', [StockOpnameController::class, 'setDone']);
     Route::resource('stock-opnames', StockOpnameController::class);
+
+    Route::resource('stock-histories', StockHistoryController::class);
 
     Route::resource('settings', SettingController::class)->only(['index', 'update']);
 });

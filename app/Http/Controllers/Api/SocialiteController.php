@@ -19,7 +19,7 @@ class SocialiteController extends Controller
         try {
 
             $user = Socialite::driver($provider)->stateless()->user();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed'
             ], Response::HTTP_UNAUTHORIZED);

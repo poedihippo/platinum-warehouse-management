@@ -34,28 +34,41 @@ class CreateStockROListener implements ShouldQueue
 
         foreach ($receiveOrder->details as $receiveOrderDetail) {
             $qty = $receiveOrderDetail->adjust_qty > 0 ? $receiveOrderDetail->adjust_qty : $receiveOrderDetail->qty;
-            for ($i = 0; $i < $qty ?? 0; $i++) {
-                $stockProductUnit = StockProductUnit::where('warehouse_id', $receiveOrder->warehouse_id)
-                    ->where('product_unit_id', $receiveOrderDetail->product_unit_id)
-                    ->first();
+            $stockProductUnit = StockProductUnit::where('warehouse_id', $receiveOrder->warehouse_id)
+                ->where('product_unit_id', $receiveOrderDetail->product_unit_id)
+                ->first();
 
-                $stock = $stockProductUnit->stocks()->create([
-                    'receive_order_id' => $receiveOrderDetail->receive_order_id,
-                    'receive_order_detail_id' => $receiveOrderDetail->id,
+            if ($stockProductUnit) {
+                for ($i = 0; $i < $qty ?? 0; $i++) {
+                    $stock = $stockProductUnit->stocks()->create([
+                        'receive_order_id' => $receiveOrderDetail->receive_order_id,
+                        'receive_order_detail_id' => $receiveOrderDetail->id,
+                    ]);
+
+                    $logo = public_path('images/logo-platinum.png');
+
+                    $data = QrCode::size(350)
+                        ->format('png')
+                        // ->merge($logo, absolute: true)
+                        ->generate($stock->id);
+
+                    $fileName = $receiveOrderDetail->id . '/' . $stock->id . '.png';
+                    $fullPath = $folder .  $fileName;
+                    Storage::put($fullPath, $data);
+
+                    $stock->update(['qr_code' => $fullPath]);
+                }
+
+                // create history
+                $receiveOrderDetail->histories()->create([
+                    'user_id' => auth()->user()->id,
+                    'stock_product_unit_id' => $stockProductUnit->id,
+                    'value' => $qty,
+                    'is_increment' => 1,
+                    'description' => $receiveOrder->invoice_no,
+                    'ip' => request()->ip(),
+                    'agent' => request()->header('user-agent'),
                 ]);
-
-                $logo = public_path('images/logo-platinum.png');
-
-                $data = QrCode::size(350)
-                    ->format('png')
-                    // ->merge($logo, absolute: true)
-                    ->generate($stock->id);
-
-                $fileName = $receiveOrderDetail->id . '/' . $stock->id . '.png';
-                $fullPath = $folder .  $fileName;
-                Storage::put($fullPath, $data);
-
-                $stock->update(['qr_code' => $fullPath]);
             }
         }
     }

@@ -17,8 +17,8 @@ class StockOpnameController extends Controller
     {
         abort_if(!auth()->user()->tokenCan('stock_opname_access'), 403);
         $stockOpnames = QueryBuilder::for(StockOpname::query())
-            ->allowedFilters(['description'])
-            ->allowedSorts(['id', 'created_at'])
+            ->allowedFilters(['description', 'is_done', 'warehouse_id'])
+            ->allowedSorts(['id', 'description', 'is_done', 'warehouse_id', 'created_at'])
             ->paginate();
 
         return StockOpnameResource::collection($stockOpnames);
