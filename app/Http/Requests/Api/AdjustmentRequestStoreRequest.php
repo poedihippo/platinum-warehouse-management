@@ -27,7 +27,9 @@ class AdjustmentRequestStoreRequest extends FormRequest
             'stock_product_unit_id' => 'required|exists:stock_product_units,id',
             'value' => 'required|integer|min:1',
             'is_increment' => 'nullable|boolean',
+            'is_approved' => 'nullable|boolean',
             'description' => 'nullable',
+            'reason' => 'nullable',
         ];
     }
 
@@ -40,6 +42,7 @@ class AdjustmentRequestStoreRequest extends FormRequest
     {
         $this->merge([
             'is_increment' => $this->toBoolean($this->is_increment),
+            'is_approved' => $this->toBoolean($this->is_approved),
         ]);
     }
 

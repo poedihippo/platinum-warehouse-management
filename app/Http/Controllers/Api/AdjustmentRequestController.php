@@ -71,7 +71,8 @@ class AdjustmentRequestController extends Controller
 
         DB::beginTransaction();
         try {
-            $adjustmentRequest->is_approved = $request->is_approved ?? 1;
+            $adjustmentRequest->reason = $request->reason ?? null;
+            $adjustmentRequest->is_approved = $request->is_approved ?? null;
             $adjustmentRequest->approved_by = auth()->user()->id;
             $adjustmentRequest->approved_datetime = now();
 

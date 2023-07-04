@@ -22,6 +22,7 @@ return new class extends Migration
             $table->integer('unit_price')->default(0);
             $table->integer('discount')->default(0);
             $table->integer('total_price')->default(0);
+            $table->boolean('is_use_ppn')->default(0);
             $table->timestamps();
         });
     }

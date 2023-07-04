@@ -22,7 +22,7 @@ return new class extends Migration
             $table->boolean('is_increment')->value(1);
             $table->text('description')->nullable();
             $table->string('ip', 30)->nullable();
-            $table->string('agent', 30)->nullable();
+            $table->text('agent')->nullable();
             $table->timestamps();
         });
     }
