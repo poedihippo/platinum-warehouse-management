@@ -6,7 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ProductUnitStoreRequest;
 use App\Http\Requests\Api\ProductUnitUpdateRequest;
 use App\Http\Resources\ProductUnitResource;
+use App\Http\Resources\SalesOrderDetailResource;
 use App\Models\ProductUnit;
+use App\Models\SalesOrderDetail;
+use App\Models\User;
 use Illuminate\Http\Response;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -53,5 +56,16 @@ class ProductUnitController extends Controller
         abort_if(!auth()->user()->tokenCan('product_unit_delete'), 403);
         $productUnit->delete();
         return $this->deletedResponse();
+    }
+
+    public function userPrice(ProductUnit $productUnit, User $user)
+    {
+        $salesOrderDetails = SalesOrderDetail::select('id', 'product_unit_id', 'unit_price', 'created_at')
+            ->whereHas('salesOrder', fn ($q) => $q->where('reseller_id', $user->id))
+            ->where('product_unit_id', $productUnit->id)
+            ->with('productUnit', fn ($q) => $q->select('id', 'code', 'name'))
+            ->paginate();
+
+        return SalesOrderDetailResource::collection($salesOrderDetails);
     }
 }

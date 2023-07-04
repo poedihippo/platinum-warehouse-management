@@ -71,7 +71,7 @@ Route::middleware('auth:sanctum')->group(function ($route) {
     Route::resource('product-categories', ProductCategoryController::class);
     Route::resource('product-brands', ProductBrandController::class);
     Route::resource('products', ProductController::class);
-    Route::resource('product-units', ProductUnitController::class);
+    Route::get('product-units/{productUnit}/user-price/{user}', [ProductUnitController::class, 'userPrice']);
     Route::resource('product-units', ProductUnitController::class);
     Route::resource('product-unit-blacklists', ProductUnitBlacklistController::class)->only(['index', 'store', 'destroy']);
 
