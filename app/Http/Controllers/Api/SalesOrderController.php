@@ -8,8 +8,8 @@ use App\Http\Requests\Api\SalesOrderStoreRequest;
 use App\Http\Requests\Api\SalesOrderUpdateRequest;
 use App\Models\ProductUnit;
 use App\Models\SalesOrder;
+use App\Models\StockProductUnit;
 use App\Models\UserDiscount;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -42,7 +42,7 @@ class SalesOrderController extends Controller
     public function store(SalesOrderStoreRequest $request)
     {
         $items = $request->items ?? [];
-        $totalPrice = collect($items)->sum('price') ?? 0;
+        $totalPrice = collect($items)->sum('total_price') ?? 0;
         $data = [
             ...$request->validated(),
             'price' => $totalPrice
@@ -59,9 +59,11 @@ class SalesOrderController extends Controller
                 $salesOrder->details()->create([
                     'product_unit_id' => $items[$i]['product_unit_id'],
                     'qty' => $items[$i]['qty'],
-                    'unit_price' => $productUnit->price ?? 0,
+                    'unit_price' => $items[$i]['unit_price'] ?? $productUnit->price ?? 0,
                     'discount' => $items[$i]['discount'] ?? 0,
-                    'total_price' => $items[$i]['price'] ?? 0,
+                    'tax' => isset($items[$i]['tax']) && $items[$i]['tax'] == 1 ? 11 : 0,
+                    'total_price' => $items[$i]['total_price'] ?? 0,
+                    'warehouse_id' => $items[$i]['warehouse_id'],
                 ]);
             }
             DB::commit();
@@ -78,7 +80,7 @@ class SalesOrderController extends Controller
         if ($salesOrder->deliveryOrder) return response()->json(['message' => "DO must be deleted first before editing SO"], 400);
 
         $items = $request->items ?? [];
-        $totalPrice = collect($items)->sum('price') ?? 0;
+        $totalPrice = collect($items)->sum('total_price') ?? 0;
         $data = [
             ...$request->validated(),
             'price' => $totalPrice
@@ -94,11 +96,18 @@ class SalesOrderController extends Controller
                 if (!$productUnit) return response()->json(['message' => 'Product ' . $items[$i]['product_unit_id'] . ' not found on system. Please add first'], 400);
 
                 $salesOrder->details()->create([
+                    // 'product_unit_id' => $items[$i]['product_unit_id'],
+                    // 'qty' => $items[$i]['qty'],
+                    // 'unit_price' => $productUnit->price ?? 0,
+                    // 'discount' => $items[$i]['discount'] ?? 0,
+                    // 'total_price' => $items[$i]['price'] ?? 0,
                     'product_unit_id' => $items[$i]['product_unit_id'],
                     'qty' => $items[$i]['qty'],
-                    'unit_price' => $productUnit->price ?? 0,
+                    'unit_price' => $items[$i]['unit_price'] ?? $productUnit->price ?? 0,
                     'discount' => $items[$i]['discount'] ?? 0,
-                    'total_price' => $items[$i]['price'] ?? 0,
+                    'tax' => isset($items[$i]['tax']) && $items[$i]['tax'] == 1 ? 11 : 0,
+                    'total_price' => $items[$i]['total_price'] ?? 0,
+                    'warehouse_id' => $items[$i]['warehouse_id'],
                 ]);
             }
 
@@ -128,7 +137,7 @@ class SalesOrderController extends Controller
             'details' => fn ($q) => $q->with('productUnit.product')
         ]);
 
-        $pdf = Pdf::loadView('pdf.salesOrders.salesOrder', ['salesOrder' => $salesOrder]);
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.salesOrders.salesOrder', ['salesOrder' => $salesOrder]);
 
         return $pdf->download('sales-order-' . $salesOrder->invoice_no . '.pdf');
     }
@@ -146,18 +155,30 @@ class SalesOrderController extends Controller
     {
         $userDiscounts = UserDiscount::select('product_brand_id', 'value', 'is_percentage')->where('user_id', $request->customer_id)->get();
 
-        $query = ProductUnit::select('id', 'uom_id', 'product_id', 'name', 'price')
+        $query = StockProductUnit::select('id', 'warehouse_id', 'product_unit_id')
+            ->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')])
             ->with([
-                'uom' => fn ($q) => $q->select('id', 'name'),
-                'product' => fn ($q) => $q->select('id', 'product_brand_id')
-            ]);
+                'warehouse' => fn ($q) => $q->select('id', 'code'),
+                'productUnit' => function ($q) {
+                    $q->select('id', 'uom_id', 'product_id', 'name', 'price')
+                        ->with([
+                            'uom' => fn ($q) => $q->select('id', 'name'),
+                            'product' => fn ($q) => $q->select('id', 'name', 'product_brand_id')
+                        ]);
+                },
+            ])
+            ->having('stocks_count', '>', 0);
 
-        $productUnits = QueryBuilder::for($query)
-            ->allowedFilters('name')
+        $stockProductUnits = QueryBuilder::for($query)
+            ->allowedFilters(AllowedFilter::scope('product_unit'))
             ->paginate();
 
-        $productUnits->each(function ($productUnit) use ($userDiscounts) {
+        $stockProductUnits->each(function ($stockProductUnit) use ($userDiscounts) {
+            $productUnit = $stockProductUnit->productUnit;
+            $productUnit->name = $productUnit->name . ' - ' . $stockProductUnit->warehouse?->code ?? '';
             $productUnit->price_discount = $productUnit->price;
+            $productUnit->discount = 0;
+            $productUnit->is_percentage = 1;
 
             $productBrandId = $productUnit?->product?->product_brand_id ?? null;
             if ($userDiscounts->contains('product_brand_id', $productBrandId)) {
@@ -175,12 +196,15 @@ class SalesOrderController extends Controller
                 $productUnit->is_percentage = $discount->is_percentage;
             }
 
+            unset($stockProductUnit->warehouse_id);
+            unset($stockProductUnit->product_unit_id);
+
             unset($productUnit->product);
             unset($productUnit->uom_id);
             unset($productUnit->product_id);
         });
 
-        return response()->json($productUnits);
+        return response()->json($stockProductUnits);
     }
 
     // public function getPrice(Request $request)

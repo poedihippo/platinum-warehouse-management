@@ -35,11 +35,6 @@ class ProductUnit extends Model
         return $this->hasMany(StockProductUnit::class);
     }
 
-    public function stocks()
-    {
-        return $this->hasMany(Stock::class);
-    }
-
     public function scopeWhereProductBrandId(Builder $query, $id)
     {
         return $query->whereHas('product', fn ($q) => $q->where('product_brand_id', $id));

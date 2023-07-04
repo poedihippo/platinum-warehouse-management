@@ -25,5 +25,10 @@ class SettingSeeder extends Seeder
             'key' => SettingEnum::DO_NUMBER,
             'value' => sprintf('PAS/DO/%s/%s/01', date('m'), date('y'))
         ]);
+
+        Setting::create([
+            'key' => SettingEnum::TAX_VALUE,
+            'value' => 11
+        ]);
     }
 }

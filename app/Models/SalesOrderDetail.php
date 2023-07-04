@@ -16,12 +16,18 @@ class SalesOrderDetail extends Model
         'fulfilled_qty' => 'integer',
         'unit_price' => 'integer',
         'discount' => 'integer',
+        'tax' => 'integer',
         'total_price' => 'integer',
     ];
 
     public function salesOrder(): BelongsTo
     {
         return $this->belongsTo(SalesOrder::class);
+    }
+
+    public function warehouse(): BelongsTo
+    {
+        return $this->belongsTo(Warehouse::class);
     }
 
     public function productUnit(): BelongsTo

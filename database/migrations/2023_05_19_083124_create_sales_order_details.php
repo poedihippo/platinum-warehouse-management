@@ -15,14 +15,15 @@ return new class extends Migration
     {
         Schema::create('sales_order_details', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('sales_order_id');
-            $table->foreignId('product_unit_id');
+            $table->foreignId('sales_order_id')->constrained();
+            $table->foreignId('product_unit_id')->constrained();
+            $table->foreignId('warehouse_id')->constrained();
             $table->integer('qty')->default(0);
             $table->integer('fulfilled_qty')->default(0);
             $table->integer('unit_price')->default(0);
             $table->integer('discount')->default(0);
+            $table->integer('tax')->default(0);
             $table->integer('total_price')->default(0);
-            $table->boolean('is_use_ppn')->default(0);
             $table->timestamps();
         });
     }

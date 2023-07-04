@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\SettingEnum;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class SettingResource extends JsonResource
@@ -14,6 +15,12 @@ class SettingResource extends JsonResource
      */
     public function toArray($request)
     {
-        return parent::toArray($request);
+        return [
+            'id' => $this->id,
+            'key' => $this->key,
+            'value' => SettingEnum::getValueType($this->key, $this->value),
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+        ];
     }
 }
