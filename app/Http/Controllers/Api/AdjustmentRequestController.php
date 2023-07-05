@@ -77,7 +77,7 @@ class AdjustmentRequestController extends Controller
             $adjustmentRequest->approved_datetime = now();
 
             if ($adjustmentRequest->isDirty('is_approved')) {
-                if ($adjustmentRequest->is_approved === true) {
+                if ($adjustmentRequest->is_approved == 1) {
                     $folder = 'qrcode/';
                     for ($i = 0; $i < $adjustmentRequest->value ?? 0; $i++) {
                         $stock = $stockProductUnit->stocks()->create([

@@ -16,7 +16,7 @@ class AdjustmentRequest extends Model
     protected $guarded = [];
     protected $casts = [
         'is_increment' => 'boolean',
-        'is_approved' => 'boolean',
+        // 'is_approved' => 'boolean',
     ];
 
     protected static function booted()

@@ -48,6 +48,19 @@ class SalesOrderController extends Controller
             'price' => $totalPrice
         ];
 
+        // BE validation
+        // dd($request->validated());
+        // dd($request->validated());
+
+        // $cekTotalPrice = 0;
+        // foreach ($items as $item) {
+        //     $price = $item['unit_price'] * $item['qty'];
+        //     $price = $price * ($item['discount'] / 100);
+        //     if($item['tax'] == 1){
+
+        //     }
+        // }
+
         DB::beginTransaction();
         try {
             $salesOrder = SalesOrder::create($data);

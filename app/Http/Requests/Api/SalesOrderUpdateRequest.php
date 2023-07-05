@@ -46,7 +46,7 @@ class SalesOrderUpdateRequest extends FormRequest
             'items.*.qty' => 'required|integer',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.discount' => 'required|numeric|min:0',
-            'items.*.tax' => 'nullable|boolean',
+            'items.*.tax' => 'required|boolean',
             'items.*.total_price' => 'required|numeric|min:0',
             'items.*.warehouse_id' => 'required|exists:warehouses,id',
         ];
