@@ -48,18 +48,21 @@ class SalesOrderController extends Controller
             'price' => $totalPrice
         ];
 
-        // BE validation
-        // dd($request->validated());
-        // dd($request->validated());
+        // BE total price validation
+        $cekTotalPrice = 0;
+        $pricePerItem = 0;
+        foreach ($items as $item) {
+            $pricePerItem = $item['unit_price'] * $item['qty'];
+            $discount = $pricePerItem * ($item['discount'] / 100);
+            $pricePerItem = $pricePerItem - $discount;
+            if ($item['tax'] == 1) {
+                $tax = $pricePerItem * 0.11;
+                $pricePerItem = $pricePerItem + $tax;
+            }
+            $cekTotalPrice += $pricePerItem;
+        }
 
-        // $cekTotalPrice = 0;
-        // foreach ($items as $item) {
-        //     $price = $item['unit_price'] * $item['qty'];
-        //     $price = $price * ($item['discount'] / 100);
-        //     if($item['tax'] == 1){
-
-        //     }
-        // }
+        if ($cekTotalPrice != $totalPrice) return response()->json(['message' => "Prices don't match"], 400);
 
         DB::beginTransaction();
         try {
