@@ -52,6 +52,9 @@ class StockController extends Controller
                 'id', 'parent_id', 'stock_product_unit_id', 'warehouse_id', 'receive_order_id', 'receive_order_detail_id',
                 AllowedFilter::scope('startDate'),
                 AllowedFilter::scope('endDate'),
+                AllowedFilter::callback('show_all', function (\Illuminate\Database\Eloquent\Builder $query, $value) {
+                    if (!$value == 0) $query->whereAvailableStock();
+                }),
             ])
             ->allowedSorts(['scanned_count', 'scanned_datetime', 'warehouse_id', 'created_at'])
             // ->allowedIncludes(['productUnit', 'warehouse', 'receiveOrderDetail'])
