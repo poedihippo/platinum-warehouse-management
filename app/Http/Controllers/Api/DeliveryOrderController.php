@@ -11,7 +11,6 @@ use App\Http\Requests\Api\SalesOrderItemStoreRequest;
 use App\Http\Resources\SalesOrderItemResource;
 use App\Models\DeliveryOrder;
 use App\Models\DeliveryOrderDetail;
-use App\Models\SalesOrderDetail;
 use App\Models\SalesOrderItem;
 use App\Models\Stock;
 use App\Models\StockProductUnit;

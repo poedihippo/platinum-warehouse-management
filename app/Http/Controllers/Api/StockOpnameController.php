@@ -58,7 +58,10 @@ class StockOpnameController extends Controller
         $request->validate(['is_done' => 'required|boolean']);
 
         if (!$stockOpname->details->every(fn ($detail) => $detail->is_done === true)) return response()->json(['message' => 'All stock opname data must be set done'], 400);
-        $stockOpname->update(['is_done' => $request->is_done]);
+        $stockOpname->update([
+            'is_done' => $request->is_done,
+            'done_at' => now(),
+        ]);
 
         $message = 'Data set as ' . ($stockOpname->is_done ? 'Done' : 'Pending');
         return response()->json(['message' => $message])->setStatusCode(Response::HTTP_ACCEPTED);
