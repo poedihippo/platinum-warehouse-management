@@ -4,15 +4,19 @@ namespace App\Models;
 
 use App\Enums\SettingEnum;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 
 class DeliveryOrder extends Model
 {
     protected $fillable = [
         'user_id',
-        'sales_order_id',
+        'warehouse_id',
+        'reseller_id',
         'invoice_no',
-        'code',
+        'transaction_date',
+        'shipment_estimation_datetime',
         'description',
         'is_done',
         'done_at',
@@ -44,14 +48,29 @@ class DeliveryOrder extends Model
         });
     }
 
-    public function salesOrder()
+    public function details(): HasMany
     {
-        return $this->belongsTo(SalesOrder::class);
+        return $this->hasMany(DeliveryOrderDetail::class);
     }
 
-    public function user()
+    // public function salesOrder()
+    // {
+    //     return $this->belongsTo(SalesOrder::class);
+    // }
+
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function warehouse(): BelongsTo
+    {
+        return $this->belongsTo(Warehouse::class);
+    }
+
+    public function reseller(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reseller_id');
     }
 
     public static function getSoNumber(): string

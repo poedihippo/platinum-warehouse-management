@@ -8,6 +8,8 @@ class SalesOrderService
 {
     public static function countFulfilledQty(SalesOrderDetail $salesOrderDetail)
     {
+        $salesOrderDetail->refresh();
+
         $salesOrderDetail->update([
             'fulfilled_qty' => $salesOrderDetail->salesOrderItems->count()
         ]);

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class SalesOrderDetail extends Model
@@ -38,6 +39,19 @@ class SalesOrderDetail extends Model
     public function salesOrderItems(): HasMany
     {
         return $this->hasMany(SalesOrderItem::class, 'sales_order_detail_id');
+    }
+
+    // kalo ada fitur quantity di DO detail, harus pake hasMany.
+    // sementara pake hasOne dulu karena belum handle qty nya. yg penting SO detail masuk ke DO detail
+    // ubah validasi DeliveryOrderController@attach()
+    // public function deliveryOrderDetails(): HasMany
+    // {
+    //     return $this->hasMany(DeliveryOrderDetail::class);
+    // }
+
+    public function deliveryOrderDetail(): HasOne
+    {
+        return $this->hasOne(DeliveryOrderDetail::class);
     }
 
     public function histories(): MorphMany

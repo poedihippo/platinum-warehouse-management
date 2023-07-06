@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AdjustmentRequestController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DeliveryOrderController;
+use App\Http\Controllers\Api\DeliveryOrderDetailController;
 use App\Http\Controllers\Api\ProductBrandController;
 use App\Http\Controllers\Api\ProductCategoryController;
 use App\Http\Controllers\Api\ProductController;
@@ -106,8 +107,17 @@ Route::middleware('auth:sanctum')->group(function ($route) {
     Route::post('sales-order-items/{salesOrderDetail}', [SalesOrderItemController::class, 'store']);
     Route::delete('sales-order-items/{salesOrderDetail}', [SalesOrderItemController::class, 'destroy']);
 
+    Route::group(['prefix' => 'delivery-orders/{deliveryOrder}/details'], function () {
+        Route::get('/', [DeliveryOrderDetailController::class, 'index']);
+        Route::get('{deliveryOrderDetail}', [DeliveryOrderDetailController::class, 'show']);
+        Route::put('{deliveryOrderDetail}', [DeliveryOrderDetailController::class, 'update']);
+        Route::delete('{deliveryOrderDetail}', [DeliveryOrderDetailController::class, 'destroy']);
+    });
+
+    Route::post('delivery-orders/{deliveryOrder}/attach', [DeliveryOrderController::class, 'attach']);
     Route::resource('delivery-orders', DeliveryOrderController::class);
-    Route::post('delivery-orders/{deliveryOrder}/verification/{salesOrderDetail}', [DeliveryOrderController::class, 'verification']);
+    // Route::post('delivery-orders/{deliveryOrder}/verification/{salesOrderDetail}', [DeliveryOrderController::class, 'verification']);
+    Route::post('delivery-orders/{deliveryOrder}/verification/{deliveryOrderDetail}', [DeliveryOrderController::class, 'verification']);
     Route::get('delivery-orders/{deliveryOrder}/print', [DeliveryOrderController::class, 'print']);
     Route::put('delivery-orders/{deliveryOrder}/done', [DeliveryOrderController::class, 'done']);
     Route::get('delivery-orders/{deliveryOrder}/export-xml', [DeliveryOrderController::class, 'exportXml']);

@@ -26,7 +26,7 @@
             <table>
                 <tr>
                     <th>DELIVERY TO</th>
-                    <th>: Hinode Koi</th>
+                    <th>: {{ $deliveryOrder->reseller?->name ?? '-' }}</th>
                 </tr>
             </table>
         </div>
@@ -34,11 +34,11 @@
             <table>
                 <tr>
                     <th>DO no</th>
-                    <th>: PAS/DO/06/23/07</th>
+                    <th>: {{$deliveryOrder->invoice_no}}</th>
                 </tr>
                 <tr>
                     <th>Date</th>
-                    <th>: 5 Jun 2023</th>
+                    <th>: {{date('d M Y', strtotime($deliveryOrder->created_at))}}</th>
                 </tr>
             </table>
         </div>
@@ -55,24 +55,14 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @foreach ($deliveryOrder->details as $detail)
                     <tr>
                         <td></td>
-                        <td>JPD Shori M @ 15 Kg</td>
+                        <td>{{ $detail->salesOrderDetail?->productUnit?->name ?? '-' }}</td>
                         <td></td>
-                        <td>1 bag</td>
+                        <td>{{ $detail->salesOrderDetail?->qty ?? 0 }} {{ $detail->salesOrderDetail?->productUnit?->uom?->name ?? '' }}</td>
                     </tr>
-                    <tr>
-                        <td></td>
-                        <td>JPD Shori M @ 15 Kg</td>
-                        <td></td>
-                        <td>1 bag</td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                        <td>JPD Shori M @ 15 Kg</td>
-                        <td></td>
-                        <td>1 bag</td>
-                    </tr>
+                    @endforeach
                 </tbody>
                 <tfoot>
                     <tr>
@@ -115,7 +105,8 @@
             </table>
         </div>
     </div>
-    <p class="fw-bold">DO : {{ $deliveryOrder->code }}</p>
+
+    {{-- <p class="fw-bold">DO : {{ $deliveryOrder->code }}</p>
     <p>Date : {{ date('d-m-Y H:i:s', strtotime($deliveryOrder->salesOrder?->transaction_date)) }}</p>
     <p>Customer : {{ $deliveryOrder->salesOrder?->reseller?->name ?? '' }}</p>
     <p>Phone Number : {{ $deliveryOrder->salesOrder?->reseller?->phone ?? '' }}</p>
@@ -149,7 +140,7 @@
                 </tr>
             @endforeach
         </tbody>
-    </table>
+    </table> --}}
 </body>
 
 </html>

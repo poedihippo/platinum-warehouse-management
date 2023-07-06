@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class DeliveryOrderResource extends JsonResource
+class DeliveryOrderDetailResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -17,9 +17,8 @@ class DeliveryOrderResource extends JsonResource
         return array_merge(
             parent::toArray($request),
             [
-                // 'sales_order' => new SalesOrderResource($this->whenLoaded('salesOrder')->loadCount('details')),
-                'user' => new UserResource($this->whenLoaded('user')),
-                'reseller' => new UserResource($this->reseller),
+                'sales_order_detail' => new SalesOrderDetailResource($this->whenLoaded('salesOrderDetail')),
+                'delivery_order' => new DeliveryOrderResource($this->whenLoaded('deliveryOrder')),
             ]
         );
     }

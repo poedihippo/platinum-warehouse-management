@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Api;
 
-use App\Models\SalesOrder;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\DB;
 
 class DeliveryOrderStoreRequest extends FormRequest
 {
@@ -26,11 +26,19 @@ class DeliveryOrderStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'sales_order_id' => ['required', function ($attribute, $value, Closure $fail) {
-                $salesOrder = SalesOrder::find($value);
-                if (!$salesOrder) $fail('Sales order not found');
-                if ($salesOrder->deliveryOrder) $fail("Can't select a sales order that already has a delivery order");
+            // 'sales_order_id' => ['required', function ($attribute, $value, Closure $fail) {
+            //     $salesOrder = SalesOrder::find($value);
+            //     if (!$salesOrder) $fail('Sales order not found');
+            //     if ($salesOrder->deliveryOrder) $fail("Can't select a sales order that already has a delivery order");
+            // }],
+            'reseller_id' => ['required', function (string $attribute, mixed $value, Closure $fail) {
+                if (!DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::Reseller)->exists()) {
+                    $fail('Reseller not found');
+                }
             }],
+            'warehouse_id' => 'required|exists:warehouses,id',
+            'transaction_date' => 'required|date_format:Y-m-d H:i:s',
+            'shipment_estimation_datetime' => 'required|date_format:Y-m-d H:i:s',
             'description' => 'nullable|string',
         ];
     }
