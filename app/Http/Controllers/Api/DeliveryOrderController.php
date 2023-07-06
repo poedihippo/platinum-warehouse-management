@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\DeliveryOrderAttachRequest;
 use App\Http\Resources\DeliveryOrderResource;
 use App\Http\Requests\Api\DeliveryOrderStoreRequest;
 use App\Http\Requests\Api\DeliveryOrderUpdateRequest;
@@ -278,16 +279,8 @@ class DeliveryOrderController extends Controller
         return response()->json(['message' => $message])->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
-    public function attach(DeliveryOrder $deliveryOrder, Request $request)
+    public function attach(DeliveryOrder $deliveryOrder, DeliveryOrderAttachRequest $request)
     {
-        $request->validate([
-            'sales_order_detail_ids' => 'required|array',
-            'sales_order_detail_ids.*' => ['integer', 'exists:sales_order_details,id', function ($attribute, $value, \Closure $fail) {
-                $salesOrderDetail = SalesOrderDetail::find($value);
-                if ($salesOrderDetail->deliveryOrderDetail) $fail('Sales order data has been used in another delivery order');
-            }],
-        ]);
-
         $count = 0;
         foreach ($request->sales_order_detail_ids ?? [] as $id) {
             if ($deliveryOrder->details()->where('sales_order_detail_id', $id)->doesntExist()) {

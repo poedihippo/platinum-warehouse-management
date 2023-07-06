@@ -10,6 +10,7 @@ use App\Models\ProductUnit;
 use App\Models\SalesOrder;
 use App\Models\StockProductUnit;
 use App\Models\UserDiscount;
+use App\Services\SalesOrderService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -49,20 +50,7 @@ class SalesOrderController extends Controller
         ];
 
         // BE total price validation
-        $cekTotalPrice = 0;
-        $pricePerItem = 0;
-        foreach ($items as $item) {
-            $pricePerItem = $item['unit_price'] * $item['qty'];
-            $discount = $pricePerItem * ($item['discount'] / 100);
-            $pricePerItem = $pricePerItem - $discount;
-            if ($item['tax'] == 1) {
-                $tax = $pricePerItem * 0.11;
-                $pricePerItem = $pricePerItem + $tax;
-            }
-            $cekTotalPrice += $pricePerItem;
-        }
-
-        if ($cekTotalPrice != $totalPrice) return response()->json(['message' => "Prices don't match"], 400);
+        if (SalesOrderService::validateTotalPrice($totalPrice, $items) === false) return response()->json(['message' => "Prices don't match"], 400);
 
         DB::beginTransaction();
         try {
@@ -101,6 +89,9 @@ class SalesOrderController extends Controller
             ...$request->validated(),
             'price' => $totalPrice
         ];
+
+        // BE total price validation
+        if (SalesOrderService::validateTotalPrice($totalPrice, $items) === false) return response()->json(['message' => "Prices don't match"], 400);
 
         DB::beginTransaction();
         try {
