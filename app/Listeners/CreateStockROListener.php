@@ -29,6 +29,7 @@ class CreateStockROListener implements ShouldQueue
      */
     public function handle(VerifiedROEvent $event)
     {
+        $user = $event->user;
         $receiveOrder = $event->receiveOrder->load('details');
         $folder = 'qrcode/';
 
@@ -61,7 +62,7 @@ class CreateStockROListener implements ShouldQueue
 
                 // create history
                 $receiveOrderDetail->histories()->create([
-                    'user_id' => auth()->user()->id,
+                    'user_id' => $user->id,
                     'stock_product_unit_id' => $stockProductUnit->id,
                     'value' => $qty,
                     'is_increment' => 1,

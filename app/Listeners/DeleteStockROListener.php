@@ -28,7 +28,9 @@ class DeleteStockROListener implements ShouldQueue
      */
     public function handle(UnverifiedROEvent $event)
     {
+        $user = $event->user;
         $receiveOrder = $event->receiveOrder;
+
         foreach ($receiveOrder->details as $receiveOrderDetail) {
             $receiveOrderDetail->stocks?->each->forceDelete();
 
@@ -40,7 +42,7 @@ class DeleteStockROListener implements ShouldQueue
             if ($stockProductUnit) {
                 // create history
                 $receiveOrderDetail->histories()->create([
-                    'user_id' => auth()->user()->id,
+                    'user_id' => $user->id,
                     'stock_product_unit_id' => $stockProductUnit->id,
                     'value' => $qty,
                     'is_increment' => 0,

@@ -3,6 +3,7 @@
 namespace App\Events;
 
 use App\Models\ReceiveOrder;
+use App\Models\User;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -14,6 +15,7 @@ use Illuminate\Queue\SerializesModels;
 class UnverifiedROEvent
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
+    public User $user;
 
     /**
      * Create a new event instance.
@@ -22,6 +24,7 @@ class UnverifiedROEvent
      */
     public function __construct(public ReceiveOrder $receiveOrder)
     {
+        $this->user = auth()->user();
     }
 
     /**
