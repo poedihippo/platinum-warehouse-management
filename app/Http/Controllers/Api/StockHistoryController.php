@@ -15,6 +15,7 @@ class StockHistoryController extends Controller
 
         $stockHistories = QueryBuilder::for(StockHistory::with(['stockHistoryable', 'user' => fn ($q) => $q->select('id', 'name')]))
             ->allowedFilters([
+                'stock_product_unit_id',
                 'description',
                 'user_id'
             ])
