@@ -26,7 +26,7 @@ class DeliveryOrderController extends Controller
     public function index()
     {
         abort_if(!auth()->user()->tokenCan('delivery_orders_access'), 403);
-        $deliveryOrders = QueryBuilder::for(DeliveryOrder::with('user', 'reseller'))
+        $deliveryOrders = QueryBuilder::for(DeliveryOrder::with('user', 'reseller')->withCount('details'))
             ->allowedFilters([
                 'invoice_no',
                 'reseller_id',
