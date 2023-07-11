@@ -81,7 +81,7 @@ class SalesOrderController extends Controller
 
     public function update(SalesOrder $salesOrder, SalesOrderUpdateRequest $request)
     {
-        if ($salesOrder->deliveryOrder) return response()->json(['message' => "DO must be deleted first before editing SO"], 400);
+        if (!$salesOrder->details?->every(fn ($salesOrderDetail) => !$salesOrderDetail->deliveryOrderDetail)) return response()->json(['message' => "DO must be deleted first before editing SO"], 400);
 
         $items = $request->items ?? [];
         $totalPrice = collect($items)->sum('total_price') ?? 0;
