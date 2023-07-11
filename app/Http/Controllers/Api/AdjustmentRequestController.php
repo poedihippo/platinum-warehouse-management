@@ -110,15 +110,17 @@ class AdjustmentRequestController extends Controller
                 } else {
                     $adjustmentRequest->stocks?->each->forceDelete();
 
-                    $adjustmentRequest->histories()->create([
-                        'user_id' => auth()->user()->id,
-                        'stock_product_unit_id' => $adjustmentRequest->stock_product_unit_id,
-                        'value' => $adjustmentRequest->value ?? 0,
-                        'is_increment' => 0,
-                        'description' => 'Adjustment request - ' . $adjustmentRequest->description,
-                        'ip' => request()->ip(),
-                        'agent' => request()->header('user-agent'),
-                    ]);
+                    if ($adjustmentRequest->getOriginal('is_approved')) {
+                        $adjustmentRequest->histories()->create([
+                            'user_id' => auth()->user()->id,
+                            'stock_product_unit_id' => $adjustmentRequest->stock_product_unit_id,
+                            'value' => $adjustmentRequest->value ?? 0,
+                            'is_increment' => 0,
+                            'description' => 'Adjustment request - ' . $adjustmentRequest->description,
+                            'ip' => request()->ip(),
+                            'agent' => request()->header('user-agent'),
+                        ]);
+                    }
 
                     Storage::deleteDirectory($adjustmentRequest->id);
                 }
