@@ -37,7 +37,7 @@ class SalesOrderController extends Controller
     public function show(SalesOrder $salesOrder)
     {
         abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
-        return new SalesOrderResource($salesOrder->load(['details', 'user'])->loadCount('details'));
+        return new SalesOrderResource($salesOrder->load(['details' => fn ($q) => $q->with('warehouse'), 'user'])->loadCount('details'));
     }
 
     public function store(SalesOrderStoreRequest $request)
