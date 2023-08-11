@@ -84,12 +84,16 @@ class StockController extends Controller
     //     return (new BaseStockResource($stock))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     // }
 
-    // public function destroy(Stock $stock)
-    // {
-    //     // abort_if(!auth()->user()->tokenCan('receive_order_delete'), 403);
-    //     $stock->delete();
-    //     return $this->deletedResponse();
-    // }
+    public function destroy(Stock $stock)
+    {
+        abort_if(!auth()->user()->tokenCan('stock_delete'), 403);
+
+        if ($stock->childs?->count() > 0) return response()->json(['message' => 'Can not delete parent stock'], 400);
+        if ($stock->salesOrderItems?->count() > 0) return response()->json(['message' => 'Can not delete stock. Stock already in sales order'], 400);
+
+        $stock->delete();
+        return $this->deletedResponse();
+    }
 
     public function grouping(Request $request)
     {
