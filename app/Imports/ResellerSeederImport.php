@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Enums\UserType;
 use App\Models\User;
 use Maatwebsite\Excel\Concerns\ToModel;
 
@@ -22,7 +23,7 @@ class ResellerSeederImport implements ToModel
             'city' => $row[4],
             'province' => $row[5],
             'address' => $row[6],
-            'type' => 2,
+            'type' => UserType::Reseller
         ]);
     }
 }

@@ -2,12 +2,12 @@
 
 namespace Database\Seeders;
 
-use App\Imports\ProductSeederImport;
+use App\Imports\ProductCategorySeederImport;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Maatwebsite\Excel\Facades\Excel;
 
-class ProductSeeder extends Seeder
+class ProductCategorySeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -16,6 +16,6 @@ class ProductSeeder extends Seeder
      */
     public function run()
     {
-        Excel::import(new ProductSeederImport, public_path('products.xlsx'));
+        Excel::import(new ProductCategorySeederImport, public_path('product_categories.xlsx'));
     }
 }
