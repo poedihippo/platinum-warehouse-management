@@ -25,7 +25,7 @@ class DeliveryOrderController extends Controller
 {
     public function index()
     {
-        abort_if(!auth()->user()->tokenCan('delivery_orders_access'), 403);
+        abort_if(!auth()->user()->tokenCan('delivery_order_access'), 403);
         $deliveryOrders = QueryBuilder::for(DeliveryOrder::with('user', 'reseller')->withCount('details'))
             ->allowedFilters([
                 'invoice_no',
@@ -39,7 +39,7 @@ class DeliveryOrderController extends Controller
 
     public function show(DeliveryOrder $deliveryOrder)
     {
-        abort_if(!auth()->user()->tokenCan('delivery_orders_access'), 403);
+        abort_if(!auth()->user()->tokenCan('delivery_order_access'), 403);
 
         $deliveryOrder->load([
             'user', 'reseller'
