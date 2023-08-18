@@ -14,4 +14,5 @@ final class UserType extends Enum
     const Admin = 1;
     const Reseller = 2;
     const Customer = 3;
+    const Dealer = 3;
 }
