@@ -7,19 +7,21 @@ use App\Http\Resources\PermissionResource;
 use App\Http\Requests\Api\PermissionStoreRequest;
 use App\Http\Requests\PermissionUpdateRequest;
 use App\Models\Permission;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class PermissionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $perPage = $request->per_page ?? 100;
         abort_if(!auth()->user()->tokenCan('permission_access'), 403);
         $roles = QueryBuilder::for(Permission::class)
             ->allowedFilters(['name'])
             ->allowedSorts(['id', 'name', 'created_at'])
             ->orderBy('id', 'DESC')
-            ->paginate();
+            ->paginate($perPage);
 
         return PermissionResource::collection($roles);
     }
