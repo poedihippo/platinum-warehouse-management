@@ -21,6 +21,6 @@ class CustomerSeeder extends Seeder
         // User::factory()->count(10)->create(['type' => 3]); //customers
 
         Excel::import(new UsersSeederImport, public_path('customers.xlsx'));
-        Excel::import(new ResellerSeederImport, public_path('resellers.xlsx'));
+        // Excel::import(new ResellerSeederImport, public_path('resellers.xlsx'));
     }
 }

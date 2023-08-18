@@ -17,10 +17,13 @@ return new class extends Migration
             $table->id();
             $table->string('code', 100);
             $table->string('name', 100);
-            $table->string('email', 100);
-            $table->string('phone', 20);
+            $table->string('contact_person', 100)->nullable();
+            $table->string('email', 100)->nullable();
+            $table->string('phone')->nullable();
             $table->text('description')->nullable();
-            $table->text('address');
+            $table->string('city')->nullable();
+            $table->string('province')->nullable();
+            $table->text('address')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
