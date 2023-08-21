@@ -196,16 +196,30 @@ class PermissionsHelper
 
     public static function getMyPermissions()
     {
-        $myPermissions = auth()->user()?->getAllPermissions()?->pluck('name') ?? collect([]);
+        $user = auth()->user();
         $allPermissions = [];
-        foreach (self::getAllPermissions() as $parent => $childs) {
-            if (is_array($childs)) {
-                $allPermissions[$parent][$parent] = $myPermissions->search($parent) === false ? false : true;
-                foreach ($childs as $child) {
-                    $allPermissions[$parent][$child] = $myPermissions->search($child) === false ? false : true;
+        if ($user->hasRole('admin')) {
+            foreach (self::getAllPermissions() as $parent => $childs) {
+                if (is_array($childs)) {
+                    $allPermissions[$parent][$parent] = true;
+                    foreach ($childs as $child) {
+                        $allPermissions[$parent][$child] = true;
+                    }
+                } else {
+                    $allPermissions[$childs] = true;
                 }
-            } else {
-                $allPermissions[$childs] = $myPermissions->search($childs) === false ? false : true;
+            }
+        } else {
+            $myPermissions = $user?->getAllPermissions()?->pluck('name') ?? collect([]);
+            foreach (self::getAllPermissions() as $parent => $childs) {
+                if (is_array($childs)) {
+                    $allPermissions[$parent][$parent] = $myPermissions->search($parent) === false ? false : true;
+                    foreach ($childs as $child) {
+                        $allPermissions[$parent][$child] = $myPermissions->search($child) === false ? false : true;
+                    }
+                } else {
+                    $allPermissions[$childs] = $myPermissions->search($childs) === false ? false : true;
+                }
             }
         }
 

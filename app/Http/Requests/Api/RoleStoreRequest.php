@@ -26,7 +26,7 @@ class RoleStoreRequest extends FormRequest
         return [
             'name' => 'required|unique:roles,name',
             'permission_ids' => 'nullable|array',
-            'permission_ids.*' => 'exists:permissions,id',
+            // 'permission_ids.*' => 'exists:permissions,id',
         ];
     }
 }

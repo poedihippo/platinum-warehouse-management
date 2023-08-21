@@ -15,9 +15,13 @@ class UserResource extends JsonResource
      */
     public function toArray($request)
     {
-        return [
-            ...parent::toArray($request),
-            'permissions' => PermissionsHelper::getMyPermissions()
-        ];
+        if ($request->getRequestUri() === '/api/users/me') {
+            return [
+                ...parent::toArray($request),
+                'permissions' => PermissionsHelper::getMyPermissions()
+            ];
+        }
+
+        return parent::toArray($request);
     }
 }

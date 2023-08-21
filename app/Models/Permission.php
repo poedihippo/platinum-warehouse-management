@@ -18,4 +18,9 @@ class Permission extends ModelsPermission
     {
         return $this->belongsTo(self::class, 'parent_id');
     }
+
+    public function scopeWhereParent($query)
+    {
+        $query->whereNull('parent_id');
+    }
 }

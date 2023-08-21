@@ -53,6 +53,7 @@ Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProv
 
 Route::middleware('auth:sanctum')->group(function ($route) {
     Route::resource('roles', RoleController::class);
+    Route::get('permissions/all', [PermissionController::class, 'all']);
     Route::resource('permissions', PermissionController::class);
 
     Route::group(['prefix' => 'users/{user}/discounts'], function () {

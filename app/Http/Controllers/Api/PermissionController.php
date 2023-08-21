@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\PermissionsHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PermissionResource;
 use App\Http\Requests\Api\PermissionStoreRequest;
@@ -50,5 +51,27 @@ class PermissionController extends Controller
         abort_if(!auth()->user()->tokenCan('permission_delete'), 403);
         $permission->delete();
         return $this->deletedResponse();
+    }
+
+    public function all()
+    {
+        return response()->json(PermissionsHelper::getAllPermissions());
+        // $permissions = Permission::select('id', 'name')
+        //     ->with('childs', fn ($q) => $q->select('id', 'name', 'parent_id'))
+        //     ->whereParent()
+        //     ->get();
+
+        // $allPermissions = [];
+
+        // foreach ($permissions as $permission) {
+        //     $allPermissions[$permission->id] = $permission->name;
+        //     // if ($permission->childs->count() > 0) {
+        //     //     foreach ($permission->childs as $child) {
+        //     //         // $allPermissions[$permission->id][][$child->id] = $child->name;
+        //     //         dd($allPermissions);
+        //     //     }
+        //     // }
+        // }
+        // return response()->json($allPermissions);
     }
 }

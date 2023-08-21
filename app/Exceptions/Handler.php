@@ -65,6 +65,9 @@ class Handler extends ExceptionHandler
             // if ($e instanceof HttpException && $e->getStatusCode() == 403) {
             //     return response()->json(['message' => 'Forbidden!'], 403);
             // }
+            // if($e->getStatusCode() === 403){
+            //     return response()->json(['message' => 'Forbidden'], 403);
+            // }
         }
 
         return parent::render($request, $e);

@@ -36,7 +36,6 @@ class RoleController extends Controller
      */
     public function store(RoleStoreRequest $request)
     {
-        abort_if(!auth()->user()->tokenCan('role_create'), 403);
         $role = new Role();
         $role->name = $request->name;
         $role->guard_name = 'web';
@@ -66,7 +65,6 @@ class RoleController extends Controller
      */
     public function update(Role $role, RoleUpdateRequest $request)
     {
-        abort_if(!auth()->user()->tokenCan('role_edit'), 403);
         if ($role->id == 1) return response()->json(['message' => 'Role admin can not updated!']);
         $role->name = $request->input('name');
         $role->save();
