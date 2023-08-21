@@ -193,4 +193,22 @@ class PermissionsHelper
             return;
         });
     }
+
+    public static function getMyPermissions()
+    {
+        $myPermissions = auth()->user()?->getAllPermissions()?->pluck('name') ?? collect([]);
+        $allPermissions = [];
+        foreach (self::getAllPermissions() as $parent => $childs) {
+            if (is_array($childs)) {
+                $allPermissions[$parent][$parent] = $myPermissions->search($parent) === false ? false : true;
+                foreach ($childs as $child) {
+                    $allPermissions[$parent][$child] = $myPermissions->search($child) === false ? false : true;
+                }
+            } else {
+                $allPermissions[$childs] = $myPermissions->search($childs) === false ? false : true;
+            }
+        }
+
+        return $allPermissions;
+    }
 }
