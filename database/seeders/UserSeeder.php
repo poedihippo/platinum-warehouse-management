@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Enums\UserType;
-use App\Models\PersonalAccessToken;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -18,58 +17,168 @@ class UserSeeder extends Seeder
      */
     public function run()
     {
-        $adminRole = Role::create([
-            'id' => 1,
-            'name' => 'admin',
-            // 'guard_name' => 'web',
+        $roleAdminAll = Role::create([
+            'name' => 'Back Office Admin All',
+        ]);
+        $roleAdminAll->syncPermissions([
+            'receive_order_access',
+            'receive_order_create',
+            'receive_order_edit',
+            'receive_order_delete',
+            'receive_order_done',
+            'sales_order_access',
+            'sales_order_create',
+            'sales_order_edit',
+            'sales_order_delete',
+            'sales_order_print',
+            'sales_order_export_xml',
+            'receive_order_verify_access',
+            'stock_access',
+            'stock_create',
+            'stock_edit',
+            'stock_delete',
+            'stock_grouping',
+            'stock_print',
+            'stock_opname_access',
+            'stock_opname_create',
+            'stock_opname_edit',
+            'stock_opname_delete',
+            'stock_opname_done',
+            'stock_history_access',
+            'stock_history_create',
+            'stock_history_edit',
+            'stock_history_delete',
+            'stock_history_done'
         ]);
 
-        $user = User::create([
-            'name' => 'Admin',
-            'code' => '1234567890',
-            'email' => 'admin@gmail.com',
-            'password' => bcrypt('admin'),
-            'tax_address' => 'jalan kenangan',
-            'provider_id' => '1',
-            'provider_name' => 'Iconic',
-            'city' => 'Tangerang',
-            'province' => 'Tangerang',
-            'zip_code' => '56311',
-            'country' => 'Indonesia',
-            'phone' => '08577700702',
-            'contact_person' => 'Ryan Dmasiv',
-            'web_page' => 'jalan kenangan',
+        $roleAdminRO = Role::create([
+            'name' => 'Back Office Admin - Receive Order',
+        ]);
+        $roleAdminRO->syncPermissions([
+            'receive_order_access',
+            'receive_order_create',
+            'receive_order_edit',
+            'receive_order_delete',
+            'receive_order_done',
+            'receive_order_verify_access',
+        ]);
+
+        $roleAdminSO = Role::create([
+            'name' => 'Back Office Admin - Sales Order',
+        ]);
+        $roleAdminSO->syncPermissions([
+            'sales_order_edit',
+            'sales_order_access',
+            'sales_order_create',
+            'sales_order_delete',
+            'sales_order_print',
+            'sales_order_export_xml',
+        ]);
+
+        $roleAdminStock = Role::create([
+            'name' => 'Back Office Admin - Stock',
+        ]);
+        $roleAdminStock->syncPermissions([
+            'stock_opname_edit',
+            'stock_access',
+            'stock_create',
+            'stock_edit',
+            'stock_delete',
+            'stock_grouping',
+            'stock_print',
+            'stock_opname_access',
+            'stock_opname_create',
+            'stock_opname_delete',
+            'stock_opname_done',
+            'stock_history_access',
+            'stock_history_create',
+            'stock_history_edit',
+            'stock_history_delete',
+            'stock_history_done',
+        ]);
+
+        $roleAdminWarehouse = Role::create([
+            'name' => 'Warehouse',
+        ]);
+        $roleAdminWarehouse->syncPermissions([
+            'delivery_order_create',
+            'receive_order_access',
+            'receive_order_create',
+            'receive_order_edit',
+            'receive_order_delete',
+            'receive_order_done',
+            'receive_order_verify_access',
+            'delivery_order_access',
+            'delivery_order_edit',
+            'delivery_order_delete',
+            'delivery_order_print',
+            'delivery_order_done',
+            'stock_access',
+            'stock_create',
+            'stock_edit',
+            'stock_delete',
+            'stock_grouping',
+            'stock_print',
+            'stock_opname_access',
+            'stock_opname_create',
+            'stock_opname_edit',
+            'stock_opname_delete',
+            'stock_opname_done',
+            'stock_history_access',
+            'stock_history_create',
+            'stock_history_edit',
+            'stock_history_delete',
+            'stock_history_done',
+        ]);
+
+        // devi assign to Back Office Admin All
+        $devi = User::create([
+            'name' => 'Devi Platinum Backoffice',
+            'code' => 'admin-devi',
+            'email' => 'devi@platinumadisentosa.com',
+            'password' => bcrypt('12345678'),
             'type' => UserType::Admin,
-            'phone' => '0987654321',
         ]);
+        $devi->assignRole($roleAdminAll);
 
-        PersonalAccessToken::create([
-            'tokenable_type' => User::class,
-            'tokenable_id' => $user->id,
-            'name' => 'default',
-            'token' => '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918',
-            'plain_text_token' => 'admin',
-            'abilities' => ["*"],
+        // Admin Backoffice assign to Back Office Admin - Sales Order
+        $adminBackOffice = User::create([
+            'name' => 'Admin Backoffice',
+            'code' => 'admin-backoffice',
+            'email' => 'admin@platinumadisentosa.com',
+            'password' => bcrypt('12345678'),
+            'type' => UserType::Admin,
         ]);
+        $adminBackOffice->assignRole($roleAdminSO);
 
-        $user->assignRole($adminRole);
+        // dina assign to Back Office Admin - Receive Order
+        $dina = User::create([
+            'name' => 'Dina Platinum Backoffice',
+            'code' => 'admin-dina',
+            'email' => 'dina@platinumadisentosa.com',
+            'password' => bcrypt('12345678'),
+            'type' => UserType::Admin,
+        ]);
+        $dina->assignRole($roleAdminRO);
 
-        // User::create([
-        //     'name' => 'Emporium Fish',
-        //     'code' => 'CE007',
-        //     'email' => 'emporium.fish@gmail.com',
-        //     'password' => bcrypt('12345678'),
-        //     'type' => UserType::Reseller,
-        //     'phone' => '098709870987',
-        // ]);
+        // devi assign to Warehouse
+        $jhon = User::create([
+            'name' => 'jhonxfaf0 Gudang',
+            'code' => 'admin-jhon',
+            'email' => 'jhonxfaf0@gmail.com',
+            'password' => bcrypt('12345678'),
+            'type' => UserType::Admin,
+        ]);
+        $jhon->assignRole($roleAdminWarehouse);
 
-        // User::create([
-        //     'name' => 'Customer Pameran',
-        //     'code' => 'CC001',
-        //     'email' => 'customer.pameran@gmail.com',
-        //     'password' => bcrypt('12345678'),
-        //     'type' => UserType::Reseller,
-        //     'phone' => '098765098765',
-        // ]);
+        // devi assign to Warehouse
+        $safrizal = User::create([
+            'name' => 'safrizal arif Gudang',
+            'code' => 'admin-safrizal',
+            'email' => 'safrizalarif25@gmail.com',
+            'password' => bcrypt('12345678'),
+            'type' => UserType::Admin,
+        ]);
+        $safrizal->assignRole($roleAdminWarehouse);
     }
 }

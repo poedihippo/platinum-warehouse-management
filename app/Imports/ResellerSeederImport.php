@@ -16,13 +16,13 @@ class ResellerSeederImport implements ToModel
     public function model(array $row)
     {
         return new User([
-            'code' => $row[0],
-            'name' => $row[1],
-            'phone' => $row[2],
-            'contact_person' => $row[3],
-            'city' => $row[4],
-            'province' => $row[5],
-            'address' => $row[6],
+            'code' => trim($row[0]),
+            'name' => trim($row[1]),
+            'phone' => trim($row[2]),
+            'contact_person' => trim($row[3]),
+            'city' => trim($row[4]),
+            'province' => trim($row[5]),
+            'address' => trim($row[6]),
             'type' => UserType::Reseller
         ]);
     }

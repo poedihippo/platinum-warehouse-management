@@ -8,15 +8,18 @@ use Maatwebsite\Excel\Concerns\ToModel;
 class ProductCategorySeederImport implements ToModel
 {
     /**
-    * @param array $row
-    *
-    * @return \Illuminate\Database\Eloquent\Model|null
-    */
+     * @param array $row
+     *
+     * @return \Illuminate\Database\Eloquent\Model|null
+     */
     public function model(array $row)
     {
+        $productCategoryName = trim($row[0]);
+        if (ProductCategory::where('name', $productCategoryName)->exists()) return;
+
         return new ProductCategory([
-            'name' => $row[0],
-            'description' => $row[0],
+            'name' => $productCategoryName,
+            'description' => $productCategoryName,
         ]);
     }
 }

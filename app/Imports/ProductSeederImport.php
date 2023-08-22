@@ -18,11 +18,15 @@ class ProductSeederImport implements ToModel
     {
         $categoryName = trim($row[0]);
         $brandName = trim($row[1]);
+        $productName = trim($row[2]);
+
+        if (Product::where('name', $productName)->exists()) return;
+
         return new Product([
             'product_category_id' => ProductCategory::where('name', $categoryName)->first()?->id ?? 1,
             'product_brand_id' => ProductBrand::where('name', $brandName)->first()?->id ?? 1,
-            'name' => $row[2],
-            'description' => $row[2],
+            'name' => $productName,
+            'description' => $productName,
         ]);
     }
 }

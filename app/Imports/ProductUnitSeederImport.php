@@ -15,9 +15,11 @@ class ProductUnitSeederImport implements ToModel
      */
     public function model(array $row)
     {
-        $productName = trim($row[2]);
+        $productUnitName = trim($row[2]);
+        if (ProductUnit::where('name', $productUnitName)->exists()) return;
+
         return new ProductUnit([
-            'product_id' => Product::where('name', $productName)->first()?->id ?? 1,
+            'product_id' => Product::where('name', $productUnitName)->first()?->id ?? 1,
             'uom_id' => 1,
             'code' => $row[0],
             'name' => $row[1],
