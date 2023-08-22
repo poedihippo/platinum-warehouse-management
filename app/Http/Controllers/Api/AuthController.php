@@ -40,18 +40,18 @@ class AuthController extends Controller
             ]);
         }
 
-        $permissions = ["*"];
-        if (!$user->hasRole('admin')) {
-            $roles = $user->roles;
-            if ($roles->count() > 0) {
-                $permissions = $roles[0]->permissions->pluck('name')->toArray() ?? [];
-            } else {
-                return response()->json(['message' => 'User has no role'], 401);
-            }
-        }
+        // $permissions = ["*"];
+        // if (!$user->hasRole('admin')) {
+        //     $roles = $user->roles;
+        //     if ($roles->count() > 0) {
+        //         $permissions = $roles[0]->permissions->pluck('name')->toArray() ?? [];
+        //     } else {
+        //         return response()->json(['message' => 'User has no role'], 401);
+        //     }
+        // }
 
         // return $user->createToken('default')->plainTextToken;
-        $token = $user->tokens()->latest()->first()->plain_text_token ?? $user->createToken('default', $permissions)->plainTextToken;
+        $token = $user->tokens()->latest()->first()->plain_text_token ?? $user->createToken('default')->plainTextToken;
         return response()->json(['data' => ['token' => $token]]);
     }
 
