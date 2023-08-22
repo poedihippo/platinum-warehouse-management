@@ -11,6 +11,14 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class RoleController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:role_access', ['only' => ['index', 'show']]);
+        $this->middleware('permission:role_create', ['only' => 'store']);
+        $this->middleware('permission:role_edit', ['only' => 'update']);
+        $this->middleware('permission:role_delete', ['only' => 'destroy']);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -18,7 +26,6 @@ class RoleController extends Controller
      */
     public function index()
     {
-        abort_if(!auth()->user()->tokenCan('role_access'), 403);
         $roles = QueryBuilder::for(Role::class)
             ->with('permissions')
             ->allowedFilters(['name'])
@@ -52,7 +59,6 @@ class RoleController extends Controller
      */
     public function show(Role $role)
     {
-        abort_if(!auth()->user()->tokenCan('role_access'), 403);
         return new RoleResource($role->load('permissions'));
     }
 
@@ -80,7 +86,6 @@ class RoleController extends Controller
      */
     public function destroy(Role $role)
     {
-        abort_if(!auth()->user()->tokenCan('role_delete'), 403);
         if ($role->id == 1) return response()->json(['message' => 'Role admin can not deleted!']);
         $role->delete();
         return $this->deletedResponse();

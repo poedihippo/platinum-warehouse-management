@@ -12,9 +12,17 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class ProductCategoryController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:product_category_access', ['only' => ['index', 'show']]);
+        $this->middleware('permission:product_category_create', ['only' => 'store']);
+        $this->middleware('permission:product_category_edit', ['only' => 'update']);
+        $this->middleware('permission:product_category_delete', ['only' => 'destroy']);
+    }
+
     public function index()
     {
-        abort_if(!auth()->user()->tokenCan('product_category_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('product_category_access'), 403);
         $productCategories = QueryBuilder::for(ProductCategory::class)
             ->allowedFilters(['name'])
             ->allowedSorts(['id', 'name', 'created_at'])
@@ -25,7 +33,7 @@ class ProductCategoryController extends Controller
 
     public function show(ProductCategory $productCategory)
     {
-        abort_if(!auth()->user()->tokenCan('product_category_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('product_category_access'), 403);
         return new ProductCategoryResource($productCategory);
     }
 
@@ -45,7 +53,7 @@ class ProductCategoryController extends Controller
 
     public function destroy(ProductCategory $productCategory)
     {
-        abort_if(!auth()->user()->tokenCan('product_category_delete'), 403);
+        // abort_if(!auth()->user()->tokenCan('product_category_delete'), 403);
         $productCategory->delete();
         return $this->deletedResponse();
     }

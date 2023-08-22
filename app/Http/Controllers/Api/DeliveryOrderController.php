@@ -23,9 +23,20 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class DeliveryOrderController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:delivery_order_access', ['only' => ['index', 'show']]);
+        $this->middleware('permission:delivery_order_create', ['only' => 'store']);
+        $this->middleware('permission:delivery_order_edit', ['only' => 'update']);
+        $this->middleware('permission:delivery_order_delete', ['only' => 'destroy']);
+        $this->middleware('permission:delivery_order_print', ['only' => 'print']);
+        $this->middleware('permission:sales_order_export_xml', ['only' => 'exportXml']);
+        $this->middleware('permission:delivery_order_done', ['only' => 'done']);
+    }
+
     public function index()
     {
-        abort_if(!auth()->user()->tokenCan('delivery_order_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('delivery_order_access'), 403);
         $deliveryOrders = QueryBuilder::for(DeliveryOrder::with('user', 'reseller')->withCount('details'))
             ->allowedFilters([
                 'invoice_no',
@@ -39,7 +50,7 @@ class DeliveryOrderController extends Controller
 
     public function show(DeliveryOrder $deliveryOrder)
     {
-        abort_if(!auth()->user()->tokenCan('delivery_order_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('delivery_order_access'), 403);
 
         $deliveryOrder->load([
             'user', 'reseller'
@@ -70,8 +81,7 @@ class DeliveryOrderController extends Controller
 
     public function destroy(DeliveryOrder $deliveryOrder)
     {
-        abort_if(!auth()->user()->tokenCan('delivery_order_delete'), 403);
-
+        // abort_if(!auth()->user()->tokenCan('delivery_order_delete'), 403);
 
         DB::beginTransaction();
         try {
@@ -126,7 +136,7 @@ class DeliveryOrderController extends Controller
 
     public function print(DeliveryOrder $deliveryOrder)
     {
-        abort_if(!auth()->user()->tokenCan('delivery_order_print'), 403);
+        // abort_if(!auth()->user()->tokenCan('delivery_order_print'), 403);
 
         $deliveryOrder->load(['reseller', 'details' => fn ($q) => $q->with('salesOrderDetail.productUnit.uom')]);
         $pdf = Pdf::loadView('pdf.deliveryOrders.deliveryOrder', ['deliveryOrder' => $deliveryOrder]);
@@ -136,7 +146,7 @@ class DeliveryOrderController extends Controller
 
     public function exportXml(DeliveryOrder $deliveryOrder)
     {
-        abort_if(!auth()->user()->tokenCan('sales_order_export_xml'), 403);
+        // abort_if(!auth()->user()->tokenCan('sales_order_export_xml'), 403);
 
         $deliveryOrder->load(['reseller', 'details' => fn ($q) => $q->with('salesOrderDetail.productUnit.uom')]);
 
@@ -216,7 +226,7 @@ class DeliveryOrderController extends Controller
 
     public function done(DeliveryOrder $deliveryOrder, Request $request)
     {
-        abort_if(!auth()->user()->tokenCan('delivery_order_done'), 403);
+        // abort_if(!auth()->user()->tokenCan('delivery_order_done'), 403);
         $request->validate(['is_done' => 'required|boolean']);
 
         // if (!$deliveryOrder->salesOrder?->details->every(fn ($detail) => $detail->fulfilled_qty >= $detail->qty)) return response()->json(['message' => 'All delivery order data must be done'], 400);

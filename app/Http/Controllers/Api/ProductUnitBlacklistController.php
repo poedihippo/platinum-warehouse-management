@@ -10,9 +10,16 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class ProductUnitBlacklistController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:product_unit_blacklist_access', ['only' => 'index']);
+        $this->middleware('permission:product_unit_blacklist_create', ['only' => 'store']);
+        $this->middleware('permission:product_unit_blacklist_delete', ['only' => 'destroy']);
+    }
+
     public function index()
     {
-        abort_if(!auth()->user()->tokenCan('product_unit_blacklist_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('product_unit_blacklist_access'), 403);
 
         $productUnitBlacklists = QueryBuilder::for(ProductUnitBlacklist::with('productUnit'))
             ->allowedFilters('product_unit_id')
@@ -24,7 +31,7 @@ class ProductUnitBlacklistController extends Controller
 
     public function store(Request $request)
     {
-        abort_if(!auth()->user()->tokenCan('product_unit_blacklist_create'), 403);
+        // abort_if(!auth()->user()->tokenCan('product_unit_blacklist_create'), 403);
 
         $request->validate([
             'product_unit_ids' => 'required|array',

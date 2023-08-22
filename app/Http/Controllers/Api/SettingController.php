@@ -9,6 +9,12 @@ use Illuminate\Http\Request;
 
 class SettingController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:setting_access', ['only' => 'index']);
+        $this->middleware('permission:setting_edit', ['only' => 'update']);
+    }
+
     public function index()
     {
         abort_if(!auth()->user()->tokenCan('setting_access'), 403);

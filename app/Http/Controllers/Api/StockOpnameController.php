@@ -13,9 +13,18 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class StockOpnameController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:stock_opname_access', ['only' => ['index', 'show']]);
+        $this->middleware('permission:stock_opname_create', ['only' => 'store']);
+        $this->middleware('permission:stock_opname_edit', ['only' => 'update']);
+        $this->middleware('permission:stock_opname_delete', ['only' => 'destroy']);
+        $this->middleware('permission:stock_opname_done', ['only' => ['done','setDone']]);
+    }
+
     public function index()
     {
-        abort_if(!auth()->user()->tokenCan('stock_opname_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('stock_opname_access'), 403);
         $stockOpnames = QueryBuilder::for(StockOpname::query())
             ->allowedFilters(['description', 'is_done', 'warehouse_id'])
             ->allowedSorts(['id', 'description', 'is_done', 'warehouse_id', 'created_at'])
@@ -26,7 +35,7 @@ class StockOpnameController extends Controller
 
     public function show(StockOpname $stockOpname)
     {
-        abort_if(!auth()->user()->tokenCan('stock_opname_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('stock_opname_access'), 403);
         return new StockOpnameResource($stockOpname);
     }
 
@@ -46,14 +55,14 @@ class StockOpnameController extends Controller
 
     public function destroy(StockOpname $stockOpname)
     {
-        abort_if(!auth()->user()->tokenCan('stock_opname_delete'), 403);
+        // abort_if(!auth()->user()->tokenCan('stock_opname_delete'), 403);
         $stockOpname->delete();
         return $this->deletedResponse();
     }
 
     public function done(StockOpname $stockOpname, Request $request)
     {
-        abort_if(!auth()->user()->tokenCan('stock_opname_done'), 403);
+        // abort_if(!auth()->user()->tokenCan('stock_opname_done'), 403);
 
         $request->validate(['is_done' => 'required|boolean']);
 
@@ -69,7 +78,7 @@ class StockOpnameController extends Controller
 
     public function setDone(StockOpname $stockOpname, Request $request)
     {
-        abort_if(!auth()->user()->tokenCan('stock_opname_done'), 403);
+        // abort_if(!auth()->user()->tokenCan('stock_opname_done'), 403);
 
         $request->validate(['is_done' => 'required|boolean']);
 

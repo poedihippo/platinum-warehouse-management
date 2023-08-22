@@ -17,9 +17,18 @@ use Illuminate\Database\Eloquent\Builder;
 
 class ReceiveOrderDetailController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:receive_order_access', ['only' => ['index', 'show']]);
+        $this->middleware('permission:receive_order_create', ['only' => 'store']);
+        $this->middleware('permission:receive_order_edit', ['only' => 'update']);
+        $this->middleware('permission:receive_order_delete', ['only' => 'destroy']);
+        $this->middleware('permission:receive_order_verify_access', ['only' => 'verify']);
+    }
+
     public function index(ReceiveOrder $receiveOrder)
     {
-        abort_if(!auth()->user()->tokenCan('receive_order_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('receive_order_access'), 403);
 
         $receiveOrderDetails = QueryBuilder::for(ReceiveOrderDetail::where('receive_order_id', $receiveOrder->id))
             ->allowedFilters([
@@ -39,7 +48,7 @@ class ReceiveOrderDetailController extends Controller
 
     public function show(ReceiveOrder $receiveOrder, $receiveOrderDetailId)
     {
-        abort_if(!auth()->user()->tokenCan('receive_order_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('receive_order_access'), 403);
 
         $receiveOrderDetail = $receiveOrder->details()->where('id', $receiveOrderDetailId)->firstOrFail();
 
@@ -73,7 +82,7 @@ class ReceiveOrderDetailController extends Controller
      */
     public function verify(ReceiveOrder $receiveOrder, $receiveOrderDetailId, Request $request)
     {
-        abort_if(!auth()->user()->tokenCan('receive_order_verify_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('receive_order_verify_access'), 403);
 
         if ($receiveOrder->is_done) return response()->json(['message' => "Receive order has been verified. Can't modify details"], 400);
 
@@ -94,7 +103,7 @@ class ReceiveOrderDetailController extends Controller
 
     public function destroy(ReceiveOrder $receiveOrder, ReceiveOrderDetail $receiveOrderDetail)
     {
-        abort_if(!auth()->user()->tokenCan('receive_order_delete'), 403);
+        // abort_if(!auth()->user()->tokenCan('receive_order_delete'), 403);
 
         if ($receiveOrderDetail->is_verified === true) return response()->json(['message' => 'Data must be unverified']);
 

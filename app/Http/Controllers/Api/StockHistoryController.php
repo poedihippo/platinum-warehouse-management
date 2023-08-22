@@ -9,9 +9,14 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class StockHistoryController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:stock_history_access', ['only' => 'index']);
+    }
+
     public function index()
     {
-        abort_if(!auth()->user()->tokenCan('stock_history_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('stock_history_access'), 403);
 
         $stockHistories = QueryBuilder::for(StockHistory::with(['stockHistoryable', 'user' => fn ($q) => $q->select('id', 'name')]))
             ->allowedFilters([

@@ -19,9 +19,19 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class SalesOrderController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:sales_order_access', ['only' => ['index', 'show']]);
+        $this->middleware('permission:sales_order_create', ['only' => 'store']);
+        $this->middleware('permission:sales_order_edit', ['only' => 'update']);
+        $this->middleware('permission:sales_order_delete', ['only' => 'destroy']);
+        $this->middleware('permission:sales_order_print', ['only' => 'print']);
+        $this->middleware('permission:sales_order_export_xml', ['only' => 'exportXml']);
+    }
+
     public function index()
     {
-        abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
         $salesOrders = QueryBuilder::for(SalesOrder::withCount('details'))
             ->allowedFilters([
                 'invoice_no', 'user_id', 'reseller_id', 'warehouse_id',
@@ -36,7 +46,7 @@ class SalesOrderController extends Controller
 
     public function show(SalesOrder $salesOrder)
     {
-        abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
         return new SalesOrderResource($salesOrder->load(['details' => fn ($q) => $q->with('warehouse'), 'user'])->loadCount('details'));
     }
 
@@ -130,7 +140,7 @@ class SalesOrderController extends Controller
 
     public function destroy(SalesOrder $salesOrder)
     {
-        abort_if(!auth()->user()->tokenCan('sales_order_delete'), 403);
+        // abort_if(!auth()->user()->tokenCan('sales_order_delete'), 403);
         if ($salesOrder->deliveryOrder?->is_done) return response()->json(['message' => "Can't update SO if DO is already done"], 400);
         $salesOrder->delete();
         return $this->deletedResponse();
@@ -138,7 +148,7 @@ class SalesOrderController extends Controller
 
     public function print(SalesOrder $salesOrder)
     {
-        abort_if(!auth()->user()->tokenCan('sales_order_print'), 403);
+        // abort_if(!auth()->user()->tokenCan('sales_order_print'), 403);
         $salesOrder->load([
             'reseller',
             'details' => fn ($q) => $q->with('productUnit.product')
@@ -151,7 +161,7 @@ class SalesOrderController extends Controller
 
     public function exportXml(SalesOrder $salesOrder)
     {
-        abort_if(!auth()->user()->tokenCan('sales_order_export_xml'), 403);
+        // abort_if(!auth()->user()->tokenCan('sales_order_export_xml'), 403);
         return response(view('xml.salesOrders.salesOrder')->with(compact('salesOrder')), 200, [
             'Content-Type' => 'application/xml', // use your required mime type
             'Content-Disposition' => 'attachment; filename="Sales Order ' . $salesOrder->invoice_no . '.xml"',

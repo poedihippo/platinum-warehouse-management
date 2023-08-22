@@ -19,9 +19,19 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class StockController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:stock_access', ['only' => ['index', 'show', 'details']]);
+        $this->middleware('permission:stock_create', ['only' => 'store']);
+        $this->middleware('permission:stock_edit', ['only' => 'update']);
+        $this->middleware('permission:stock_delete', ['only' => 'destroy']);
+        $this->middleware('permission:stock_grouping', ['only' => ['grouping', 'ungrouping']]);
+        $this->middleware('permission:stock_print', ['only' => 'printAll']);
+    }
+
     public function index()
     {
-        abort_if(!auth()->user()->tokenCan('stock_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('stock_access'), 403);
         $stockProductUnits = QueryBuilder::for(StockProductUnit::with(['warehouse', 'productUnit'])->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')]))
             ->allowedFilters([
                 'id', 'warehouse_id',
@@ -37,7 +47,7 @@ class StockController extends Controller
 
     public function details()
     {
-        abort_if(!auth()->user()->tokenCan('stock_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('stock_access'), 403);
 
         $filter = request()->filter;
 
@@ -65,13 +75,13 @@ class StockController extends Controller
 
     public function show(Stock $stock)
     {
-        abort_if(!auth()->user()->tokenCan('stock_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('stock_access'), 403);
         return new StocksStockProductUnitResource($stock->load(['stockProductUnit' => fn ($q) => $q->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')]), 'receiveOrderDetail']));
     }
 
     public function store(Request $request)
     {
-        abort_if(!auth()->user()->tokenCan('stock_create'), 403);
+        // abort_if(!auth()->user()->tokenCan('stock_create'), 403);
         dd($request->all());
     }
 
@@ -86,7 +96,7 @@ class StockController extends Controller
 
     public function destroy(Stock $stock)
     {
-        abort_if(!auth()->user()->tokenCan('stock_delete'), 403);
+        // abort_if(!auth()->user()->tokenCan('stock_delete'), 403);
 
         if ($stock->childs?->count() > 0) return response()->json(['message' => 'Can not delete parent stock'], 400);
         if ($stock->salesOrderItems?->count() > 0) return response()->json(['message' => 'Can not delete stock. Stock already in sales order'], 400);
@@ -97,7 +107,7 @@ class StockController extends Controller
 
     public function grouping(Request $request)
     {
-        abort_if(!auth()->user()->tokenCan('stock_grouping'), 403);
+        // abort_if(!auth()->user()->tokenCan('stock_grouping'), 403);
 
         $request->validate([
             'total_group' => 'required|integer|gt:0',
@@ -198,7 +208,7 @@ class StockController extends Controller
 
     public function ungrouping(Stock $stock)
     {
-        abort_if(!auth()->user()->tokenCan('stock_grouping'), 403);
+        // abort_if(!auth()->user()->tokenCan('stock_grouping'), 403);
 
         if ($stock->childs->isEmpty()) return response()->json(['message' => 'Stock is not group / have not childs'], 400);
 
@@ -217,7 +227,7 @@ class StockController extends Controller
 
     public function printAll(Request $request)
     {
-        abort_if(!auth()->user()->tokenCan('stock_print'), 403);
+        // abort_if(!auth()->user()->tokenCan('stock_print'), 403);
 
         $filter = $request->filter;
         $query = Stock::select('id', 'parent_id', 'qr_code', 'description');

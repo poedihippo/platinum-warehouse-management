@@ -12,9 +12,17 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class WarehouseController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:warehouse_access', ['only' => ['index', 'show']]);
+        $this->middleware('permission:warehouse_create', ['only' => 'store']);
+        $this->middleware('permission:warehouse_edit', ['only' => 'update']);
+        $this->middleware('permission:warehouse_delete', ['only' => 'destroy']);
+    }
+
     public function index()
     {
-        abort_if(!auth()->user()->tokenCan('warehouse_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('warehouse_access'), 403);
         $warehouses = QueryBuilder::for(Warehouse::class)
             ->allowedFilters(['name'])
             ->allowedSorts(['id', 'name', 'created_at'])
@@ -25,7 +33,7 @@ class WarehouseController extends Controller
 
     public function show(Warehouse $warehouse)
     {
-        abort_if(!auth()->user()->tokenCan('warehouse_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('warehouse_access'), 403);
         return new WarehouseResource($warehouse);
     }
 
@@ -45,7 +53,7 @@ class WarehouseController extends Controller
 
     public function destroy(Warehouse $warehouse)
     {
-        abort_if(!auth()->user()->tokenCan('warehouse_delete'), 403);
+        // abort_if(!auth()->user()->tokenCan('warehouse_delete'), 403);
         $warehouse->delete();
         return $this->deletedResponse();
     }

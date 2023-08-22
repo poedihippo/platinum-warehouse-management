@@ -16,9 +16,17 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class ProductUnitController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:product_unit_access', ['only' => ['index', 'show']]);
+        $this->middleware('permission:product_unit_create', ['only' => 'store']);
+        $this->middleware('permission:product_unit_edit', ['only' => 'update']);
+        $this->middleware('permission:product_unit_delete', ['only' => 'destroy']);
+    }
+
     public function index()
     {
-        abort_if(!auth()->user()->tokenCan('product_unit_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('product_unit_access'), 403);
         $productUnits = QueryBuilder::for(ProductUnit::with('product'))
             ->allowedFilters([
                 'product_id', 'name',
@@ -33,7 +41,7 @@ class ProductUnitController extends Controller
 
     public function show(ProductUnit $productUnit)
     {
-        abort_if(!auth()->user()->tokenCan('product_unit_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('product_unit_access'), 403);
         return new ProductUnitResource($productUnit);
     }
 
@@ -53,7 +61,7 @@ class ProductUnitController extends Controller
 
     public function destroy(ProductUnit $productUnit)
     {
-        abort_if(!auth()->user()->tokenCan('product_unit_delete'), 403);
+        // abort_if(!auth()->user()->tokenCan('product_unit_delete'), 403);
         $productUnit->delete();
         return $this->deletedResponse();
     }

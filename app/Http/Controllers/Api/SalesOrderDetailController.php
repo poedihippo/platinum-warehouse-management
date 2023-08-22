@@ -10,9 +10,14 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class SalesOrderDetailController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:sales_order_access', ['only' => ['index', 'show']]);
+    }
+
     public function index(SalesOrder $salesOrder)
     {
-        abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
 
         $query = SalesOrderDetail::where('sales_order_id', $salesOrder->id)->with('warehouse', fn ($q) => $q->select('id', 'code', 'name'));
         $salesOrderDetails = QueryBuilder::for($query)
@@ -23,7 +28,7 @@ class SalesOrderDetailController extends Controller
 
     public function show(SalesOrder $salesOrder, $salesOrderDetailId)
     {
-        abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
 
         $salesOrderDetail = $salesOrder->details()->where('id', $salesOrderDetailId)->firstOrFail();
 

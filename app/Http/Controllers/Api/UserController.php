@@ -13,9 +13,17 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class UserController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:user_access', ['only' => ['index', 'show', 'restore']]);
+        $this->middleware('permission:user_create', ['only' => 'store']);
+        $this->middleware('permission:user_edit', ['only' => 'update']);
+        $this->middleware('permission:user_delete', ['only' => ['destroy', 'forceDelete']]);
+    }
+
     public function index()
     {
-        abort_if(!auth()->user()->tokenCan('user_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('user_access'), 403);
         $users = QueryBuilder::for(User::class)
             ->allowedFilters(['name', 'email', 'phone', 'type'])
             ->allowedSorts(['name', 'email', 'phone', 'type'])
@@ -31,7 +39,7 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        abort_if(!auth()->user()->tokenCan('user_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('user_access'), 403);
         return new UserResource($user);
     }
 
@@ -99,7 +107,7 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         if ($user->id == 1) return response()->json(['message' => 'Admin with id 1 can not deleted!']);
-        abort_if(!auth()->user()->tokenCan('user_delete'), 403);
+        // abort_if(!auth()->user()->tokenCan('user_delete'), 403);
         $user->delete();
         return $this->deletedResponse();
     }
@@ -107,7 +115,7 @@ class UserController extends Controller
     public function forceDelete($id)
     {
         if ($id == 1) return response()->json(['message' => 'Admin with id 1 can not deleted!']);
-        abort_if(!auth()->user()->tokenCan('user_delete'), 403);
+        // abort_if(!auth()->user()->tokenCan('user_delete'), 403);
         $user = User::withTrashed()->findOrFail($id);
         $user->forceDelete();
         return $this->deletedResponse();
@@ -115,7 +123,7 @@ class UserController extends Controller
 
     public function restore($id)
     {
-        abort_if(!auth()->user()->tokenCan('user_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('user_access'), 403);
         $user = User::withTrashed()->findOrFail($id);
         $user->restore();
         return new UserResource($user);

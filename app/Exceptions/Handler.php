@@ -2,9 +2,9 @@
 
 namespace App\Exceptions;
 
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -62,11 +62,14 @@ class Handler extends ExceptionHandler
             //     // throw new GenericAuthorizationException($e->getMessage());
             // }
 
-            // if ($e instanceof HttpException && $e->getStatusCode() == 403) {
-            //     return response()->json(['message' => 'Forbidden!'], 403);
-            // }
-            // if($e->getStatusCode() === 403){
-            //     return response()->json(['message' => 'Forbidden'], 403);
+            if ($e instanceof HttpException && $e->getStatusCode() == 403) {
+                $message = $e->getMessage() ?? null;
+                $message = $message ? $message : 'Forbidden!';
+                return response()->json(['message' => $message], 403);
+            }
+
+            // if ($e instanceof UnauthorizedException) {
+            //     return response()->json(['error' => 'Not authorized.'], 403);
             // }
         }
 

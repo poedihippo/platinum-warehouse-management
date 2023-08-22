@@ -16,9 +16,18 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class AdjustmentRequestController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:adjustment_request_access', ['only' => ['index', 'show']]);
+        $this->middleware('permission:adjustment_request_create', ['only' => 'store']);
+        $this->middleware('permission:adjustment_request_edit', ['only' => 'update']);
+        $this->middleware('permission:adjustment_request_delete', ['only' => 'destroy']);
+        $this->middleware('permission:adjustment_request_approve', ['only' => 'approve']);
+    }
+
     public function index()
     {
-        abort_if(!auth()->user()->tokenCan('adjustment_request_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('adjustment_request_access'), 403);
 
         $adjustmentRequests = QueryBuilder::for(AdjustmentRequest::with(['user', 'stockProductUnit']))
             ->allowedFilters([
@@ -34,7 +43,7 @@ class AdjustmentRequestController extends Controller
 
     public function show(AdjustmentRequest $adjustmentRequest)
     {
-        abort_if(!auth()->user()->tokenCan('adjustment_request_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('adjustment_request_access'), 403);
         return new AdjustmentRequestResource($adjustmentRequest->load('stockProductUnit'));
     }
 
@@ -55,7 +64,7 @@ class AdjustmentRequestController extends Controller
 
     public function destroy(AdjustmentRequest $adjustmentRequest)
     {
-        abort_if(!auth()->user()->tokenCan('adjustment_request_delete'), 403);
+        // abort_if(!auth()->user()->tokenCan('adjustment_request_delete'), 403);
         if ($adjustmentRequest->is_approved) return response()->json(['message' => "Can't delete data if it has been approved"], 400);
 
         $adjustmentRequest->delete();
@@ -64,7 +73,7 @@ class AdjustmentRequestController extends Controller
 
     public function approve(AdjustmentRequest $adjustmentRequest, Request $request)
     {
-        abort_if(!auth()->user()->tokenCan('adjustment_request_approve'), 403);
+        // abort_if(!auth()->user()->tokenCan('adjustment_request_approve'), 403);
 
         $stockProductUnit = $adjustmentRequest->stockProductUnit;
         if (!$stockProductUnit) return response()->json(['message' => "Stock product unit not found"], 404);

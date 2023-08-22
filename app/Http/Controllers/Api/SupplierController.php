@@ -14,9 +14,17 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class SupplierController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:supplier_access', ['only' => ['index', 'show']]);
+        $this->middleware('permission:supplier_create', ['only' => 'store']);
+        $this->middleware('permission:supplier_edit', ['only' => 'update']);
+        $this->middleware('permission:supplier_delete', ['only' => 'destroy']);
+    }
+
     public function index()
     {
-        abort_if(!auth()->user()->tokenCan('supplier_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('supplier_access'), 403);
         $suppliers = QueryBuilder::for(Supplier::class)
             ->allowedFilters([
                 AllowedFilter::callback('search', function (Builder $query, $value) {
@@ -33,7 +41,7 @@ class SupplierController extends Controller
 
     public function show(Supplier $supplier)
     {
-        abort_if(!auth()->user()->tokenCan('supplier_access'), 403);
+        // abort_if(!auth()->user()->tokenCan('supplier_access'), 403);
         return new SupplierResource($supplier);
     }
 
@@ -53,7 +61,7 @@ class SupplierController extends Controller
 
     public function destroy(Supplier $supplier)
     {
-        abort_if(!auth()->user()->tokenCan('supplier_delete'), 403);
+        // abort_if(!auth()->user()->tokenCan('supplier_delete'), 403);
         $supplier->delete();
         return $this->deletedResponse();
     }
