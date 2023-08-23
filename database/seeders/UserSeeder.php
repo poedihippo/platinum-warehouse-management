@@ -48,7 +48,26 @@ class UserSeeder extends Seeder
             'stock_history_create',
             'stock_history_edit',
             'stock_history_delete',
-            'stock_history_done'
+            'stock_history_done',
+            'product_access',
+            'product_create',
+            'product_edit',
+            'product_delete',
+            'product_category_access',
+            'product_category_create',
+            'product_category_edit',
+            'product_category_delete',
+            'product_brand_access',
+            'product_brand_create',
+            'product_brand_edit',
+            'product_brand_delete',
+            'product_unit_access',
+            'product_unit_create',
+            'product_unit_edit',
+            'product_unit_delete',
+            'product_unit_blacklist_access',
+            'product_unit_blacklist_create',
+            'product_unit_blacklist_delete',
         ]);
 
         $roleAdminRO = Role::create([
