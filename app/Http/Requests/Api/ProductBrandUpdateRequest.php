@@ -24,7 +24,7 @@ class ProductBrandUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|unique:product_brands,id,' . $this->productBrand->id,
+            'name' => 'required|unique:product_brands,id,' . $this->product_brand?->id,
             'description' => 'required',
         ];
     }

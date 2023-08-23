@@ -24,7 +24,7 @@ class ReceiveOrderDetailUpdateRequest extends FormRequest
      */
     public function rules()
     {
-        $receiveOrderDetail = $this->receiveOrder->details()->where('id', $this->receiveOrderDetail)->firstOrFail();
+        $receiveOrderDetail = $this->receive_order?->details()->where('id', $this->receive_order_detail)->firstOrFail();
 
         return [
             'adjust_qty' => [
