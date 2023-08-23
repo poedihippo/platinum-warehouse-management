@@ -4,8 +4,9 @@ namespace App\Imports;
 
 use App\Models\Supplier;
 use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
-class SupplierSeederImport implements ToModel
+class SupplierSeederImport implements ToModel, WithHeadingRow
 {
     /**
      * @param array $row
@@ -15,13 +16,13 @@ class SupplierSeederImport implements ToModel
     public function model(array $row)
     {
         return new Supplier([
-            'code' => trim($row[0]),
-            'name' => trim($row[1]),
-            'phone' => trim($row[2]),
-            'contact_person' => trim($row[3]),
-            'city' => trim($row[4]),
-            'province' => trim($row[5]),
-            'address' => trim($row[6]),
+            'code' => trim($row['code']),
+            'name' => trim($row['name']),
+            'phone' => trim($row['phone']),
+            'contact_person' => trim($row['contact_person']),
+            'city' => trim($row['city']),
+            'province' => trim($row['province']),
+            'address' => trim($row['address']),
         ]);
     }
 }

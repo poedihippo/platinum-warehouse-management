@@ -73,7 +73,7 @@
             padding: 5px;
         }
 
-        .margin-0{
+        .margin-0 {
             margin: 0 !important;
         }
     </style>
@@ -108,27 +108,31 @@
         <h1 class="margin-0" style="text-align: right;">SALES ORDER</h1>
 
         <!-- Delivery To -->
-            <table id="delivery-info">
-                <tr>
-                    <td>
-                        <h3 class="margin-0">DELIVERY TO: &nbsp; {{$salesOrder->reseller?->name ?? ''}}</h3>
-                    </td>
-                    <td>
-                        <table>
-                            <tr>
-                                <td><h3 class="margin-0">SO no</h3></td>
-                                <td>: {{$salesOrder->invoice_no}}</td>
-                            </tr>
-                            <tr>
-                                <td><h3 class="margin-0">Date</h3></td>
-                                <td>: {{date('d M Y', strtotime($salesOrder->transaction_date))}}</td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
+        <table id="delivery-info">
+            <tr>
+                <td>
+                    <h3 class="margin-0">DELIVERY TO: &nbsp; {{ $salesOrder->reseller?->name ?? '' }}</h3>
+                </td>
+                <td>
+                    <table>
+                        <tr>
+                            <td>
+                                <h3 class="margin-0">SO no</h3>
+                            </td>
+                            <td>: {{ $salesOrder->invoice_no }}</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <h3 class="margin-0">Date</h3>
+                            </td>
+                            <td>: {{ date('d M Y', strtotime($salesOrder->transaction_date)) }}</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
 
-            <!-- Table -->
+        <!-- Table -->
         <div class="table-container">
             <table>
                 <thead>
@@ -140,14 +144,21 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($salesOrder->details as $detail)
-                    <tr>
-                        <td>{{ $detail->productUnit?->code ?? '-' }}</td>
-                        <td>{{ $detail->productUnit?->name ?? '-' }}</td>
-                        <td>{{ $detail->qty ?? 0 }}</td>
-                        <td>{{ $detail->productUnit?->uom?->name ?? '--' }}</td>
-                    </tr>
-                    @endforeach
+                    @forelse ($salesOrder->details as $detail)
+                        <tr>
+                            <td>{{ $detail->productUnit?->code ?? '-' }}</td>
+                            <td>{{ $detail->productUnit?->name ?? '-' }}</td>
+                            <td>{{ $detail->qty ?? 0 }}</td>
+                            <td>{{ $detail->productUnit?->uom?->name ?? '--' }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td><br><br><br></td>
+                            <td><br><br><br></td>
+                            <td><br><br><br></td>
+                            <td><br><br><br></td>
+                        </tr>
+                    @endforelse
                 </tbody>
                 <tfoot>
                     <tr>
@@ -187,4 +198,5 @@
         </div>
     </div>
 </body>
+
 </html>
