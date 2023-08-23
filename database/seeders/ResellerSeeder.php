@@ -2,12 +2,12 @@
 
 namespace Database\Seeders;
 
-use App\Imports\CustomerSeederImport;
+use App\Imports\ResellerSeederImport;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Maatwebsite\Excel\Facades\Excel;
 
-class CustomerSeeder extends Seeder
+class ResellerSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -16,8 +16,6 @@ class CustomerSeeder extends Seeder
      */
     public function run()
     {
-        // User::factory()->count(10)->create(['type' => 3]); //customers
-
-        Excel::import(new CustomerSeederImport, public_path('customers.xlsx'));
+        Excel::import(new ResellerSeederImport, public_path('resellers.xlsx'));
     }
 }

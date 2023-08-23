@@ -6,7 +6,7 @@ use App\Enums\UserType;
 use App\Models\User;
 use Maatwebsite\Excel\Concerns\ToModel;
 
-class UsersSeederImport implements ToModel
+class CustomerSeederImport implements ToModel
 {
     /**
     * @param array $row

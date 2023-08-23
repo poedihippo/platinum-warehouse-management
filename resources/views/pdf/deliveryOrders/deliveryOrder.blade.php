@@ -1,51 +1,136 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <title>Sales Order {{ $deliveryOrder->salesOrder?->code }}</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <link rel="stylesheet" href="{{ public_path('css/bootstrap.min.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #delivery-info {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .table-container {
+            width: 100%;
+            border: 1px solid black;
+            /* Add this line to add border */
+        }
+
+        .table-container table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table-container th,
+        .table-container td {
+            text-align: center;
+            padding: 8px;
+            border-bottom: 1px solid black;
+        }
+
+        .table-container thead {
+            font-weight: bold;
+        }
+
+        .table-container tfoot td:first-child {
+            text-align: right;
+            font-weight: bold;
+        }
+
+        .demo {
+            width: 100%;
+            border: 1px solid #000000;
+            border-collapse: collapse;
+            padding: 5px;
+        }
+
+        .demo th,
+        .demo td {
+            border: 1px solid #000000;
+            padding: 5px;
+        }
+
+        .empty-cell {
+            border: none;
+            /* Remove the border */
+        }
+
+        .demo1 {
+            width: 100%;
+            border: 1px solid #000000;
+            border-collapse: collapse;
+            padding: 5px;
+        }
+
+        .demo1 th {
+            border: 1px solid #000000;
+            padding: 5px;
+        }
+
+        .demo1 td {
+            border: 1px solid #000000;
+            padding: 5px;
+        }
+
+        .margin-0{
+            margin: 0 !important;
+        }
+    </style>
+
 </head>
 
 <body>
-    <div class="row">
-        <div class="col">
-            <h2>PT. PLATINUM ADI SENTOSA</h2>
-            <p class="my-0 fw-medium">Ko Duta Indah Iconic Blok B no. 17</p>
-            <p class="my-0 fw-medium">RT. 004 RW. 02 Kel. Panunggangan Utara Pinang</p>
-            <p class="my-0 fw-medium">Kota Tangerang Banten</p>
-            <p class="my-0 fw-medium">Telp. (62-21) 2986-6646 / 2986-6656</p>
-            <p class="my-0 fw-medium">NPWP : 75.897.768.0-416.000</p>
-        </div>
-        <div class="col">
-            <h2 class="text-end">DELIVERY ORDER</h2>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-6">
-            <table>
+    <div>
+        <!-- Logo dan alamat -->
+        <table>
+            <tr>
+                <td>
+                    <img src="{{ public_path('images/logo-platinum.png') }}" alt="plat_logo"
+                        style="background-color: blue; width: 115px; height: 115px; margin-right: 10px; background: black;" />
+                </td>
+                <td>
+                    <h1 style="font-weight: bold;" class="margin-0">PT. PLATINUM ADI SENTOSA</h1>
+                    <span>Ko Duta Indah Iconic Blok B no. 17</span>
+                    <br>
+                    <span>RT. 004 RW. 02 Kel. Panunggangan Utara Pinang</span>
+                    <br>
+                    <span>Kota Tangerang Banten</span>
+                    <br>
+                    <span>Telp: (62-21) 2986-6646 / 2986-6656</span>
+                    <br>
+                    <span>NPWP: 75.897.768.0-416.000</span>
+                </td>
+            </tr>
+        </table>
+
+        <!-- Delivery Order -->
+        <h1 class="margin-0" style="text-align: right;">DELIVERY ORDER</h1>
+
+        <!-- Delivery To -->
+            <table id="delivery-info">
                 <tr>
-                    <th>DELIVERY TO</th>
-                    <th>: {{ $deliveryOrder->reseller?->name ?? '-' }}</th>
+                    <td>
+                        <h3 class="margin-0">DELIVERY TO: &nbsp; Hinode Koi</h3>
+                    </td>
+                    <td>
+                        <table>
+                            <tr>
+                                <td><h3 class="margin-0">Do no :</h3></td>
+                                <td>PAS/DO/06/23/07</td>
+                            </tr>
+                            <tr>
+                                <td><h3 class="margin-0">Date :</h3></td>
+                                <td>5 Jun 2023</td>
+                            </tr>
+                        </table>
+                    </td>
                 </tr>
             </table>
-        </div>
-        <div class="col-6">
+
+            <!-- Table -->
+        <div class="table-container">
             <table>
-                <tr>
-                    <th>DO no</th>
-                    <th>: {{$deliveryOrder->invoice_no}}</th>
-                </tr>
-                <tr>
-                    <th>Date</th>
-                    <th>: {{date('d M Y', strtotime($deliveryOrder->created_at))}}</th>
-                </tr>
-            </table>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-12">
-            <table border="1">
                 <thead>
                     <tr>
                         <th>ITEM NO</th>
@@ -55,92 +140,56 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($deliveryOrder->details as $detail)
                     <tr>
-                        <td></td>
-                        <td>{{ $detail->salesOrderDetail?->productUnit?->name ?? '-' }}</td>
-                        <td></td>
-                        <td>{{ $detail->salesOrderDetail?->qty ?? 0 }} {{ $detail->salesOrderDetail?->productUnit?->uom?->name ?? '' }}</td>
+                        <td>1</td>
+                        <td>Product A</td>
+                        <td>2</td>
+                        <td>$10.00</td>
                     </tr>
-                    @endforeach
+                    <tr>
+                        <td>2</td>
+                        <td>Product B</td>
+                        <td>3</td>
+                        <td>$15.00</td>
+                    </tr>
+                    <!-- Add more rows as needed -->
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="3" class="text-end">TOTAL</td>
-                        <td>1 bag</td>
+                        <td colspan="3">Total:</td>
+                        <td>$25.00</td>
                     </tr>
                 </tfoot>
             </table>
         </div>
-    </div>
-    <div class="row mt-3">
-        <div class="col-12">
-            <table border="1">
-                <tr>
-                <tr>
-                    <th style="border: 1px solid" rowspan="2">GOOD RECEIVED BY :</th>
-                    <th style="border: 1px solid">SECURITY BY :</th>
-                    <th style="border: 1px solid">PREPARED BY :</th>
-                </tr>
-                <tr>
-                    <th style="border: 1px solid">GOOD DELIVERED BY :</th>
-                    <th style="border: 1px solid">SALES BY :</th>
-                </tr>
-            </table>
-        </div>
-    </div>
-    <div class="row mt-3">
-        <div class="col-12">
-            <table border="1">
-                <tr>
-                <tr>
-                    <th style="border: 1px solid" rowspan="2">GOOD RECEIVED BY :</th>
-                    <th style="border: 1px solid">SECURITY BY :</th>
-                    <th style="border: 1px solid">PREPARED BY :</th>
-                </tr>
-                <tr>
-                    <th style="border: 1px solid">GOOD DELIVERED BY :</th>
-                    <th style="border: 1px solid">SALES BY :</th>
-                </tr>
-            </table>
-        </div>
-    </div>
 
-    {{-- <p class="fw-bold">DO : {{ $deliveryOrder->code }}</p>
-    <p>Date : {{ date('d-m-Y H:i:s', strtotime($deliveryOrder->salesOrder?->transaction_date)) }}</p>
-    <p>Customer : {{ $deliveryOrder->salesOrder?->reseller?->name ?? '' }}</p>
-    <p>Phone Number : {{ $deliveryOrder->salesOrder?->reseller?->phone ?? '' }}</p>
-    <p>Items : {{ $deliveryOrder->salesOrder?->details->count() }}</p>
-    <p>Amount : {{ $deliveryOrder->salesOrder?->price ?? 0 }}</p>
-    <p>Est. Shipment :
-        {{ date('d-m-Y H:i:s', strtotime($deliveryOrder->salesOrder?->shipment_estimation_datetime)) }}
-    </p>
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Item No</th>
-                <th>Description</th>
-                <th>Category</th>
-                <th>Brand</th>
-                <th>Qty</th>
-                <th>Unit</th>
-                <th>Verified</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($deliveryOrder->salesOrder?->details ?? [] as $detail)
-                <tr>
-                    <td>{{ $detail->productUnit?->code ?? '' }}</td>
-                    <td>{{ $detail->productUnit?->name ?? '' }}</td>
-                    <td>{{ $detail->productUnit?->product?->productCategory?->name ?? '' }}</td>
-                    <td>{{ $detail->productUnit?->product?->productBrand?->name ?? '' }}</td>
-                    <td>{{ $detail->qty ?? 0 }}</td>
-                    <td>{{ $detail->productUnit?->uom?->name ?? '' }}</td>
-                    <td>{{ $detail->sales_order_items_count ?? 0 }}/({{ $detail->qty }})</td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table> --}}
+        <!-- Signature -->
+        <div style="margin-top: 1rem;">
+            <table class="demo">
+                <tbody>
+                    <tr>
+                        <td style="border-bottom: 0;">&nbsp;Good Received By:<br><br></td>
+                        <td>&nbsp;Security By:<br><br></td>
+                        <td>&nbsp;Prepared By:<br><br></td>
+                    </tr>
+                    <tr>
+                        <td style="border-top: 0;">&nbsp;</td>
+                        <td>&nbsp;Good Delivered By:<br><br></td>
+                        <td>&nbsp;Sales By:<br></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 1rem;">
+            <table class="demo">
+                <tbody>
+                    <tr>
+                        <td>&nbsp;Notes:<br><br><br></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </body>
-
 </html>
