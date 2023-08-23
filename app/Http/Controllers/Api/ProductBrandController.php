@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ProductBrandStoreRequest;
-use App\Http\Requests\ProductBrandUpdateRequest;
+use App\Http\Requests\Api\ProductBrandUpdateRequest;
 use App\Http\Resources\ProductBrandResource;
 use App\Models\ProductBrand;
 use Illuminate\Http\Response;

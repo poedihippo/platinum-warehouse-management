@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Api;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -24,7 +24,7 @@ class ProductCategoryUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required' . $this->productBrand->id,
+            'name' => 'required|unique:product_categories,id,' . $this->productBrand->id,
             'description' => 'required',
         ];
     }

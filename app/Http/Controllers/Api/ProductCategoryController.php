@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ProductCategoryStoreRequest;
-use App\Http\Requests\ProductCategoryUpdateRequest;
+use App\Http\Requests\Api\ProductCategoryUpdateRequest;
 use App\Http\Resources\ProductCategoryResource;
 use App\Models\ProductCategory;
 use Illuminate\Http\Response;

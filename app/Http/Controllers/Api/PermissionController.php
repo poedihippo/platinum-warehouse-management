@@ -6,7 +6,7 @@ use App\Helpers\PermissionsHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PermissionResource;
 use App\Http\Requests\Api\PermissionStoreRequest;
-use App\Http\Requests\PermissionUpdateRequest;
+use App\Http\Requests\Api\PermissionUpdateRequest;
 use App\Models\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;

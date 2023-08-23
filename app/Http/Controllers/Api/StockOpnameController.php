@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StockOpnameStoreRequest;
-use App\Http\Requests\StockOpnameUpdateRequest;
 use App\Http\Resources\StockOpnameResource;
 use App\Models\StockOpname;
 use Illuminate\Http\Request;
@@ -46,12 +45,12 @@ class StockOpnameController extends Controller
         return new StockOpnameResource($stockOpname);
     }
 
-    public function update(StockOpname $stockOpname, StockOpnameUpdateRequest $request)
-    {
-        $stockOpname->update($request->validated());
+    // public function update(StockOpname $stockOpname, StockOpnameUpdateRequest $request)
+    // {
+    //     $stockOpname->update($request->validated());
 
-        return (new StockOpnameResource($stockOpname))->response()->setStatusCode(Response::HTTP_ACCEPTED);
-    }
+    //     return (new StockOpnameResource($stockOpname))->response()->setStatusCode(Response::HTTP_ACCEPTED);
+    // }
 
     public function destroy(StockOpname $stockOpname)
     {
