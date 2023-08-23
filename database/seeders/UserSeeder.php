@@ -165,7 +165,7 @@ class UserSeeder extends Seeder
             'password' => bcrypt('12345678'),
             'type' => UserType::Admin,
         ]);
-        $devi->assignRole($roleAdminAll);
+        $devi->assignRole(1);
 
         // Admin Backoffice assign to Back Office Admin - Sales Order
         $adminBackOffice = User::create([

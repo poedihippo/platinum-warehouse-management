@@ -25,7 +25,11 @@
                     <ITEMOVDESC>{{ $detail->salesOrderDetail?->productUnit->name }}</ITEMOVDESC>
                     <UNITPRICE>{{ $detail->salesOrderDetail?->productUnit->price }}</UNITPRICE>
                     <ITEMDISCPC />
-                    <TAXCODES />
+                    @if ($detail->salesOrderDetail->tax > 0)
+                        <TAXCODES>T</TAXCODES>
+                    @else
+                        <TAXCODES />
+                    @endif
                     <GROUPSEQ />
                     <SOSEQ>1</SOSEQ>
                     <BRUTOUNITPRICE>0</BRUTOUNITPRICE>
@@ -41,15 +45,15 @@
             <INVOICEAMOUNT>0</INVOICEAMOUNT>
             <PURCHASEORDERNO />
             <WAREHOUSEID>{{ $deliveryOrder->warehouse?->code }}</WAREHOUSEID>
-            <DESCRIPTION>{{ $deliveryOrder->description }}</DESCRIPTION>
+            <DESCRIPTION>{{ !empty($deliveryOrder->description) ? $deliveryOrder->description : 'Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih' }}</DESCRIPTION>
             <SHIPDATE>{{ date('Y-m-d', strtotime($deliveryOrder->shipment_estimation_datetime)) }}</SHIPDATE>
             <DELIVERYORDER />
             <CUSTOMERID>{{ $deliveryOrder->reseller?->code }}</CUSTOMERID>
             <SHIPTO1>{{ $deliveryOrder->reseller?->name }}</SHIPTO1>
             <SHIPTO2>{{ $deliveryOrder->reseller?->tax_address }}</SHIPTO2>
-            <SHIPTO3 />
-            <SHIPTO4 />
-            <SHIPTO5 />
+            <SHIPTO3>{{ $deliveryOrder->reseller?->city ?? '' }}</SHIPTO3>
+            <SHIPTO4>{{ $deliveryOrder->reseller?->province ?? '' }}</SHIPTO4>
+            <SHIPTO5>{{ $deliveryOrder->reseller?->country ?? '' }}</SHIPTO5>
             <CURRENCYNAME>IDR</CURRENCYNAME>
             <AUTOMATICINSERTGROUPING />
         </DELIVERYORDER>

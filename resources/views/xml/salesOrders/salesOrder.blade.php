@@ -25,7 +25,11 @@
                     <ITEMOVDESC>{{ $detail->productUnit->name }}</ITEMOVDESC>
                     <UNITPRICE>{{ $detail->productUnit->price }}</UNITPRICE>
                     <DISCPC />
-                    <TAXCODES />
+                    @if ($detail->tax > 0)
+                        <TAXCODES>T</TAXCODES>
+                    @else
+                        <TAXCODES />
+                    @endif
                     <GROUPSEQ />
                     <QTYSHIPPED>{{ $detail->qty }}</QTYSHIPPED>
                 </ITEMLINE>
@@ -37,7 +41,7 @@
             <TAX2CODE />
             <TAX1RATE>11</TAX1RATE>
             <TAX2RATE>0</TAX2RATE>
-            <TAX1AMOUNT>0</TAX1AMOUNT>
+            <TAX1AMOUNT>{{ $salesOrder->details->sum('tax') ?? 0 }}</TAX1AMOUNT>
             <TAX2AMOUNT>0</TAX2AMOUNT>
             <RATE>1</RATE>
             <TAXINCLUSIVE>0</TAXINCLUSIVE>
@@ -48,12 +52,12 @@
             <TERMSID>C.O.D</TERMSID>
             <FOB />
             <ESTSHIPDATE>{{ date('Y-m-d', strtotime($salesOrder->shipment_estimation_datetime)) }}</ESTSHIPDATE>
-            <DESCRIPTION>{{ $detail->note }}</DESCRIPTION>
+            <DESCRIPTION>{{ !empty($salesOrder->description) ? $salesOrder->description : 'Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih' }}</DESCRIPTION>
             <SHIPTO1>{{ $salesOrder->reseller?->name }}</SHIPTO1>
             <SHIPTO2>{{ $salesOrder->reseller?->tax_address }}</SHIPTO2>
-            <SHIPTO3 />
-            <SHIPTO4> </SHIPTO4>
-            <SHIPTO5 />
+            <SHIPTO3>{{ $salesOrder->reseller?->city ?? '' }}</SHIPTO3>
+            <SHIPTO4>{{ $salesOrder->reseller?->province ?? '' }}</SHIPTO4>
+            <SHIPTO5>{{ $salesOrder->reseller?->country ?? '' }}</SHIPTO5>
             <DP>0</DP>
             <DPACCOUNTID>2102.001</DPACCOUNTID>
             <DPUSED />
