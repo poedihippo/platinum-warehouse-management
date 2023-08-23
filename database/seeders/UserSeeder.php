@@ -33,6 +33,13 @@ class UserSeeder extends Seeder
             'sales_order_print',
             'sales_order_export_xml',
             'receive_order_verify_access',
+            'delivery_order_access',
+            'delivery_order_create',
+            'delivery_order_edit',
+            'delivery_order_delete',
+            'delivery_order_print',
+            'delivery_order_done',
+
             'stock_access',
             'stock_create',
             'stock_edit',
