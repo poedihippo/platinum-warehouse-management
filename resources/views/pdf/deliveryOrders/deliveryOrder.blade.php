@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Delivery Order {{ $deliveryOrder->invoice_no }}</title>
     <style>
         #delivery-info {
             width: 100%;
@@ -111,17 +111,17 @@
             <table id="delivery-info">
                 <tr>
                     <td>
-                        <h3 class="margin-0">DELIVERY TO: &nbsp; Hinode Koi</h3>
+                        <h3 class="margin-0">DELIVERY TO: &nbsp; {{$deliveryOrder->reseller?->name ?? ''}}</h3>
                     </td>
                     <td>
                         <table>
                             <tr>
-                                <td><h3 class="margin-0">Do no :</h3></td>
-                                <td>PAS/DO/06/23/07</td>
+                                <td><h3 class="margin-0">DO no</h3></td>
+                                <td>: {{$deliveryOrder->invoice_no}}</td>
                             </tr>
                             <tr>
-                                <td><h3 class="margin-0">Date :</h3></td>
-                                <td>5 Jun 2023</td>
+                                <td><h3 class="margin-0">Date</h3></td>
+                                <td>: {{date('d M Y', strtotime($deliveryOrder->created_at))}}</td>
                             </tr>
                         </table>
                     </td>
@@ -140,24 +140,26 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @forelse ($deliveryOrder->details as $detail)
                     <tr>
-                        <td>1</td>
-                        <td>Product A</td>
-                        <td>2</td>
-                        <td>$10.00</td>
+                        <td>{{ $detail->salesOrderDetail?->productUnit?->code ?? '-' }}</td>
+                        <td>{{ $detail->salesOrderDetail?->productUnit?->name ?? '-' }}</td>
+                        <td>{{ $detail->salesOrderDetail?->qty ?? 0 }}</td>
+                        <td>{{ $detail->salesOrderDetail?->productUnit?->uom?->name ?? '' }}</td>
                     </tr>
+                    @empty
                     <tr>
-                        <td>2</td>
-                        <td>Product B</td>
-                        <td>3</td>
-                        <td>$15.00</td>
+                        <td><br><br><br></td>
+                        <td><br><br><br></td>
+                        <td><br><br><br></td>
+                        <td><br><br><br></td>
                     </tr>
-                    <!-- Add more rows as needed -->
+                    @endforelse
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="3">Total:</td>
-                        <td>$25.00</td>
+                        <td colspan="3">TOTAL</td>
+                        <td></td>
                     </tr>
                 </tfoot>
             </table>

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Sales Order {{ $salesOrder->invoice_no }}</title>
     <style>
         #delivery-info {
             width: 100%;
@@ -104,24 +104,24 @@
             </tr>
         </table>
 
-        <!-- Delivery Order -->
+        <!-- Sales Order -->
         <h1 class="margin-0" style="text-align: right;">SALES ORDER</h1>
 
         <!-- Delivery To -->
             <table id="delivery-info">
                 <tr>
                     <td>
-                        <h3 class="margin-0">DELIVERY TO: &nbsp; Hinode Koi</h3>
+                        <h3 class="margin-0">DELIVERY TO: &nbsp; {{$salesOrder->reseller?->name ?? ''}}</h3>
                     </td>
                     <td>
                         <table>
                             <tr>
-                                <td><h3 class="margin-0">Do no :</h3></td>
-                                <td>PAS/DO/06/23/07</td>
+                                <td><h3 class="margin-0">SO no</h3></td>
+                                <td>: {{$salesOrder->invoice_no}}</td>
                             </tr>
                             <tr>
-                                <td><h3 class="margin-0">Date :</h3></td>
-                                <td>5 Jun 2023</td>
+                                <td><h3 class="margin-0">Date</h3></td>
+                                <td>: {{date('d M Y', strtotime($salesOrder->transaction_date))}}</td>
                             </tr>
                         </table>
                     </td>
@@ -140,24 +140,19 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @foreach ($salesOrder->details as $detail)
                     <tr>
-                        <td>1</td>
-                        <td>Product A</td>
-                        <td>2</td>
-                        <td>$10.00</td>
+                        <td>{{ $detail->productUnit?->code ?? '-' }}</td>
+                        <td>{{ $detail->productUnit?->name ?? '-' }}</td>
+                        <td>{{ $detail->qty ?? 0 }}</td>
+                        <td>{{ $detail->productUnit?->uom?->name ?? '--' }}</td>
                     </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>Product B</td>
-                        <td>3</td>
-                        <td>$15.00</td>
-                    </tr>
-                    <!-- Add more rows as needed -->
+                    @endforeach
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="3">Total:</td>
-                        <td>$25.00</td>
+                        <td colspan="3">TOTAL</td>
+                        <td></td>
                     </tr>
                 </tfoot>
             </table>
