@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\SalesOrderDetailResource;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderDetail;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class SalesOrderDetailController extends Controller
@@ -21,6 +22,9 @@ class SalesOrderDetailController extends Controller
 
         $query = SalesOrderDetail::where('sales_order_id', $salesOrder->id)->with('warehouse', fn ($q) => $q->select('id', 'code', 'name'));
         $salesOrderDetails = QueryBuilder::for($query)
+            ->allowedFilters([
+                AllowedFilter::scope('has_delivery_order')
+            ])
             ->paginate();
 
         return SalesOrderDetailResource::collection($salesOrderDetails);
