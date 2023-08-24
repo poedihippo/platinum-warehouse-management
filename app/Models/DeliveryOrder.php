@@ -30,6 +30,7 @@ class DeliveryOrder extends Model
     {
         static::creating(function ($model) {
             $model->user_id = auth()->user()->id;
+            if (empty($model->description)) $model->description = '#Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih';
         });
 
         static::created(function ($model) {

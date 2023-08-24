@@ -6,196 +6,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Delivery Order {{ $deliveryOrder->invoice_no }}</title>
     <style>
-        #delivery-info {
-            width: 100%;
-            margin-bottom: 10px;
-        }
-
-        .table-container {
-            width: 100%;
-            border: 1px solid black;
-            /* Add this line to add border */
-        }
-
-        .table-container table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .table-container th,
-        .table-container td {
-            text-align: center;
-            padding: 8px;
-            border-bottom: 1px solid black;
-        }
-
-        .table-container thead {
+        body {
+            position: relative;
             font-weight: bold;
-        }
-
-        .table-container tfoot td:first-child {
-            text-align: right;
-            font-weight: bold;
-        }
-
-        .demo {
-            width: 100%;
-            border: 1px solid #000000;
-            border-collapse: collapse;
-            padding: 5px;
-        }
-
-        .demo th,
-        .demo td {
-            border: 1px solid #000000;
-            padding: 5px;
-        }
-
-        .empty-cell {
-            border: none;
-            /* Remove the border */
-        }
-
-        .demo1 {
-            width: 100%;
-            border: 1px solid #000000;
-            border-collapse: collapse;
-            padding: 5px;
-        }
-
-        .demo1 th {
-            border: 1px solid #000000;
-            padding: 5px;
-        }
-
-        .demo1 td {
-            border: 1px solid #000000;
-            padding: 5px;
-        }
-
-        .margin-0 {
+            font-size: 18px;
             margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        #container {
+            margin-top: 125px;
+        }
+
+        #delivery-info {
+            margin-left: 120px;
+        }
+
+        #table-container {
+            /* padding-left: 45.35px; */
+            /* padding-right: 45.35px; */
+            margin-top: 40px;
+            width: 100%;
+        }
+
+        #note {
+            position: absolute;
+            bottom: 25px;
+            margin-left: 35px;
+        }
+
+        .text-center {
+            text-align: center !important;
         }
     </style>
 
 </head>
 
 <body>
-    <div>
-        <!-- Logo dan alamat -->
-        <table>
+    <div id="container">
+        <table id="delivery-info" style="width: 100%">
             <tr>
-                <td>
-                    <img src="{{ public_path('images/logo-platinum.png') }}" alt="plat_logo"
-                        style="background-color: blue; width: 115px; height: 115px; margin-right: 10px; background: black;" />
-                </td>
-                <td>
-                    <h1 style="font-weight: bold;" class="margin-0">PT. PLATINUM ADI SENTOSA</h1>
-                    <span>Ko Duta Indah Iconic Blok B no. 17</span>
-                    <br>
-                    <span>RT. 004 RW. 02 Kel. Panunggangan Utara Pinang</span>
-                    <br>
-                    <span>Kota Tangerang Banten</span>
-                    <br>
-                    <span>Telp: (62-21) 2986-6646 / 2986-6656</span>
-                    <br>
-                    <span>NPWP: 75.897.768.0-416.000</span>
-                </td>
-            </tr>
-        </table>
-
-        <!-- Delivery Order -->
-        <h1 class="margin-0" style="text-align: right;">DELIVERY ORDER</h1>
-
-        <!-- Delivery To -->
-        <table id="delivery-info">
-            <tr>
-                <td>
-                    <h3 class="margin-0">DELIVERY TO: &nbsp; {{ $deliveryOrder->reseller?->name ?? '' }}</h3>
-                </td>
+                <td style="width: 47%; vertical-align: top;">{{ $deliveryOrder->reseller?->name ?? '' }}</td>
                 <td>
                     <table>
                         <tr>
-                            <td>
-                                <h3 class="margin-0">DO no</h3>
-                            </td>
-                            <td>: {{ $deliveryOrder->invoice_no }}</td>
+                            <td style="padding-bottom: 10px">{{ $deliveryOrder->invoice_no }}</td>
                         </tr>
                         <tr>
-                            <td>
-                                <h3 class="margin-0">Date</h3>
-                            </td>
-                            <td>: {{ date('d M Y', strtotime($deliveryOrder->created_at)) }}</td>
+                            <td>{{ date('d M Y', strtotime($deliveryOrder->transaction_date)) }}</td>
                         </tr>
                     </table>
                 </td>
             </tr>
         </table>
+        <table id="table-container">
+            {{-- <thead>
+                <tr>
+                    <th>ITEM NO</th>
+                    <th>DESCRIPTION</th>
+                    <th>QTY</th>
+                    <th>AMOUNT</th>
+                </tr>
+            </thead> --}}
+            <tbody>
+                @forelse ($deliveryOrder->details as $detail)
+                    <tr>
+                        <td style="width: 90.7px">{{ $detail->salesOrderDetail?->productUnit?->code ?? '-' }}</td>
+                        <td style="width: 385.5px; padding-left: 15px;">{{ $detail->salesOrderDetail?->productUnit?->name ?? '-' }}
+                        </td>
+                        <td class="text-center" style="width: 68px">{{ $detail->salesOrderDetail?->qty ?? 0 }}</td>
+                        <td class="text-center" style="width: 151.18px;">{{ $detail->salesOrderDetail?->productUnit?->uom?->name ?? '' }}
+                        </td>
+                    </tr>
+                @empty
+                @endforelse
+            </tbody>
+        </table>
 
-        <!-- Table -->
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ITEM NO</th>
-                        <th>DESCRIPTION</th>
-                        <th>QTY</th>
-                        <th>AMOUNT</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($deliveryOrder->details as $detail)
-                        <tr>
-                            <td>{{ $detail->salesOrderDetail?->productUnit?->code ?? '-' }}</td>
-                            <td>{{ $detail->salesOrderDetail?->productUnit?->name ?? '-' }}</td>
-                            <td>{{ $detail->salesOrderDetail?->qty ?? 0 }}</td>
-                            <td>{{ $detail->salesOrderDetail?->productUnit?->uom?->name ?? '' }}</td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td><br><br><br></td>
-                            <td><br><br><br></td>
-                            <td><br><br><br></td>
-                            <td><br><br><br></td>
-                        </tr>
-                    @endforelse
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="3">TOTAL</td>
-                        <td></td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-
-        <!-- Signature -->
-        <div style="margin-top: 1rem;">
-            <table class="demo">
-                <tbody>
-                    <tr>
-                        <td style="border-bottom: 0;">&nbsp;Good Received By:<br><br></td>
-                        <td>&nbsp;Security By:<br><br></td>
-                        <td>&nbsp;Prepared By:<br><br></td>
-                    </tr>
-                    <tr>
-                        <td style="border-top: 0;">&nbsp;</td>
-                        <td>&nbsp;Good Delivered By:<br><br></td>
-                        <td>&nbsp;Sales By:<br></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div style="margin-top: 1rem;">
-            <table class="demo">
-                <tbody>
-                    <tr>
-                        <td>&nbsp;Notes:<br><br><br></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        <p id="note">{{$deliveryOrder->description}}</p>
     </div>
 </body>
 

@@ -154,7 +154,7 @@ class SalesOrderController extends Controller
             'details' => fn ($q) => $q->with('productUnit.product')
         ]);
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.salesOrders.salesOrder', ['salesOrder' => $salesOrder]);
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::setPaper('a4', 'portrait')->loadView('pdf.salesOrders.salesOrder', ['salesOrder' => $salesOrder]);
 
         return $pdf->download('sales-order-' . $salesOrder->invoice_no . '.pdf');
     }
