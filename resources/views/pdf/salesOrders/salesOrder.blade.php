@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sales Order {{ $salesOrder->invoice_no }}</title>
     <style>
-       body {
+        body {
             position: relative;
             font-weight: bold;
             font-size: 18px;
@@ -23,8 +23,6 @@
         }
 
         #table-container {
-            /* padding-left: 45.35px; */
-            /* padding-right: 45.35px; */
             margin-left: -15px;
             margin-top: 40px;
             width: 100%;
@@ -32,8 +30,7 @@
 
         #note {
             position: absolute;
-            bottom: -40;
-            /* margin-left: 35px; */
+            bottom: -60;
         }
 
         .text-center {
@@ -59,22 +56,14 @@
             </tr>
         </table>
         <table id="table-container">
-            {{-- <thead>
-                <tr>
-                    <th>ITEM NO</th>
-                    <th>DESCRIPTION</th>
-                    <th>QTY</th>
-                    <th>AMOUNT</th>
-                </tr>
-            </thead> --}}
             <tbody>
                 @forelse ($salesOrder->details as $detail)
                     <tr>
                         <td style="width: 90.7px">{{ $detail->productUnit?->code ?? '-' }}</td>
-                        <td style="width: 385.5px; padding-left: 20px;">{{ $detail->productUnit?->name ?? '-' }}
+                        <td style="width: 385.5px; padding-left: 10px;">{{ $detail->productUnit?->name ?? '-' }}
                         </td>
-                        <td class="text-center" style="width: 68px">{{ $detail->qty ?? 0 }}</td>
-                        <td class="text-center" style="width: 151.18px; padding-left: 10px;">{{ $detail->productUnit?->uom?->name ?? '' }}
+                        <td class="text-center" style="width: 68px; padding-left: 10px;">{{ $detail->qty ?? 0 }}</td>
+                        <td class="text-center" style="width: 151.18px;">{{ $detail->productUnit?->uom?->name ?? '' }}
                         </td>
                     </tr>
                 @empty

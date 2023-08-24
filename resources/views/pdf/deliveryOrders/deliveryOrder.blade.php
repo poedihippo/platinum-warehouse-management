@@ -23,8 +23,6 @@
         }
 
         #table-container {
-            /* padding-left: 45.35px; */
-            /* padding-right: 45.35px; */
             margin-left: -15px;
             margin-top: 40px;
             width: 100%;
@@ -32,8 +30,7 @@
 
         #note {
             position: absolute;
-            bottom: -40;
-            /* margin-left: 35px; */
+            bottom: -60;
         }
 
         .text-center {
@@ -59,19 +56,11 @@
             </tr>
         </table>
         <table id="table-container">
-            {{-- <thead>
-                <tr>
-                    <th>ITEM NO</th>
-                    <th>DESCRIPTION</th>
-                    <th>QTY</th>
-                    <th>AMOUNT</th>
-                </tr>
-            </thead> --}}
             <tbody>
                 @forelse ($deliveryOrder->details as $detail)
                     <tr>
                         <td style="width: 90.7px">{{ $detail->salesOrderDetail?->productUnit?->code ?? '-' }}</td>
-                        <td style="width: 385.5px; padding-left: 20px;">{{ $detail->salesOrderDetail?->productUnit?->name ?? '-' }}
+                        <td style="width: 385.5px; padding-left: 10px;">{{ $detail->salesOrderDetail?->productUnit?->name ?? '-' }}
                         </td>
                         <td class="text-center" style="width: 68px; padding-left: 10px;">{{ $detail->salesOrderDetail?->qty ?? 0 }}</td>
                         <td class="text-center" style="width: 151.18px;">{{ $detail->salesOrderDetail?->productUnit?->uom?->name ?? '' }}
