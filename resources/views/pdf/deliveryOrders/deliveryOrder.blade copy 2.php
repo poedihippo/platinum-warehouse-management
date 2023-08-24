@@ -14,43 +14,45 @@
             padding: 0 !important;
         }
 
-        #container {
-            margin-top: 125px;
+        .container {
+            margin-top: 130px;
         }
 
-        #delivery-info {
-            margin-left: 120px;
+        .delivery-info {
+            margin-left: 95px;
+            width: 100%;
         }
 
-        #table-container {
-            /* padding-left: 45.35px; */
-            /* padding-right: 45.35px; */
+        .table-container {
+            margin-left: -15px;
             margin-top: 40px;
             width: 100%;
         }
 
-        #note {
+        .note {
             position: absolute;
-            bottom: 25px;
-            margin-left: 35px;
+            bottom: -47;
         }
 
         .text-center {
             text-align: center !important;
         }
-    </style>
 
+        .page-break {
+            page-break-after: always;
+        }
+    </style>
 </head>
 
 <body>
-    <div id="container">
-        <table id="delivery-info" style="width: 100%">
+    <div class="container">
+        <table class="delivery-info">
             <tr>
                 <td style="width: 47%; vertical-align: top;">{{ $deliveryOrder->reseller?->name ?? '' }}</td>
                 <td>
                     <table>
                         <tr>
-                            <td style="padding-bottom: 10px">{{ $deliveryOrder->invoice_no }}</td>
+                            <td style="padding-bottom: 3px">{{ $deliveryOrder->invoice_no }}</td>
                         </tr>
                         <tr>
                             <td>{{ date('d M Y', strtotime($deliveryOrder->transaction_date)) }}</td>
@@ -59,31 +61,26 @@
                 </td>
             </tr>
         </table>
-        <table id="table-container">
-            {{-- <thead>
-                <tr>
-                    <th>ITEM NO</th>
-                    <th>DESCRIPTION</th>
-                    <th>QTY</th>
-                    <th>AMOUNT</th>
-                </tr>
-            </thead> --}}
+        <table class="table-container">
             <tbody>
                 @forelse ($deliveryOrder->details as $detail)
-                    <tr>
-                        <td style="width: 90.7px">{{ $detail->salesOrderDetail?->productUnit?->code ?? '-' }}</td>
-                        <td style="width: 385.5px; padding-left: 15px;">{{ $detail->salesOrderDetail?->productUnit?->name ?? '-' }}
-                        </td>
-                        <td class="text-center" style="width: 68px">{{ $detail->salesOrderDetail?->qty ?? 0 }}</td>
-                        <td class="text-center" style="width: 151.18px;">{{ $detail->salesOrderDetail?->productUnit?->uom?->name ?? '' }}
-                        </td>
-                    </tr>
+                <tr>
+                    <td style="width: 90.7px">{{ $detail->salesOrderDetail?->productUnit?->code ?? '-' }}</td>
+                    <td style="width: 385.5px; padding-left: 10px;">
+                        {{ $detail->salesOrderDetail?->productUnit?->name ?? '-' }}
+                    </td>
+                    <td class="text-center" style="width: 68px; padding-left: 10px;">
+                        {{ $detail->salesOrderDetail?->qty ?? 0 }}
+                    </td>
+                    <td class="text-center" style="width: 151.18px;">
+                        {{ $detail->salesOrderDetail?->productUnit?->uom?->name ?? '' }}
+                    </td>
+                </tr>
                 @empty
                 @endforelse
             </tbody>
         </table>
-
-        <p id="note">{{$deliveryOrder->description}}</p>
+        <p class="note">{{ $deliveryOrder->description }}</p>
     </div>
 </body>
 

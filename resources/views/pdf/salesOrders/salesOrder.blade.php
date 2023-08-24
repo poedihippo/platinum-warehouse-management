@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -38,6 +39,7 @@
         }
     </style>
 </head>
+
 <body>
     <div id="container">
         <table id="delivery-info" style="width: 100%">
@@ -56,21 +58,20 @@
             </tr>
         </table>
         <table id="table-container">
-            <tbody>
-                @forelse ($salesOrder->details as $detail)
-                    <tr>
-                        <td style="width: 90.7px">{{ $detail->productUnit?->code ?? '-' }}</td>
-                        <td style="width: 385.5px; padding-left: 10px;">{{ $detail->productUnit?->name ?? '-' }}
-                        </td>
-                        <td class="text-center" style="width: 68px; padding-left: 10px;">{{ $detail->qty ?? 0 }}</td>
-                        <td class="text-center" style="width: 151.18px;">{{ $detail->productUnit?->uom?->name ?? '' }}
-                        </td>
-                    </tr>
-                @empty
-                @endforelse
-            </tbody>
+            @forelse ($salesOrder->details as $detail)
+                <tr>
+                    <td style="width: 90.7px">{{ $detail->productUnit?->code ?? '-' }}</td>
+                    <td style="width: 385.5px; padding-left: 10px;">{{ $detail->productUnit?->name ?? '-' }}
+                    </td>
+                    <td class="text-center" style="width: 68px; padding-left: 10px;">{{ $detail->qty ?? 0 }}</td>
+                    <td class="text-center" style="width: 151.18px;">{{ $detail->productUnit?->uom?->name ?? '' }}
+                    </td>
+                </tr>
+            @empty
+            @endforelse
         </table>
-        <p id="note">{{$salesOrder->description}}</p>
+        <p id="note">{{ $salesOrder->description }}</p>
     </div>
 </body>
+
 </html>

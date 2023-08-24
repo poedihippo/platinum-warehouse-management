@@ -139,7 +139,8 @@ class DeliveryOrderController extends Controller
         // abort_if(!auth()->user()->tokenCan('delivery_order_print'), 403);
 
         $deliveryOrder->load(['reseller', 'details' => fn ($q) => $q->with('salesOrderDetail.productUnit.uom')]);
-        $pdf = Pdf::setPaper('a4', 'portrait')->loadView('pdf.deliveryOrders.deliveryOrder', ['deliveryOrder' => $deliveryOrder]);
+        $deliveryOrderDetailsChunk = $deliveryOrder->details?->chunk(23) ?? collect([]);
+        $pdf = Pdf::setPaper('a4', 'portrait')->loadView('pdf.deliveryOrders.deliveryOrder', ['deliveryOrder' => $deliveryOrder, 'deliveryOrderDetailsChunk' => $deliveryOrderDetailsChunk]);
 
         return $pdf->download('delivery-order-' . $deliveryOrder->code . '.pdf');
     }
