@@ -59,7 +59,7 @@ class SalesOrderController extends Controller
         ];
 
         // BE total price validation
-        if (SalesOrderService::validateTotalPrice($totalPrice, $items) === false) return response()->json(['message' => "Prices don't match"], 400);
+        // if (SalesOrderService::validateTotalPrice($totalPrice, $items) === false) return response()->json(['message' => "Prices don't match"], 400);
 
         DB::beginTransaction();
         try {
@@ -100,7 +100,7 @@ class SalesOrderController extends Controller
         ];
 
         // BE total price validation
-        if (SalesOrderService::validateTotalPrice($totalPrice, $items) === false) return response()->json(['message' => "Prices don't match"], 400);
+        // if (SalesOrderService::validateTotalPrice($totalPrice, $items) === false) return response()->json(['message' => "Prices don't match"], 400);
 
         DB::beginTransaction();
         try {
