@@ -18,7 +18,8 @@ class AdjustmentRequestController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:adjustment_request_access', ['only' => ['index', 'show']]);
+        // $this->middleware('permission:adjustment_request_access', ['only' => ['index', 'show']]);
+        $this->middleware('permission:adjustment_request_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:adjustment_request_create', ['only' => 'store']);
         $this->middleware('permission:adjustment_request_edit', ['only' => 'update']);
         $this->middleware('permission:adjustment_request_delete', ['only' => 'destroy']);

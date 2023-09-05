@@ -12,7 +12,8 @@ class ProductUnitBlacklistController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:product_unit_blacklist_access', ['only' => 'index']);
+        // $this->middleware('permission:product_unit_blacklist_access', ['only' => 'index']);
+        $this->middleware('permission:product_unit_blacklist_read', ['only' => 'index']);
         $this->middleware('permission:product_unit_blacklist_create', ['only' => 'store']);
         $this->middleware('permission:product_unit_blacklist_delete', ['only' => 'destroy']);
     }

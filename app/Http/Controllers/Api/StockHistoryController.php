@@ -11,7 +11,8 @@ class StockHistoryController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:stock_history_access', ['only' => 'index']);
+        // $this->middleware('permission:stock_history_access', ['only' => 'index']);
+        $this->middleware('permission:stock_history_read', ['only' => 'index']);
     }
 
     public function index()
