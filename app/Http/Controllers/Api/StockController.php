@@ -21,7 +21,8 @@ class StockController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:stock_access', ['only' => ['index', 'show', 'details']]);
+        // $this->middleware('permission:stock_access', ['only' => ['index', 'show', 'details']]);
+        $this->middleware('permission:stock_read', ['only' => ['index', 'show', 'details']]);
         $this->middleware('permission:stock_create', ['only' => 'store']);
         $this->middleware('permission:stock_edit', ['only' => 'update']);
         $this->middleware('permission:stock_delete', ['only' => 'destroy']);

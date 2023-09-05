@@ -14,7 +14,8 @@ class StockOpnameController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:stock_opname_access', ['only' => ['index', 'show']]);
+        // $this->middleware('permission:stock_opname_access', ['only' => ['index', 'show']]);
+        $this->middleware('permission:stock_opname_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:stock_opname_create', ['only' => 'store']);
         $this->middleware('permission:stock_opname_edit', ['only' => 'update']);
         $this->middleware('permission:stock_opname_delete', ['only' => 'destroy']);
