@@ -18,8 +18,7 @@ class ProductUnitController extends Controller
 {
     public function __construct()
     {
-        // $this->middleware('permission:product_unit_access', ['only' => ['index', 'show']]);
-        $this->middleware('permission:product_unit_read', ['only' => ['index', 'show']]);
+        $this->middleware('permission:product_unit_access', ['only' => ['index', 'show']]);
         $this->middleware('permission:product_unit_create', ['only' => 'store']);
         $this->middleware('permission:product_unit_edit', ['only' => 'update']);
         $this->middleware('permission:product_unit_delete', ['only' => 'destroy']);

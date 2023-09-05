@@ -13,8 +13,7 @@ class UomController extends Controller
 {
     public function __construct()
     {
-        // $this->middleware('permission:uom_access', ['only' => ['index', 'show']]);
-        $this->middleware('permission:uom_read', ['only' => ['index', 'show']]);
+        $this->middleware('permission:uom_access', ['only' => ['index', 'show']]);
         $this->middleware('permission:uom_create', ['only' => 'store']);
         $this->middleware('permission:uom_edit', ['only' => 'update']);
         $this->middleware('permission:uom_delete', ['only' => 'destroy']);

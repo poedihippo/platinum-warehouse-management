@@ -21,8 +21,7 @@ class SalesOrderController extends Controller
 {
     public function __construct()
     {
-        // $this->middleware('permission:sales_order_access', ['only' => ['index', 'show']]);
-        $this->middleware('permission:sales_order_read', ['only' => ['index', 'show']]);
+        $this->middleware('permission:sales_order_access', ['only' => ['index', 'show']]);
         $this->middleware('permission:sales_order_create', ['only' => 'store']);
         $this->middleware('permission:sales_order_edit', ['only' => 'update']);
         $this->middleware('permission:sales_order_delete', ['only' => 'destroy']);
@@ -60,7 +59,7 @@ class SalesOrderController extends Controller
         ];
 
         // BE total price validation
-        if (SalesOrderService::validateTotalPrice($totalPrice, $items) === false) return response()->json(['message' => "Prices don't match"], 400);
+        // if (SalesOrderService::validateTotalPrice($totalPrice, $items) === false) return response()->json(['message' => "Prices don't match"], 400);
 
         DB::beginTransaction();
         try {
@@ -101,7 +100,7 @@ class SalesOrderController extends Controller
         ];
 
         // BE total price validation
-        if (SalesOrderService::validateTotalPrice($totalPrice, $items) === false) return response()->json(['message' => "Prices don't match"], 400);
+        // if (SalesOrderService::validateTotalPrice($totalPrice, $items) === false) return response()->json(['message' => "Prices don't match"], 400);
 
         DB::beginTransaction();
         try {

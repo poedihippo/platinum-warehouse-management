@@ -134,9 +134,7 @@ class UserSeeder extends Seeder
             'receive_order_delete',
             'receive_order_done',
             'receive_order_verify_access',
-
             'delivery_order_access',
-            'delivery_order_read',
             'delivery_order_edit',
             'delivery_order_delete',
             'delivery_order_print',

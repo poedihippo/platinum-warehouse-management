@@ -25,8 +25,7 @@ class DeliveryOrderController extends Controller
 {
     public function __construct()
     {
-        // $this->middleware('permission:delivery_order_access', ['only' => ['index', 'show']]);
-        $this->middleware('permission:delivery_order_read', ['only' => ['index', 'show']]);
+        $this->middleware('permission:delivery_order_access', ['only' => ['index', 'show']]);
         $this->middleware('permission:delivery_order_create', ['only' => 'store']);
         $this->middleware('permission:delivery_order_edit', ['only' => 'update']);
         $this->middleware('permission:delivery_order_delete', ['only' => 'destroy']);
