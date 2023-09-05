@@ -49,6 +49,7 @@ class RoleController extends Controller
         $role->guard_name = 'web';
         $role->save();
         $role->syncPermissions($request->permission_ids ?? []);
+        cache()->flush();
 
         return new RoleResource($role);
     }
@@ -76,6 +77,7 @@ class RoleController extends Controller
         $role->name = $request->input('name');
         $role->save();
         $role->syncPermissions($request->permission_ids ?? []);
+        cache()->flush();
 
         return new RoleResource($role);
     }

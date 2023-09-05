@@ -21,18 +21,25 @@ class UserSeeder extends Seeder
             'name' => 'Back Office Admin All',
         ]);
         $roleAdminAll->syncPermissions([
+            'user_read',
+            'warehouse_read',
+
             'receive_order_access',
+            'receive_order_read',
             'receive_order_create',
             'receive_order_edit',
             'receive_order_delete',
             'receive_order_done',
+
             'sales_order_access',
+            'sales_order_read',
             'sales_order_create',
             'sales_order_edit',
             'sales_order_delete',
             'sales_order_print',
             'sales_order_export_xml',
             'receive_order_verify_access',
+
             'delivery_order_access',
             'delivery_order_create',
             'delivery_order_edit',
@@ -41,38 +48,53 @@ class UserSeeder extends Seeder
             'delivery_order_done',
 
             'stock_access',
+            'stock_read',
             'stock_create',
             'stock_edit',
             'stock_delete',
             'stock_grouping',
             'stock_print',
+
             'stock_opname_access',
+            'stock_opname_read',
             'stock_opname_create',
             'stock_opname_edit',
             'stock_opname_delete',
             'stock_opname_done',
+
             'stock_history_access',
+            'stock_history_read',
             'stock_history_create',
             'stock_history_edit',
             'stock_history_delete',
             'stock_history_done',
+
             'product_access',
+            'product_read',
             'product_create',
             'product_edit',
             'product_delete',
+
             'product_category_access',
+            'product_category_read',
             'product_category_create',
             'product_category_edit',
             'product_category_delete',
+
             'product_brand_access',
+            'product_brand_read',
             'product_brand_create',
             'product_brand_edit',
             'product_brand_delete',
+
             'product_unit_access',
+            'product_unit_read',
             'product_unit_create',
             'product_unit_edit',
             'product_unit_delete',
+
             'product_unit_blacklist_access',
+            'product_unit_blacklist_read',
             'product_unit_blacklist_create',
             'product_unit_blacklist_delete',
         ]);
@@ -82,6 +104,7 @@ class UserSeeder extends Seeder
         ]);
         $roleAdminRO->syncPermissions([
             'receive_order_access',
+            'receive_order_read',
             'receive_order_create',
             'receive_order_edit',
             'receive_order_delete',
@@ -93,8 +116,9 @@ class UserSeeder extends Seeder
             'name' => 'Back Office Admin - Sales Order',
         ]);
         $roleAdminSO->syncPermissions([
-            'sales_order_edit',
             'sales_order_access',
+            'sales_order_read',
+            'sales_order_edit',
             'sales_order_create',
             'sales_order_delete',
             'sales_order_print',
@@ -105,18 +129,26 @@ class UserSeeder extends Seeder
             'name' => 'Back Office Admin - Stock',
         ]);
         $roleAdminStock->syncPermissions([
-            'stock_opname_edit',
+            'user_read',
+            'warehouse_read',
+
             'stock_access',
+            'stock_read',
             'stock_create',
             'stock_edit',
             'stock_delete',
             'stock_grouping',
             'stock_print',
+
             'stock_opname_access',
+            'stock_opname_read',
             'stock_opname_create',
+            'stock_opname_edit',
             'stock_opname_delete',
             'stock_opname_done',
+
             'stock_history_access',
+            'stock_history_read',
             'stock_history_create',
             'stock_history_edit',
             'stock_history_delete',
@@ -127,21 +159,19 @@ class UserSeeder extends Seeder
             'name' => 'Warehouse',
         ]);
         $roleAdminWarehouse->syncPermissions([
-            'delivery_order_create',
+            'user_read',
+            'warehouse_read',
+
             'receive_order_access',
+            'receive_order_read',
             'receive_order_create',
             'receive_order_edit',
             'receive_order_delete',
             'receive_order_done',
             'receive_order_verify_access',
 
-            'user_access',
-            'user_read',
-            'user_create',
-            'user_edit',
-            'user_delete',
-
             'delivery_order_access',
+            'delivery_order_read',
             'delivery_order_read',
             'delivery_order_create',
             'delivery_order_edit',
@@ -150,17 +180,22 @@ class UserSeeder extends Seeder
             'delivery_order_done',
 
             'stock_access',
+            'stock_read',
             'stock_create',
             'stock_edit',
             'stock_delete',
             'stock_grouping',
             'stock_print',
+
             'stock_opname_access',
+            'stock_opname_read',
             'stock_opname_create',
             'stock_opname_edit',
             'stock_opname_delete',
             'stock_opname_done',
+
             'stock_history_access',
+            'stock_history_read',
             'stock_history_create',
             'stock_history_edit',
             'stock_history_delete',

@@ -43,7 +43,8 @@ Route::get('migrate-fresh', function () {
 });
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->away('https://platinumadisentosa.com/');
+    // return view('welcome');
 });
 
 Route::get('test', function () {
