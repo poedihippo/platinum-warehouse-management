@@ -7,12 +7,14 @@ use App\Http\Requests\Api\StockRecordRequest;
 use App\Http\Resources\StockProductUnitResource;
 use App\Http\Resources\Stocks\BaseStockResource;
 use App\Http\Resources\Stocks\StockProductUnitResource as StocksStockProductUnitResource;
+use App\Imports\StockImport;
 use App\Models\ReceiveOrderDetail;
 use App\Models\Stock;
 use App\Models\StockProductUnit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -303,5 +305,15 @@ class StockController extends Controller
         }
 
         return response()->json(['message' => 'No data updated']);
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'mimes:xls,xlsx,csv'
+        ]);
+
+        Excel::import(new StockImport($request->warehouse_id ?? 1), $request->file);
+        die('duarrr nmax');
     }
 }

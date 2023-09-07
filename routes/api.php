@@ -44,6 +44,7 @@ use App\Http\Controllers\Api\UserDiscountController;
 
 Route::get('phpinfo', [TestController::class, 'phpinfo']);
 Route::get('test', [TestController::class, 'index']);
+Route::post('stocks/import', [StockController::class, 'import']);
 Route::post('auth/token', [AuthController::class, 'token']);
 Route::post('auth/register', [AuthController::class, 'register']);
 
