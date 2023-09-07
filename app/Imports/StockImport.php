@@ -2,16 +2,21 @@
 
 namespace App\Imports;
 
-use App\Models\ProductCategory;
+use App\Jobs\GenerateStockQrcode;
 use App\Models\ProductUnit;
 use App\Models\StockProductUnit;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
-use Illuminate\Support\Facades\Storage;
+// use Illuminate\Bus\Queueable;
+// use Illuminate\Contracts\Queue\ShouldQueue;
+// use SimpleSoftwareIO\QrCode\Facades\QrCode;
+// use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class StockImport implements ToModel, WithHeadingRow
 {
+    // use Queueable;
+
     public function __construct(public int $warehouse_id)
     {
     }
@@ -24,7 +29,7 @@ class StockImport implements ToModel, WithHeadingRow
     {
         // dump($this->warehouse_id);
         // dd($row);
-        $qty = isset($row['stock']) && is_numeric($row['stock']) && $row['stock'] > 0 ? $row['stock'] : 0;
+        $qty = isset($row['stock']) && is_numeric($row['stock']) && $row['stock'] > 0 ? (int)$row['stock'] : 0;
         $productUnit = ProductUnit::where('code', $row['code'])->first();
         if (!$productUnit) return;
 
@@ -34,27 +39,29 @@ class StockImport implements ToModel, WithHeadingRow
             ->where('product_unit_id', $productUnit->id)
             ->first();
 
-        if ($stockProductUnit) {
-            for ($i = 0; $i < $qty ?? 0; $i++) {
-                $stock = $stockProductUnit->stocks()->create([
-                    // 'receive_order_id' => $receiveOrderDetail->receive_order_id,
-                    // 'receive_order_detail_id' => $receiveOrderDetail->id,
-                ]);
+        if ($stockProductUnit && $qty > 0) {
+            GenerateStockQrcode::dispatch($stockProductUnit, $qty, $folder);
 
-                // $logo = public_path('images/logo-platinum.png');
+            // for ($i = 0; $i < $qty ?? 0; $i++) {
+            //     $stock = $stockProductUnit->stocks()->create([
+            //         // 'receive_order_id' => $receiveOrderDetail->receive_order_id,
+            //         // 'receive_order_detail_id' => $receiveOrderDetail->id,
+            //     ]);
 
-                $data = QrCode::size(350)
-                    ->format('png')
-                    // ->merge($logo, absolute: true)
-                    ->generate($stock->id);
+            //     // $logo = public_path('images/logo-platinum.png');
 
-                // $fileName = $receiveOrderDetail->id . '/' . $stock->id . '.png';
-                $fileName = $stock->id . '.png';
-                $fullPath = $folder .  $fileName;
-                Storage::put($fullPath, $data);
+            //     $data = QrCode::size(350)
+            //         ->format('png')
+            //         // ->merge($logo, absolute: true)
+            //         ->generate($stock->id);
 
-                $stock->update(['qr_code' => $fullPath]);
-            }
+            //         // $fileName = $receiveOrderDetail->id . '/' . $stock->id . '.png';
+            //     $fileName = 'import/'.$stock->id . '.png';
+            //     $fullPath = $folder .  $fileName;
+            //     Storage::put($fullPath, $data);
+
+            //     $stock->update(['qr_code' => $fullPath]);
+            // }
 
             // create history
             // $receiveOrderDetail->histories()->create([
@@ -68,4 +75,9 @@ class StockImport implements ToModel, WithHeadingRow
             // ]);
         }
     }
+
+    // public function chunkSize(): int
+    // {
+    //     return 50;
+    // }
 }

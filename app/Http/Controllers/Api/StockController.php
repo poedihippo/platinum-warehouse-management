@@ -313,6 +313,7 @@ class StockController extends Controller
             'file' => 'mimes:xls,xlsx,csv'
         ]);
 
+        // Excel::queueImport(new StockImport($request->warehouse_id ?? 1), $request->file);
         Excel::import(new StockImport($request->warehouse_id ?? 1), $request->file);
         die('duarrr nmax');
     }
