@@ -26,7 +26,7 @@ class UserController extends Controller
     public function index()
     {
         // abort_if(!auth()->user()->tokenCan('user_access'), 403);
-        $users = QueryBuilder::for(User::class)
+        $users = QueryBuilder::for(User::with(['roles' => fn ($q) => $q->select('id', 'name')]))
             ->allowedFilters(['name', 'email', 'phone', 'type'])
             ->allowedSorts(['name', 'email', 'phone', 'type'])
             ->paginate();
@@ -36,13 +36,13 @@ class UserController extends Controller
 
     public function me()
     {
-        return new UserResource(auth()->user());
+        return new UserResource(auth()->user()?->load(['roles' => fn ($q) => $q->select('id', 'name')]));
     }
 
     public function show(User $user)
     {
         // abort_if(!auth()->user()->tokenCan('user_access'), 403);
-        return new UserResource($user);
+        return new UserResource($user->load(['roles' => fn ($q) => $q->select('id', 'name')]));
     }
 
     public function store(UserStoreRequest $request)
