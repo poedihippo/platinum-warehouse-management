@@ -245,4 +245,17 @@ class PermissionsHelper
 
         return $allPermissions;
     }
+
+    public static function getRelatedPermissions(string $permission): array
+    {
+        return match ($permission) {
+            'receive_order_access' => ['stock_read'],
+            'stock_access' => ['product_category_read', 'product_brand_read', 'warehouse_read'],
+            'sales_order_access' => ['product_unit_read', 'warehouse_read', 'user_access'],
+            'delivery_order_access' => ['sales_order_read'],
+            'product_access' => ['product_category_read', 'product_brand_read', 'product_unit_read'],
+            'user_access' => ['role_read'],
+            default => [],
+        };
+    }
 }

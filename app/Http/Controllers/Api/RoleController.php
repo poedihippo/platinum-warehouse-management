@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\RoleStoreRequest;
 use App\Http\Requests\Api\RoleUpdateRequest;
 use App\Http\Resources\RoleResource;
+use App\Services\PermissionService;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -23,7 +25,7 @@ class RoleController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Resources\Json\ResourceCollection
      */
     public function index()
     {
@@ -39,16 +41,23 @@ class RoleController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param  RoleStoreRequest  $request
+     * @return RoleResource
      */
     public function store(RoleStoreRequest $request)
     {
-        $role = new Role();
-        $role->name = $request->name;
-        $role->guard_name = 'web';
-        $role->save();
-        $role->syncPermissions($request->permission_ids ?? []);
+        $permissionNames = PermissionService::getPermissionNames($request->permission_ids ?? []);
+        $role = DB::transaction(function () use ($request, $permissionNames) {
+            $role = new Role();
+            $role->name = $request->name;
+            $role->guard_name = 'web';
+            $role->save();
+
+            $role->syncPermissions($permissionNames ?? []);
+
+            return $role;
+        });
+
         cache()->flush();
 
         return new RoleResource($role);
@@ -56,8 +65,8 @@ class RoleController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @param  Role  $role
+     * @return RoleResource
      */
     public function show(Role $role)
     {
@@ -67,16 +76,25 @@ class RoleController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @param  Role  $role
+     * @param  RoleUpdateRequest  $request
+     * @return RoleResource
      */
     public function update(Role $role, RoleUpdateRequest $request)
     {
-        if ($role->id == 1) return response()->json(['message' => 'Role admin can not updated!']);
-        $role->name = $request->input('name');
-        $role->save();
-        $role->syncPermissions($request->permission_ids ?? []);
+        if ($role->id == 1)
+            return response()->json(['message' => 'Role admin can not updated!']);
+
+        $permissionNames = PermissionService::getPermissionNames($request->permission_ids ?? []);
+        $role = DB::transaction(function () use ($role, $request, $permissionNames) {
+            $role->name = $request->name;
+            $role->save();
+
+            $role->syncPermissions($permissionNames ?? []);
+
+            return $role;
+        });
+
         cache()->flush();
 
         return new RoleResource($role);
@@ -89,7 +107,8 @@ class RoleController extends Controller
      */
     public function destroy(Role $role)
     {
-        if ($role->id == 1) return response()->json(['message' => 'Role admin can not deleted!']);
+        if ($role->id == 1)
+            return response()->json(['message' => 'Role admin can not deleted!']);
         $role->delete();
         return $this->deletedResponse();
     }
