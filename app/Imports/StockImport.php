@@ -10,7 +10,6 @@ use App\Models\StockProductUnit;
 // use SimpleSoftwareIO\QrCode\Facades\QrCode;
 // use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Concerns\ToModel;
-use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class StockImport implements ToModel, WithHeadingRow
@@ -29,50 +28,50 @@ class StockImport implements ToModel, WithHeadingRow
     {
         // dump($this->warehouse_id);
         // dd($row);
-        $qty = isset($row['stock']) && is_numeric($row['stock']) && $row['stock'] > 0 ? (int)$row['stock'] : 0;
+        $qty = isset($row['stock']) && is_numeric($row['stock']) && $row['stock'] > 0 ? (int) $row['stock'] : 0;
         $productUnit = ProductUnit::where('code', $row['code'])->first();
-        if (!$productUnit) return;
+        if ($productUnit) {
+            $folder = 'qrcode/';
 
-        $folder = 'qrcode/';
+            $stockProductUnit = StockProductUnit::where('warehouse_id', $this->warehouse_id)
+                ->where('product_unit_id', $productUnit->id)
+                ->first();
 
-        $stockProductUnit = StockProductUnit::where('warehouse_id', $this->warehouse_id)
-            ->where('product_unit_id', $productUnit->id)
-            ->first();
+            if ($stockProductUnit && $qty > 0) {
+                GenerateStockQrcode::dispatch($stockProductUnit, $qty, $folder);
 
-        if ($stockProductUnit && $qty > 0) {
-            GenerateStockQrcode::dispatch($stockProductUnit, $qty, $folder);
+                // for ($i = 0; $i < $qty ?? 0; $i++) {
+                //     $stock = $stockProductUnit->stocks()->create([
+                //         // 'receive_order_id' => $receiveOrderDetail->receive_order_id,
+                //         // 'receive_order_detail_id' => $receiveOrderDetail->id,
+                //     ]);
 
-            // for ($i = 0; $i < $qty ?? 0; $i++) {
-            //     $stock = $stockProductUnit->stocks()->create([
-            //         // 'receive_order_id' => $receiveOrderDetail->receive_order_id,
-            //         // 'receive_order_detail_id' => $receiveOrderDetail->id,
-            //     ]);
+                //     // $logo = public_path('images/logo-platinum.png');
 
-            //     // $logo = public_path('images/logo-platinum.png');
+                //     $data = QrCode::size(350)
+                //         ->format('png')
+                //         // ->merge($logo, absolute: true)
+                //         ->generate($stock->id);
 
-            //     $data = QrCode::size(350)
-            //         ->format('png')
-            //         // ->merge($logo, absolute: true)
-            //         ->generate($stock->id);
+                //         // $fileName = $receiveOrderDetail->id . '/' . $stock->id . '.png';
+                //     $fileName = 'import/'.$stock->id . '.png';
+                //     $fullPath = $folder .  $fileName;
+                //     Storage::put($fullPath, $data);
 
-            //         // $fileName = $receiveOrderDetail->id . '/' . $stock->id . '.png';
-            //     $fileName = 'import/'.$stock->id . '.png';
-            //     $fullPath = $folder .  $fileName;
-            //     Storage::put($fullPath, $data);
+                //     $stock->update(['qr_code' => $fullPath]);
+                // }
 
-            //     $stock->update(['qr_code' => $fullPath]);
-            // }
-
-            // create history
-            // $receiveOrderDetail->histories()->create([
-            //     'user_id' => $user->id,
-            //     'stock_product_unit_id' => $stockProductUnit->id,
-            //     'value' => $qty,
-            //     'is_increment' => 1,
-            //     'description' => $receiveOrder->invoice_no,
-            //     'ip' => request()->ip(),
-            //     'agent' => request()->header('user-agent'),
-            // ]);
+                // create history
+                // $receiveOrderDetail->histories()->create([
+                //     'user_id' => $user->id,
+                //     'stock_product_unit_id' => $stockProductUnit->id,
+                //     'value' => $qty,
+                //     'is_increment' => 1,
+                //     'description' => $receiveOrder->invoice_no,
+                //     'ip' => request()->ip(),
+                //     'agent' => request()->header('user-agent'),
+                // ]);
+            }
         }
     }
 
