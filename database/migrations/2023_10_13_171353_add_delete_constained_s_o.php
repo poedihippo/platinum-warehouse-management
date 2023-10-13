@@ -14,11 +14,11 @@ return new class extends Migration
     public function up()
     {
         Schema::table('sales_order_details', function(Blueprint $table){
-            $table->foreignId('sales_order_id')->cascadeOnDelete();
+            $table->foreignId('sales_order_id')->cascadeOnDelete()->change();
         });
 
         Schema::table('sales_order_items', function(Blueprint $table){
-            $table->foreignId('sales_order_detail_id')->cascadeOnDelete();
+            $table->foreignId('sales_order_detail_id')->cascadeOnDelete()->change();
         });
     }
 
@@ -29,6 +29,12 @@ return new class extends Migration
      */
     public function down()
     {
-        //
+        Schema::table('sales_order_details', function(Blueprint $table){
+            $table->foreignId('sales_order_id')->constrained()->change();
+        });
+
+        Schema::table('sales_order_items', function(Blueprint $table){
+            $table->foreignId('sales_order_detail_id')->constrained()->change();
+        });
     }
 };
