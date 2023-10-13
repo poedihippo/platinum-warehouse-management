@@ -27,8 +27,8 @@ class SalesOrderStoreRequest extends FormRequest
     {
         return [
             'reseller_id' => ['required', function (string $attribute, mixed $value, Closure $fail) {
-                if (!DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::Customer)->exists()) {
-                    $fail('Customer not found');
+                if (!DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::Reseller)->exists()) {
+                    $fail('Reseller not found');
                 }
             }],
             'warehouse_id' => 'required|exists:warehouses,id',

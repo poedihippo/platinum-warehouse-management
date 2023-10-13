@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('code')->nullable();
             $table->string('email')->unique()->nullable();
+            $table->unsignedTinyInteger('type')->default(3);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password')->nullable();
             $table->text('address')->nullable();
@@ -31,7 +32,6 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->string('contact_person')->nullable();
             $table->string('web_page')->nullable();
-            $table->unsignedTinyInteger('type')->default(3);
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();
