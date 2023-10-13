@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->ulid('stock_id')->nullable()->constrained('stocks', 'id');
             $table->foreignId('sales_order_detail_id')->constrained();
+            // $table->foreignId('sales_order_detail_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
     }
