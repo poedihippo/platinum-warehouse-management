@@ -5,10 +5,13 @@ namespace App\Models;
 use App\Enums\SettingEnum;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 
 class SalesOrder extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'user_id',
         'reseller_id',
