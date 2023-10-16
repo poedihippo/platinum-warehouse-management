@@ -5,8 +5,9 @@ namespace App\Imports;
 use App\Models\Product;
 use App\Models\ProductUnit;
 use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
-class ProductUnitSeederImport implements ToModel
+class ProductUnitSeederImport implements ToModel, WithHeadingRow
 {
     /**
      * @param array $row
@@ -15,15 +16,17 @@ class ProductUnitSeederImport implements ToModel
      */
     public function model(array $row)
     {
-        $productUnitName = trim($row[2]);
-        if (ProductUnit::where('name', $productUnitName)->exists()) return;
+        $productUnitName = trim($row['name']);
+        $productName = trim($row['product_name']);
+        if (ProductUnit::where('name', $productUnitName)->exists())
+            return;
 
         return new ProductUnit([
-            'product_id' => Product::where('name', $productUnitName)->first()?->id ?? 1,
+            'product_id' => Product::where('name', $productName)->first()?->id ?? 1,
             'uom_id' => 1,
-            'code' => $row[0],
-            'name' => $row[1],
-            'description' => $row[1],
+            'code' => $row['code'],
+            'name' => $productUnitName,
+            'description' => $productUnitName,
             'price' => 0,
         ]);
     }

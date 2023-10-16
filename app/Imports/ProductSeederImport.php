@@ -6,8 +6,9 @@ use App\Models\Product;
 use App\Models\ProductBrand;
 use App\Models\ProductCategory;
 use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
-class ProductSeederImport implements ToModel
+class ProductSeederImport implements ToModel, WithHeadingRow
 {
     /**
      * @param array $row
@@ -16,9 +17,9 @@ class ProductSeederImport implements ToModel
      */
     public function model(array $row)
     {
-        $categoryName = trim($row[0]);
-        $brandName = trim($row[1]);
-        $productName = trim($row[2]);
+        $categoryName = trim($row['category_name']);
+        $brandName = trim($row['brand_name']);
+        $productName = trim($row['product_name']);
 
         if (Product::where('name', $productName)->exists()) return;
 
