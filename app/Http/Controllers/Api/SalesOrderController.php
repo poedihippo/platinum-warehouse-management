@@ -54,13 +54,16 @@ class SalesOrderController extends Controller
     {
         $items = $request->items ?? [];
         $totalPrice = collect($items)->sum('total_price') ?? 0;
+        $shipmentFee = $request->validated()['shipment_fee'];
+        $totalPrice += $shipmentFee;
+
         $data = [
             ...$request->validated(),
             'price' => $totalPrice
         ];
 
         // BE total price validation
-        if (SalesOrderService::validateTotalPrice($totalPrice, $items) === false) return response()->json(['message' => "Prices don't match"], 400);
+        if (SalesOrderService::validateTotalPrice($totalPrice, $shipmentFee, $items) === false) return response()->json(['message' => "Prices don't match"], 400);
 
         DB::beginTransaction();
         try {
@@ -95,13 +98,16 @@ class SalesOrderController extends Controller
 
         $items = $request->items ?? [];
         $totalPrice = collect($items)->sum('total_price') ?? 0;
+        $shipmentFee = $request->validated()['shipment_fee'];
+        $totalPrice += $shipmentFee;
+
         $data = [
             ...$request->validated(),
             'price' => $totalPrice
         ];
 
         // BE total price validation
-        if (SalesOrderService::validateTotalPrice($totalPrice, $items) === false) return response()->json(['message' => "Prices don't match"], 400);
+        if (SalesOrderService::validateTotalPrice($totalPrice, $shipmentFee, $items) === false) return response()->json(['message' => "Prices don't match"], 400);
 
         DB::beginTransaction();
         try {
