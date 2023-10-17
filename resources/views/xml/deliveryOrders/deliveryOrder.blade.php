@@ -45,7 +45,7 @@
             <INVOICEAMOUNT>0</INVOICEAMOUNT>
             <PURCHASEORDERNO />
             <WAREHOUSEID>{{ $deliveryOrder->warehouse?->code }}</WAREHOUSEID>
-            <DESCRIPTION>{{ !empty($deliveryOrder->description) ? $deliveryOrder->description : 'Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih' }}</DESCRIPTION>
+            <DESCRIPTION>{{ !empty($deliveryOrder->description) ? $deliveryOrder->description : '#Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih' }}</DESCRIPTION>
             <SHIPDATE>{{ date('Y-m-d', strtotime($deliveryOrder->shipment_estimation_datetime)) }}</SHIPDATE>
             <DELIVERYORDER />
             <CUSTOMERID>{{ $deliveryOrder->reseller?->code }}</CUSTOMERID>

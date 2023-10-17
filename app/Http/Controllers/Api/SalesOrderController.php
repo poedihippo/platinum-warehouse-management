@@ -163,6 +163,7 @@ class SalesOrderController extends Controller
 
     public function exportXml(SalesOrder $salesOrder)
     {
+        $salesOrder->load(['details' => fn($q) => $q->with('packaging')]);
         // abort_if(!auth()->user()->tokenCan('sales_order_export_xml'), 403);
         return response(view('xml.salesOrders.salesOrder')->with(compact('salesOrder')), 200, [
             'Content-Type' => 'application/xml', // use your required mime type
