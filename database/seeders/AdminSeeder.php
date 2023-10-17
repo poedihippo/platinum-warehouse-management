@@ -28,7 +28,7 @@ class AdminSeeder extends Seeder
             'name' => 'Admin',
             'code' => 'admin',
             'email' => 'admin@gmail.com',
-            'password' => bcrypt('admin'),
+            'password' => 'admin',
             'contact_person' => 'admin',
             'type' => UserType::Admin,
         ]);
@@ -48,7 +48,7 @@ class AdminSeeder extends Seeder
         //     'name' => 'Emporium Fish',
         //     'code' => 'CE007',
         //     'email' => 'emporium.fish@gmail.com',
-        //     'password' => bcrypt('12345678'),
+        //     'password' => '12345678',
         //     'type' => UserType::Reseller,
         //     'phone' => '098709870987',
         // ]);
@@ -57,7 +57,7 @@ class AdminSeeder extends Seeder
         //     'name' => 'Customer Pameran',
         //     'code' => 'CC001',
         //     'email' => 'customer.pameran@gmail.com',
-        //     'password' => bcrypt('12345678'),
+        //     'password' => '12345678',
         //     'type' => UserType::Reseller,
         //     'phone' => '098765098765',
         // ]);

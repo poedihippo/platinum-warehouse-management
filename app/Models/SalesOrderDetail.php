@@ -37,6 +37,11 @@ class SalesOrderDetail extends Model
         return $this->belongsTo(ProductUnit::class);
     }
 
+    public function packaging(): BelongsTo
+    {
+        return $this->belongsTo(ProductUnit::class, 'packaging_id');
+    }
+
     public function salesOrderItems(): HasMany
     {
         return $this->hasMany(SalesOrderItem::class, 'sales_order_detail_id');

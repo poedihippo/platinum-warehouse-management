@@ -51,7 +51,7 @@ class UserController extends Controller
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
-                'password' => bcrypt($request->password) ?? null,
+                'password' => $request->password ?? null,
                 'phone' => $request->phone,
                 'address' => $request->address,
                 'tax_address' => $request->tax_address,
@@ -61,7 +61,6 @@ class UserController extends Controller
                 'province' => $request->province,
                 'zip_code' => $request->zip_code,
                 'country' => $request->country,
-                'phone' => $request->phone,
                 'contact_person' => $request->contact_person,
                 'web_page' => $request->web_page,
                 'type' => $request->type,
@@ -78,14 +77,14 @@ class UserController extends Controller
         $data = $request->validated();
 
         if ($request->password) {
-            $data['password'] = bcrypt($request->password);
+            $data['password'] = $request->password;
         }
 
         $user->update($data);
         // $user->name = $request->name;
         // $user->email = $request->email;
         // if ($request->password) {
-        //     $user->password = bcrypt($request->password);
+        //     $user->password = $request->password;
         // }
         // $user->phone = $request->phone;
         // $user->address = $request->address;

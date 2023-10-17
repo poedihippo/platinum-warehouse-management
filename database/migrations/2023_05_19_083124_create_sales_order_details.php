@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignId('sales_order_id')->constrained();
             $table->foreignId('product_unit_id')->constrained();
             $table->foreignId('warehouse_id')->constrained();
+            $table->foreignId('packaging_id')->nullable();
             $table->integer('qty')->default(0);
             $table->integer('fulfilled_qty')->default(0);
             $table->integer('unit_price')->default(0);

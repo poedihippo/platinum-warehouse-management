@@ -24,7 +24,6 @@ class AuthController extends Controller
         ]);
 
         $checkToken = PersonalAccessToken::where('plain_text_token', request()->bearerToken())->first();
-
         $validatePassword = true;
         $user = User::where('email', $request->email)->first();
 
@@ -34,7 +33,7 @@ class AuthController extends Controller
             $validatePassword = Hash::check($request->password, $user?->password);
         }
 
-        if (!$user && !$validatePassword) {
+        if (!$user || !$validatePassword) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);

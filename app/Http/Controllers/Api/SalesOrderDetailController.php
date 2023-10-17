@@ -20,12 +20,14 @@ class SalesOrderDetailController extends Controller
     {
         // abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
 
-        $query = SalesOrderDetail::where('sales_order_id', $salesOrder->id)->with('warehouse', fn ($q) => $q->select('id', 'code', 'name'));
+        $query = SalesOrderDetail::where('sales_order_id', $salesOrder->id)->with([
+            'packaging',
+            'warehouse' => fn($q) => $q->select('id', 'code', 'name')
+        ]);
         $salesOrderDetails = QueryBuilder::for($query)
             ->allowedFilters([
                 AllowedFilter::scope('has_delivery_order')
-            ])
-            ->paginate();
+            ])->get();
 
         return SalesOrderDetailResource::collection($salesOrderDetails);
     }
@@ -36,6 +38,6 @@ class SalesOrderDetailController extends Controller
 
         $salesOrderDetail = $salesOrder->details()->where('id', $salesOrderDetailId)->firstOrFail();
 
-        return new SalesOrderDetailResource($salesOrderDetail->load(['warehouse' => fn ($q) => $q->select('id', 'code', 'name')]));
+        return new SalesOrderDetailResource($salesOrderDetail->load(['warehouse' => fn($q) => $q->select('id', 'code', 'name')]));
     }
 }

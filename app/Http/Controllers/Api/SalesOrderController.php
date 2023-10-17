@@ -47,7 +47,7 @@ class SalesOrderController extends Controller
     public function show(SalesOrder $salesOrder)
     {
         // abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
-        return new SalesOrderResource($salesOrder->load(['details' => fn ($q) => $q->with('warehouse'), 'user'])->loadCount('details'));
+        return new SalesOrderResource($salesOrder->load(['details' => fn ($q) => $q->with(['warehouse','packaging']), 'user'])->loadCount('details'));
     }
 
     public function store(SalesOrderStoreRequest $request)
@@ -72,6 +72,7 @@ class SalesOrderController extends Controller
 
                 $salesOrder->details()->create([
                     'product_unit_id' => $items[$i]['product_unit_id'],
+                    'packaging_id' => empty($items[$i]['packaging_id']) ? null : $items[$i]['packaging_id'],
                     'qty' => $items[$i]['qty'],
                     'unit_price' => $items[$i]['unit_price'] ?? $productUnit->price ?? 0,
                     'discount' => $items[$i]['discount'] ?? 0,
@@ -119,6 +120,7 @@ class SalesOrderController extends Controller
                     // 'discount' => $items[$i]['discount'] ?? 0,
                     // 'total_price' => $items[$i]['price'] ?? 0,
                     'product_unit_id' => $items[$i]['product_unit_id'],
+                    'packaging_id' => empty($items[$i]['packaging_id']) ? null : $items[$i]['packaging_id'],
                     'qty' => $items[$i]['qty'],
                     'unit_price' => $items[$i]['unit_price'] ?? $productUnit->price ?? 0,
                     'discount' => $items[$i]['discount'] ?? 0,

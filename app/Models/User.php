@@ -86,7 +86,7 @@ class User extends Authenticatable
     protected function password(): Attribute
     {
         return Attribute::make(
-            set: fn (string|null $value) => is_null($value) || $value == '' ? null : bcrypt($value),
+            set: fn (string|null $value) => empty($value) ? null : bcrypt($value),
         );
     }
 

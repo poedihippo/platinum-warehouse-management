@@ -207,7 +207,7 @@ class UserSeeder extends Seeder
             'name' => 'Devi Platinum Backoffice',
             'code' => 'admin-devi',
             'email' => 'devi@platinumadisentosa.com',
-            'password' => bcrypt('12345678'),
+            'password' => '12345678',
             'type' => UserType::Admin,
         ]);
         $devi->assignRole(1);
@@ -217,7 +217,7 @@ class UserSeeder extends Seeder
             'name' => 'Admin Backoffice',
             'code' => 'admin-backoffice',
             'email' => 'admin@platinumadisentosa.com',
-            'password' => bcrypt('12345678'),
+            'password' => '12345678',
             'type' => UserType::Admin,
         ]);
         $adminBackOffice->assignRole($roleAdminSO);
@@ -227,7 +227,7 @@ class UserSeeder extends Seeder
             'name' => 'Dina Platinum Backoffice',
             'code' => 'admin-dina',
             'email' => 'dina@platinumadisentosa.com',
-            'password' => bcrypt('12345678'),
+            'password' => '12345678',
             'type' => UserType::Admin,
         ]);
         $dina->assignRole($roleAdminRO);
@@ -237,7 +237,7 @@ class UserSeeder extends Seeder
             'name' => 'jhonxfaf0 Gudang',
             'code' => 'admin-jhon',
             'email' => 'jhonxfaf0@gmail.com',
-            'password' => bcrypt('12345678'),
+            'password' => '12345678',
             'type' => UserType::Admin,
         ]);
         $jhon->assignRole($roleAdminWarehouse);
@@ -247,7 +247,7 @@ class UserSeeder extends Seeder
             'name' => 'safrizal arif Gudang',
             'code' => 'admin-safrizal',
             'email' => 'safrizalarif25@gmail.com',
-            'password' => bcrypt('12345678'),
+            'password' => '12345678',
             'type' => UserType::Admin,
         ]);
         $safrizal->assignRole($roleAdminWarehouse);
