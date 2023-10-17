@@ -46,7 +46,7 @@ class ProductUnitController extends Controller
     public function show(ProductUnit $productUnit)
     {
         // abort_if(!auth()->user()->tokenCan('product_unit_access'), 403);
-        return new ProductUnitResource($productUnit);
+        return new ProductUnitResource($productUnit->load('packaging'));
     }
 
     public function store(ProductUnitStoreRequest $request)

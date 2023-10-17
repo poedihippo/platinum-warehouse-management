@@ -131,6 +131,10 @@ class DeliveryOrderController extends Controller
                         // record stock history for packaging
                         $stockProductUnit = $salesOrderDetail->packaging->stockProductUnits()->where('warehouse_id', $salesOrderDetail?->warehouse_id)->first();
 
+                        if ($stockProductUnit->productUnit->is_generate_qr) {
+                            $stockProductUnit->increment('qty', $history->value);
+                        }
+
                         $detail->histories()->create([
                             'user_id' => $history->user_id,
                             'stock_product_unit_id' => $stockProductUnit->id,
@@ -305,6 +309,10 @@ class DeliveryOrderController extends Controller
                     if ($salesOrderDetail->packaging) {
                         // record stock history for packaging
                         $stockProductUnit = $salesOrderDetail->packaging->stockProductUnits()->where('warehouse_id', $salesOrderDetail?->warehouse_id)->first();
+
+                        if ($stockProductUnit->productUnit->is_generate_qr) {
+                            $stockProductUnit->decrement('qty', $history->value);
+                        }
 
                         $salesOrderDetail->histories()->create([
                             'user_id' => $history->user_id,

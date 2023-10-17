@@ -40,24 +40,28 @@ class CreateStockROListener implements ShouldQueue
                 ->first();
 
             if ($stockProductUnit) {
-                for ($i = 0; $i < $qty ?? 0; $i++) {
-                    $stock = $stockProductUnit->stocks()->create([
-                        'receive_order_id' => $receiveOrderDetail->receive_order_id,
-                        'receive_order_detail_id' => $receiveOrderDetail->id,
-                    ]);
+                if ($stockProductUnit->productUnit->is_generate_qr) {
+                    for ($i = 0; $i < $qty ?? 0; $i++) {
+                        $stock = $stockProductUnit->stocks()->create([
+                            'receive_order_id' => $receiveOrderDetail->receive_order_id,
+                            'receive_order_detail_id' => $receiveOrderDetail->id,
+                        ]);
 
-                    $logo = public_path('images/logo-platinum.png');
+                        $logo = public_path('images/logo-platinum.png');
 
-                    $data = QrCode::size(350)
-                        ->format('png')
-                        // ->merge($logo, absolute: true)
-                        ->generate($stock->id);
+                        $data = QrCode::size(350)
+                            ->format('png')
+                            // ->merge($logo, absolute: true)
+                            ->generate($stock->id);
 
-                    $fileName = $receiveOrderDetail->id . '/' . $stock->id . '.png';
-                    $fullPath = $folder .  $fileName;
-                    Storage::put($fullPath, $data);
+                        $fileName = $receiveOrderDetail->id . '/' . $stock->id . '.png';
+                        $fullPath = $folder . $fileName;
+                        Storage::put($fullPath, $data);
 
-                    $stock->update(['qr_code' => $fullPath]);
+                        $stock->update(['qr_code' => $fullPath]);
+                    }
+                } else {
+                    $stockProductUnit->increment('qty', $qty);
                 }
 
                 // create history

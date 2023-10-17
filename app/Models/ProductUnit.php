@@ -12,6 +12,9 @@ class ProductUnit extends Model
     use SoftDeletes;
 
     protected $guarded = [];
+    protected $casts = [
+        'is_generate_qr' => 'boolean'
+    ];
 
     protected static function booted()
     {
@@ -42,11 +45,11 @@ class ProductUnit extends Model
 
     public function scopeWhereProductBrandId(Builder $query, $id)
     {
-        return $query->whereHas('product', fn ($q) => $q->where('product_brand_id', $id));
+        return $query->whereHas('product', fn($q) => $q->where('product_brand_id', $id));
     }
 
     public function scopeWhereProductCategoryId(Builder $query, $id)
     {
-        return $query->whereHas('product', fn ($q) => $q->where('product_category_id', $id));
+        return $query->whereHas('product', fn($q) => $q->where('product_category_id', $id));
     }
 }

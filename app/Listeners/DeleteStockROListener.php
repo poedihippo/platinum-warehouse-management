@@ -40,6 +40,10 @@ class DeleteStockROListener implements ShouldQueue
                 ->first();
 
             if ($stockProductUnit) {
+                if ($stockProductUnit->productUnit->is_generate_qr) {
+                    $stockProductUnit->decrement('qty', $qty);
+                }
+
                 // create history
                 $receiveOrderDetail->histories()->create([
                     'user_id' => $user->id,
