@@ -25,6 +25,11 @@ class ProductUnit extends Model
         return $this->belongsTo(Product::class);
     }
 
+    public function packaging()
+    {
+        return $this->belongsTo(self::class, 'packaging_id');
+    }
+
     public function uom()
     {
         return $this->belongsTo(Uom::class);

@@ -10,6 +10,7 @@ use App\Http\Resources\SalesOrderDetailResource;
 use App\Models\ProductUnit;
 use App\Models\SalesOrderDetail;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -30,10 +31,12 @@ class ProductUnitController extends Controller
         // abort_if(!auth()->user()->tokenCan('product_unit_access'), 403);
         $productUnits = QueryBuilder::for(ProductUnit::with('product'))
             ->allowedFilters([
-                'product_id', 'name',
+                'product_id',
+                'name',
                 AllowedFilter::scope('product_brand_id', 'whereProductBrandId'),
                 AllowedFilter::scope('product_category_id', 'whereProductCategoryId'),
             ])
+            ->allowedIncludes('packaging')
             ->allowedSorts(['id', 'product_id', 'name', 'price', 'created_at'])
             ->paginate();
 
@@ -70,11 +73,22 @@ class ProductUnitController extends Controller
     public function userPrice(ProductUnit $productUnit, User $user)
     {
         $salesOrderDetails = SalesOrderDetail::select('id', 'product_unit_id', 'unit_price', 'created_at')
-            ->whereHas('salesOrder', fn ($q) => $q->where('reseller_id', $user->id))
+            ->whereHas('salesOrder', fn($q) => $q->where('reseller_id', $user->id))
             ->where('product_unit_id', $productUnit->id)
-            ->with('productUnit', fn ($q) => $q->select('id', 'code', 'name'))
+            ->with('productUnit', fn($q) => $q->select('id', 'code', 'name'))
             ->paginate();
 
         return SalesOrderDetailResource::collection($salesOrderDetails);
+    }
+
+    public function setPackaging(ProductUnit $productUnit, Request $request)
+    {
+        $request->validate([
+            'product_unit_id' => 'nullable|exists:product_units,id'
+        ]);
+
+        $productUnit->update(['packaging_id' => $request->product_unit_id ?? null]);
+
+        return $this->show($productUnit->load('packaging'));
     }
 }
