@@ -54,7 +54,8 @@ class DeliveryOrderController extends Controller
         // abort_if(!auth()->user()->tokenCan('delivery_order_access'), 403);
 
         $deliveryOrder->load([
-            'user', 'reseller'
+            'user',
+            'reseller'
             // 'salesOrder' => function ($q) {
             //     $q->with('reseller');
             //     $q->with('details', function ($q) {
@@ -108,14 +109,15 @@ class DeliveryOrderController extends Controller
             // });
 
             $deliveryOrder->details?->each(function ($detail) use ($deliveryOrder) {
-                $salesOrderDetail = $detail->salesOrderDetail;
+                $salesOrderDetail = $detail->salesOrderDetail->load('packaging');
+
                 $stockProductUnit = StockProductUnit::select('id')->where('warehouse_id', $salesOrderDetail?->warehouse_id)
                     ->where('product_unit_id', $salesOrderDetail?->product_unit_id)
                     ->first();
 
                 if ($stockProductUnit) {
                     // create history
-                    $detail->histories()->create([
+                    $history = $detail->histories()->create([
                         'user_id' => auth()->user()->id,
                         'stock_product_unit_id' => $stockProductUnit->id,
                         'value' => $salesOrderDetail?->fulfilled_qty ?? 0,
@@ -124,6 +126,21 @@ class DeliveryOrderController extends Controller
                         'ip' => request()->ip(),
                         'agent' => request()->header('user-agent'),
                     ]);
+
+                    if ($salesOrderDetail->packaging) {
+                        // record stock history for packaging
+                        $stockProductUnit = $salesOrderDetail->packaging->stockProductUnits()->where('warehouse_id', $salesOrderDetail?->warehouse_id)->first();
+
+                        $detail->histories()->create([
+                            'user_id' => $history->user_id,
+                            'stock_product_unit_id' => $stockProductUnit->id,
+                            'value' => $history->value,
+                            'is_increment' => $history->is_increment,
+                            'description' => $history->description,
+                            'ip' => $history->ip,
+                            'agent' => $history->agent,
+                        ]);
+                    }
                 }
             });
             DB::commit();
@@ -139,7 +156,7 @@ class DeliveryOrderController extends Controller
     {
         // abort_if(!auth()->user()->tokenCan('delivery_order_print'), 403);
 
-        $deliveryOrder->load(['reseller', 'details' => fn ($q) => $q->with('salesOrderDetail.productUnit.uom')]);
+        $deliveryOrder->load(['reseller', 'details' => fn($q) => $q->with('salesOrderDetail.productUnit.uom')]);
         $deliveryOrderDetailsChunk = $deliveryOrder->details?->chunk(23) ?? collect([]);
         $pdf = Pdf::setPaper('a4', 'portrait')->loadView('pdf.deliveryOrders.deliveryOrder', ['deliveryOrder' => $deliveryOrder, 'deliveryOrderDetailsChunk' => $deliveryOrderDetailsChunk]);
 
@@ -150,10 +167,11 @@ class DeliveryOrderController extends Controller
     {
         // abort_if(!auth()->user()->tokenCan('sales_order_export_xml'), 403);
 
-        $deliveryOrder->load(['reseller', 'details' => fn ($q) => $q->with('salesOrderDetail.productUnit.uom')]);
+        $deliveryOrder->load(['reseller', 'details' => fn($q) => $q->with('salesOrderDetail.productUnit.uom')]);
 
         return response(view('xml.deliveryOrders.deliveryOrder')->with(compact('deliveryOrder')), 200, [
-            'Content-Type' => 'application/xml', // use your required mime type
+            'Content-Type' => 'application/xml',
+            // use your required mime type
             'Content-Disposition' => 'attachment; filename="Delivery Order ' . $deliveryOrder->code . '.xml"',
         ]);
     }
@@ -193,22 +211,26 @@ class DeliveryOrderController extends Controller
     public function verification(DeliveryOrder $deliveryOrder, DeliveryOrderDetail $deliveryOrderDetail, SalesOrderItemStoreRequest $request)
     {
         $salesOrderDetail = $deliveryOrderDetail->salesOrderDetail;
-        if (!$salesOrderDetail) return response()->json(['message' => 'Sales order item not found'], 404);
+        if (!$salesOrderDetail)
+            return response()->json(['message' => 'Sales order item not found'], 404);
 
         // 1. cek berdasarkan uom dari SO detail nya
         $stock = Stock::where('id', $request->stock_id)
-            ->whereHas('stockProductUnit', fn ($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id)->where('warehouse_id', $salesOrderDetail->salesOrder?->warehouse_id))
+            ->whereHas('stockProductUnit', fn($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id)->where('warehouse_id', $salesOrderDetail->salesOrder?->warehouse_id))
             // ->where('product_unit_id', $salesOrderDetail->product_unit_id)
             // ->where('warehouse_id', $salesOrderDetail->salesOrder?->warehouse_id)
             ->first();
-        if (!$stock) return response()->json(['message' => 'Stock of product not match'], 400);
+        if (!$stock)
+            return response()->json(['message' => 'Stock of product not match'], 400);
 
         // $cek = $salesOrderDetail->salesOrderItems()->where('stock_id', $stock?->id)->exists();
         $cek = SalesOrderItem::where('stock_id', $stock?->id)->exists();
 
-        if ($cek) return response()->json(['message' => 'The product has been scanned'], 400);
+        if ($cek)
+            return response()->json(['message' => 'The product has been scanned'], 400);
 
-        if ($salesOrderDetail->salesOrderItems->count() >= $salesOrderDetail->qty) return response()->json(['message' => 'Delivery orders have been fulfilled'], 400);
+        if ($salesOrderDetail->salesOrderItems->count() >= $salesOrderDetail->qty)
+            return response()->json(['message' => 'Delivery orders have been fulfilled'], 400);
 
         DB::beginTransaction();
         try {
@@ -232,7 +254,8 @@ class DeliveryOrderController extends Controller
         $request->validate(['is_done' => 'required|boolean']);
 
         // if (!$deliveryOrder->salesOrder?->details->every(fn ($detail) => $detail->fulfilled_qty >= $detail->qty)) return response()->json(['message' => 'All delivery order data must be done'], 400);
-        if (!$deliveryOrder->details->every(fn ($detail) => $detail->salesOrderDetail?->salesOrderItems?->count() >= $detail->salesOrderDetail?->qty)) return response()->json(['message' => 'All delivery order data must be fulfilled'], 400);
+        if (!$deliveryOrder->details->every(fn($detail) => $detail->salesOrderDetail?->salesOrderItems?->count() >= $detail->salesOrderDetail?->qty))
+            return response()->json(['message' => 'All delivery order data must be fulfilled'], 400);
 
         DB::beginTransaction();
         try {
@@ -261,7 +284,7 @@ class DeliveryOrderController extends Controller
             // });
 
             $deliveryOrder->details?->each(function ($detail) use ($deliveryOrder) {
-                $salesOrderDetail = $detail->salesOrderDetail;
+                $salesOrderDetail = $detail->salesOrderDetail->load('packaging');
 
                 $stockProductUnit = StockProductUnit::select('id')->where('warehouse_id', $salesOrderDetail?->warehouse_id)
                     ->where('product_unit_id', $salesOrderDetail?->product_unit_id)
@@ -269,7 +292,7 @@ class DeliveryOrderController extends Controller
 
                 if ($stockProductUnit) {
                     // create history
-                    $salesOrderDetail->histories()->create([
+                    $history = $salesOrderDetail->histories()->create([
                         'user_id' => auth()->user()->id,
                         'stock_product_unit_id' => $stockProductUnit->id,
                         'value' => $salesOrderDetail?->fulfilled_qty ?? 0,
@@ -278,6 +301,21 @@ class DeliveryOrderController extends Controller
                         'ip' => request()->ip(),
                         'agent' => request()->header('user-agent'),
                     ]);
+
+                    if ($salesOrderDetail->packaging) {
+                        // record stock history for packaging
+                        $stockProductUnit = $salesOrderDetail->packaging->stockProductUnits()->where('warehouse_id', $salesOrderDetail?->warehouse_id)->first();
+
+                        $salesOrderDetail->histories()->create([
+                            'user_id' => $history->user_id,
+                            'stock_product_unit_id' => $stockProductUnit->id,
+                            'value' => $history->value,
+                            'is_increment' => $history->is_increment,
+                            'description' => $history->description,
+                            'ip' => $history->ip,
+                            'agent' => $history->agent,
+                        ]);
+                    }
                 }
             });
             DB::commit();
