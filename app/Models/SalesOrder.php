@@ -5,10 +5,13 @@ namespace App\Models;
 use App\Enums\SettingEnum;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 
 class SalesOrder extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'user_id',
         'reseller_id',
@@ -16,11 +19,13 @@ class SalesOrder extends Model
         'invoice_no',
         'transaction_date',
         'shipment_estimation_datetime',
+        'shipment_fee',
         'price',
         'description',
     ];
 
     protected $casts = [
+        'shipment_fee' => 'integer',
         'price' => 'integer',
     ];
 
@@ -32,8 +37,10 @@ class SalesOrder extends Model
         });
 
         static::created(function ($model) {
-            $model->invoice_no = self::getSoNumber();
-            $model->save();
+            if (empty($model->invoice_no)){
+                $model->invoice_no = self::getSoNumber();
+                $model->save();
+            }
         });
     }
 
@@ -91,9 +98,9 @@ class SalesOrder extends Model
             // update the value with $nextLastSoNumber
             DB::table('settings')
                 ->where('key', $key)
-                ->update(['value' => $nextLastSoNumber]);
+                ->update(['value' => trim($nextLastSoNumber)]);
 
-            return $lastSoNumber;
+            return trim($lastSoNumber);
         });
     }
 }
