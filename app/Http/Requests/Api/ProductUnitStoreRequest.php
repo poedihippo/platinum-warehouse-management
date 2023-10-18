@@ -30,6 +30,7 @@ class ProductUnitStoreRequest extends FormRequest
             'description' => 'required',
             'product_id' => 'required',
             'price' => 'required',
+            'packaging_id' => 'nullable|exists:product_units,id',
         ];
     }
 }
