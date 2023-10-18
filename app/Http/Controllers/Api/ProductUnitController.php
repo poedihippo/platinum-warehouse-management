@@ -33,6 +33,7 @@ class ProductUnitController extends Controller
             ->allowedFilters([
                 'product_id',
                 'name',
+                'is_generate_qr',
                 AllowedFilter::scope('product_brand_id', 'whereProductBrandId'),
                 AllowedFilter::scope('product_category_id', 'whereProductCategoryId'),
             ])
