@@ -111,7 +111,7 @@
             <CUSTOMERISTAXABLE>1</CUSTOMERISTAXABLE>
             <CASHDISCOUNT>0</CASHDISCOUNT>
             <CASHDISCPC />
-            <FREIGHT>0</FREIGHT>
+            <FREIGHT>{{ $salesOrder->shipment_fee ?? 0 }}</FREIGHT>
             <TERMSID>C.O.D</TERMSID>
             <FOB />
             <ESTSHIPDATE>{{ date('Y-m-d', strtotime($salesOrder->shipment_estimation_datetime)) }}</ESTSHIPDATE>
