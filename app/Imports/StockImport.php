@@ -38,7 +38,11 @@ class StockImport implements ToModel, WithHeadingRow
                 ->first();
 
             if ($stockProductUnit && $qty > 0) {
-                GenerateStockQrcode::dispatch($stockProductUnit, $qty, $folder);
+                if($productUnit->is_generate_qr){
+                    GenerateStockQrcode::dispatch($stockProductUnit, $qty, $folder);
+                } else {
+                    $stockProductUnit->increment('qty', $qty);
+                }
 
                 // for ($i = 0; $i < $qty ?? 0; $i++) {
                 //     $stock = $stockProductUnit->stocks()->create([

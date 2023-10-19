@@ -4,6 +4,7 @@ namespace App\Imports;
 
 use App\Models\Product;
 use App\Models\ProductUnit;
+use App\Models\Uom;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
@@ -16,18 +17,23 @@ class ProductUnitSeederImport implements ToModel, WithHeadingRow
      */
     public function model(array $row)
     {
-        $productUnitName = trim($row['name']);
+        $productUnitName = trim($row['product_unit_name']);
         $productName = trim($row['product_name']);
-        if (ProductUnit::where('name', $productUnitName)->exists())
-            return;
+        $uom = trim($row['uom_name']);
+        $isGenerateQr = (int) trim($row['is_generate_qr']);
 
-        return new ProductUnit([
-            'product_id' => Product::where('name', $productName)->first()?->id ?? 1,
-            'uom_id' => 1,
-            'code' => $row['code'],
-            'name' => $productUnitName,
-            'description' => $productUnitName,
-            'price' => 0,
-        ]);
+        if (ProductUnit::where('name', $productUnitName)->doesntExist()) {
+            return new ProductUnit([
+                'product_id' => Product::where('name', $productName)->first()?->id ?? 1,
+                'uom_id' => Uom::where('name', $uom)->first()?->id ?? 1,
+                'code' => trim($row['code']),
+                'name' => $productUnitName,
+                'description' => $productUnitName,
+                'is_generate_qr' => $isGenerateQr,
+                'price' => 0,
+            ]);
+        }
+
+        return;
     }
 }

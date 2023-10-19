@@ -21,13 +21,15 @@ class ProductSeederImport implements ToModel, WithHeadingRow
         $brandName = trim($row['brand_name']);
         $productName = trim($row['product_name']);
 
-        if (Product::where('name', $productName)->exists()) return;
+        if (Product::where('name', $productName)->doesntExist()) {
+            return new Product([
+                'product_category_id' => ProductCategory::where('name', $categoryName)->first()?->id ?? 1,
+                'product_brand_id' => ProductBrand::where('name', $brandName)->first()?->id ?? 1,
+                'name' => $productName,
+                'description' => $productName,
+            ]);
+        }
 
-        return new Product([
-            'product_category_id' => ProductCategory::where('name', $categoryName)->first()?->id ?? 1,
-            'product_brand_id' => ProductBrand::where('name', $brandName)->first()?->id ?? 1,
-            'name' => $productName,
-            'description' => $productName,
-        ]);
+        return;
     }
 }

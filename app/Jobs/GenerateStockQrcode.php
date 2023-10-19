@@ -33,15 +33,9 @@ class GenerateStockQrcode implements ShouldQueue
      */
     public function handle()
     {
-        // dump($this->folder);
-        // dump($this->qty);
-        // dd($this->stockProductUnit);
         $folder = $this->folder ?? 'qrcode/';
         for ($i = 0; $i < $this->qty ?? 0; $i++) {
-            $stock = $this->stockProductUnit->stocks()->create([
-                // 'receive_order_id' => $receiveOrderDetail->receive_order_id,
-                // 'receive_order_detail_id' => $receiveOrderDetail->id,
-            ]);
+            $stock = $this->stockProductUnit->stocks()->create();
 
             // $logo = public_path('images/logo-platinum.png');
 
