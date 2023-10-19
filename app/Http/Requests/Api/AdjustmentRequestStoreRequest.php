@@ -13,7 +13,7 @@ class AdjustmentRequestStoreRequest extends FormRequest
      */
     public function authorize()
     {
-        return auth()->user()->tokenCan('adjustment_request_edit');
+        return true;
     }
 
     /**

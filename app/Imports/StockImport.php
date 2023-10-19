@@ -29,6 +29,7 @@ class StockImport implements ToModel, WithHeadingRow
         // dump($this->warehouse_id);
         // dd($row);
         $qty = isset($row['stock']) && is_numeric($row['stock']) && $row['stock'] > 0 ? (int) $row['stock'] : 0;
+        $qty = round($qty);
         $productUnit = ProductUnit::where('code', trim($row['code']))->first();
         if ($productUnit) {
             $folder = 'qrcode/';

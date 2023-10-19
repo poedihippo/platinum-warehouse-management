@@ -13,7 +13,30 @@ class ProductUnitStoreRequest extends FormRequest
      */
     public function authorize()
     {
-        return auth()->user()->tokenCan('product_unit_create');
+        return true;
+    }
+
+    /**
+     * Prepare inputs for validation.
+     *
+     * @return void
+     */
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'is_generate_qr' => $this->toBoolean($this->is_generate_qr ?? 1),
+        ]);
+    }
+
+    /**
+     * Convert to boolean
+     *
+     * @param $booleable
+     * @return boolean
+     */
+    private function toBoolean($booleable)
+    {
+        return filter_var($booleable, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
     }
 
     /**
@@ -31,6 +54,7 @@ class ProductUnitStoreRequest extends FormRequest
             'product_id' => 'required',
             'price' => 'required',
             'packaging_id' => 'nullable|exists:product_units,id',
+            'is_generate_qr' => 'nullable|boolean',
         ];
     }
 }
