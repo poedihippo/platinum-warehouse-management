@@ -30,5 +30,20 @@ class SettingSeeder extends Seeder
             'key' => SettingEnum::TAX_VALUE,
             'value' => 11
         ]);
+
+        Setting::create([
+            'key' => SettingEnum::BANK_NAME,
+            'value' => 'BCA'
+        ]);
+
+        Setting::create([
+            'key' => SettingEnum::BANK_HOLDER,
+            'value' => 'PT. Platinum Adi Sentosa'
+        ]);
+
+        Setting::create([
+            'key' => SettingEnum::BANK_ACCOUNT,
+            'value' => '2883123808'
+        ]);
     }
 }

@@ -35,7 +35,10 @@ class SalesOrderController extends Controller
         // abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
         $salesOrders = QueryBuilder::for(SalesOrder::withCount('details'))
             ->allowedFilters([
-                'invoice_no', 'user_id', 'reseller_id', 'warehouse_id',
+                'invoice_no',
+                'user_id',
+                'reseller_id',
+                'warehouse_id',
             ])
             ->allowedSorts(['id', 'invoice_no', 'user_id', 'reseller_id', 'warehouse_id', 'created_at'])
             ->allowedIncludes(['details', 'warehouse', 'user'])
@@ -47,7 +50,7 @@ class SalesOrderController extends Controller
     public function show(SalesOrder $salesOrder)
     {
         // abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
-        return new SalesOrderResource($salesOrder->load(['details' => fn ($q) => $q->with(['warehouse','packaging']), 'user'])->loadCount('details'));
+        return new SalesOrderResource($salesOrder->load(['details' => fn($q) => $q->with(['warehouse', 'packaging']), 'user'])->loadCount('details'));
     }
 
     public function store(SalesOrderStoreRequest $request)
@@ -63,7 +66,8 @@ class SalesOrderController extends Controller
         ];
 
         // BE total price validation
-        if (SalesOrderService::validateTotalPrice($totalPrice, $shipmentFee, $items) === false) return response()->json(['message' => "Prices don't match"], 400);
+        if (SalesOrderService::validateTotalPrice($totalPrice, $shipmentFee, $items) === false)
+            return response()->json(['message' => "Prices don't match"], 400);
 
         DB::beginTransaction();
         try {
@@ -71,7 +75,8 @@ class SalesOrderController extends Controller
 
             for ($i = 0; $i < count($items); $i++) {
                 $productUnit = ProductUnit::withTrashed()->find($items[$i]['product_unit_id']);
-                if (!$productUnit) return response()->json(['message' => 'Product ' . $items[$i]['product_unit_id'] . ' not found on system. Please add first'], 400);
+                if (!$productUnit)
+                    return response()->json(['message' => 'Product ' . $items[$i]['product_unit_id'] . ' not found on system. Please add first'], 400);
 
                 $salesOrder->details()->create([
                     'product_unit_id' => $items[$i]['product_unit_id'],
@@ -95,7 +100,8 @@ class SalesOrderController extends Controller
 
     public function update(SalesOrder $salesOrder, SalesOrderUpdateRequest $request)
     {
-        if (!$salesOrder->details?->every(fn ($salesOrderDetail) => !$salesOrderDetail->deliveryOrderDetail)) return response()->json(['message' => "DO must be deleted first before editing SO"], 400);
+        if (!$salesOrder->details?->every(fn($salesOrderDetail) => !$salesOrderDetail->deliveryOrderDetail))
+            return response()->json(['message' => "DO must be deleted first before editing SO"], 400);
 
         $items = $request->items ?? [];
         $totalPrice = collect($items)->sum('total_price') ?? 0;
@@ -108,7 +114,8 @@ class SalesOrderController extends Controller
         ];
 
         // BE total price validation
-        if (SalesOrderService::validateTotalPrice($totalPrice, $shipmentFee, $items) === false) return response()->json(['message' => "Prices don't match"], 400);
+        if (SalesOrderService::validateTotalPrice($totalPrice, $shipmentFee, $items) === false)
+            return response()->json(['message' => "Prices don't match"], 400);
 
         DB::beginTransaction();
         try {
@@ -117,7 +124,8 @@ class SalesOrderController extends Controller
 
             for ($i = 0; $i < count($items); $i++) {
                 $productUnit = ProductUnit::withTrashed()->find($items[$i]['product_unit_id']);
-                if (!$productUnit) return response()->json(['message' => 'Product ' . $items[$i]['product_unit_id'] . ' not found on system. Please add first'], 400);
+                if (!$productUnit)
+                    return response()->json(['message' => 'Product ' . $items[$i]['product_unit_id'] . ' not found on system. Please add first'], 400);
 
                 $salesOrder->details()->create([
                     // 'product_unit_id' => $items[$i]['product_unit_id'],
@@ -149,7 +157,8 @@ class SalesOrderController extends Controller
     public function destroy(SalesOrder $salesOrder)
     {
         // abort_if(!auth()->user()->tokenCan('sales_order_delete'), 403);
-        if ($salesOrder->deliveryOrder?->is_done) return response()->json(['message' => "Can't update SO if DO is already done"], 400);
+        if ($salesOrder->deliveryOrder?->is_done)
+            return response()->json(['message' => "Can't update SO if DO is already done"], 400);
         $salesOrder->delete();
         return $this->deletedResponse();
     }
@@ -159,20 +168,24 @@ class SalesOrderController extends Controller
         // abort_if(!auth()->user()->tokenCan('sales_order_print'), 403);
         $salesOrder->load([
             'reseller',
-            'details' => fn ($q) => $q->with('productUnit.product')
+            'details' => fn($q) => $q->with('productUnit.product')
         ]);
+        $listProductsBlackSpace = 11 - $salesOrder->details->count() ?? 0;
+        $spellTotalPrice = \NumberToWords\NumberToWords::transformNumber('en', $salesOrder->price);
+        $bankTransferInfo = \App\Services\SettingService::bankTransferInfo();
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::setPaper('a4', 'portrait')->loadView('pdf.salesOrders.salesOrder', ['salesOrder' => $salesOrder]);
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::setPaper('a4', 'landscape')->loadView('pdf.salesOrders.salesOrder', ['salesOrder' => $salesOrder, 'listProductsBlackSpace' => $listProductsBlackSpace, 'spellTotalPrice' => $spellTotalPrice, 'bankTransferInfo' => $bankTransferInfo]);
 
         return $pdf->download('sales-order-' . $salesOrder->invoice_no . '.pdf');
     }
 
     public function exportXml(SalesOrder $salesOrder)
     {
-        $salesOrder->load(['details' => fn($q) => $q->with('packaging')]);
+        $salesOrder->load(['reseller', 'details' => fn($q) => $q->with('packaging', 'productUnit')]);
         // abort_if(!auth()->user()->tokenCan('sales_order_export_xml'), 403);
         return response(view('xml.salesOrders.salesOrder')->with(compact('salesOrder')), 200, [
-            'Content-Type' => 'application/xml', // use your required mime type
+            'Content-Type' => 'application/xml',
+            // use your required mime type
             'Content-Disposition' => 'attachment; filename="Sales Order ' . $salesOrder->invoice_no . '.xml"',
         ]);
     }
@@ -182,14 +195,14 @@ class SalesOrderController extends Controller
         $userDiscounts = UserDiscount::select('product_brand_id', 'value', 'is_percentage')->where('user_id', $request->customer_id)->get();
 
         $query = StockProductUnit::select('id', 'warehouse_id', 'product_unit_id')
-            ->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')])
+            ->withCount(['stocks' => fn($q) => $q->whereAvailableStock()->whereNull('description')])
             ->with([
-                'warehouse' => fn ($q) => $q->select('id', 'code'),
+                'warehouse' => fn($q) => $q->select('id', 'code'),
                 'productUnit' => function ($q) {
                     $q->select('id', 'uom_id', 'product_id', 'packaging_id', 'name', 'price')
                         ->with([
-                            'uom' => fn ($q) => $q->select('id', 'name'),
-                            'product' => fn ($q) => $q->select('id', 'name', 'product_brand_id'),
+                            'uom' => fn($q) => $q->select('id', 'name'),
+                            'product' => fn($q) => $q->select('id', 'name', 'product_brand_id'),
                         ]);
                 },
             ])
