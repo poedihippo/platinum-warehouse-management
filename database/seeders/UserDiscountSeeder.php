@@ -18,7 +18,7 @@ class UserDiscountSeeder extends Seeder
     {
         User::where('type', UserType::Reseller)
             ->get()?->each(function ($user) {
-                $user->userDiscounts->each->update(['value' => 10]);
+                $user->userDiscounts->each->update(['value' => 0]);
             });
     }
 }

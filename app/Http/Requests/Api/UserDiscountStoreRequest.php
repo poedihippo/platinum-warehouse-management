@@ -13,7 +13,7 @@ class UserDiscountStoreRequest extends FormRequest
      */
     public function authorize()
     {
-        return auth()->user()->tokenCan('user_discount_edit');
+        return true;
     }
 
     /**
@@ -24,6 +24,7 @@ class UserDiscountStoreRequest extends FormRequest
     public function rules()
     {
         return [
+            'product_brand_id' => 'required|exists:product_brands,id',
             'value' => 'required|numeric|min:0',
             'is_percentage' => 'nullable|boolean',
         ];
