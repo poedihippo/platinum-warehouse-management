@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Spatie\Permission\Models\Permission as ModelsPermission;
 
 class Permission extends ModelsPermission
@@ -19,8 +20,13 @@ class Permission extends ModelsPermission
         return $this->belongsTo(self::class, 'parent_id');
     }
 
-    public function scopeWhereParent($query)
+    public function scopeWhereParent(Builder $query)
     {
         $query->whereNull('parent_id');
+    }
+
+    public function scopeWhereRoleId(Builder $query, $id)
+    {
+        $query->whereHas('roles', fn($q) => $q->where('id', $id));
     }
 }

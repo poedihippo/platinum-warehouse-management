@@ -10,6 +10,7 @@ use App\Http\Requests\Api\PermissionUpdateRequest;
 use App\Models\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class PermissionController extends Controller
@@ -28,7 +29,10 @@ class PermissionController extends Controller
         $perPage = $request->per_page ?? 100;
         // abort_if(!auth()->user()->tokenCan('permission_access'), 403);
         $roles = QueryBuilder::for(Permission::class)
-            ->allowedFilters(['name'])
+            ->allowedFilters([
+                'name',
+                AllowedFilter::scope('role_id', 'whereRoleId')
+            ])
             ->allowedSorts(['id', 'name', 'created_at'])
             ->orderBy('id', 'DESC')
             ->paginate($perPage);
