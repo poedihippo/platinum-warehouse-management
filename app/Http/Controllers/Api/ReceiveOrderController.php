@@ -52,7 +52,6 @@ class ReceiveOrderController extends Controller
         $xmlArray = json_decode($json, true);
 
         $invoiceNo = $xmlArray['TRANSACTIONS']['RECIEVEITEM']['INVOICENO'];
-
         if (ReceiveOrder::where('invoice_no', $invoiceNo)->exists()) return response()->json(['message' => 'Invoice number is already in use'], 400);
 
         $productUnitBlacklist = DB::table('product_unit_blacklists')->select('product_unit_id')->get()?->pluck('product_unit_id')?->all() ?? [];
@@ -75,17 +74,32 @@ class ReceiveOrderController extends Controller
                 'sequence_no' => $xmlArray['TRANSACTIONS']['RECIEVEITEM']['SEQUENCENO'],
             ]);
 
-            foreach ($xmlArray['TRANSACTIONS']['RECIEVEITEM']['ITEMLINE'] as $item) {
-                $productUnit = ProductUnit::where('code', $item['ITEMNO'])->first();
-                if (!$productUnit) return response()->json(['message' => 'Product ' . $item['ITEMNO'] . ' not found on system. Please add first'], 400);
+            $itemlines = $xmlArray['TRANSACTIONS']['RECIEVEITEM']['ITEMLINE'];
+            if(isset($itemlines['ITEMNO'])){
+                $productUnit = ProductUnit::where('code', $itemlines['ITEMNO'])->first();
+                if (!$productUnit) return response()->json(['message' => 'Product ' . $itemlines['ITEMNO'] . ' not found on system. Please add first'], 400);
 
                 if (!in_array($productUnit->id, $productUnitBlacklist)) {
                     $receiveOrder->details()->create([
                         'product_unit_id' => $productUnit->id,
-                        'qty' => $item['QUANTITY'],
-                        'item_unit' => $item['ITEMUNIT'],
-                        'bruto_unit_price' => $item['BRUTOUNITPRICE'],
+                        'qty' => $itemlines['QUANTITY'],
+                        'item_unit' => $itemlines['ITEMUNIT'],
+                        'bruto_unit_price' => $itemlines['BRUTOUNITPRICE'],
                     ]);
+                }
+            } else {
+                foreach ($itemlines as $item) {
+                    $productUnit = ProductUnit::where('code', $item['ITEMNO'])->first();
+                    if (!$productUnit) return response()->json(['message' => 'Product ' . $item['ITEMNO'] . ' not found on system. Please add first'], 400);
+
+                    if (!in_array($productUnit->id, $productUnitBlacklist)) {
+                        $receiveOrder->details()->create([
+                            'product_unit_id' => $productUnit->id,
+                            'qty' => $item['QUANTITY'],
+                            'item_unit' => $item['ITEMUNIT'],
+                            'bruto_unit_price' => $item['BRUTOUNITPRICE'],
+                        ]);
+                    }
                 }
             }
 
