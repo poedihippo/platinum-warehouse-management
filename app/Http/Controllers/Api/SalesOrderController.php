@@ -170,7 +170,7 @@ class SalesOrderController extends Controller
             'reseller',
             'details' => fn($q) => $q->with('productUnit.product')
         ]);
-        $listProductsBlackSpace = 11 - $salesOrder->details->count() ?? 0;
+        $listProductsBlackSpace = max(11 - $salesOrder->details->count() ?? 0, 0);
         $spellTotalPrice = \NumberToWords\NumberToWords::transformNumber('en', $salesOrder->price);
         $bankTransferInfo = \App\Services\SettingService::bankTransferInfo();
 
