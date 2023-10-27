@@ -272,7 +272,7 @@
                         <span class="mx-5">{{ $detail->qty }}</span>
                     </td>
                     <td class="border-right text-right">
-                        <span class="mx-5">{{ $helper::rupiah($detail->unit_price) }}</span>
+                        <span class="mx-5">{{ \App\Helpers\Helper::rupiah($detail->unit_price) }}</span>
                     </td>
                     <td class="border-right">
                         <span class="mx-5">{{ $detail->discount }}</span>
@@ -281,7 +281,7 @@
                         <span class="mx-5">{{ $detail->tax }}</span>
                     </td>
                     <td class="text-right">
-                        <span class="mx-5">{{ $helper::rupiah($detail->total_price) }}</span>
+                        <span class="mx-5">{{ \App\Helpers\Helper::rupiah($detail->total_price) }}</span>
                     </td>
                 </tr>
             @endforeach
@@ -305,7 +305,7 @@
                         <tr>
                             <td>
                                 <div class="border border-radius-8">
-                                    <p class="mx-5 my-5">{{ $spellTotalPrice ?? $helper::rupiah($salesOrder->price) }}</p>
+                                    <p class="mx-5 my-5">{{ $spellTotalPrice ?? \App\Helpers\Helper::rupiah($salesOrder->price) }}</p>
                                     <br>
                                 </div>
                             </td>
@@ -363,7 +363,7 @@
                         <tr>
                             <td class="width-50 border-bottom text-right py-3">Sub Total :</td>
                             <td class="width-50 border-bottom text-right py-3">
-                                <span class="mr-5">{{ $helper::rupiah($salesOrder->details->sum('total_price')) }}</span>
+                                <span class="mr-5">{{ \App\Helpers\Helper::rupiah($salesOrder->details->sum('total_price')) }}</span>
                             </td>
                         </tr>
                         <tr>
@@ -391,7 +391,7 @@
                         <tr>
                             <td class="width-50 text-right py-3">Extimated Freight :</td>
                             <td class="width-50 text-right py-3">
-                                <span class="mr-5">{{ $helper::rupiah($salesOrder->shipment_fee) }}</span>
+                                <span class="mr-5">{{ \App\Helpers\Helper::rupiah($salesOrder->shipment_fee) }}</span>
                             </td>
                         </tr>
                     </table>
@@ -399,7 +399,7 @@
                         <tr>
                             <td class="width-50 text-right text-bold py-3">Total Order :</td>
                             <td class="width-50 text-right text-bold py-3">
-                                <span class="mr-5">{{ $helper::rupiah($salesOrder->price) }}</span>
+                                <span class="mr-5">{{ \App\Helpers\Helper::rupiah($salesOrder->price) }}</span>
                             </td>
                         </tr>
                     </table>
