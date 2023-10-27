@@ -170,11 +170,15 @@ class SalesOrderController extends Controller
             'reseller',
             'details' => fn($q) => $q->with('productUnit.product')
         ]);
-        $listProductsBlackSpace = max(11 - $salesOrder->details->count() ?? 0, 0);
+        $salesOrderDetails = $salesOrder->details->chunk(10);
+
+        $lastOrderDetailsKey = $salesOrderDetails->keys()->last();
+        $maxProductsBlackSpace = 10;
+
         $spellTotalPrice = \NumberToWords\NumberToWords::transformNumber('en', $salesOrder->price);
         $bankTransferInfo = \App\Services\SettingService::bankTransferInfo();
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::setPaper('a4', 'landscape')->loadView('pdf.salesOrders.salesOrder', ['salesOrder' => $salesOrder, 'listProductsBlackSpace' => $listProductsBlackSpace, 'spellTotalPrice' => $spellTotalPrice, 'bankTransferInfo' => $bankTransferInfo]);
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::setPaper('a4', 'landscape')->loadView('pdf.salesOrders.salesOrder', ['salesOrder' => $salesOrder, 'salesOrderDetails' => $salesOrderDetails, 'maxProductsBlackSpace' => $maxProductsBlackSpace, 'lastOrderDetailsKey' => $lastOrderDetailsKey, 'spellTotalPrice' => $spellTotalPrice, 'bankTransferInfo' => $bankTransferInfo]);
 
         return $pdf->download('sales-order-' . $salesOrder->invoice_no . '.pdf');
     }
