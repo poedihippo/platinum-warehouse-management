@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
@@ -15,30 +14,35 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 |
 */
 
-Route::get('clear-cache', function () {
-    Artisan::call('clear-compiled');
+Route::get('clear-config', function () {
+    \Illuminate\Support\Facades\Artisan::call('clear-compiled');
     echo "clear-compiled: complete<br>";
-    Artisan::call('cache:clear');
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
     echo "cache:clear: complete<br>";
-    Artisan::call('config:clear');
+    \Illuminate\Support\Facades\Artisan::call('config:clear');
     echo "config:clear: complete<br>";
-    Artisan::call('view:clear');
+    \Illuminate\Support\Facades\Artisan::call('view:clear');
     echo "view:clear: complete<br>";
-    Artisan::call('optimize:clear');
+    \Illuminate\Support\Facades\Artisan::call('event:clear');
+    echo "event:clear: complete<br>";
+    \Illuminate\Support\Facades\Artisan::call('optimize:clear');
     echo "optimize:clear: complete<br>";
-    Artisan::call('config:cache');
+
+    \Illuminate\Support\Facades\Artisan::call('config:cache');
     echo "config:cache: complete<br>";
-    Artisan::call('view:cache');
+    \Illuminate\Support\Facades\Artisan::call('view:cache');
     echo "view:cache: complete<br>";
+    \Illuminate\Support\Facades\Artisan::call('event:cache');
+    echo "event:cache: complete<br>";
 });
 
 Route::get('migrate', function () {
-    Artisan::call('migrate');
+    \Illuminate\Support\Facades\Artisan::call('migrate');
     echo "migrate - complete<br>";
 });
 
 Route::get('migrate-fresh', function () {
-    Artisan::call('migrate:fresh --seed');
+    \Illuminate\Support\Facades\Artisan::call('migrate:fresh --seed');
     echo "migrate:fresh --seed - complete<br>";
 });
 
