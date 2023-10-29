@@ -55,46 +55,47 @@ class SalesOrderController extends Controller
 
     public function store(SalesOrderStoreRequest $request)
     {
-        $items = $request->items ?? [];
-        $totalPrice = collect($items)->sum('total_price') ?? 0;
-        $shipmentFee = $request->validated()['shipment_fee'];
-        $totalPrice += $shipmentFee;
+        // $items = $request->items ?? [];
+        // $totalPrice = collect($items)->sum('total_price') ?? 0;
+        // $shipmentFee = $request->validated()['shipment_fee'];
+        // $totalPrice += $shipmentFee;
 
-        $data = [
-            ...$request->validated(),
-            'price' => $totalPrice
-        ];
+        // $data = [
+        //     ...$request->validated(),
+        //     'price' => $totalPrice
+        // ];
 
-        // BE total price validation
-        if (SalesOrderService::validateTotalPrice($totalPrice, $shipmentFee, $items) === false)
-            return response()->json(['message' => "Prices don't match"], 400);
+        // // BE total price validation
+        // if (SalesOrderService::validateTotalPrice($totalPrice, $shipmentFee, $items) === false)
+        //     return response()->json(['message' => "Prices don't match"], 400);
 
-        DB::beginTransaction();
-        try {
-            $salesOrder = SalesOrder::create($data);
+        // DB::beginTransaction();
+        // try {
+        //     $salesOrder = SalesOrder::create($data);
 
-            for ($i = 0; $i < count($items); $i++) {
-                $productUnit = ProductUnit::withTrashed()->find($items[$i]['product_unit_id']);
-                if (!$productUnit)
-                    return response()->json(['message' => 'Product ' . $items[$i]['product_unit_id'] . ' not found on system. Please add first'], 400);
+        //     for ($i = 0; $i < count($items); $i++) {
+        //         $productUnit = ProductUnit::withTrashed()->find($items[$i]['product_unit_id']);
+        //         if (!$productUnit)
+        //             return response()->json(['message' => 'Product ' . $items[$i]['product_unit_id'] . ' not found on system. Please add first'], 400);
 
-                $salesOrder->details()->create([
-                    'product_unit_id' => $items[$i]['product_unit_id'],
-                    'packaging_id' => empty($items[$i]['packaging_id']) ? null : $items[$i]['packaging_id'],
-                    'qty' => $items[$i]['qty'],
-                    'unit_price' => $items[$i]['unit_price'] ?? $productUnit->price ?? 0,
-                    'discount' => $items[$i]['discount'] ?? 0,
-                    'tax' => isset($items[$i]['tax']) && $items[$i]['tax'] == 1 ? 11 : 0,
-                    'total_price' => $items[$i]['total_price'] ?? 0,
-                    'warehouse_id' => $items[$i]['warehouse_id'],
-                ]);
-            }
-            DB::commit();
-        } catch (\Throwable $th) {
-            DB::rollBack();
-            return response()->json(['message' => $th->getMessage()], 500);
-        }
+        //         $salesOrder->details()->create([
+        //             'product_unit_id' => $items[$i]['product_unit_id'],
+        //             'packaging_id' => empty($items[$i]['packaging_id']) ? null : $items[$i]['packaging_id'],
+        //             'qty' => $items[$i]['qty'],
+        //             'unit_price' => $items[$i]['unit_price'] ?? $productUnit->price ?? 0,
+        //             'discount' => $items[$i]['discount'] ?? 0,
+        //             'tax' => isset($items[$i]['tax']) && $items[$i]['tax'] == 1 ? 11 : 0,
+        //             'total_price' => $items[$i]['total_price'] ?? 0,
+        //             'warehouse_id' => $items[$i]['warehouse_id'],
+        //         ]);
+        //     }
+        //     DB::commit();
+        // } catch (\Throwable $th) {
+        //     DB::rollBack();
+        //     return response()->json(['message' => $th->getMessage()], 500);
+        // }
 
+        $salesOrder = SalesOrderService::processOrder(SalesOrder::make(['raw_source' => $request->validated()]));
         return new SalesOrderResource($salesOrder);
     }
 

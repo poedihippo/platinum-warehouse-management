@@ -20,7 +20,10 @@ return new class extends Migration
             $table->foreignId('warehouse_id')->constrained();
             $table->string('invoice_no', 20)->nullable()->unique();
             // $table->string('status', 20);
+            $table->json('raw_source')->nullable();
+            $table->json('records')->nullable();
             $table->integer('shipment_fee')->default(0);
+            $table->integer('additional_discount')->default(0);
             $table->integer('price')->default(0);
             $table->dateTime('transaction_date');
             $table->dateTime('shipment_estimation_datetime');

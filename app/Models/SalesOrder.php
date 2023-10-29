@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\SettingEnum;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
@@ -12,20 +11,33 @@ class SalesOrder extends Model
 {
     use SoftDeletes;
 
+    public ?int $expected_price = null;
+
+    protected $hidden = [
+        'raw_source',
+        'records',
+    ];
+
     protected $fillable = [
         'user_id',
         'reseller_id',
         'warehouse_id',
         'invoice_no',
+        'raw_source',
+        'records',
         'transaction_date',
         'shipment_estimation_datetime',
         'shipment_fee',
+        'additional_discount',
         'price',
         'description',
     ];
 
     protected $casts = [
+        'raw_source' => 'array',
+        'records' => 'array',
         'shipment_fee' => 'integer',
+        'additional_discount' => 'integer',
         'price' => 'integer',
     ];
 
@@ -33,11 +45,12 @@ class SalesOrder extends Model
     {
         static::creating(function ($model) {
             $model->user_id = auth()->user()->id;
-            if (empty($model->description)) $model->description = '#Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih';
+            if (empty($model->description))
+                $model->description = '#Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih';
         });
 
         static::created(function ($model) {
-            if (empty($model->invoice_no)){
+            if (empty($model->invoice_no)) {
                 $model->invoice_no = self::getSoNumber();
                 $model->save();
             }
@@ -84,7 +97,7 @@ class SalesOrder extends Model
                 $arrayLastSoNumber = explode('/', $lastSoNumber);
 
                 if (is_array($arrayLastSoNumber) && count($arrayLastSoNumber) == 5 && date('m') == $arrayLastSoNumber[2] && date('y') == $arrayLastSoNumber[3]) {
-                    $arrayLastSoNumber[4] = sprintf('%02d', (int)$arrayLastSoNumber[4] + 1);
+                    $arrayLastSoNumber[4] = sprintf('%02d', (int) $arrayLastSoNumber[4] + 1);
                     $nextLastSoNumber = implode('/', $arrayLastSoNumber);
                 } else {
                     $lastSoNumber = sprintf('PAS/SO/%s/%s/01', date('m'), date('y'));

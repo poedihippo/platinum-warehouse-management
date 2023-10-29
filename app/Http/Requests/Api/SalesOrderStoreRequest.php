@@ -23,8 +23,11 @@ class SalesOrderStoreRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
+        $additionalDiscount = $this->additional_discount ?? 0;
+
         $this->merge([
             'shipment_fee' => $this->shipment_fee ? (int) $this->shipment_fee : 0,
+            'additional_discount' => $this->additional_discount ? (int) $this->additional_discount : 0,
         ]);
     }
 
@@ -36,6 +39,7 @@ class SalesOrderStoreRequest extends FormRequest
     public function rules()
     {
         return [
+            'expected_price' => 'nullable|integer',
             'reseller_id' => [
                 'required',
                 function (string $attribute, mixed $value, Closure $fail) {
@@ -56,6 +60,7 @@ class SalesOrderStoreRequest extends FormRequest
             'transaction_date' => 'required|date_format:Y-m-d H:i:s',
             'shipment_estimation_datetime' => 'required|date_format:Y-m-d H:i:s',
             'shipment_fee' => 'required|integer',
+            'additional_discount' => 'required|integer',
             'description' => 'nullable|string',
             'items' => [
                 'required',
