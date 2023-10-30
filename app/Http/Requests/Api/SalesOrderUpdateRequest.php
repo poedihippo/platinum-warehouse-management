@@ -25,6 +25,7 @@ class SalesOrderUpdateRequest extends FormRequest
     {
         $this->merge([
             'shipment_fee' => $this->shipment_fee ? (int) $this->shipment_fee : 0,
+            'additional_discount' => $this->additional_discount ? (int) $this->additional_discount : 0,
         ]);
     }
 
@@ -37,6 +38,7 @@ class SalesOrderUpdateRequest extends FormRequest
     {
         $salesOrder = $this->sales_order;
         return [
+            'expected_price' => 'nullable|integer',
             'reseller_id' => ['required', function (string $attribute, mixed $value, Closure $fail) {
                 if (!DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::Reseller)->exists()) {
                     $fail('Reseller not found');
@@ -54,15 +56,13 @@ class SalesOrderUpdateRequest extends FormRequest
             'transaction_date' => 'required|date_format:Y-m-d H:i:s',
             'shipment_estimation_datetime' => 'required|date_format:Y-m-d H:i:s',
             'shipment_fee' => 'required|integer',
+            'additional_discount' => 'required|integer',
             'description' => 'nullable|string',
             'items' => ['required', 'array', function (string $attribute, mixed $value, Closure $fail) {
                 if (count($value) <= 0) $fail('items required');
             }],
-            // 'items.*.product_unit_id' => 'required|integer|exists:product_units,id',
-            // 'items.*.qty' => 'required|integer',
-            // 'items.*.price' => 'required|numeric|min:0',
-            // 'items.*.discount' => 'required|numeric|min:0',
             'items.*.product_unit_id' => 'required|integer|exists:product_units,id',
+            'items.*.packaging_id' => 'nullable|integer|exists:product_units,id',
             'items.*.qty' => 'required|integer',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.discount' => 'required|numeric|min:0',

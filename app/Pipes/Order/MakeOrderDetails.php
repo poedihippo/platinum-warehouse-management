@@ -29,7 +29,8 @@ class MakeOrderDetails
             return $orderDetail;
         });
 
-        $salesOrder->details = $salesOrderDetails;
+        $salesOrder->sales_order_details = $salesOrderDetails;
+        $salesOrder->price = $salesOrder->sales_order_details->sum('total_price') ?? 0;
 
         return $next($salesOrder);
     }

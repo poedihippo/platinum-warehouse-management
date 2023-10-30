@@ -8,7 +8,8 @@ class CalculateAdditionalDiscount
     public function handle(SalesOrder $salesOrder, \Closure $next)
     {
         if ($salesOrder->additional_discount > 0) {
-            $salesOrder->price = $salesOrder->price - ($salesOrder->price * $salesOrder->additional_discount / 100);
+            $salesOrder->additional_discount = $salesOrder->price * $salesOrder->additional_discount / 100;
+            $salesOrder->price = max($salesOrder->price - $salesOrder->additional_discount, 0);
         }
 
         return $next($salesOrder);

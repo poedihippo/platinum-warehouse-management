@@ -11,6 +11,7 @@ use App\Pipes\Order\FillOrderAttributes;
 use App\Pipes\Order\FillOrderRecords;
 use App\Pipes\Order\MakeOrderDetails;
 use App\Pipes\Order\SaveOrder;
+use App\Pipes\Order\UpdateOrder;
 use Illuminate\Pipeline\Pipeline;
 
 class SalesOrderService
@@ -61,19 +62,41 @@ class SalesOrderService
         ]);
     }
 
-    public static function processOrder(SalesOrder $salesOrder): SalesOrder
+    public static function createOrder(SalesOrder $salesOrder, bool $isPerview = false): SalesOrder
     {
+        $pipes = [
+            FillOrderAttributes::class,
+            FillOrderRecords::class,
+            MakeOrderDetails::class,
+            CalculateAdditionalFees::class,
+            CalculateAdditionalDiscount::class,
+            CheckExpectedOrderPrice::class,
+        ];
+
+        if (!$isPerview) $pipes[] = SaveOrder::class;
+
         return app(Pipeline::class)
             ->send($salesOrder)
-            ->through([
-                FillOrderAttributes::class,
-                FillOrderRecords::class,
-                MakeOrderDetails::class,
-                CalculateAdditionalFees::class,
-                CalculateAdditionalDiscount::class,
-                CheckExpectedOrderPrice::class,
-                SaveOrder::class,
-            ])
+            ->through($pipes)
+            ->thenReturn();
+    }
+
+    public static function updateOrder(SalesOrder $salesOrder, bool $isPerview = false): SalesOrder
+    {
+        $pipes = [
+            FillOrderAttributes::class,
+            FillOrderRecords::class,
+            MakeOrderDetails::class,
+            CalculateAdditionalFees::class,
+            CalculateAdditionalDiscount::class,
+            CheckExpectedOrderPrice::class,
+        ];
+
+        if (!$isPerview) $pipes[] = UpdateOrder::class;
+
+        return app(Pipeline::class)
+            ->send($salesOrder)
+            ->through($pipes)
             ->thenReturn();
     }
 }

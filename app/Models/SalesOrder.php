@@ -13,6 +13,10 @@ class SalesOrder extends Model
 
     public ?int $expected_price = null;
 
+    protected $appends = [
+        'additional_discount_percentage',
+    ];
+
     protected $hidden = [
         'raw_source',
         'records',
@@ -55,6 +59,11 @@ class SalesOrder extends Model
                 $model->save();
             }
         });
+    }
+
+    public function getAdditionalDiscountPercentageAttribute()
+    {
+        return $this->raw_source['additional_discount'] ?? 0;
     }
 
     // public function deliveryOrder()

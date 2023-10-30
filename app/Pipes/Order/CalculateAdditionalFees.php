@@ -6,10 +6,7 @@ class CalculateAdditionalFees
 {
     public function handle(SalesOrder $salesOrder, \Closure $next)
     {
-        $salesOrderDetailsTotalPrice = $salesOrder->details->sum('total_price') ?? 0;
-        $salesOrderDetailsTotalPrice += $salesOrder->shipment_fee;
-
-        $salesOrder->price = $salesOrderDetailsTotalPrice;
+        $salesOrder->price += $salesOrder->shipment_fee;
 
         return $next($salesOrder);
     }
