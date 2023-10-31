@@ -68,8 +68,8 @@ class SalesOrderService
             FillOrderAttributes::class,
             FillOrderRecords::class,
             MakeOrderDetails::class,
-            CalculateAdditionalFees::class,
             CalculateAdditionalDiscount::class,
+            CalculateAdditionalFees::class,
             CheckExpectedOrderPrice::class,
         ];
 
@@ -87,8 +87,8 @@ class SalesOrderService
             FillOrderAttributes::class,
             FillOrderRecords::class,
             MakeOrderDetails::class,
-            CalculateAdditionalFees::class,
             CalculateAdditionalDiscount::class,
+            CalculateAdditionalFees::class,
             CheckExpectedOrderPrice::class,
         ];
 
