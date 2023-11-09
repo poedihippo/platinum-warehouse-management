@@ -166,7 +166,7 @@
                                     <p class="m-0 mx-5">
                                         KO Duta Indah Iconic Blok B no. 17 <br />RT.004 RW02 Kel.
                                         Panunggangan Utara <br />
-                                        Pinang Kota Tangerang Banteng
+                                        Pinang Kota Tangerang Banten
                                     </p>
                                 </div>
                             </td>
