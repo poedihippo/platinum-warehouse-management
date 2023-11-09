@@ -241,13 +241,13 @@
                                 <tr>
                                     <td class="border-right-bottom-dashed py-3">
                                         <p class="mx-5 m-0">Ship Via</p>
-                                        <p class="mx-5 m-0 ml-20">
-                                            {{ date('d M Y', strtotime($salesOrder->shipment_estimation_datetime)) }}
-                                        </p>
+                                        <p class="mx-5 m-0 ml-20">&nbsp;</p>
                                     </td>
                                     <td class="border-left-bottom-dashed py-3">
                                         <p class="mx-5 m-0">Ship Date</p>
-                                        <p class="mx-5 m-0 ml-20">&nbsp;</p>
+                                        <p class="mx-5 m-0 ml-20">
+                                            {{ date('d M Y', strtotime($salesOrder->shipment_estimation_datetime)) }}
+                                        </p>
                                     </td>
                                 </tr>
                                 <tr>
@@ -291,7 +291,7 @@
                             <span class="mx-5">{{ $detail->qty }}</span>
                         </td>
                         <td class="border-right text-right">
-                            <span class="mx-5">{{ $detail->unit_price }}</span>
+                            <span class="mx-5">{{ number_format($detail->unit_price) }}</span>
                         </td>
                         <td class="border-right">
                             <span class="mx-5">{{ $detail->discount }}</span>
@@ -300,7 +300,7 @@
                             <span class="mx-5">{{ $detail->tax }}</span>
                         </td>
                         <td class="text-right">
-                            <span class="mx-5">{{ $detail->total_price }}</span>
+                            <span class="mx-5">{{ number_format($detail->total_price) }}</span>
                         </td>
                     </tr>
                 @endforeach
@@ -384,13 +384,13 @@
                                 <tr>
                                     <td class="width-50 border-bottom text-right py-3">Sub Total :</td>
                                     <td class="width-50 border-bottom text-right py-3">
-                                        <span class="mr-5">{{ $salesOrder->details->sum('total_price') }}</span>
+                                        <span class="mr-5">{{ number_format($salesOrder->details->sum('total_price')) }}</span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="width-50 text-right py-3">Discount :</td>
                                     <td class="width-50 text-right py-3">
-                                        <span class="mr-5">0</span>
+                                        <span class="mr-5">{{ number_format($salesOrder->additional_discount) }}</span>
                                     </td>
                                 </tr>
                             </table>
@@ -412,7 +412,7 @@
                                 <tr>
                                     <td class="width-50 text-right py-3">Extimated Freight :</td>
                                     <td class="width-50 text-right py-3">
-                                        <span class="mr-5">{{ $salesOrder->shipment_fee }}</span>
+                                        <span class="mr-5">{{ number_format($salesOrder->shipment_fee) }}</span>
                                     </td>
                                 </tr>
                             </table>
@@ -420,7 +420,7 @@
                                 <tr>
                                     <td class="width-50 text-right text-bold py-3">Total Order :</td>
                                     <td class="width-50 text-right text-bold py-3">
-                                        <span class="mr-5">{{ $salesOrder->price }}</span>
+                                        <span class="mr-5">{{ number_format($salesOrder->price) }}</span>
                                     </td>
                                 </tr>
                             </table>

@@ -37,10 +37,11 @@ class StockController extends Controller
         // abort_if(!auth()->user()->tokenCan('stock_access'), 403);
         $stockProductUnits = QueryBuilder::for(StockProductUnit::with(['warehouse', 'productUnit'])->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')]))
             ->allowedFilters([
-                'id', 'warehouse_id',
+                AllowedFilter::exact('id'),
                 AllowedFilter::scope('product_unit'),
                 AllowedFilter::scope('product_brand_id', 'whereProductBrandId'),
                 AllowedFilter::scope('product_category_id', 'whereProductCategoryId'),
+                'warehouse_id',
             ])
             ->allowedSorts(['id', 'qty', 'product_unit_id', 'warehouse_id', 'created_at'])
             ->paginate();
