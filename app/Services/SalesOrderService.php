@@ -58,7 +58,7 @@ class SalesOrderService
         $salesOrderDetail->refresh();
 
         $salesOrderDetail->update([
-            'fulfilled_qty' => $salesOrderDetail->salesOrderItems->count()
+            'fulfilled_qty' => $salesOrderDetail->salesOrderItems()->where('is_parent', 0)->count()
         ]);
     }
 

@@ -214,39 +214,77 @@ class DeliveryOrderController extends Controller
 
     public function verification(DeliveryOrder $deliveryOrder, DeliveryOrderDetail $deliveryOrderDetail, SalesOrderItemStoreRequest $request)
     {
+
+        // 1. cek if exist $deliveryOrderDetail
         $salesOrderDetail = $deliveryOrderDetail->salesOrderDetail;
         if (!$salesOrderDetail)
             return response()->json(['message' => 'Sales order item not found'], 404);
 
-        // 1. cek berdasarkan uom dari SO detail nya
+        // 2. cek stock_id nya apakah sesuai dengan product unit dan warehouse dari SO detail
         $stock = Stock::where('id', $request->stock_id)
             ->whereHas('stockProductUnit', fn($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id)->where('warehouse_id', $salesOrderDetail->salesOrder?->warehouse_id))
-            // ->where('product_unit_id', $salesOrderDetail->product_unit_id)
-            // ->where('warehouse_id', $salesOrderDetail->salesOrder?->warehouse_id)
             ->first();
         if (!$stock)
             return response()->json(['message' => 'Stock of product not match'], 400);
 
+        // 3. cek apakah stock sudah pernah di scan
         // $cek = $salesOrderDetail->salesOrderItems()->where('stock_id', $stock?->id)->exists();
         $cek = SalesOrderItem::where('stock_id', $stock?->id)->exists();
-
         if ($cek)
             return response()->json(['message' => 'The product has been scanned'], 400);
 
-        if ($salesOrderDetail->salesOrderItems->count() >= $salesOrderDetail->qty)
+        // 4. cek apakah required qty dari SO sudah terpenuhi
+        // 5. jika stock_id yang di scan adalah grouping, hitung dulu jumlah childs nya lalu compare dengan required qty yang ada di step 4
+        $fulfilledQty = $salesOrderDetail->salesOrderItems->count() ?? 0;
+        if ($fulfilledQty >= $salesOrderDetail->qty)
             return response()->json(['message' => 'Delivery orders have been fulfilled'], 400);
 
-        DB::beginTransaction();
-        try {
-            $salesOrderItem = $salesOrderDetail->salesOrderItems()->create([
-                'stock_id' => $stock->id
-            ]);
+        $stock->load(['childs' => fn($q) => $q->select('id', 'parent_id')]);
+        $totalChilds = $stock->childs->count() ?? 0;
+        $dataStocks = []; // data stock to be insert into salesOrderItems
+        if ($totalChilds > 0) {
+            if (($fulfilledQty + $totalChilds) > $salesOrderDetail->qty) {
+                return response()->json(['message' => 'Delivery orders have been fulfilled'], 400);
+            }
 
-            SalesOrderService::countFulfilledQty($salesOrderDetail);
-            DB::commit();
-        } catch (\Throwable $th) {
-            DB::rollBack();
-            return response()->json(['message' => $th->getMessage()], 500);
+            // foreach ($stock->childs as $child) {
+            //     $dataStocks[] = ['stock_id' => $child->id];
+            // }
+
+            // 6. insert stock_id ke sales_order_items. jika stock grouping, insert childs nya
+            DB::beginTransaction();
+            try {
+                $salesOrderItem = $salesOrderDetail->salesOrderItems()->create([
+                    'stock_id' => $stock->id,
+                    'is_parent' => true,
+                ]);
+
+                foreach ($stock->childs as $child) {
+                    $dataStocks[] = ['stock_id' => $child->id, 'sales_order_detail_id' => $salesOrderDetail->id];
+                }
+
+                $salesOrderItem->childs()->createMany($dataStocks);
+
+                SalesOrderService::countFulfilledQty($salesOrderDetail);
+                DB::commit();
+            } catch (\Throwable $th) {
+                DB::rollBack();
+                return response()->json(['message' => $th->getMessage()], 500);
+            }
+        } else {
+            // 6. insert stock_id ke sales_order_items. jika stock grouping, insert childs nya
+            DB::beginTransaction();
+            try {
+                $salesOrderItem = $salesOrderDetail->salesOrderItems()->create([
+                    'stock_id' => $stock->id,
+                ]);
+
+                SalesOrderService::countFulfilledQty($salesOrderDetail);
+                DB::commit();
+            } catch (\Throwable $th) {
+                DB::rollBack();
+                return response()->json(['message' => $th->getMessage()], 500);
+            }
         }
 
         return new SalesOrderItemResource($salesOrderItem);
@@ -310,7 +348,7 @@ class DeliveryOrderController extends Controller
                         // record stock history for packaging
                         $stockProductUnit = $salesOrderDetail->packaging->stockProductUnits()->where('warehouse_id', $salesOrderDetail?->warehouse_id)->first();
 
-                        if ($stockProductUnit->productUnit->is_generate_qr) {
+                        if (!$stockProductUnit->productUnit->is_generate_qr) {
                             $stockProductUnit->decrement('qty', $history->value);
                         }
 

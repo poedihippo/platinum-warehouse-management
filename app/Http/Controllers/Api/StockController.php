@@ -39,6 +39,7 @@ class StockController extends Controller
             ->allowedFilters([
                 AllowedFilter::exact('id'),
                 AllowedFilter::exact('warehouse_id'),
+                AllowedFilter::exact('product_unit_id'),
                 AllowedFilter::scope('product_unit'),
                 AllowedFilter::scope('product_brand_id', 'whereProductBrandId'),
                 AllowedFilter::scope('product_category_id', 'whereProductCategoryId'),
