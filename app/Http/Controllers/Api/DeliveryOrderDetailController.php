@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\DeliveryOrderDetailResource;
 use App\Models\DeliveryOrder;
 use App\Models\DeliveryOrderDetail;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class DeliveryOrderDetailController extends Controller
@@ -21,8 +22,8 @@ class DeliveryOrderDetailController extends Controller
         // abort_if(!auth()->user()->tokenCan('delivery_order_access'), 403);
         $deliveryOrderDetails = QueryBuilder::for(DeliveryOrderDetail::with(['salesOrderDetail' => fn($q) => $q->with('warehouse', 'salesOrder', 'packaging')])->where('delivery_order_id', $deliveryOrder->id))
             ->allowedFilters([
-                'delivery_order_id',
-                'sales_order_detail_id',
+                AllowedFilter::exact('delivery_order_id'),
+                AllowedFilter::exact('sales_order_detail_id'),
             ])
             ->allowedSorts(['id', 'delivery_order_id', 'sales_order_detail_id', 'created_at'])
             ->paginate();

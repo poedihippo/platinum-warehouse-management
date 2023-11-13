@@ -31,7 +31,7 @@ class ProductUnitController extends Controller
         // abort_if(!auth()->user()->tokenCan('product_unit_access'), 403);
         $productUnits = QueryBuilder::for(ProductUnit::with('product'))
             ->allowedFilters([
-                'product_id',
+                AllowedFilter::exact('product_id'),
                 'name',
                 'is_generate_qr',
                 AllowedFilter::scope('product_brand_id', 'whereProductBrandId'),

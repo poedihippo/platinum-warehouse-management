@@ -34,9 +34,9 @@ class SalesOrderController extends Controller
         $salesOrders = QueryBuilder::for(SalesOrder::withCount('details'))
             ->allowedFilters([
                 'invoice_no',
-                'user_id',
-                'reseller_id',
-                'warehouse_id',
+                AllowedFilter::exact('user_id'),
+                AllowedFilter::exact('reseller_id'),
+                AllowedFilter::exact('warehouse_id'),
             ])
             ->allowedSorts(['id', 'invoice_no', 'user_id', 'reseller_id', 'warehouse_id', 'created_at'])
             ->allowedIncludes(['details', 'warehouse', 'user'])

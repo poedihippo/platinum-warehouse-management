@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductUnitBlacklistResource;
 use App\Models\ProductUnitBlacklist;
 use Illuminate\Http\Request;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class ProductUnitBlacklistController extends Controller
@@ -23,7 +24,9 @@ class ProductUnitBlacklistController extends Controller
         // abort_if(!auth()->user()->tokenCan('product_unit_blacklist_access'), 403);
 
         $productUnitBlacklists = QueryBuilder::for(ProductUnitBlacklist::with('productUnit'))
-            ->allowedFilters('product_unit_id')
+            ->allowedFilters([
+                AllowedFilter::exact('product_unit_id'),
+            ])
             ->allowedSorts('product_unit_id')
             ->paginate();
 

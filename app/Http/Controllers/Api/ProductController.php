@@ -8,6 +8,7 @@ use App\Http\Requests\Api\ProductUpdateRequest;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use Illuminate\Http\Response;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class ProductController extends Controller
@@ -25,7 +26,11 @@ class ProductController extends Controller
     {
         // abort_if(!auth()->user()->tokenCan('product_access'), 403);
         $products = QueryBuilder::for(Product::with(['productCategory', 'productBrand']))
-            ->allowedFilters(['product_category_id', 'product_brand_id', 'name'])
+            ->allowedFilters([
+                AllowedFilter::exact('product_category_id'),
+                AllowedFilter::exact('product_brand_id'),
+                'name'
+            ])
             ->allowedSorts(['id', 'product_category_id', 'product_brand_id', 'name', 'created_at'])
             ->paginate();
 

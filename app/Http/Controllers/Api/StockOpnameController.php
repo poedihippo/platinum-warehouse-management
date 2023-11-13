@@ -8,6 +8,7 @@ use App\Http\Resources\StockOpnameResource;
 use App\Models\StockOpname;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class StockOpnameController extends Controller
@@ -19,14 +20,18 @@ class StockOpnameController extends Controller
         $this->middleware('permission:stock_opname_create', ['only' => 'store']);
         $this->middleware('permission:stock_opname_edit', ['only' => 'update']);
         $this->middleware('permission:stock_opname_delete', ['only' => 'destroy']);
-        $this->middleware('permission:stock_opname_done', ['only' => ['done','setDone']]);
+        $this->middleware('permission:stock_opname_done', ['only' => ['done', 'setDone']]);
     }
 
     public function index()
     {
         // abort_if(!auth()->user()->tokenCan('stock_opname_access'), 403);
         $stockOpnames = QueryBuilder::for(StockOpname::query())
-            ->allowedFilters(['description', 'is_done', 'warehouse_id'])
+            ->allowedFilters([
+                AllowedFilter::exact('warehouse_id'),
+                'description',
+                'is_done'
+            ])
             ->allowedSorts(['id', 'description', 'is_done', 'warehouse_id', 'created_at'])
             ->paginate();
 
@@ -66,7 +71,8 @@ class StockOpnameController extends Controller
 
         $request->validate(['is_done' => 'required|boolean']);
 
-        if (!$stockOpname->details->every(fn ($detail) => $detail->is_done === true)) return response()->json(['message' => 'All stock opname data must be set done'], 400);
+        if (!$stockOpname->details->every(fn($detail) => $detail->is_done === true))
+            return response()->json(['message' => 'All stock opname data must be set done'], 400);
         $stockOpname->update([
             'is_done' => $request->is_done,
             'done_at' => now(),

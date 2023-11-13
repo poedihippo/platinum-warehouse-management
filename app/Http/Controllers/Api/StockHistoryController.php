@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\StockHistoryResource;
 use App\Models\StockHistory;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class StockHistoryController extends Controller
@@ -19,9 +20,10 @@ class StockHistoryController extends Controller
     {
         // abort_if(!auth()->user()->tokenCan('stock_history_access'), 403);
 
-        $stockHistories = QueryBuilder::for(StockHistory::with(['stockHistoryable', 'user' => fn ($q) => $q->select('id', 'name')]))
+        $stockHistories = QueryBuilder::for(StockHistory::with(['stockHistoryable', 'user' => fn($q) => $q->select('id', 'name')]))
             ->allowedFilters([
-                'stock_product_unit_id',
+                AllowedFilter::exact('stock_product_unit_id'),
+                AllowedFilter::exact('user_id'),
                 'description',
                 'user_id'
             ])

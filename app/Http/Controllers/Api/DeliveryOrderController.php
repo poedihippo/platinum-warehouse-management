@@ -19,6 +19,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class DeliveryOrderController extends Controller
@@ -41,7 +42,7 @@ class DeliveryOrderController extends Controller
         $deliveryOrders = QueryBuilder::for(DeliveryOrder::with('user', 'reseller')->withCount('details'))
             ->allowedFilters([
                 'invoice_no',
-                'reseller_id',
+                AllowedFilter::exact('reseller_id'),
             ])
             ->allowedSorts(['id', 'invoice_no', 'user_id', 'reseller_id', 'is_done', 'created_at'])
             ->paginate();

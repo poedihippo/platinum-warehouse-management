@@ -32,7 +32,8 @@ class AdjustmentRequestController extends Controller
 
         $adjustmentRequests = QueryBuilder::for(AdjustmentRequest::with(['user', 'stockProductUnit']))
             ->allowedFilters([
-                'user_id', 'stock_product_unit_id',
+                AllowedFilter::exact('user_id'),
+                AllowedFilter::exact('stock_product_unit_id'),
                 AllowedFilter::scope('startDate'),
                 AllowedFilter::scope('endDate'),
             ])

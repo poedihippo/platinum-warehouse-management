@@ -43,7 +43,6 @@ class StockController extends Controller
                 AllowedFilter::scope('product_unit'),
                 AllowedFilter::scope('product_brand_id', 'whereProductBrandId'),
                 AllowedFilter::scope('product_category_id', 'whereProductCategoryId'),
-                'warehouse_id',
             ])
             ->allowedSorts(['id', 'qty', 'product_unit_id', 'warehouse_id', 'created_at'])
             ->paginate();
