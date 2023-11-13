@@ -102,7 +102,7 @@ class SalesOrderController extends Controller
             return response()->json(['message' => "DO must be deleted first before editing SO"], 400);
 
         $salesOrder->raw_source = $request->validated();
-        $salesOrder = SalesOrderService::updateOrder($salesOrder, (bool)$request->is_preview ?? false);
+        $salesOrder = SalesOrderService::updateOrder($salesOrder, (bool) $request->is_preview ?? false);
         return (new SalesOrderResource($salesOrder))->response()->setStatusCode(Response::HTTP_ACCEPTED);
 
         // $items = $request->items ?? [];
@@ -213,7 +213,10 @@ class SalesOrderController extends Controller
             ->having('stocks_count', '>', 0);
 
         $stockProductUnits = QueryBuilder::for($query)
-            ->allowedFilters(AllowedFilter::scope('product_unit'))
+            ->allowedFilters([
+                AllowedFilter::exact('warehouse_id'),
+                AllowedFilter::scope('product_unit'),
+            ])
             ->paginate();
 
         $stockProductUnits->each(function ($stockProductUnit) use ($userDiscounts) {
