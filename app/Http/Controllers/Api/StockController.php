@@ -64,7 +64,12 @@ class StockController extends Controller
 
         $stocks = QueryBuilder::for($query)
             ->allowedFilters([
-                'id', 'parent_id', 'stock_product_unit_id', 'warehouse_id', 'receive_order_id', 'receive_order_detail_id',
+                AllowedFilter::exact('id'),
+                AllowedFilter::exact('parent_id'),
+                AllowedFilter::exact('stock_product_unit_id'),
+                AllowedFilter::exact('warehouse_id'),
+                AllowedFilter::exact('receive_order_id'),
+                AllowedFilter::exact('receive_order_detail_id'),
                 AllowedFilter::scope('startDate'),
                 AllowedFilter::scope('endDate'),
                 AllowedFilter::callback('show_all', function (\Illuminate\Database\Eloquent\Builder $query, $value) {

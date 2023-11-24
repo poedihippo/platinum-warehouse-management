@@ -8,6 +8,7 @@ use App\Http\Requests\Api\StockOpnameDetailUpdateRequest;
 use App\Http\Resources\StockOpnameDetailResource;
 use App\Models\StockOpname;
 use App\Models\StockOpnameDetail;
+use App\Models\StockOpnameItem;
 use App\Models\StockProductUnit;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -93,11 +94,20 @@ class StockOpnameDetailController extends Controller
         if (!$stockOpnameItem) return response()->json(['message' => 'QR does not match the stock opname data'], 400);
 
         $isScanned = $request->is_scanned ?? 1;
+
         $stockOpnameItem->is_scanned = $isScanned;
         if (!$stockOpnameItem->isDirty('is_scanned') && $stockOpnameItem->is_scanned == 1) return response()->json(['message' => 'Stock has been scanned'], 400);
         $stockOpnameItem->save();
+        $message = 'Stock scanned successfully';
 
-        return response()->json(['message' => 'Stock scanned successfully'], Response::HTTP_ACCEPTED);
+        // if stock have childs, update childs too
+        $stock = $stockOpnameItem->stock;
+        if($stock->childs->count() > 0){
+            StockOpnameItem::whereIn('stock_id', $stock->childs->pluck('id'))->update(['is_scanned' => $isScanned]);
+            $message = 'Stock and all childs scanned successfully';
+        }
+
+        return response()->json(['message' => $message], Response::HTTP_ACCEPTED);
     }
 
     public function done(StockOpname $stockOpname, string $id, Request $request)
