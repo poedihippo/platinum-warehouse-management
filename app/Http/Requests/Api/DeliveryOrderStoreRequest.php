@@ -31,6 +31,14 @@ class DeliveryOrderStoreRequest extends FormRequest
             //     if (!$salesOrder) $fail('Sales order not found');
             //     if ($salesOrder->deliveryOrder) $fail("Can't select a sales order that already has a delivery order");
             // }],
+            'invoice_no' => [
+                'nullable',
+                function (string $attribute, mixed $value, Closure $fail) {
+                    if (DB::table('delivery_orders')->where('invoice_no', trim($value))->exists()) {
+                        $fail('Invoice number is already in use');
+                    }
+                }
+            ],
             'reseller_id' => ['required', function (string $attribute, mixed $value, Closure $fail) {
                 if (!DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::Reseller)->exists()) {
                     $fail('Reseller not found');

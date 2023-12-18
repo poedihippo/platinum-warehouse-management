@@ -37,8 +37,10 @@ class DeliveryOrder extends Model
         });
 
         static::created(function ($model) {
-            $model->invoice_no = self::getSoNumber();
-            $model->save();
+            if (empty($model->invoice_no)) {
+                $model->invoice_no = self::getDoNumber();
+                $model->save();
+            }
         });
 
         static::saved(function ($model) {
@@ -52,7 +54,7 @@ class DeliveryOrder extends Model
         });
     }
 
-    public function details(): HasMany
+    public function details() : HasMany
     {
         return $this->hasMany(DeliveryOrderDetail::class);
     }
@@ -62,53 +64,53 @@ class DeliveryOrder extends Model
     //     return $this->belongsTo(SalesOrder::class);
     // }
 
-    public function user(): BelongsTo
+    public function user() : BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function warehouse(): BelongsTo
+    public function warehouse() : BelongsTo
     {
         return $this->belongsTo(Warehouse::class);
     }
 
-    public function reseller(): BelongsTo
+    public function reseller() : BelongsTo
     {
         return $this->belongsTo(User::class, 'reseller_id');
     }
 
-    public static function getSoNumber(): string
+    public static function getDoNumber() : string
     {
         $key = SettingEnum::DO_NUMBER;
         return DB::transaction(function () use ($key) {
             // Get current value to use. We use lock for update
             // to prevent other thread to read this row until we update it
-            $lastSoNumber = DB::table('settings')
+            $lastDoNumber = DB::table('settings')
                 ->where('key', $key)
                 ->lockForUpdate()
                 ->first('value')?->value ?? null;
 
-            if (isset($lastSoNumber) && !is_null($lastSoNumber) && $lastSoNumber != '') {
-                $arrayLastSoNumber = explode('/', $lastSoNumber);
+            if (isset($lastDoNumber) && ! is_null($lastDoNumber) && $lastDoNumber != '') {
+                $arrayLastDoNumber = explode('/', $lastDoNumber);
 
-                if (is_array($arrayLastSoNumber) && count($arrayLastSoNumber) == 5 && date('m') == $arrayLastSoNumber[2] && date('y') == $arrayLastSoNumber[3]) {
-                    $arrayLastSoNumber[4] = sprintf('%02d', (int)$arrayLastSoNumber[4] + 1);
-                    $nextLastSoNumber = implode('/', $arrayLastSoNumber);
+                if (is_array($arrayLastDoNumber) && count($arrayLastDoNumber) == 5 && date('m') == $arrayLastDoNumber[2] && date('y') == $arrayLastDoNumber[3]) {
+                    $arrayLastDoNumber[4] = sprintf('%02d', (int) $arrayLastDoNumber[4] + 1);
+                    $nextLastDoNumber = implode('/', $arrayLastDoNumber);
                 } else {
-                    $lastSoNumber = sprintf('PAS/SO/%s/%s/01', date('m'), date('y'));
-                    $nextLastSoNumber = sprintf('PAS/SO/%s/%s/02', date('m'), date('y'));
+                    $lastDoNumber = sprintf('PAS/DO/%s/%s/01', date('m'), date('y'));
+                    $nextLastDoNumber = sprintf('PAS/DO/%s/%s/02', date('m'), date('y'));
                 }
             } else {
-                $lastSoNumber = sprintf('PAS/SO/%s/%s/01', date('m'), date('y'));
-                $nextLastSoNumber = sprintf('PAS/SO/%s/%s/02', date('m'), date('y'));
+                $lastDoNumber = sprintf('PAS/DO/%s/%s/01', date('m'), date('y'));
+                $nextLastDoNumber = sprintf('PAS/DO/%s/%s/02', date('m'), date('y'));
             }
 
-            // update the value with $nextLastSoNumber
+            // update the value with $nextLastDoNumber
             DB::table('settings')
                 ->where('key', $key)
-                ->update(['value' => $nextLastSoNumber]);
+                ->update(['value' => $nextLastDoNumber]);
 
-            return $lastSoNumber;
+            return $lastDoNumber;
         });
     }
 }

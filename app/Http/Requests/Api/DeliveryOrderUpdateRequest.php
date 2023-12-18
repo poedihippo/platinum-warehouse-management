@@ -25,7 +25,16 @@ class DeliveryOrderUpdateRequest extends FormRequest
      */
     public function rules()
     {
+        $deliveryOrder = $this->delivery_order;
         return [
+            'invoice_no' => [
+                'nullable',
+                function (string $attribute, mixed $value, Closure $fail) use($deliveryOrder) {
+                    if (DB::table('delivery_orders')->where('id', '!=', $deliveryOrder->id)->where('invoice_no', trim($value))->exists()) {
+                        $fail('Invoice number is already in use');
+                    }
+                }
+            ],
             'reseller_id' => ['required', function (string $attribute, mixed $value, Closure $fail) {
                 if (!DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::Reseller)->exists()) {
                     $fail('Reseller not found');
