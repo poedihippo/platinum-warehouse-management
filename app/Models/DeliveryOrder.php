@@ -49,9 +49,9 @@ class DeliveryOrder extends Model
             }
         });
 
-        static::deleted(function ($model) {
-            $model->salesOrder?->details?->each(fn ($detail) => SalesOrderItem::where('sales_order_detail_id', $detail->id)->delete());
-        });
+        // static::deleted(function ($model) {
+        //     $model->salesOrder?->details?->each(fn ($detail) => SalesOrderItem::where('sales_order_detail_id', $detail->id)->delete());
+        // });
     }
 
     public function details() : HasMany
