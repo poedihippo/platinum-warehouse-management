@@ -31,7 +31,11 @@ class SalesOrderController extends Controller
     public function index()
     {
         // abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
-        $salesOrders = QueryBuilder::for(SalesOrder::withCount('details'))
+        $query = SalesOrder::withCount('details')->whereHas('details', function ($q) {
+            $q->doesntHave('deliveryOrderDetail');
+        });
+
+        $salesOrders = QueryBuilder::for($query)
             ->allowedFilters([
                 'invoice_no',
                 AllowedFilter::exact('user_id'),
@@ -48,7 +52,7 @@ class SalesOrderController extends Controller
     public function show(SalesOrder $salesOrder)
     {
         // abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
-        return new SalesOrderResource($salesOrder->load(['details' => fn($q) => $q->with(['warehouse', 'packaging']), 'user'])->loadCount('details'));
+        return new SalesOrderResource($salesOrder->load(['details' => fn ($q) => $q->with(['warehouse', 'packaging']), 'user'])->loadCount('details'));
     }
 
     public function store(SalesOrderStoreRequest $request)
@@ -98,7 +102,7 @@ class SalesOrderController extends Controller
 
     public function update(SalesOrder $salesOrder, SalesOrderUpdateRequest $request)
     {
-        if (!$salesOrder->details?->every(fn($salesOrderDetail) => !$salesOrderDetail->deliveryOrderDetail))
+        if (! $salesOrder->details?->every(fn ($salesOrderDetail) => ! $salesOrderDetail->deliveryOrderDetail))
             return response()->json(['message' => "DO must be deleted first before editing SO"], 400);
 
         $salesOrder->raw_source = $request->validated();
@@ -168,7 +172,7 @@ class SalesOrderController extends Controller
         // abort_if(!auth()->user()->tokenCan('sales_order_print'), 403);
         $salesOrder->load([
             'reseller',
-            'details' => fn($q) => $q->with('productUnit.product')
+            'details' => fn ($q) => $q->with('productUnit.product')
         ]);
         $salesOrderDetails = $salesOrder->details->chunk(10);
 
@@ -185,7 +189,7 @@ class SalesOrderController extends Controller
 
     public function exportXml(SalesOrder $salesOrder)
     {
-        $salesOrder->load(['reseller', 'details' => fn($q) => $q->with('packaging', 'productUnit')]);
+        $salesOrder->load(['reseller', 'details' => fn ($q) => $q->with('packaging', 'productUnit')]);
         // abort_if(!auth()->user()->tokenCan('sales_order_export_xml'), 403);
         return response(view('xml.salesOrders.salesOrder')->with(compact('salesOrder')), 200, [
             'Content-Type' => 'application/xml',
@@ -199,14 +203,14 @@ class SalesOrderController extends Controller
         $userDiscounts = UserDiscount::select('product_brand_id', 'value', 'is_percentage')->where('user_id', $request->customer_id)->get();
 
         $query = StockProductUnit::select('id', 'warehouse_id', 'product_unit_id')
-            ->withCount(['stocks' => fn($q) => $q->whereAvailableStock()->whereNull('description')])
+            ->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')])
             ->with([
-                'warehouse' => fn($q) => $q->select('id', 'code'),
+                'warehouse' => fn ($q) => $q->select('id', 'code'),
                 'productUnit' => function ($q) {
                     $q->select('id', 'uom_id', 'product_id', 'packaging_id', 'name', 'price')
                         ->with([
-                            'uom' => fn($q) => $q->select('id', 'name'),
-                            'product' => fn($q) => $q->select('id', 'name', 'product_brand_id'),
+                            'uom' => fn ($q) => $q->select('id', 'name'),
+                            'product' => fn ($q) => $q->select('id', 'name', 'product_brand_id'),
                         ]);
                 },
             ])
