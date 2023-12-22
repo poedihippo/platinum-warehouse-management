@@ -215,6 +215,7 @@ class DeliveryOrderController extends Controller
 
     public function verification(DeliveryOrder $deliveryOrder, DeliveryOrderDetail $deliveryOrderDetail, SalesOrderItemStoreRequest $request)
     {
+        if ($deliveryOrder->is_done) return response()->json(['message' => 'Delivery Order sudah diselesaikan. Batalkan untuk dapat scan lagi'], 404);
 
         // 1. cek if exist $deliveryOrderDetail
         $salesOrderDetail = $deliveryOrderDetail->salesOrderDetail;
