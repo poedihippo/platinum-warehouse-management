@@ -51,13 +51,6 @@ class StockOpnameController extends Controller
         return new StockOpnameResource($stockOpname);
     }
 
-    // public function update(StockOpname $stockOpname, StockOpnameUpdateRequest $request)
-    // {
-    //     $stockOpname->update($request->validated());
-
-    //     return (new StockOpnameResource($stockOpname))->response()->setStatusCode(Response::HTTP_ACCEPTED);
-    // }
-
     public function destroy(StockOpname $stockOpname)
     {
         // abort_if(!auth()->user()->tokenCan('stock_opname_delete'), 403);

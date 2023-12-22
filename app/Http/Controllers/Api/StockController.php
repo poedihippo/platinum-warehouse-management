@@ -98,15 +98,6 @@ class StockController extends Controller
         dd($request->all());
     }
 
-    // public function update(Stock $stock, StockUpdateRequest $request)
-    // {
-    //     dump($request->all());
-    //     dd($request->validated());
-    //     $stock->update($request->validated());
-
-    //     return (new BaseStockResource($stock))->response()->setStatusCode(Response::HTTP_ACCEPTED);
-    // }
-
     public function destroy(Stock $stock)
     {
         // abort_if(!auth()->user()->tokenCan('stock_delete'), 403);

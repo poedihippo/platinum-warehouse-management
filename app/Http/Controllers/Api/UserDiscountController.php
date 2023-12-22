@@ -58,11 +58,4 @@ class UserDiscountController extends Controller
 
         return (new UserResource($userDiscount))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
-
-    // public function destroy(User $user, $id)
-    // {
-    // abort_if(!auth()->user()->tokenCan('user_discount_delete'), 403);
-    //     $user->userDiscounts()->where('id', $id)->delete();
-    //     return $this->deletedResponse();
-    // }
 }

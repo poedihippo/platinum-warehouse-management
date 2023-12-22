@@ -14,21 +14,6 @@ class StockOpnameItemController extends Controller
         return response()->json($stockOpnameDetails);
     }
 
-    // public function store(StockOpnameDetail $stockOpnameDetail, stockOpnameItemStoreRequest $request)
-    // {
-    //     $stock = Stock::findOrFail($request->stock_id);
-
-    //     $cek = $stockOpnameDetail->stockOpnameItems()->where('stock_id', $stock->id)->exists();
-
-    //     if ($cek) return response()->json(['message' => 'Product sudah di scan'], 400);
-
-    //     $salesOrderItem = $stockOpnameDetail->stockOpnameItems()->create([
-    //         'stock_id' => $stock->id
-    //     ]);
-
-    //     return new SalesOrderItemResource($salesOrderItem);
-    // }
-
     public function destroy(\App\Models\StockOpname $stockOpname, \App\Models\StockOpnameDetail $stockOpnameDetail, Request $request)
     {
         $request->validate([

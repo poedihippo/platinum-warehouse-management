@@ -81,25 +81,6 @@ class UserController extends Controller
         }
 
         $user->update($data);
-        // $user->name = $request->name;
-        // $user->email = $request->email;
-        // if ($request->password) {
-        //     $user->password = $request->password;
-        // }
-        // $user->phone = $request->phone;
-        // $user->address = $request->address;
-        // $user->name = $request->tax_address;
-        // $user->tax_address = $request->provider_id;
-        // $user->provider_name = $request->provider_name;
-        // $user->city = $request->city;
-        // $user->province = $request->province;
-        // $user->zip_code = $request->zip_code;
-        // $user->country = $request->country;
-        // $user->phone = $request->phone;
-        // $user->contact_person = $request->contact_person;
-        // $user->web_page = $request->web_page;
-        // $user->type = $request->type;
-        // $user->save();
 
         $user->syncRoles($request->role_ids);
         return (new UserResource($user))->response()->setStatusCode(Response::HTTP_ACCEPTED);

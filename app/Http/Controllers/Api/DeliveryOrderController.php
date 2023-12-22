@@ -181,38 +181,6 @@ class DeliveryOrderController extends Controller
         ]);
     }
 
-    // public function verification(DeliveryOrder $deliveryOrder, SalesOrderDetail $salesOrderDetail, SalesOrderItemStoreRequest $request)
-    // {
-    //     // 1. cek berdasarkan uom dari SO detail nya
-    //     $stock = Stock::where('id', $request->stock_id)
-    //         ->whereHas('stockProductUnit', fn ($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id)->where('warehouse_id', $salesOrderDetail->salesOrder?->warehouse_id))
-    //         // ->where('product_unit_id', $salesOrderDetail->product_unit_id)
-    //         // ->where('warehouse_id', $salesOrderDetail->salesOrder?->warehouse_id)
-    //         ->first();
-    //     if (!$stock) return response()->json(['message' => 'Stok produk tidak sesuai'], 400);
-
-    //     $cek = $salesOrderDetail->salesOrderItems()->where('stock_id', $stock?->id)->exists();
-
-    //     if ($cek) return response()->json(['message' => 'Product sudah di scan'], 400);
-
-    //     if ($salesOrderDetail->fulfilled_qty >= $salesOrderDetail->qty) return response()->json(['message' => 'Delivery order sudah terpenuhi'], 400);
-
-    //     DB::beginTransaction();
-    //     try {
-    //         $salesOrderItem = $salesOrderDetail->salesOrderItems()->create([
-    //             'stock_id' => $stock->id
-    //         ]);
-
-    //         SalesOrderService::countFulfilledQty($salesOrderDetail);
-    //         DB::commit();
-    //     } catch (\Throwable $th) {
-    //         DB::rollBack();
-    //         return response()->json(['message' => $th->getMessage()], 500);
-    //     }
-
-    //     return new SalesOrderItemResource($salesOrderItem);
-    // }
-
     public function verification(DeliveryOrder $deliveryOrder, DeliveryOrderDetail $deliveryOrderDetail, SalesOrderItemStoreRequest $request)
     {
         if ($deliveryOrder->is_done) return response()->json(['message' => 'Delivery Order sudah diselesaikan. Batalkan untuk dapat scan lagi'], 404);
@@ -306,7 +274,6 @@ class DeliveryOrderController extends Controller
         // abort_if(!auth()->user()->tokenCan('delivery_order_done'), 403);
         $request->validate(['is_done' => 'required|boolean']);
 
-        // if (!$deliveryOrder->salesOrder?->details->every(fn ($detail) => $detail->fulfilled_qty >= $detail->qty)) return response()->json(['message' => 'Semua data delivery order harus diselesaikan'], 400);
         if (! $deliveryOrder->details->every(fn ($detail) => $detail->salesOrderDetail?->salesOrderItems?->count() >= $detail->salesOrderDetail?->qty))
             return response()->json(['message' => 'Semua data delivery order harus terpenuhi'], 400);
 
@@ -316,25 +283,6 @@ class DeliveryOrderController extends Controller
                 'is_done' => $request->is_done,
                 'done_at' => now(),
             ]);
-
-            // $deliveryOrder->salesOrder?->details->each(function ($detail) use ($deliveryOrder) {
-            //     $stockProductUnit = StockProductUnit::select('id')->where('warehouse_id', $deliveryOrder->salesOrder?->warehouse_id)
-            //         ->where('product_unit_id', $detail->product_unit_id)
-            //         ->first();
-
-            //     if ($stockProductUnit) {
-            //         // create history
-            //         $detail->histories()->create([
-            //             'user_id' => auth()->user()->id,
-            //             'stock_product_unit_id' => $stockProductUnit->id,
-            //             'value' => $detail->fulfilled_qty,
-            //             'is_increment' => 0,
-            //             'description' => $deliveryOrder->invoice_no . ' - Verified DO',
-            //             'ip' => request()->ip(),
-            //             'agent' => request()->header('user-agent'),
-            //         ]);
-            //     }
-            // });
 
             $deliveryOrder->details?->each(function ($detail) use ($deliveryOrder) {
                 $salesOrderDetail = $detail->salesOrderDetail->load('packaging');

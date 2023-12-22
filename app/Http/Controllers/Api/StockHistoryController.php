@@ -32,34 +32,4 @@ class StockHistoryController extends Controller
 
         return StockHistoryResource::collection($stockHistories);
     }
-
-    // public function show(StockHistory $StockHistory)
-    // {
-    //     abort_if(!auth()->user()->tokenCan('stock_history_access'), 403);
-    //     return new StockHistoryResource($StockHistory->load('stockProductUnit'));
-    // }
-
-    // public function store(StockHistoryStoreRequest $request)
-    // {
-    //     $StockHistory = StockHistory::create($request->validated());
-
-    //     return new StockHistoryResource($StockHistory->load('stockProductUnit'));
-    // }
-
-    // public function update(StockHistory $StockHistory, StockHistoryStoreRequest $request)
-    // {
-    //     if ($StockHistory->is_approved) return response()->json(['message' => "Tidak dapat update data jika sudah di approved"], 400);
-    //     $StockHistory->update($request->validated());
-
-    //     return (new StockHistoryResource($StockHistory->load('stockProductUnit')))->response()->setStatusCode(Response::HTTP_ACCEPTED);
-    // }
-
-    // public function destroy(StockHistory $StockHistory)
-    // {
-    //     abort_if(!auth()->user()->tokenCan('stock_history_delete'), 403);
-    //     if ($StockHistory->is_approved) return response()->json(['message' => "Tidak dapat menghapus data jika sudah di approved"], 400);
-
-    //     $StockHistory->delete();
-    //     return $this->deletedResponse();
-    // }
 }
