@@ -83,7 +83,7 @@ class RoleController extends Controller
     public function update(Role $role, RoleUpdateRequest $request)
     {
         if ($role->id == 1)
-            return response()->json(['message' => 'Role admin can not updated!']);
+            return response()->json(['message' => 'Role admin tidak dapat diupdate!']);
 
         $permissionNames = PermissionService::getPermissionNames($request->permission_ids ?? []);
         $role = DB::transaction(function () use ($role, $request, $permissionNames) {
@@ -108,7 +108,7 @@ class RoleController extends Controller
     public function destroy(Role $role)
     {
         if ($role->id == 1)
-            return response()->json(['message' => 'Role admin can not deleted!']);
+            return response()->json(['message' => 'Role admin tidak dapat dihapus!']);
         $role->delete();
         return $this->deletedResponse();
     }

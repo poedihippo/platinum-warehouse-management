@@ -65,9 +65,9 @@ class SalesOrderDetail extends Model
         return $this->morphMany(StockHistory::class, 'model');
     }
 
-    // public function scopeHasDeliveryOrder(Builder $query, bool $value = true)
-    // {
-    //     if ($value) return $query->has('deliveryOrderDetail');
-    //     return $query->doesntHave('deliveryOrderDetail');
-    // }
+    public function scopeHasDeliveryOrder(Builder $query, bool $value = true)
+    {
+        if ($value) return $query->has('deliveryOrderDetail');
+        return $query->doesntHave('deliveryOrderDetail');
+    }
 }

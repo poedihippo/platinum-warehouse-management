@@ -28,20 +28,20 @@ class DeliveryOrderStoreRequest extends FormRequest
         return [
             // 'sales_order_id' => ['required', function ($attribute, $value, Closure $fail) {
             //     $salesOrder = SalesOrder::find($value);
-            //     if (!$salesOrder) $fail('Sales order not found');
+            //     if (!$salesOrder) $fail('Sales order Tidak ditemukan');
             //     if ($salesOrder->deliveryOrder) $fail("Can't select a sales order that already has a delivery order");
             // }],
             'invoice_no' => [
                 'nullable',
                 function (string $attribute, mixed $value, Closure $fail) {
                     if (DB::table('delivery_orders')->where('invoice_no', trim($value))->exists()) {
-                        $fail('Invoice number is already in use');
+                        $fail('Invoice number sudah digunakan');
                     }
                 }
             ],
             'reseller_id' => ['required', function (string $attribute, mixed $value, Closure $fail) {
                 if (!DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::Reseller)->exists()) {
-                    $fail('Reseller not found');
+                    $fail('Reseller Tidak ditemukan');
                 }
             }],
             'warehouse_id' => 'required|exists:warehouses,id',

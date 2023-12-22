@@ -60,7 +60,7 @@ class ReceiveOrderController extends Controller
 
         $invoiceNo = $xmlArray['TRANSACTIONS']['RECIEVEITEM']['INVOICENO'];
         if (ReceiveOrder::where('invoice_no', $invoiceNo)->exists())
-            return response()->json(['message' => 'Invoice number is already in use'], 400);
+            return response()->json(['message' => 'Invoice number sudah digunakan'], 400);
 
         $productUnitBlacklist = DB::table('product_unit_blacklists')->select('product_unit_id')->get()?->pluck('product_unit_id')?->all() ?? [];
         $supplier = Supplier::where('code', $xmlArray['TRANSACTIONS']['RECIEVEITEM']['VENDORID'])->firstOrFail();
@@ -86,7 +86,7 @@ class ReceiveOrderController extends Controller
             if (isset($itemlines['ITEMNO'])) {
                 $productUnit = ProductUnit::where('code', $itemlines['ITEMNO'])->first();
                 if (!$productUnit)
-                    return response()->json(['message' => 'Product ' . $itemlines['ITEMNO'] . ' not found on system. Please add first'], 400);
+                    return response()->json(['message' => 'Product ' . $itemlines['ITEMNO'] . ' Tidak ditemukan on system. Please add first'], 400);
 
                 if (!in_array($productUnit->id, $productUnitBlacklist)) {
                     $receiveOrder->details()->create([
@@ -100,7 +100,7 @@ class ReceiveOrderController extends Controller
                 foreach ($itemlines as $item) {
                     $productUnit = ProductUnit::where('code', $item['ITEMNO'])->first();
                     if (!$productUnit)
-                        return response()->json(['message' => 'Product ' . $item['ITEMNO'] . ' not found on system. Please add first'], 400);
+                        return response()->json(['message' => 'Product ' . $item['ITEMNO'] . ' Tidak ditemukan on system. Please add first'], 400);
 
                     if (!in_array($productUnit->id, $productUnitBlacklist)) {
                         $receiveOrder->details()->create([
@@ -136,7 +136,7 @@ class ReceiveOrderController extends Controller
         // abort_if(!auth()->user()->tokenCan('receive_order_delete'), 403);
 
         if (!$receiveOrder->details->every(fn($detail) => $detail->is_verified === false)) {
-            return response()->json(['message' => 'All orders received must be unverified']);
+            return response()->json(['message' => 'Semua receive order harus unverified']);
         }
 
         $receiveOrder->delete();
@@ -149,7 +149,7 @@ class ReceiveOrderController extends Controller
         $request->validate(['is_done' => 'required|boolean']);
 
         if (!$receiveOrder->details?->every(fn($detail) => $detail->is_verified === true))
-            return response()->json(['message' => 'All receive order data must be verified'], 400);
+            return response()->json(['message' => 'ASemua receive order harus diverifikasi'], 400);
 
         $receiveOrder->update([
             'is_done' => $request->is_done ?? 1,

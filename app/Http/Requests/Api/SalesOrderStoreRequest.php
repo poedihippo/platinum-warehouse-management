@@ -45,7 +45,7 @@ class SalesOrderStoreRequest extends FormRequest
                 'required',
                 function (string $attribute, mixed $value, Closure $fail) {
                     if (!DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::Reseller)->exists()) {
-                        $fail('Reseller not found');
+                        $fail('Reseller Tidak ditemukan');
                     }
                 }
             ],
@@ -53,7 +53,7 @@ class SalesOrderStoreRequest extends FormRequest
                 'nullable',
                 function (string $attribute, mixed $value, Closure $fail) {
                     if (DB::table('sales_orders')->where('invoice_no', trim($value))->exists()) {
-                        $fail('Invoice number is already in use');
+                        $fail('Invoice number sudah digunakan');
                     }
                 }
             ],

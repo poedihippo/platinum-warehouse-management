@@ -48,7 +48,7 @@ class StockHistoryController extends Controller
 
     // public function update(StockHistory $StockHistory, StockHistoryStoreRequest $request)
     // {
-    //     if ($StockHistory->is_approved) return response()->json(['message' => "Can't update data if it has been approved"], 400);
+    //     if ($StockHistory->is_approved) return response()->json(['message' => "Tidak dapat update data jika sudah di approved"], 400);
     //     $StockHistory->update($request->validated());
 
     //     return (new StockHistoryResource($StockHistory->load('stockProductUnit')))->response()->setStatusCode(Response::HTTP_ACCEPTED);
@@ -57,7 +57,7 @@ class StockHistoryController extends Controller
     // public function destroy(StockHistory $StockHistory)
     // {
     //     abort_if(!auth()->user()->tokenCan('stock_history_delete'), 403);
-    //     if ($StockHistory->is_approved) return response()->json(['message' => "Can't delete data if it has been approved"], 400);
+    //     if ($StockHistory->is_approved) return response()->json(['message' => "Tidak dapat menghapus data jika sudah di approved"], 400);
 
     //     $StockHistory->delete();
     //     return $this->deletedResponse();

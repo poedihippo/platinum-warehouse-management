@@ -26,7 +26,7 @@ class SalesOrderItemController extends Controller
 
         $cek = $salesOrderDetail->salesOrderItems()->where('stock_id', $stock->id)->exists();
 
-        if ($cek) return response()->json(['message' => 'The product has been scanned'], 400);
+        if ($cek) return response()->json(['message' => 'Product sudah di scan'], 400);
 
         $salesOrderItem = $salesOrderDetail->salesOrderItems()->create([
             'stock_id' => $stock->id

@@ -84,7 +84,7 @@ class ReceiveOrderDetailController extends Controller
     {
         // abort_if(!auth()->user()->tokenCan('receive_order_verify_access'), 403);
 
-        if ($receiveOrder->is_done) return response()->json(['message' => "Receive order has been verified. Can't modify details"], 400);
+        if ($receiveOrder->is_done) return response()->json(['message' => "Delivery order sudah diverifikasi. Tidak dapat mengubah detail"], 400);
 
         $receiveOrderDetail = $receiveOrder->details()->where('id', $receiveOrderDetailId)->firstOrFail();
 
@@ -92,10 +92,8 @@ class ReceiveOrderDetailController extends Controller
             'is_verified' => 'required|boolean'
         ]);
 
-        // if (is_null($receiveOrderDetail->uom_id)) return response()->json(['message' => 'Data must be verified first'], 400);
-
         $receiveOrderDetail->is_verified = boolval($request->is_verified);
-        if ($receiveOrderDetail->isDirty('is_verified') === false) return response()->json(['message' => 'Unable to update with the same status'], 400);
+        if ($receiveOrderDetail->isDirty('is_verified') === false) return response()->json(['message' => 'Tidak dapat memperbarui dengan status yang sama'], 400);
         $receiveOrderDetail->save();
 
         return (new ReceiveOrderDetailResource($receiveOrderDetail))->response()->setStatusCode(Response::HTTP_ACCEPTED);
@@ -105,7 +103,7 @@ class ReceiveOrderDetailController extends Controller
     {
         // abort_if(!auth()->user()->tokenCan('receive_order_delete'), 403);
 
-        if ($receiveOrderDetail->is_verified === true) return response()->json(['message' => 'Data must be unverified']);
+        if ($receiveOrderDetail->is_verified === true) return response()->json(['message' => 'Data harus tidak diverifikasi']);
 
         DB::beginTransaction();
         try {

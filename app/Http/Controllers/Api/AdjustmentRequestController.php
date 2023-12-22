@@ -58,7 +58,7 @@ class AdjustmentRequestController extends Controller
 
     public function update(AdjustmentRequest $adjustmentRequest, AdjustmentRequestStoreRequest $request)
     {
-        if ($adjustmentRequest->is_approved) return response()->json(['message' => "Can't update data if it has been approved"], 400);
+        if ($adjustmentRequest->is_approved) return response()->json(['message' => "Tidak dapat update data jika sudah di approved"], 400);
         $adjustmentRequest->update($request->validated());
 
         return (new AdjustmentRequestResource($adjustmentRequest->load('stockProductUnit')))->response()->setStatusCode(Response::HTTP_ACCEPTED);
@@ -67,7 +67,7 @@ class AdjustmentRequestController extends Controller
     public function destroy(AdjustmentRequest $adjustmentRequest)
     {
         // abort_if(!auth()->user()->tokenCan('adjustment_request_delete'), 403);
-        if ($adjustmentRequest->is_approved) return response()->json(['message' => "Can't delete data if it has been approved"], 400);
+        if ($adjustmentRequest->is_approved) return response()->json(['message' => "Tidak dapat menghapus data jika sudah di approved"], 400);
 
         $adjustmentRequest->delete();
         return $this->deletedResponse();
@@ -78,7 +78,7 @@ class AdjustmentRequestController extends Controller
         // abort_if(!auth()->user()->tokenCan('adjustment_request_approve'), 403);
 
         $stockProductUnit = $adjustmentRequest->stockProductUnit;
-        if (!$stockProductUnit) return response()->json(['message' => "Stock product unit not found"], 404);
+        if (!$stockProductUnit) return response()->json(['message' => "Stock product unit Tidak ditemukan"], 404);
 
         DB::beginTransaction();
         try {

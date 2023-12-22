@@ -107,7 +107,7 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        if ($user->id == 1) return response()->json(['message' => 'Admin with id 1 can not deleted!']);
+        if ($user->id == 1) return response()->json(['message' => 'Admin dengan id 1 tidak dapat dihapus!']);
         // abort_if(!auth()->user()->tokenCan('user_delete'), 403);
         $user->delete();
         return $this->deletedResponse();
@@ -115,7 +115,7 @@ class UserController extends Controller
 
     public function forceDelete($id)
     {
-        if ($id == 1) return response()->json(['message' => 'Admin with id 1 can not deleted!']);
+        if ($id == 1) return response()->json(['message' => 'Admin dengan id 1 tidak dapat dihapus!']);
         // abort_if(!auth()->user()->tokenCan('user_delete'), 403);
         $user = User::withTrashed()->findOrFail($id);
         $user->forceDelete();

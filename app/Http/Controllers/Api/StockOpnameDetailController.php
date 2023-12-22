@@ -88,23 +88,23 @@ class StockOpnameDetailController extends Controller
         ]);
 
         $stockOpnameDetail = $stockOpname->details()->where('id', $stockOpnameDetailId)->first();
-        if (!$stockOpnameDetail) return response()->json(['message' => 'Data stock opname not match'], 400);
+        if (!$stockOpnameDetail) return response()->json(['message' => 'Data stock opname tidak cocok'], 400);
 
         $stockOpnameItem = $stockOpnameDetail->stockOpnameItems()->where('stock_id', $request->stock_id)->first();
-        if (!$stockOpnameItem) return response()->json(['message' => 'QR does not match the stock opname data'], 400);
+        if (!$stockOpnameItem) return response()->json(['message' => 'QR tidak sesuai dengan data stock opname'], 400);
 
         $isScanned = $request->is_scanned ?? 1;
 
         $stockOpnameItem->is_scanned = $isScanned;
-        if (!$stockOpnameItem->isDirty('is_scanned') && $stockOpnameItem->is_scanned == 1) return response()->json(['message' => 'Stock has been scanned'], 400);
+        if (!$stockOpnameItem->isDirty('is_scanned') && $stockOpnameItem->is_scanned == 1) return response()->json(['message' => 'Stock sudah di scan'], 400);
         $stockOpnameItem->save();
-        $message = 'Stock scanned successfully';
+        $message = 'Stock berhasil di scan';
 
         // if stock have childs, update childs too
         $stock = $stockOpnameItem->stock;
         if($stock->childs->count() > 0){
             StockOpnameItem::whereIn('stock_id', $stock->childs->pluck('id'))->update(['is_scanned' => $isScanned]);
-            $message = 'Stock and all childs scanned successfully';
+            $message = 'Stock dan childs berhasil di scan';
         }
 
         return response()->json(['message' => $message], Response::HTTP_ACCEPTED);
@@ -115,7 +115,7 @@ class StockOpnameDetailController extends Controller
         // abort_if(!auth()->user()->tokenCan('stock_opname_done'), 403);
 
         $stockOpnameDetail = $stockOpname->details()->where('id', $id)->first();
-        if (!$stockOpnameDetail) return response()->json(['message' => 'Data stock opname not match'], 400);
+        if (!$stockOpnameDetail) return response()->json(['message' => 'Data stock opname tidak cocok'], 400);
 
         $stockOpnameDetail->update([
             'is_done' => $request->is_done,

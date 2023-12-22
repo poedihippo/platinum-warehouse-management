@@ -59,103 +59,16 @@ class SalesOrderController extends Controller
     {
         $salesOrder = SalesOrderService::createOrder(SalesOrder::make(['raw_source' => $request->validated()]), (bool) $request->is_preview ?? false);
         return new SalesOrderResource($salesOrder);
-        // $items = $request->items ?? [];
-        // $totalPrice = collect($items)->sum('total_price') ?? 0;
-        // $shipmentFee = $request->validated()['shipment_fee'];
-        // $totalPrice += $shipmentFee;
-
-        // $data = [
-        //     ...$request->validated(),
-        //     'price' => $totalPrice
-        // ];
-
-        // // BE total price validation
-        // if (SalesOrderService::validateTotalPrice($totalPrice, $shipmentFee, $items) === false)
-        //     return response()->json(['message' => "Prices don't match"], 400);
-
-        // DB::beginTransaction();
-        // try {
-        //     $salesOrder = SalesOrder::create($data);
-
-        //     for ($i = 0; $i < count($items); $i++) {
-        //         $productUnit = ProductUnit::withTrashed()->find($items[$i]['product_unit_id']);
-        //         if (!$productUnit)
-        //             return response()->json(['message' => 'Product ' . $items[$i]['product_unit_id'] . ' not found on system. Please add first'], 400);
-
-        //         $salesOrder->details()->create([
-        //             'product_unit_id' => $items[$i]['product_unit_id'],
-        //             'packaging_id' => empty($items[$i]['packaging_id']) ? null : $items[$i]['packaging_id'],
-        //             'qty' => $items[$i]['qty'],
-        //             'unit_price' => $items[$i]['unit_price'] ?? $productUnit->price ?? 0,
-        //             'discount' => $items[$i]['discount'] ?? 0,
-        //             'tax' => isset($items[$i]['tax']) && $items[$i]['tax'] == 1 ? 11 : 0,
-        //             'total_price' => $items[$i]['total_price'] ?? 0,
-        //             'warehouse_id' => $items[$i]['warehouse_id'],
-        //         ]);
-        //     }
-        //     DB::commit();
-        // } catch (\Throwable $th) {
-        //     DB::rollBack();
-        //     return response()->json(['message' => $th->getMessage()], 500);
-        // }
     }
 
     public function update(SalesOrder $salesOrder, SalesOrderUpdateRequest $request)
     {
         if (! $salesOrder->details?->every(fn ($salesOrderDetail) => ! $salesOrderDetail->deliveryOrderDetail))
-            return response()->json(['message' => "DO must be deleted first before editing SO"], 400);
+            return response()->json(['message' => "DO harus dihapus terlebih dahulu sebelum mengedit SO"], 400);
 
         $salesOrder->raw_source = $request->validated();
         $salesOrder = SalesOrderService::updateOrder($salesOrder, (bool) $request->is_preview ?? false);
         return (new SalesOrderResource($salesOrder))->response()->setStatusCode(Response::HTTP_ACCEPTED);
-
-        // $items = $request->items ?? [];
-        // $totalPrice = collect($items)->sum('total_price') ?? 0;
-        // $shipmentFee = $request->validated()['shipment_fee'];
-        // $totalPrice += $shipmentFee;
-
-        // $data = [
-        //     ...$request->validated(),
-        //     'price' => $totalPrice
-        // ];
-
-        // // BE total price validation
-        // if (SalesOrderService::validateTotalPrice($totalPrice, $shipmentFee, $items) === false)
-        //     return response()->json(['message' => "Prices don't match"], 400);
-
-        // DB::beginTransaction();
-        // try {
-        //     $oldDetails = $salesOrder->details;
-        //     $salesOrder->update($data);
-
-        //     for ($i = 0; $i < count($items); $i++) {
-        //         $productUnit = ProductUnit::withTrashed()->find($items[$i]['product_unit_id']);
-        //         if (!$productUnit)
-        //             return response()->json(['message' => 'Product ' . $items[$i]['product_unit_id'] . ' not found on system. Please add first'], 400);
-
-        //         $salesOrder->details()->create([
-        //             // 'product_unit_id' => $items[$i]['product_unit_id'],
-        //             // 'qty' => $items[$i]['qty'],
-        //             // 'unit_price' => $productUnit->price ?? 0,
-        //             // 'discount' => $items[$i]['discount'] ?? 0,
-        //             // 'total_price' => $items[$i]['price'] ?? 0,
-        //             'product_unit_id' => $items[$i]['product_unit_id'],
-        //             'packaging_id' => empty($items[$i]['packaging_id']) ? null : $items[$i]['packaging_id'],
-        //             'qty' => $items[$i]['qty'],
-        //             'unit_price' => $items[$i]['unit_price'] ?? $productUnit->price ?? 0,
-        //             'discount' => $items[$i]['discount'] ?? 0,
-        //             'tax' => isset($items[$i]['tax']) && $items[$i]['tax'] == 1 ? 11 : 0,
-        //             'total_price' => $items[$i]['total_price'] ?? 0,
-        //             'warehouse_id' => $items[$i]['warehouse_id'],
-        //         ]);
-        //     }
-
-        //     $oldDetails->each->delete();
-        //     DB::commit();
-        // } catch (\Throwable $th) {
-        //     DB::rollBack();
-        //     return response()->json(['message' => $th->getMessage()], 500);
-        // }
     }
 
     public function destroy(SalesOrder $salesOrder)
@@ -256,39 +169,4 @@ class SalesOrderController extends Controller
 
         return response()->json($stockProductUnits);
     }
-
-    // public function getPrice(Request $request)
-    // {
-    //     $request->validate([
-    //         'customer_id' => 'required',
-    //         'product_unit_id' => 'required',
-    //         'qty' => 'required|numeric',
-    //     ]);
-
-    //     $productUnit = ProductUnit::findOrFail($request->product_unit_id);
-
-    //     $originalPrice = ($productUnit->price ?? 0) * ($request->qty ?? 0);
-    //     $totalPrice = 0;
-    //     $discount = 0;
-    //     $isPercentage = 0;
-    //     $userDiscounts = UserDiscount::where('user_id', $request->customer_id)->where('product_brand_id', $productUnit?->product?->productBrand?->id)->first();
-    //     if ($userDiscounts) {
-    //         $discount = $userDiscounts->value;
-    //         $isPercentage = $userDiscounts->is_percentage;
-    //     }
-
-    //     if ($isPercentage) {
-    //         $totalDiscount = $originalPrice * $discount;
-    //         $totalDiscount = $totalDiscount <= 0 ? 0 : ($totalDiscount / 100);
-    //         $totalPrice = $originalPrice - $totalDiscount;
-    //     } else {
-    //         $totalPrice = $originalPrice - $discount;
-    //     }
-
-    //     $totalPrice = $totalPrice <= 0 ? 0 : $totalPrice;
-
-    //     return response()->json([
-    //         'price' => $totalPrice
-    //     ]);
-    // }
 }

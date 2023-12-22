@@ -41,14 +41,14 @@ class SalesOrderUpdateRequest extends FormRequest
             'expected_price' => 'nullable|integer',
             'reseller_id' => ['required', function (string $attribute, mixed $value, Closure $fail) {
                 if (!DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::Reseller)->exists()) {
-                    $fail('Reseller not found');
+                    $fail('Reseller Tidak ditemukan');
                 }
             }],
             'invoice_no' => [
                 'nullable',
                 function (string $attribute, mixed $value, Closure $fail) use($salesOrder) {
                     if (DB::table('sales_orders')->where('id', '!=', $salesOrder->id)->where('invoice_no', trim($value))->exists()) {
-                        $fail('Invoice number is already in use');
+                        $fail('Invoice number sudah digunakan');
                     }
                 }
             ],

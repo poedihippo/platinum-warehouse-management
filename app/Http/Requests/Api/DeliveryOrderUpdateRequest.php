@@ -31,13 +31,13 @@ class DeliveryOrderUpdateRequest extends FormRequest
                 'nullable',
                 function (string $attribute, mixed $value, Closure $fail) use($deliveryOrder) {
                     if (DB::table('delivery_orders')->where('id', '!=', $deliveryOrder->id)->where('invoice_no', trim($value))->exists()) {
-                        $fail('Invoice number is already in use');
+                        $fail('Invoice number sudah digunakan');
                     }
                 }
             ],
             'reseller_id' => ['required', function (string $attribute, mixed $value, Closure $fail) {
                 if (!DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::Reseller)->exists()) {
-                    $fail('Reseller not found');
+                    $fail('Reseller Tidak ditemukan');
                 }
             }],
             'warehouse_id' => 'required|exists:warehouses,id',

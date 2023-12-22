@@ -111,8 +111,8 @@ class StockController extends Controller
     {
         // abort_if(!auth()->user()->tokenCan('stock_delete'), 403);
 
-        if ($stock->childs?->count() > 0) return response()->json(['message' => 'Can not delete parent stock'], 400);
-        if ($stock->salesOrderItems?->count() > 0) return response()->json(['message' => 'Can not delete stock. Stock already in sales order'], 400);
+        if ($stock->childs?->count() > 0) return response()->json(['message' => 'Tidak dapat menghapus stock parent'], 400);
+        if ($stock->salesOrderItems?->count() > 0) return response()->json(['message' => 'Tidak dapat menghapus stock. Stock sudah masuk di Sales Order'], 400);
 
         $stock->delete();
         return $this->deletedResponse();
@@ -139,11 +139,11 @@ class StockController extends Controller
             $totalStock = $stockProductUnit->stocks()->whereNull('parent_id')->doesntHave('childs')->count() ?? 0;
 
             if ($totalStock == 0) {
-                return response()->json(['message' => 'Not enough stock'], 400);
+                return response()->json(['message' => 'Stock tidak mencukupi'], 400);
             }
 
             if ($totalQtyGrouping == 0 || ($totalQtyGrouping > $totalStock)) {
-                return response()->json(['message' => 'Total amount of grouping stock exceeds the total stock'], 400);
+                return response()->json(['message' => 'Jumlah total grouping stok melebihi total stok'], 400);
             }
 
             $totalGroupStock = $stockProductUnit->stocks()->whereNull('parent_id')->has('childs')->count() ?? 0;
@@ -155,11 +155,11 @@ class StockController extends Controller
             $totalStock = $receiveOrderDetail->stocks()->whereNull('parent_id')->doesntHave('childs')->count() ?? 0;
 
             if ($totalStock == 0) {
-                return response()->json(['message' => 'Not enough stock'], 400);
+                return response()->json(['message' => 'Stock tidak mencukupi'], 400);
             }
 
             if ($totalQtyGrouping == 0 || ($totalQtyGrouping > $totalStock)) {
-                return response()->json(['message' => 'Total amount of grouping stock exceeds the total stock'], 400);
+                return response()->json(['message' => 'Jumlah total grouping stok melebihi total stok'], 400);
             }
 
             $totalGroupStock = $receiveOrderDetail->stocks()->whereNull('parent_id')->has('childs')->count() ?? 0;
@@ -216,14 +216,14 @@ class StockController extends Controller
             ]);
         }
 
-        return response()->json(['message' => 'Stock group created successfully'], 201);
+        return response()->json(['message' => 'Group stock berhasil dibuat'], 201);
     }
 
     public function ungrouping(Stock $stock)
     {
         // abort_if(!auth()->user()->tokenCan('stock_grouping'), 403);
 
-        if ($stock->childs->isEmpty()) return response()->json(['message' => 'Stock is not group / have not childs'], 400);
+        if ($stock->childs->isEmpty()) return response()->json(['message' => 'Stock bukan grouping / tidak memiliki childs'], 400);
 
         DB::beginTransaction();
         try {
@@ -311,10 +311,10 @@ class StockController extends Controller
                 return response()->json(['message' => $th->getMessage()], 400);
             }
 
-            return response()->json(['message' => 'Data updated successfully']);
+            return response()->json(['message' => 'Data berhasil diupdate']);
         }
 
-        return response()->json(['message' => 'No data updated']);
+        return response()->json(['message' => 'Tidak ada data yang diupdate']);
     }
 
     public function import(Request $request)

@@ -13,7 +13,7 @@ class CheckExpectedOrderPrice
         }
 
         if ($salesOrder->price != $salesOrder->expected_price) {
-            throw new Exception("Prices don't match");
+            throw new Exception("Harga tidak cocok");
         }
 
         return $next($salesOrder);

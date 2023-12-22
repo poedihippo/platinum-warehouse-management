@@ -101,7 +101,6 @@ Route::middleware('auth:sanctum')->group(function ($route) {
         Route::delete('{salesOrderDetail}', [SalesOrderDetailController::class, 'destroy']);
     });
 
-    // Route::get('sales-orders/get-price', [SalesOrderController::class, 'getPrice']);
     Route::get('sales-orders/product-units', [SalesOrderController::class, 'productUnits']);
     Route::get('sales-orders/{salesOrder}/print', [SalesOrderController::class, 'print']);
     Route::get('sales-orders/{salesOrder}/export-xml', [SalesOrderController::class, 'exportXml']);
