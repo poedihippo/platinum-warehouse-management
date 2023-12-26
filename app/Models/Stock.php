@@ -29,6 +29,11 @@ class Stock extends Model
         return $this->belongsTo(StockProductUnit::class);
     }
 
+    public function productUnit()
+    {
+        // return $this->throug(ProductUnit::class);
+    }
+
     public function childs()
     {
         return $this->hasMany(self::class, 'parent_id', 'id');

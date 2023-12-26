@@ -47,7 +47,7 @@ class CreateStockROListener implements ShouldQueue
                             'receive_order_detail_id' => $receiveOrderDetail->id,
                         ]);
 
-                        $logo = public_path('images/logo-platinum.png');
+                        // $logo = public_path('images/logo-platinum.png');
 
                         $data = QrCode::size(350)
                             ->format('png')

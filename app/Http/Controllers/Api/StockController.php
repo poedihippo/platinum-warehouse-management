@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StockRecordRequest;
+use App\Http\Requests\Api\StockRepackRequest;
 use App\Http\Resources\StockProductUnitResource;
 use App\Http\Resources\Stocks\BaseStockResource;
 use App\Http\Resources\Stocks\StockProductUnitResource as StocksStockProductUnitResource;
@@ -327,5 +328,47 @@ class StockController extends Controller
         $stock->update(["is_tempel" => $isTempel]);
 
         return new BaseStockResource($stock);
+    }
+
+    public function repack(Stock $stock, StockRepackRequest $request)
+    {
+        if ($stock->childs?->count() > 0) return response()->json(['message' => 'Tidak dapat me-repack stock parent'], 400);
+        if ($stock->salesOrderItems?->count() > 0) return response()->json(['message' => 'Tidak dapat me-repack stock. Stock sudah masuk di Sales Order'], 400);
+
+        $qty = $request->qty;
+        $stockProductUnit = StockProductUnit::findOrFail($request->stock_product_unit_id);
+
+        dump($request->validated());
+        dd($stock);
+
+        DB::beginTransaction();
+        try {
+            // hapus stock
+            $stock->delete();
+
+            // adjust stock berdasarkan stock_product_unit_id dan qty nya
+            if ($stockProductUnit->productUnit->is_generate_qr) {
+                \App\Jobs\GenerateStockQrcode::dispatchSync($stockProductUnit, $qty);
+            } else {
+                $stockProductUnit->increment('qty', $qty);
+            }
+
+            // create history
+            $receiveOrderDetail->histories()->create([
+                'user_id' => $user->id,
+                'stock_product_unit_id' => $stockProductUnit->id,
+                'value' => $qty,
+                'is_increment' => 1,
+                'description' => $receiveOrder->invoice_no,
+                'ip' => request()->ip(),
+                'agent' => request()->header('user-agent'),
+            ]);
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            //throw $th;
+        }
+
+        return response()->json(["message" => sprintf("Berhasil me-repack %s sebanyak %d %s", $stock->stockProductUnit)]);
     }
 }

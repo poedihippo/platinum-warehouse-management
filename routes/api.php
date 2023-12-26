@@ -130,10 +130,11 @@ Route::middleware('auth:sanctum')->group(function ($route) {
 
     Route::post('stocks/record', [StockController::class, 'record']);
     Route::post('stocks/grouping', [StockController::class, 'grouping']);
-    Route::post('stocks/{stock}/ungrouping', [StockController::class, 'ungrouping']);
-    Route::put('stocks/{stock}/verification-tempel', [StockController::class, 'verificationTempel']);
     Route::get('stocks/details', [StockController::class, 'details']);
     Route::get('stocks/print-all', [StockController::class, 'printAll']);
+    Route::post('stocks/{stock}/ungrouping', [StockController::class, 'ungrouping']);
+    Route::post('stocks/{stock}/repack', [StockController::class, 'repack']);
+    Route::put('stocks/{stock}/verification-tempel', [StockController::class, 'verificationTempel']);
     Route::resource('stocks', StockController::class);
 
     Route::group(['prefix' => 'stock-opnames/{stockOpname}/details'], function () {
