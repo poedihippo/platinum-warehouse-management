@@ -52,7 +52,7 @@ Route::post('auth/register', [AuthController::class, 'register']);
 Route::get('/auth/{provider}', [SocialiteController::class, 'redirectToProvider']);
 Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProvideCallback']);
 
-Route::middleware('auth:sanctum')->group(function ($route) {
+Route::middleware('auth:sanctum')->group(function() {
     Route::resource('roles', RoleController::class);
     Route::get('permissions/all', [PermissionController::class, 'all']);
     Route::resource('permissions', PermissionController::class);
@@ -128,13 +128,13 @@ Route::middleware('auth:sanctum')->group(function ($route) {
     Route::put('adjustment-requests/{adjustmentRequest}/approve', [AdjustmentRequestController::class, 'approve']);
     Route::resource('adjustment-requests', AdjustmentRequestController::class);
 
-    Route::post('stocks/record', [StockController::class, 'record']);
-    Route::post('stocks/grouping', [StockController::class, 'grouping']);
     Route::get('stocks/details', [StockController::class, 'details']);
     Route::get('stocks/print-all', [StockController::class, 'printAll']);
+    Route::put('stocks/{stock}/verification-tempel', [StockController::class, 'verificationTempel']);
+    Route::post('stocks/record', [StockController::class, 'record']);
+    Route::post('stocks/grouping', [StockController::class, 'grouping']);
     Route::post('stocks/{stock}/ungrouping', [StockController::class, 'ungrouping']);
     Route::post('stocks/{stock}/repack', [StockController::class, 'repack']);
-    Route::put('stocks/{stock}/verification-tempel', [StockController::class, 'verificationTempel']);
     Route::resource('stocks', StockController::class);
 
     Route::group(['prefix' => 'stock-opnames/{stockOpname}/details'], function () {

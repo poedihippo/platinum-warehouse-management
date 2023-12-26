@@ -323,6 +323,8 @@ class StockController extends Controller
 
     public function verificationTempel(Stock $stock, Request $request)
     {
+        dump('verificationTempel');
+        dd($stock);
         $request->validate(["is_tempel" => "required"]);
         $isTempel = filter_var($request->is_tempel, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true;
         $stock->update(["is_tempel" => $isTempel]);
