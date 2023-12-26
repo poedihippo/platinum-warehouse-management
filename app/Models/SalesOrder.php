@@ -6,6 +6,7 @@ use App\Enums\SettingEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Builder;
 
 class SalesOrder extends Model
 {
@@ -91,7 +92,7 @@ class SalesOrder extends Model
         return $this->belongsTo(Warehouse::class, 'warehouse_id');
     }
 
-    public static function getSoNumber(): string
+    public static function getSoNumber() : string
     {
         $key = SettingEnum::SO_NUMBER;
         return DB::transaction(function () use ($key) {
@@ -102,7 +103,7 @@ class SalesOrder extends Model
                 ->lockForUpdate()
                 ->first('value')?->value ?? null;
 
-            if (isset($lastSoNumber) && !is_null($lastSoNumber) && $lastSoNumber != '') {
+            if (isset($lastSoNumber) && ! is_null($lastSoNumber) && $lastSoNumber != '') {
                 $arrayLastSoNumber = explode('/', $lastSoNumber);
 
                 if (is_array($arrayLastSoNumber) && count($arrayLastSoNumber) == 5 && date('m') == $arrayLastSoNumber[2] && date('y') == $arrayLastSoNumber[3]) {
@@ -124,5 +125,12 @@ class SalesOrder extends Model
 
             return trim($lastSoNumber);
         });
+    }
+
+    public function scopeDetailsHasDO(Builder $query, bool $value = true)
+    {
+        // if ($value) return $query->whereHas('details', fn ($q) => $q->has('deliveryOrderDetail'));
+        // return $query->whereHas('details', fn ($q) => $q->doesntHave('deliveryOrderDetail'));
+        return $query->whereHas('details', fn ($q) => $q->hasDeliveryOrder((bool)$value));
     }
 }

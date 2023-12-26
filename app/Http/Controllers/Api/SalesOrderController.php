@@ -31,9 +31,10 @@ class SalesOrderController extends Controller
     public function index()
     {
         // abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
-        $query = SalesOrder::withCount('details')->whereHas('details', function ($q) {
-            $q->doesntHave('deliveryOrderDetail');
-        });
+        // $query = SalesOrder::withCount('details')->whereHas('details', function ($q) {
+        //     $q->doesntHave('deliveryOrderDetail');
+        // });
+        $query = SalesOrder::withCount('details');
 
         $salesOrders = QueryBuilder::for($query)
             ->allowedFilters([
@@ -41,6 +42,7 @@ class SalesOrderController extends Controller
                 AllowedFilter::exact('user_id'),
                 AllowedFilter::exact('reseller_id'),
                 AllowedFilter::exact('warehouse_id'),
+                AllowedFilter::scope('has_delivery_order', 'detailsHasDO'),
             ])
             ->allowedSorts(['id', 'invoice_no', 'user_id', 'reseller_id', 'warehouse_id', 'created_at'])
             ->allowedIncludes(['details', 'warehouse', 'user'])
