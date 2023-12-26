@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class StockProductUnit extends Model
@@ -14,17 +17,22 @@ class StockProductUnit extends Model
         'qty' => 'integer',
     ];
 
-    public function stocks()
+    public function histories(): MorphMany
+    {
+        return $this->morphMany(StockHistory::class, 'model');
+    }
+
+    public function stocks(): HasMany
     {
         return $this->hasMany(Stock::class);
     }
 
-    public function productUnit()
+    public function productUnit(): BelongsTo
     {
         return $this->belongsTo(ProductUnit::class);
     }
 
-    public function warehouse()
+    public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class);
     }

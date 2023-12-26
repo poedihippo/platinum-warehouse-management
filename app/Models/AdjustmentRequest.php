@@ -22,7 +22,7 @@ class AdjustmentRequest extends Model
     protected static function booted()
     {
         static::creating(function ($model) {
-            $model->user_id = auth()->user()->id;
+            if (empty($model->user_id)) $model->user_id = auth()->user()->id;
         });
     }
 

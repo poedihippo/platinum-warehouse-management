@@ -95,7 +95,7 @@ class AdjustmentRequestController extends Controller
                             'adjustment_request_id' => $adjustmentRequest->id
                         ]);
 
-                        $logo = public_path('images/logo-platinum.png');
+                        // $logo = public_path('images/logo-platinum.png');
 
                         $data = QrCode::size(350)
                             ->format('png')

@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 // use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Stock extends Model
@@ -19,37 +21,33 @@ class Stock extends Model
         'is_tempel' => 'boolean'
     ];
 
-    public function parent()
+    public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_id');
     }
 
-    public function stockProductUnit()
+    public function stockProductUnit(): BelongsTo
     {
         return $this->belongsTo(StockProductUnit::class);
     }
 
-    public function productUnit()
-    {
-        // return $this->throug(ProductUnit::class);
-    }
 
-    public function childs()
+    public function childs(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id', 'id');
     }
 
-    public function salesOrderItems()
+    public function salesOrderItems(): HasMany
     {
         return $this->hasMany(SalesOrderItem::class);
     }
 
-    public function receiveOrder()
+    public function receiveOrder(): BelongsTo
     {
         return $this->belongsTo(ReceiveOrder::class);
     }
 
-    public function receiveOrderDetail()
+    public function receiveOrderDetail(): BelongsTo
     {
         return $this->belongsTo(ReceiveOrderDetail::class);
     }

@@ -9,6 +9,7 @@ use App\Http\Resources\StockProductUnitResource;
 use App\Http\Resources\Stocks\BaseStockResource;
 use App\Http\Resources\Stocks\StockProductUnitResource as StocksStockProductUnitResource;
 use App\Imports\StockImport;
+use App\Models\AdjustmentRequest;
 use App\Models\ReceiveOrderDetail;
 use App\Models\Stock;
 use App\Models\StockProductUnit;
@@ -337,16 +338,36 @@ class StockController extends Controller
 
         $qty = $request->qty;
         $stockProductUnit = StockProductUnit::findOrFail($request->stock_product_unit_id);
-
-        dump($request->validated());
-        dd($stock);
+        $userId = auth('sanctum')->user()->id;
+        $userIp = request()->ip();
+        $userAgent = request()->header('user-agent');
 
         DB::beginTransaction();
         try {
             // hapus stock
             $stock->delete();
+            $stock->stockProductUnit->histories()->create([
+                'user_id' => $userId,
+                'stock_product_unit_id' => $stock->stockProductUnit->id,
+                'value' => 1,
+                'is_increment' => 0,
+                'description' => "Delete stock untuk repack",
+                'ip' => $userIp,
+                'agent' => $userAgent
+            ]);
 
             // adjust stock berdasarkan stock_product_unit_id dan qty nya
+            // create AdjustmentRequest
+            $adjustmentRequest = AdjustmentRequest::create([
+                'user_id' => $userId,
+                'approved_by' => $userId,
+                'stock_product_unit_id' => $stockProductUnit->id,
+                'value' => $qty,
+                'is_increment' => 1,
+                'is_approved' => 1,
+                'description' => sprintf("Add stock from repack - %s", $stock->stockProductUnit->productUnit?->name ?? ""),
+            ]);
+
             if ($stockProductUnit->productUnit->is_generate_qr) {
                 \App\Jobs\GenerateStockQrcode::dispatchSync($stockProductUnit, $qty);
             } else {
@@ -354,21 +375,21 @@ class StockController extends Controller
             }
 
             // create history
-            $receiveOrderDetail->histories()->create([
-                'user_id' => $user->id,
+            $adjustmentRequest->histories()->create([
+                'user_id' => $userId,
                 'stock_product_unit_id' => $stockProductUnit->id,
                 'value' => $qty,
                 'is_increment' => 1,
-                'description' => $receiveOrder->invoice_no,
-                'ip' => request()->ip(),
-                'agent' => request()->header('user-agent'),
+                'description' => $adjustmentRequest->description,
+                'ip' => $userIp,
+                'agent' => $userAgent
             ]);
             DB::commit();
         } catch (\Throwable $th) {
             DB::rollBack();
-            //throw $th;
+            return response()->json(["message" => $th->getMessage()], 500);
         }
 
-        return response()->json(["message" => sprintf("Berhasil me-repack %s sebanyak %d %s", $stock->stockProductUnit)]);
+        return response()->json(["message" => sprintf("Berhasil me-repack %s ke %s sebanyak %d", $stock->stockProductUnit->productUnit?->name ?? "", $stockProductUnit->productUnit?->name ?? "", $qty)]);
     }
 }

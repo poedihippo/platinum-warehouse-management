@@ -54,7 +54,7 @@ class Handler extends ExceptionHandler
     {
         if ($request->wantsJson()) {
             if ($e instanceof ModelNotFoundException) {
-                return response()->json(['message' => 'Tidak ditemukan!'], 404);
+                return response()->json(['message' => 'Data tidak ditemukan!'], 404);
             }
 
             // if ($e instanceof AuthorizationException) {
