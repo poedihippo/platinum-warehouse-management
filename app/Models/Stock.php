@@ -15,7 +15,8 @@ class Stock extends Model
     use HasUlids, SoftDeletes;
     protected $guarded = [];
     protected $casts = [
-        'scanned_count' => 'integer'
+        'scanned_count' => 'integer',
+        'is_tempel' => 'boolean'
     ];
 
     public function parent()

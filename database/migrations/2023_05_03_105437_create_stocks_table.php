@@ -26,6 +26,7 @@ return new class extends Migration
             $table->text('qr_code')->nullable();
             $table->integer('scanned_count')->default(0);
             $table->dateTime('scanned_datetime')->nullable();
+            $table->boolean('is_tempel')->default(1);
             $table->timestamps();
             $table->softDeletes();
         });

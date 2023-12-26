@@ -72,9 +72,10 @@ class StockController extends Controller
                 AllowedFilter::exact('receive_order_detail_id'),
                 AllowedFilter::scope('startDate'),
                 AllowedFilter::scope('endDate'),
+                AllowedFilter::exact('is_tempel'),
                 AllowedFilter::callback('show_all', function (\Illuminate\Database\Eloquent\Builder $query, $value) {
                     if (!$value == 0) $query->whereAvailableStock();
-                }),
+                })
             ])
             ->allowedSorts(['scanned_count', 'scanned_datetime', 'warehouse_id', 'created_at'])
             // ->allowedIncludes(['productUnit', 'warehouse', 'receiveOrderDetail'])
@@ -95,7 +96,7 @@ class StockController extends Controller
     public function store(Request $request)
     {
         // abort_if(!auth()->user()->tokenCan('stock_create'), 403);
-        dd($request->all());
+        return response()->json($request->all());
     }
 
     public function destroy(Stock $stock)
