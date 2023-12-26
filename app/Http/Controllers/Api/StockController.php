@@ -70,11 +70,11 @@ class StockController extends Controller
                 AllowedFilter::exact('warehouse_id'),
                 AllowedFilter::exact('receive_order_id'),
                 AllowedFilter::exact('receive_order_detail_id'),
+                AllowedFilter::exact('is_tempel'),
                 AllowedFilter::scope('startDate'),
                 AllowedFilter::scope('endDate'),
-                AllowedFilter::exact('is_tempel'),
                 AllowedFilter::callback('show_all', function (\Illuminate\Database\Eloquent\Builder $query, $value) {
-                    if (!$value == 0) $query->whereAvailableStock();
+                    if (! $value == 0) $query->whereAvailableStock();
                 })
             ])
             ->allowedSorts(['scanned_count', 'scanned_datetime', 'warehouse_id', 'created_at'])
@@ -184,7 +184,7 @@ class StockController extends Controller
 
             $folder = 'qrcode/';
             $fileName = 'group/' . $groupStock->id . '.png';
-            $fullPath = $folder .  $fileName;
+            $fullPath = $folder . $fileName;
             Storage::put($fullPath, $data);
 
             $groupStock->update(['qr_code' => $fullPath]);
@@ -318,5 +318,14 @@ class StockController extends Controller
         // Excel::queueImport(new StockImport($request->warehouse_id ?? 1), $request->file);
         Excel::import(new StockImport($request->warehouse_id ?? 1), $request->file);
         die('duarrr nmax');
+    }
+
+    public function verificationTempel(Stock $stock, Request $request)
+    {
+        $request->validate(["is_tempel" => "required"]);
+        $isTempel = filter_var($request->is_tempel, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true;
+        $stock->update(["is_tempel" => $isTempel]);
+
+        return new BaseStockResource($stock);
     }
 }
