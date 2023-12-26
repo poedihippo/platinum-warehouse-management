@@ -25,6 +25,7 @@ class ProductUnitStoreRequest extends FormRequest
     {
         $this->merge([
             'is_generate_qr' => $this->toBoolean($this->is_generate_qr ?? 1),
+            'is_auto_tempel' => $this->toBoolean($this->is_auto_tempel ?? 1),
         ]);
     }
 
@@ -55,6 +56,7 @@ class ProductUnitStoreRequest extends FormRequest
             'price' => 'required',
             'packaging_id' => 'nullable|exists:product_units,id',
             'is_generate_qr' => 'nullable|boolean',
+            'is_auto_tempel' => 'nullable|boolean',
         ];
     }
 }

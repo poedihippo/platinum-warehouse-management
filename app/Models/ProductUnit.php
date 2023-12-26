@@ -13,7 +13,8 @@ class ProductUnit extends Model
 
     protected $guarded = [];
     protected $casts = [
-        'is_generate_qr' => 'boolean'
+        'is_generate_qr' => 'boolean',
+        'is_auto_tempel' => 'boolean'
     ];
 
     protected static function booted()

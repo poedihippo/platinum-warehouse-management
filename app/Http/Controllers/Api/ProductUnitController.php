@@ -34,6 +34,7 @@ class ProductUnitController extends Controller
                 AllowedFilter::exact('product_id'),
                 'name',
                 'is_generate_qr',
+                'is_auto_tempel',
                 AllowedFilter::scope('product_brand_id', 'whereProductBrandId'),
                 AllowedFilter::scope('product_category_id', 'whereProductCategoryId'),
             ])
