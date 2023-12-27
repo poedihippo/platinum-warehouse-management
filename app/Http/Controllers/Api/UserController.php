@@ -15,6 +15,7 @@ class UserController extends Controller
 {
     public function __construct()
     {
+        parent::__construct();
         // $this->middleware('permission:user_access', ['only' => ['index', 'show', 'restore']]);
         $this->middleware('permission:user_access', ['only' => ['restore']]);
         $this->middleware('permission:user_read', ['only' => ['index', 'show']]);
@@ -29,7 +30,7 @@ class UserController extends Controller
         $users = QueryBuilder::for(User::with(['roles' => fn ($q) => $q->select('id', 'name')]))
             ->allowedFilters(['name', 'email', 'phone', 'type'])
             ->allowedSorts(['name', 'email', 'phone', 'type'])
-            ->paginate();
+            ->paginate($this->per_page);
 
         return UserResource::collection($users);
     }

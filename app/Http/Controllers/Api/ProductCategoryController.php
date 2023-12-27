@@ -14,6 +14,7 @@ class ProductCategoryController extends Controller
 {
     public function __construct()
     {
+        parent::__construct();
         // $this->middleware('permission:product_category_access', ['only' => ['index', 'show']]);
         $this->middleware('permission:product_category_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:product_category_create', ['only' => 'store']);
@@ -27,7 +28,7 @@ class ProductCategoryController extends Controller
         $productCategories = QueryBuilder::for(ProductCategory::class)
             ->allowedFilters(['name'])
             ->allowedSorts(['id', 'name', 'created_at'])
-            ->paginate();
+            ->paginate($this->per_page);
 
         return ProductCategoryResource::collection($productCategories);
     }

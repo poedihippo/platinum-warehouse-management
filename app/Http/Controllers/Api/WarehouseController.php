@@ -14,6 +14,7 @@ class WarehouseController extends Controller
 {
     public function __construct()
     {
+        parent::__construct();
         // $this->middleware('permission:warehouse_access', ['only' => ['index', 'show']]);
         $this->middleware('permission:warehouse_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:warehouse_create', ['only' => 'store']);
@@ -27,7 +28,7 @@ class WarehouseController extends Controller
         $warehouses = QueryBuilder::for(Warehouse::class)
             ->allowedFilters(['name'])
             ->allowedSorts(['id', 'name', 'created_at'])
-            ->paginate();
+            ->paginate($this->per_page);
 
         return WarehouseResource::collection($warehouses);
     }

@@ -8,6 +8,11 @@ use Illuminate\Support\Facades\DB;
 
 class StockOpnameItemController extends Controller
 {
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
     public function index($stockOpnameId, $stockOpnameDetailId)
     {
         $stockOpnameDetails = DB::table('stock_opname_items')->select('stock_id', 'is_scanned', 'created_at', 'updated_at')->where('stock_opname_detail_id', $stockOpnameDetailId)->get();

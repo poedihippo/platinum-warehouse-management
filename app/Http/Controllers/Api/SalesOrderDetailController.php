@@ -13,6 +13,7 @@ class SalesOrderDetailController extends Controller
 {
     public function __construct()
     {
+        parent::__construct();
         $this->middleware('permission:sales_order_access', ['only' => ['index', 'show']]);
     }
 

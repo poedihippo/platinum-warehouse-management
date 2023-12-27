@@ -15,6 +15,7 @@ class RoleController extends Controller
 {
     public function __construct()
     {
+        parent::__construct();
         // $this->middleware('permission:role_access', ['only' => ['index', 'show']]);
         $this->middleware('permission:role_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:role_create', ['only' => 'store']);
@@ -33,7 +34,7 @@ class RoleController extends Controller
             ->with('permissions')
             ->allowedFilters(['name'])
             ->allowedSorts(['id', 'name', 'created_at'])
-            ->paginate();
+            ->paginate($this->per_page);
 
         return RoleResource::collection($roles);
     }

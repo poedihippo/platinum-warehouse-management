@@ -19,6 +19,7 @@ class ReceiveOrderDetailController extends Controller
 {
     public function __construct()
     {
+        parent::__construct();
         $this->middleware('permission:receive_order_access', ['only' => ['index', 'show']]);
         $this->middleware('permission:receive_order_create', ['only' => 'store']);
         $this->middleware('permission:receive_order_edit', ['only' => 'update']);
@@ -41,7 +42,7 @@ class ReceiveOrderDetailController extends Controller
                 }),
             ])
             // ->allowedSorts(['id', 'invoice_no', 'user_id', 'supplier_id', 'warehouse_id', 'created_at'])
-            ->paginate();
+            ->paginate($this->per_page);
 
         return ReceiveOrderDetailResource::collection($receiveOrderDetails);
     }

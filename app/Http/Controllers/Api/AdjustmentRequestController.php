@@ -18,6 +18,7 @@ class AdjustmentRequestController extends Controller
 {
     public function __construct()
     {
+        parent::__construct();
         // $this->middleware('permission:adjustment_request_access', ['only' => ['index', 'show']]);
         $this->middleware('permission:adjustment_request_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:adjustment_request_create', ['only' => 'store']);
@@ -38,7 +39,7 @@ class AdjustmentRequestController extends Controller
                 AllowedFilter::scope('endDate'),
             ])
             ->allowedSorts(['id', 'user_id', 'stock_product_unit_id', 'created_at'])
-            ->paginate();
+            ->paginate($this->per_page);
 
         return AdjustmentRequestResource::collection($adjustmentRequests);
     }

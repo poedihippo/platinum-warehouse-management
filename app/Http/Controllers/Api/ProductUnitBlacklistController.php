@@ -13,6 +13,7 @@ class ProductUnitBlacklistController extends Controller
 {
     public function __construct()
     {
+        parent::__construct();
         // $this->middleware('permission:product_unit_blacklist_access', ['only' => 'index']);
         $this->middleware('permission:product_unit_blacklist_read', ['only' => 'index']);
         $this->middleware('permission:product_unit_blacklist_create', ['only' => 'store']);
@@ -28,7 +29,7 @@ class ProductUnitBlacklistController extends Controller
                 AllowedFilter::exact('product_unit_id'),
             ])
             ->allowedSorts('product_unit_id')
-            ->paginate();
+            ->paginate($this->per_page);
 
         return ProductUnitBlacklistResource::collection($productUnitBlacklists);
     }

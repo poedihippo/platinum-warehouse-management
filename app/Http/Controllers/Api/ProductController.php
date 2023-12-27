@@ -15,6 +15,7 @@ class ProductController extends Controller
 {
     public function __construct()
     {
+        parent::__construct();
         // $this->middleware('permission:product_access', ['only' => ['index', 'show']]);
         $this->middleware('permission:product_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:product_create', ['only' => 'store']);
@@ -32,7 +33,7 @@ class ProductController extends Controller
                 'name'
             ])
             ->allowedSorts(['id', 'product_category_id', 'product_brand_id', 'name', 'created_at'])
-            ->paginate();
+            ->paginate($this->per_page);
 
         return ProductResource::collection($products);
     }

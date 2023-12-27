@@ -17,6 +17,7 @@ class PermissionController extends Controller
 {
     public function __construct()
     {
+        parent::__construct();
         // $this->middleware('permission:permission_access', ['only' => ['index', 'show']]);
         $this->middleware('permission:permission_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:permission_create', ['only' => 'store']);

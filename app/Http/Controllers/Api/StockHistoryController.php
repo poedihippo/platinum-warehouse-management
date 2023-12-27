@@ -12,6 +12,7 @@ class StockHistoryController extends Controller
 {
     public function __construct()
     {
+        parent::__construct();
         // $this->middleware('permission:stock_history_access', ['only' => 'index']);
         $this->middleware('permission:stock_history_read', ['only' => 'index']);
     }
@@ -28,7 +29,7 @@ class StockHistoryController extends Controller
                 'user_id'
             ])
             ->allowedSorts(['id', 'user_id', 'description', 'created_at'])
-            ->paginate();
+            ->paginate($this->per_page);
 
         return StockHistoryResource::collection($stockHistories);
     }

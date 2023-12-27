@@ -13,6 +13,11 @@ use Illuminate\Support\Facades\DB;
 
 class SalesOrderItemController extends Controller
 {
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
     public function index(SalesOrderDetail $salesOrderDetail)
     {
         // $salesOrderItems = SalesOrderItem::select(stock_id','created_at')->where('sales_order_detail_id', $salesOrderDetail->id)->get();

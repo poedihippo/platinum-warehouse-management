@@ -13,6 +13,7 @@ class UomController extends Controller
 {
     public function __construct()
     {
+        parent::__construct();
         // $this->middleware('permission:uom_access', ['only' => ['index', 'show']]);
         $this->middleware('permission:uom_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:uom_create', ['only' => 'store']);
@@ -26,7 +27,7 @@ class UomController extends Controller
         $uoms = QueryBuilder::for(Uom::class)
             ->allowedFilters('name')
             ->allowedSorts(['id', 'name', 'created_at'])
-            ->paginate();
+            ->paginate($this->per_page);
 
         return UomResource::collection($uoms);
     }

@@ -13,6 +13,7 @@ class DeliveryOrderDetailController extends Controller
 {
     public function __construct()
     {
+        parent::__construct();
         $this->middleware('permission:delivery_order_access', ['only' => ['index', 'show']]);
         $this->middleware('permission:delivery_order_delete', ['only' => 'destroy']);
     }
@@ -26,7 +27,7 @@ class DeliveryOrderDetailController extends Controller
                 AllowedFilter::exact('sales_order_detail_id'),
             ])
             ->allowedSorts(['id', 'delivery_order_id', 'sales_order_detail_id', 'created_at'])
-            ->paginate();
+            ->paginate($this->per_page);
 
         return DeliveryOrderDetailResource::collection($deliveryOrderDetails);
     }

@@ -16,6 +16,7 @@ class SupplierController extends Controller
 {
     public function __construct()
     {
+        parent::__construct();
         // $this->middleware('permission:supplier_access', ['only' => ['index', 'show']]);
         $this->middleware('permission:supplier_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:supplier_create', ['only' => 'store']);
@@ -35,7 +36,7 @@ class SupplierController extends Controller
                 }),
             ])
             ->allowedSorts(['id', 'name'])
-            ->paginate();
+            ->paginate($this->per_page);
 
         return SupplierResource::collection($suppliers);
     }

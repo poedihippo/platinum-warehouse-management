@@ -19,6 +19,7 @@ class SalesOrderController extends Controller
 {
     public function __construct()
     {
+        parent::__construct();
         // $this->middleware('permission:sales_order_access', ['only' => ['index', 'show']]);
         $this->middleware('permission:sales_order_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:sales_order_create', ['only' => 'store']);
@@ -46,7 +47,7 @@ class SalesOrderController extends Controller
             ])
             ->allowedSorts(['id', 'invoice_no', 'user_id', 'reseller_id', 'warehouse_id', 'created_at'])
             ->allowedIncludes(['details', 'warehouse', 'user'])
-            ->paginate();
+            ->paginate($this->per_page);
 
         return SalesOrderResource::collection($salesOrders);
     }
@@ -136,7 +137,7 @@ class SalesOrderController extends Controller
                 AllowedFilter::exact('warehouse_id'),
                 AllowedFilter::scope('product_unit'),
             ])
-            ->paginate();
+            ->paginate($this->per_page);
 
         $stockProductUnits->each(function ($stockProductUnit) use ($userDiscounts) {
             $productUnit = $stockProductUnit->productUnit;

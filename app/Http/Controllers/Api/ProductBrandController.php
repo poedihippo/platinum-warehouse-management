@@ -14,6 +14,7 @@ class ProductBrandController extends Controller
 {
     public function __construct()
     {
+        parent::__construct();
         // $this->middleware('permission:product_brand_access', ['only' => ['index', 'show']]);
         $this->middleware('permission:product_brand_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:product_brand_create', ['only' => 'store']);
@@ -27,7 +28,7 @@ class ProductBrandController extends Controller
         $productCategories = QueryBuilder::for(ProductBrand::class)
             ->allowedFilters(['name'])
             ->allowedSorts(['id', 'name', 'created_at'])
-            ->paginate();
+            ->paginate($this->per_page);
 
         return ProductBrandResource::collection($productCategories);
     }

@@ -18,6 +18,7 @@ class StockOpnameDetailController extends Controller
 {
     public function __construct()
     {
+        parent::__construct();
         $this->middleware('permission:stock_opname_access', ['only' => ['index', 'show']]);
         $this->middleware('permission:stock_opname_create', ['only' => 'store']);
         $this->middleware('permission:stock_opname_edit', ['only' => 'update']);
@@ -39,7 +40,7 @@ class StockOpnameDetailController extends Controller
             // ->allowedFilters(['description'])
             ->allowedSorts(['id', 'created_at'])
             ->allowedIncludes('stockOpname')
-            ->paginate();
+            ->paginate($this->per_page);
 
         return StockOpnameDetailResource::collection($stockOpnameDetails);
     }

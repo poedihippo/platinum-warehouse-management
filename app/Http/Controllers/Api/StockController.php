@@ -25,6 +25,7 @@ class StockController extends Controller
 {
     public function __construct()
     {
+        parent::__construct();
         // $this->middleware('permission:stock_access', ['only' => ['index', 'show', 'details']]);
         $this->middleware('permission:stock_read', ['only' => ['index', 'show', 'details']]);
         $this->middleware('permission:stock_create', ['only' => 'store']);
@@ -47,7 +48,7 @@ class StockController extends Controller
                 AllowedFilter::scope('product_category_id', 'whereProductCategoryId'),
             ])
             ->allowedSorts(['id', 'qty', 'product_unit_id', 'warehouse_id', 'created_at'])
-            ->paginate();
+            ->paginate($this->per_page);
 
         return StockProductUnitResource::collection($stockProductUnits);
     }
@@ -81,7 +82,7 @@ class StockController extends Controller
             ])
             ->allowedSorts(['scanned_count', 'scanned_datetime', 'warehouse_id', 'created_at'])
             // ->allowedIncludes(['productUnit', 'warehouse', 'receiveOrderDetail'])
-            ->paginate();
+            ->paginate($this->per_page);
 
         return BaseStockResource::collection($stocks);
     }

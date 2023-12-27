@@ -9,6 +9,11 @@ use Laravel\Socialite\Facades\Socialite;
 
 class SocialiteController extends Controller
 {
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
     public function redirectToProvider($provider)
     {
         return Socialite::driver($provider)->stateless()->redirect();

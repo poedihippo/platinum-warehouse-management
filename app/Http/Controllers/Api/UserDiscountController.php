@@ -16,6 +16,7 @@ class UserDiscountController extends Controller
 {
     public function __construct()
     {
+        parent::__construct();
         // $this->middleware('permission:user_discount_access', ['only' => ['index', 'show']]);
         $this->middleware('permission:user_discount_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:user_discount_create', ['only' => 'store']);
@@ -28,7 +29,7 @@ class UserDiscountController extends Controller
         $users = QueryBuilder::for(UserDiscount::with('productBrand')->where('user_id', $user->id))
             // ->allowedFilters(['name', 'email', 'phone', 'type'])
             ->allowedSorts(['id', 'product_brand_id', 'value', 'is_percentage'])
-            ->paginate();
+            ->paginate($this->per_page);
 
         return UserDiscountResource::collection($users);
     }
