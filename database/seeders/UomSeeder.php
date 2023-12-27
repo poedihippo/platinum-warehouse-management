@@ -27,6 +27,7 @@ class UomSeeder extends Seeder
             'rol',
             'sak',
             'set',
+            'sachet',
         ])->each(fn($uom) => Uom::create(['name' => trim($uom)]));
     }
 }
