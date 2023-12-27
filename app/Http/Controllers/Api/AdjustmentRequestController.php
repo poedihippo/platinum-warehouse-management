@@ -38,7 +38,7 @@ class AdjustmentRequestController extends Controller
                 AllowedFilter::scope('endDate'),
             ])
             ->allowedSorts(['id', 'user_id', 'stock_product_unit_id', 'created_at'])
-            ->paginate($this->per_page);
+            ->paginate();
 
         return AdjustmentRequestResource::collection($adjustmentRequests);
     }

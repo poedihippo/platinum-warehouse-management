@@ -28,7 +28,7 @@ class StockHistoryController extends Controller
                 'user_id'
             ])
             ->allowedSorts(['id', 'user_id', 'description', 'created_at'])
-            ->paginate($this->per_page);
+            ->paginate();
 
         return StockHistoryResource::collection($stockHistories);
     }

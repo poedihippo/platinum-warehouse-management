@@ -40,7 +40,7 @@ class ProductUnitController extends Controller
             ])
             ->allowedIncludes('packaging')
             ->allowedSorts(['id', 'product_id', 'name', 'price', 'created_at'])
-            ->paginate($this->per_page);
+            ->paginate();
 
         return ProductUnitResource::collection($productUnits);
     }
@@ -78,7 +78,7 @@ class ProductUnitController extends Controller
             ->whereHas('salesOrder', fn($q) => $q->where('reseller_id', $user->id))
             ->where('product_unit_id', $productUnit->id)
             ->with('productUnit', fn($q) => $q->select('id', 'code', 'name'))
-            ->paginate($this->per_page);
+            ->paginate();
 
         return SalesOrderDetailResource::collection($salesOrderDetails);
     }

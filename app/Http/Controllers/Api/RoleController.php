@@ -33,7 +33,7 @@ class RoleController extends Controller
             ->with('permissions')
             ->allowedFilters(['name'])
             ->allowedSorts(['id', 'name', 'created_at'])
-            ->paginate($this->per_page);
+            ->paginate();
 
         return RoleResource::collection($roles);
     }

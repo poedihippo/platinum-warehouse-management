@@ -45,7 +45,7 @@ class DeliveryOrderController extends Controller
                 AllowedFilter::exact('reseller_id'),
             ])
             ->allowedSorts(['id', 'invoice_no', 'user_id', 'reseller_id', 'is_done', 'created_at'])
-            ->paginate($this->per_page);
+            ->paginate();
 
         return DeliveryOrderResource::collection($deliveryOrders);
     }

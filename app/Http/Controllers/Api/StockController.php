@@ -47,7 +47,7 @@ class StockController extends Controller
                 AllowedFilter::scope('product_category_id', 'whereProductCategoryId'),
             ])
             ->allowedSorts(['id', 'qty', 'product_unit_id', 'warehouse_id', 'created_at'])
-            ->paginate($this->per_page);
+            ->paginate();
 
         return StockProductUnitResource::collection($stockProductUnits);
     }
@@ -81,7 +81,7 @@ class StockController extends Controller
             ])
             ->allowedSorts(['scanned_count', 'scanned_datetime', 'warehouse_id', 'created_at'])
             // ->allowedIncludes(['productUnit', 'warehouse', 'receiveOrderDetail'])
-            ->paginate($this->per_page);
+            ->paginate();
 
         return BaseStockResource::collection($stocks);
     }

@@ -27,7 +27,7 @@ class ProductCategoryController extends Controller
         $productCategories = QueryBuilder::for(ProductCategory::class)
             ->allowedFilters(['name'])
             ->allowedSorts(['id', 'name', 'created_at'])
-            ->paginate($this->per_page);
+            ->paginate();
 
         return ProductCategoryResource::collection($productCategories);
     }

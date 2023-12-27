@@ -46,7 +46,7 @@ class SalesOrderController extends Controller
             ])
             ->allowedSorts(['id', 'invoice_no', 'user_id', 'reseller_id', 'warehouse_id', 'created_at'])
             ->allowedIncludes(['details', 'warehouse', 'user'])
-            ->paginate($this->per_page);
+            ->paginate();
 
         return SalesOrderResource::collection($salesOrders);
     }
@@ -136,7 +136,7 @@ class SalesOrderController extends Controller
                 AllowedFilter::exact('warehouse_id'),
                 AllowedFilter::scope('product_unit'),
             ])
-            ->paginate($this->per_page);
+            ->paginate();
 
         $stockProductUnits->each(function ($stockProductUnit) use ($userDiscounts) {
             $productUnit = $stockProductUnit->productUnit;

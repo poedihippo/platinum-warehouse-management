@@ -26,7 +26,7 @@ class DeliveryOrderDetailController extends Controller
                 AllowedFilter::exact('sales_order_detail_id'),
             ])
             ->allowedSorts(['id', 'delivery_order_id', 'sales_order_detail_id', 'created_at'])
-            ->paginate($this->per_page);
+            ->paginate();
 
         return DeliveryOrderDetailResource::collection($deliveryOrderDetails);
     }
