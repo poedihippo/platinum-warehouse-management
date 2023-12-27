@@ -27,7 +27,7 @@ class WarehouseController extends Controller
         $warehouses = QueryBuilder::for(Warehouse::class)
             ->allowedFilters(['name'])
             ->allowedSorts(['id', 'name', 'created_at'])
-            ->paginate();
+            ->paginate($this->per_page);
 
         return WarehouseResource::collection($warehouses);
     }

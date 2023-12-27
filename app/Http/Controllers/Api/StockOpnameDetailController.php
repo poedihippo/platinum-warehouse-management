@@ -39,7 +39,7 @@ class StockOpnameDetailController extends Controller
             // ->allowedFilters(['description'])
             ->allowedSorts(['id', 'created_at'])
             ->allowedIncludes('stockOpname')
-            ->paginate();
+            ->paginate($this->per_page);
 
         return StockOpnameDetailResource::collection($stockOpnameDetails);
     }

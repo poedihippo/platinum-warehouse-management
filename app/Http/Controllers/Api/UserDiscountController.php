@@ -28,7 +28,7 @@ class UserDiscountController extends Controller
         $users = QueryBuilder::for(UserDiscount::with('productBrand')->where('user_id', $user->id))
             // ->allowedFilters(['name', 'email', 'phone', 'type'])
             ->allowedSorts(['id', 'product_brand_id', 'value', 'is_percentage'])
-            ->paginate();
+            ->paginate($this->per_page);
 
         return UserDiscountResource::collection($users);
     }

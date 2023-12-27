@@ -29,7 +29,7 @@ class UserController extends Controller
         $users = QueryBuilder::for(User::with(['roles' => fn ($q) => $q->select('id', 'name')]))
             ->allowedFilters(['name', 'email', 'phone', 'type'])
             ->allowedSorts(['name', 'email', 'phone', 'type'])
-            ->paginate();
+            ->paginate($this->per_page);
 
         return UserResource::collection($users);
     }

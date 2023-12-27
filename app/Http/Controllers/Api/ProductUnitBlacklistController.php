@@ -28,7 +28,7 @@ class ProductUnitBlacklistController extends Controller
                 AllowedFilter::exact('product_unit_id'),
             ])
             ->allowedSorts('product_unit_id')
-            ->paginate();
+            ->paginate($this->per_page);
 
         return ProductUnitBlacklistResource::collection($productUnitBlacklists);
     }

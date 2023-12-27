@@ -40,7 +40,7 @@ class ReceiveOrderController extends Controller
             ])
             ->allowedSorts(['id', 'invoice_no', 'user_id', 'supplier_id', 'warehouse_id', 'created_at'])
             ->allowedIncludes(['details', 'user'])
-            ->paginate();
+            ->paginate($this->per_page);
 
         return ReceiveOrderResource::collection($receiveOrders);
     }

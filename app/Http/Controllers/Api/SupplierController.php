@@ -35,7 +35,7 @@ class SupplierController extends Controller
                 }),
             ])
             ->allowedSorts(['id', 'name'])
-            ->paginate();
+            ->paginate($this->per_page);
 
         return SupplierResource::collection($suppliers);
     }

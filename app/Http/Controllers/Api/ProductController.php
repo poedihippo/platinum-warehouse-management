@@ -32,7 +32,7 @@ class ProductController extends Controller
                 'name'
             ])
             ->allowedSorts(['id', 'product_category_id', 'product_brand_id', 'name', 'created_at'])
-            ->paginate();
+            ->paginate($this->per_page);
 
         return ProductResource::collection($products);
     }

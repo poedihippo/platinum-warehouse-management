@@ -33,7 +33,7 @@ class StockOpnameController extends Controller
                 'is_done'
             ])
             ->allowedSorts(['id', 'description', 'is_done', 'warehouse_id', 'created_at'])
-            ->paginate();
+            ->paginate($this->per_page);
 
         return StockOpnameResource::collection($stockOpnames);
     }
