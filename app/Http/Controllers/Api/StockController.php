@@ -23,6 +23,8 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class StockController extends Controller
 {
+    const FORMAT_GROUPING = "%s GR-%s%s";
+
     public function __construct()
     {
         parent::__construct();
@@ -141,9 +143,24 @@ class StockController extends Controller
                 return response()->json(['message' => 'Jumlah total grouping stok melebihi total stok'], 400);
             }
 
-            $totalGroupStock = $stockProductUnit->stocks()->whereNull('parent_id')->has('childs')->count() ?? 0;
-
+            // $totalGroupStock = $stockProductUnit->stocks()->whereNull('parent_id')->has('childs')->count() ?? 0;
             $productUnit = $stockProductUnit->productUnit;
+
+            //cari nama grouping berdasarkan self::FORMAT_GROUPING
+            $lastGroupName = $stockProductUnit->stocks()->whereNull('parent_id')->has('childs')->whereMonth('stocks.created_at', date('m'))->whereYear('stocks.created_at', date('Y'))->orderByDesc('description')->first(['description'])?->description ?? "";
+            // dd($lastGroupName);
+            $lastOrderNumberGroup = explode(" ", $lastGroupName);
+            $lastOrderNumberGroup = $lastOrderNumberGroup[1] ?? "";
+            if ($lastOrderNumberGroup) {
+                // dump($lastOrderNumberGroup);
+                $lastOrderNumberGroup = (int) substr($lastOrderNumberGroup, -3);
+                // dump($lastOrderNumberGroup);
+                // $ee = sprintf('%03d', (int) $lastOrderNumberGroup + 1);
+                // dd($ee);
+            } else {
+                $lastOrderNumberGroup = 000;
+            }
+
         } elseif ($request->receive_order_detail_id) {
             //grouping dari page RO
             $receiveOrderDetail = ReceiveOrderDetail::findOrFail($request->receive_order_detail_id);
@@ -157,7 +174,7 @@ class StockController extends Controller
                 return response()->json(['message' => 'Jumlah total grouping stok melebihi total stok'], 400);
             }
 
-            $totalGroupStock = $receiveOrderDetail->stocks()->whereNull('parent_id')->has('childs')->count() ?? 0;
+            // $totalGroupStock = $receiveOrderDetail->stocks()->whereNull('parent_id')->has('childs')->count() ?? 0;
 
             $productUnit = $receiveOrderDetail->productUnit;
             $stockProductUnit = StockProductUnit::where('warehouse_id', $receiveOrderDetail->receiveOrder->warehouse_id)
@@ -168,16 +185,20 @@ class StockController extends Controller
         // 1. hitung total stock dari product unit tsb yang parent_id nya null (stock tanpa gruping)
         // 2. qty grouping harus lebih kecil dari total stock
         // 3.
+        // dd($lastOrderNumberGroup);
 
-
+        $formatMMYY = date('my');
         for ($i = 0; $i < $request->total_group; $i++) {
-            $totalGroupStock++;
+            $description = sprintf(self::FORMAT_GROUPING, $productUnit->code, $formatMMYY, sprintf('%03d', (int) $lastOrderNumberGroup + 1));
+            // $totalGroupStock++;
+            $lastOrderNumberGroup++;
             $groupStock = Stock::create([
                 'stock_product_unit_id' => $stockProductUnit->id,
                 // 'product_unit_id' => $productUnit->id,
                 // 'warehouse_id' => $warehouseId,
                 'receive_order_detail_id' => $receiveOrderDetailId,
-                'description' => 'Group ' . $totalGroupStock . ' - ' . $productUnit->code,
+                // 'description' => 'Group ' . $totalGroupStock . ' - ' . $productUnit->code,
+                'description' => $description,
             ]);
 
             $data = QrCode::size(350)
