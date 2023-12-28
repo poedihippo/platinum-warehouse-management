@@ -5,10 +5,6 @@ namespace App\Imports;
 use App\Jobs\GenerateStockQrcode;
 use App\Models\ProductUnit;
 use App\Models\StockProductUnit;
-// use Illuminate\Bus\Queueable;
-// use Illuminate\Contracts\Queue\ShouldQueue;
-// use SimpleSoftwareIO\QrCode\Facades\QrCode;
-// use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
@@ -26,8 +22,6 @@ class StockImport implements ToModel, WithHeadingRow
      */
     public function model(array $row)
     {
-        // dump($this->warehouse_id);
-        // dd($row);
         $qty = isset($row['stock']) && is_numeric($row['stock']) && $row['stock'] > 0 ? (int) $row['stock'] : 0;
         $qty = round($qty);
         $productUnit = ProductUnit::where('code', trim($row['code']))->first();

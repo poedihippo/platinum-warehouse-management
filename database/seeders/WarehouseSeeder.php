@@ -20,9 +20,9 @@ class WarehouseSeeder extends Seeder
             'name' => 'Iconic',
         ]);
 
-        Warehouse::create([
-            'code' => 'Jkt',
-            'name' => 'Warehouse Jakarta Raya',
-        ]);
+        // Warehouse::create([
+        //     'code' => 'Jkt',
+        //     'name' => 'Warehouse Jakarta Raya',
+        // ]);
     }
 }
