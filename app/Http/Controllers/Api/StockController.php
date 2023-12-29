@@ -373,7 +373,7 @@ class StockController extends Controller
                 'stock_product_unit_id' => $stock->stockProductUnit->id,
                 'value' => 1,
                 'is_increment' => 0,
-                'description' => "Delete stock untuk repack",
+                'description' => sprintf("Delete stock untuk repack - %s ke %s(sebanyak %d)", $stock->stockProductUnit->productUnit->name ?? "", $stockProductUnit->productUnit->name ?? "", $qty),
                 'ip' => $userIp,
                 'agent' => $userAgent
             ]);
@@ -387,7 +387,7 @@ class StockController extends Controller
                 'value' => $qty,
                 'is_increment' => 1,
                 'is_approved' => 1,
-                'description' => sprintf("Add stock from repack - %s", $stock->stockProductUnit->productUnit?->name ?? ""),
+                'description' => sprintf("Add stock from repack - %s(sebanyak %d)", $stock->stockProductUnit->productUnit?->name ?? "", $qty),
             ]);
 
             if ($stockProductUnit->productUnit->is_generate_qr) {

@@ -14,22 +14,24 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        $this->call([
-            SupplierSeeder::class,
-            WarehouseSeeder::class,
-            UomSeeder::class,
-            ProductBrandSeeder::class,
-            ProductCategorySeeder::class,
-            ProductSeeder::class,
-            ProductUnitSeeder::class,
-            PermissionSeeder::class,
-            AdminSeeder::class,
-            UserSeeder::class,
-            ResellerSeeder::class,
-            // CustomerSeeder::class,
-            SettingSeeder::class,
-            UserDiscountSeeder::class,
-        ]);
+
+        // atiati pake seeder, pas deploy takut ke refresh db nya
+        // $this->call([
+        //     SupplierSeeder::class,
+        //     WarehouseSeeder::class,
+        //     UomSeeder::class,
+        //     ProductBrandSeeder::class,
+        //     ProductCategorySeeder::class,
+        //     ProductSeeder::class,
+        //     ProductUnitSeeder::class,
+        //     PermissionSeeder::class,
+        //     AdminSeeder::class,
+        //     UserSeeder::class,
+        //     ResellerSeeder::class,
+        //     // CustomerSeeder::class,
+        //     SettingSeeder::class,
+        //     UserDiscountSeeder::class,
+        // ]);
         // \App\Models\User::factory(10)->create();
 
         // \App\Models\User::factory()->create([
