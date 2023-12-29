@@ -34,7 +34,8 @@ class CreateStockROListener implements ShouldQueue
         $folder = 'qrcode/';
 
         foreach ($receiveOrder->details as $receiveOrderDetail) {
-            $qty = $receiveOrderDetail->adjust_qty > 0 ? $receiveOrderDetail->adjust_qty : $receiveOrderDetail->qty;
+            // $qty = $receiveOrderDetail->adjust_qty > 0 ? $receiveOrderDetail->adjust_qty : $receiveOrderDetail->qty;
+            $qty = $receiveOrderDetail->adjust_qty ?? 0;
             $stockProductUnit = StockProductUnit::where('warehouse_id', $receiveOrder->warehouse_id)
                 ->where('product_unit_id', $receiveOrderDetail->product_unit_id)
                 ->first();

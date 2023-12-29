@@ -149,8 +149,8 @@ class ReceiveOrderController extends Controller
         // abort_if(!auth()->user()->tokenCan('receive_order_done'), 403);
         $request->validate(['is_done' => 'required|boolean']);
 
-        if (!$receiveOrder->details?->every(fn($detail) => $detail->is_verified === true))
-            return response()->json(['message' => 'ASemua receive order harus diverifikasi'], 400);
+        if (!$receiveOrder->details?->every(fn($detail) => $detail->is_verified === true)) return response()->json(['message' => 'Semua receive order harus diverifikasi'], 400);
+        if (!$receiveOrder->details?->every(fn($detail) => $detail->adjust_qty > 0)) return response()->json(['message' => 'Semua qty detail receive order harus di adjust'], 400);
 
         $receiveOrder->update([
             'is_done' => $request->is_done ?? 1,
