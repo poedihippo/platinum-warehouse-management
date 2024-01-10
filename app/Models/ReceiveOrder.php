@@ -4,10 +4,12 @@ namespace App\Models;
 
 use App\Events\UnverifiedROEvent;
 use App\Events\VerifiedROEvent;
+use App\Traits\FilterStartEndDate;
 use Illuminate\Database\Eloquent\Model;
 
 class ReceiveOrder extends Model
 {
+    use FilterStartEndDate;
     protected $guarded = [];
 
     protected $casts = [

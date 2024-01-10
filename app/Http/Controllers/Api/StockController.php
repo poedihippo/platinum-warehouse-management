@@ -61,10 +61,17 @@ class StockController extends Controller
 
         $filter = request()->filter;
 
-        if (isset($filter) && isset($filter['parent_id']) && $filter['parent_id'] != '') {
+        if (isset($filter) && !empty($filter['parent_id'])) {
             $query = Stock::whereNotNull('parent_id');
         } else {
-            $query = Stock::withCount('childs')->whereNull('parent_id');
+            // $query = Stock::whereNull('parent_id');
+            $query = Stock::query();
+        }
+
+        if (isset($filter) && !empty($filter['is_show_group']) && $filter['is_show_group'] == 1) {
+            $query->withCount('childs');
+        } else {
+            $query->isShowGroup(0);
         }
 
         $stocks = QueryBuilder::for($query)
@@ -76,8 +83,9 @@ class StockController extends Controller
                 AllowedFilter::exact('receive_order_id'),
                 AllowedFilter::exact('receive_order_detail_id'),
                 AllowedFilter::exact('is_tempel'),
-                AllowedFilter::scope('startDate'),
-                AllowedFilter::scope('endDate'),
+                AllowedFilter::scope('is_show_group'),
+                AllowedFilter::scope('start_date'),
+                AllowedFilter::scope('end_date'),
                 AllowedFilter::callback('show_all', function (\Illuminate\Database\Eloquent\Builder $query, $value) {
                     if (! $value == 0) $query->whereAvailableStock();
                 })

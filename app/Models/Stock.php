@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+
 // use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Stock extends Model
@@ -21,38 +22,38 @@ class Stock extends Model
         'is_tempel' => 'boolean'
     ];
 
-    public function parent(): BelongsTo
+    public function parent() : BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_id');
     }
 
-    public function stockProductUnit(): BelongsTo
+    public function stockProductUnit() : BelongsTo
     {
         return $this->belongsTo(StockProductUnit::class);
     }
 
 
-    public function childs(): HasMany
+    public function childs() : HasMany
     {
         return $this->hasMany(self::class, 'parent_id', 'id');
     }
 
-    public function salesOrderItems(): HasMany
+    public function salesOrderItems() : HasMany
     {
         return $this->hasMany(SalesOrderItem::class);
     }
 
-    public function receiveOrder(): BelongsTo
+    public function receiveOrder() : BelongsTo
     {
         return $this->belongsTo(ReceiveOrder::class);
     }
 
-    public function receiveOrderDetail(): BelongsTo
+    public function receiveOrderDetail() : BelongsTo
     {
         return $this->belongsTo(ReceiveOrderDetail::class);
     }
 
-    protected function qrCode(): Attribute
+    protected function qrCode() : Attribute
     {
         return Attribute::make(
             get: function (string $value) {
@@ -79,5 +80,11 @@ class Stock extends Model
     {
         $value = is_null($value) ? date('Y-m-d') : date('Y-m-d', strtotime($value));
         return $query->whereDate('created_at', '<=', $value);
+    }
+
+    public function scopeIsShowGroup(Builder $query, $value = 0)
+    {
+        if ($value == 0) return $query->doesntHave('childs');
+        return $query->has('childs');
     }
 }

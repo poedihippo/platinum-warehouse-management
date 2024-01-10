@@ -44,6 +44,8 @@ class DeliveryOrderController extends Controller
             ->allowedFilters([
                 'invoice_no',
                 AllowedFilter::exact('reseller_id'),
+                AllowedFilter::scope('start_date'),
+                AllowedFilter::scope('end_date'),
             ])
             ->allowedSorts(['id', 'invoice_no', 'user_id', 'reseller_id', 'is_done', 'created_at'])
             ->paginate($this->per_page);

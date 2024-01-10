@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\SettingEnum;
+use App\Traits\FilterStartEndDate;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 class DeliveryOrder extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, FilterStartEndDate;
 
     protected $fillable = [
         'user_id',

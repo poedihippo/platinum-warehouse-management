@@ -35,8 +35,8 @@ class AdjustmentRequestController extends Controller
             ->allowedFilters([
                 AllowedFilter::exact('user_id'),
                 AllowedFilter::exact('stock_product_unit_id'),
-                AllowedFilter::scope('startDate'),
-                AllowedFilter::scope('endDate'),
+                AllowedFilter::scope('start_date'),
+                AllowedFilter::scope('end_date'),
             ])
             ->allowedSorts(['id', 'user_id', 'stock_product_unit_id', 'created_at'])
             ->paginate($this->per_page);
