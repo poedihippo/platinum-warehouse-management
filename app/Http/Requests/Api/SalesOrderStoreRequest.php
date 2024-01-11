@@ -52,7 +52,7 @@ class SalesOrderStoreRequest extends FormRequest
             'invoice_no' => [
                 'nullable',
                 function (string $attribute, mixed $value, Closure $fail) {
-                    if (DB::table('sales_orders')->where('invoice_no', trim($value))->exists()) {
+                    if (DB::table('sales_orders')->whereNull('deleted_at')->where('invoice_no', trim($value))->exists()) {
                         $fail('Invoice number sudah digunakan');
                     }
                 }

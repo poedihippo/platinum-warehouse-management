@@ -34,7 +34,7 @@ class DeliveryOrderStoreRequest extends FormRequest
             'invoice_no' => [
                 'nullable',
                 function (string $attribute, mixed $value, Closure $fail) {
-                    if (DB::table('delivery_orders')->where('invoice_no', trim($value))->exists()) {
+                    if (DB::table('delivery_orders')->whereNull('deleted_at')->where('invoice_no', trim($value))->exists()) {
                         $fail('Invoice number sudah digunakan');
                     }
                 }
