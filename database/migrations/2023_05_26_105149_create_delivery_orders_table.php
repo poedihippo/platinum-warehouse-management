@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignId('warehouse_id')->constrained();
             $table->foreignId('reseller_id')->constrained('users', 'id');
             // $table->foreignId('sales_order_id')->unique()->constrained()->cascadeOnDelete()->cascadeOnUpdate();
-            $table->string('invoice_no', 20)->nullable()->unique();
+            $table->string('invoice_no', 20)->nullable();
             $table->dateTime('transaction_date');
             $table->dateTime('shipment_estimation_datetime');
             $table->text('description')->nullable();
