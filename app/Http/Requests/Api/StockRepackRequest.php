@@ -26,6 +26,7 @@ class StockRepackRequest extends FormRequest
         return [
             'qty' => 'required|integer|min:1',
             'stock_product_unit_id' => 'required|exists:stock_product_units,id',
+            'created_at' => 'nullable|date',
         ];
     }
 }

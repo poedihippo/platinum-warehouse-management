@@ -26,7 +26,6 @@ class StockHistoryController extends Controller
                 AllowedFilter::exact('stock_product_unit_id'),
                 AllowedFilter::exact('user_id'),
                 'description',
-                'user_id'
             ])
             ->allowedSorts(['id', 'user_id', 'description', 'created_at'])
             ->paginate($this->per_page);

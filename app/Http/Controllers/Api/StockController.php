@@ -371,6 +371,7 @@ class StockController extends Controller
         $userId = auth('sanctum')->user()->id;
         $userIp = request()->ip();
         $userAgent = request()->header('user-agent');
+        $createdAt = $request->created_at ? date('Y-m-d H:i:s', $request->created_at) : now();
 
         DB::beginTransaction();
         try {
@@ -383,7 +384,8 @@ class StockController extends Controller
                 'is_increment' => 0,
                 'description' => sprintf("Delete stock untuk repack - %s ke %s(sebanyak %d)", $stock->stockProductUnit->productUnit->name ?? "", $stockProductUnit->productUnit->name ?? "", $qty),
                 'ip' => $userIp,
-                'agent' => $userAgent
+                'agent' => $userAgent,
+                'created_at' => $createdAt,
             ]);
 
             // adjust stock berdasarkan stock_product_unit_id dan qty nya
@@ -412,7 +414,8 @@ class StockController extends Controller
                 'is_increment' => 1,
                 'description' => $adjustmentRequest->description,
                 'ip' => $userIp,
-                'agent' => $userAgent
+                'agent' => $userAgent,
+                'created_at' => $createdAt,
             ]);
             DB::commit();
         } catch (\Throwable $th) {
