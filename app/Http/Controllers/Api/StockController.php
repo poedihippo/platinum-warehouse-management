@@ -371,7 +371,7 @@ class StockController extends Controller
         $userId = auth('sanctum')->user()->id;
         $userIp = request()->ip();
         $userAgent = request()->header('user-agent');
-        $createdAt = $request->created_at ? date('Y-m-d H:i:s', $request->created_at) : now();
+        $createdAt = $request->created_at ? date('Y-m-d H:i:s', strtotime($request->created_at)) : now();
 
         DB::beginTransaction();
         try {
