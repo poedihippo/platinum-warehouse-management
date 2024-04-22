@@ -46,13 +46,13 @@ class Kernel extends HttpKernel
     ];
 
     /**
-     * The application's route middleware.
+     * The application's middleware aliases.
      *
-     * These middleware may be assigned to groups or used individually.
+     * Aliases may be used instead of class names to conveniently assign middleware to routes and groups.
      *
      * @var array<string, class-string|string>
      */
-    protected $routeMiddleware = [
+    protected $middlewareAliases = [
         'auth' => \App\Http\Middleware\Authenticate::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class,
@@ -66,10 +66,35 @@ class Kernel extends HttpKernel
         'role' => \Spatie\Permission\Middlewares\RoleMiddleware::class,
         'permission' => \Spatie\Permission\Middlewares\PermissionMiddleware::class,
         'role_or_permission' => \Spatie\Permission\Middlewares\RoleOrPermissionMiddleware::class,
-    ];
-
-    protected $middlewareAliases = [
         'abilities' => \Laravel\Sanctum\Http\Middleware\CheckAbilities::class,
         'ability' => \Laravel\Sanctum\Http\Middleware\CheckForAnyAbility::class,
     ];
+
+    // /**
+    //  * The application's route middleware.
+    //  *
+    //  * These middleware may be assigned to groups or used individually.
+    //  *
+    //  * @var array<string, class-string|string>
+    //  */
+    // protected $routeMiddleware = [
+    //     'auth' => \App\Http\Middleware\Authenticate::class,
+    //     'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
+    //     'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class,
+    //     'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
+    //     'can' => \Illuminate\Auth\Middleware\Authorize::class,
+    //     'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+    //     'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
+    //     'signed' => \App\Http\Middleware\ValidateSignature::class,
+    //     'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+    //     'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+    //     'role' => \Spatie\Permission\Middlewares\RoleMiddleware::class,
+    //     'permission' => \Spatie\Permission\Middlewares\PermissionMiddleware::class,
+    //     'role_or_permission' => \Spatie\Permission\Middlewares\RoleOrPermissionMiddleware::class,
+    // ];
+
+    // protected $middlewareAliases = [
+    //     'abilities' => \Laravel\Sanctum\Http\Middleware\CheckAbilities::class,
+    //     'ability' => \Laravel\Sanctum\Http\Middleware\CheckForAnyAbility::class,
+    // ];
 }
