@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Enums\UserType;
 use App\Models\PersonalAccessToken;
 use App\Models\User;
+use App\Models\Warehouse;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
@@ -43,6 +44,7 @@ class AdminSeeder extends Seeder
         ]);
 
         $user->assignRole($adminRole);
+        $user->warehouses()->sync(Warehouse::get(['id'])->pluck('id'));
 
         // User::create([
         //     'name' => 'Emporium Fish',

@@ -67,6 +67,7 @@ class UserController extends Controller
                 'type' => $request->type,
             ]);
             $user->syncRoles($request->role_ids);
+            $user->warehouses()->sync($request->warehouse_ids);
             return $user;
         });
 
@@ -84,6 +85,7 @@ class UserController extends Controller
         $user->update($data);
 
         $user->syncRoles($request->role_ids);
+        $user->warehouses()->sync($request->warehouse_ids);
         return (new UserResource($user))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 

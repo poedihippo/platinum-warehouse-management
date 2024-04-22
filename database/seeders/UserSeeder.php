@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Enums\UserType;
 use App\Models\User;
+use App\Models\Warehouse;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
@@ -202,6 +203,8 @@ class UserSeeder extends Seeder
             'stock_history_done',
         ]);
 
+        $warehouseIds = Warehouse::get(['id'])->pluck('id') ?? [];
+
         // devi assign to Back Office Admin All
         $devi = User::create([
             'name' => 'Devi Platinum Backoffice',
@@ -211,6 +214,7 @@ class UserSeeder extends Seeder
             'type' => UserType::Admin,
         ]);
         $devi->assignRole(1);
+        $devi->warehouses()->sync($warehouseIds);
 
         // Admin Backoffice assign to Back Office Admin - Sales Order
         $adminBackOffice = User::create([
@@ -221,6 +225,7 @@ class UserSeeder extends Seeder
             'type' => UserType::Admin,
         ]);
         $adminBackOffice->assignRole($roleAdminSO);
+        $adminBackOffice->warehouses()->sync($warehouseIds);
 
         // dina assign to Back Office Admin - Receive Order
         $dina = User::create([
@@ -231,6 +236,7 @@ class UserSeeder extends Seeder
             'type' => UserType::Admin,
         ]);
         $dina->assignRole($roleAdminRO);
+        $dina->warehouses()->sync($warehouseIds);
 
         // devi assign to Warehouse
         $jhon = User::create([
@@ -241,6 +247,7 @@ class UserSeeder extends Seeder
             'type' => UserType::Admin,
         ]);
         $jhon->assignRole($roleAdminWarehouse);
+        $jhon->warehouses()->sync($warehouseIds);
 
         // devi assign to Warehouse
         $safrizal = User::create([
@@ -251,5 +258,6 @@ class UserSeeder extends Seeder
             'type' => UserType::Admin,
         ]);
         $safrizal->assignRole($roleAdminWarehouse);
+        $safrizal->warehouses()->sync($warehouseIds);
     }
 }

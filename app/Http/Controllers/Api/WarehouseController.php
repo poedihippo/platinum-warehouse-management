@@ -25,7 +25,9 @@ class WarehouseController extends Controller
     public function index()
     {
         // abort_if(!auth()->user()->tokenCan('warehouse_access'), 403);
-        $warehouses = QueryBuilder::for(Warehouse::class)
+        /** @var \App\Models\User $user */
+        $user = auth('sanctum')->user();
+        $warehouses = QueryBuilder::for(Warehouse::whereIn('id', $user->warehouses()->pluck('warehouse_id') ?? []))
             ->allowedFilters(['name'])
             ->allowedSorts(['id', 'name', 'created_at'])
             ->paginate($this->per_page);

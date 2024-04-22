@@ -43,6 +43,8 @@ class UserUpdateRequest extends FormRequest
             'type' => ['nullable', new EnumValue(UserType::class, false)],
             'role_ids' => 'nullable|array',
             'role_ids.*' => 'exists:roles,id',
+            'warehouse_ids' => 'nullable|array',
+            'warehouse_ids.*' => 'exists:warehouses,id',
         ];
     }
 }

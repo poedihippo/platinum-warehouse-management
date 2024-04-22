@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Enums\UserType;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -101,5 +102,10 @@ class User extends Authenticatable
     public function userDiscounts()
     {
         return $this->hasMany(UserDiscount::class);
+    }
+
+    public function warehouses(): BelongsToMany
+    {
+        return $this->belongsToMany(Warehouse::class, 'user_warehouses');
     }
 }
