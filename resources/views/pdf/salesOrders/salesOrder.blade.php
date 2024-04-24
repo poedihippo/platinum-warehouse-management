@@ -1,434 +1,227 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Document</title>
+    <meta charset="utf-8">
+    <title>Example 1</title>
     <style>
+        .clearfix:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        a {
+            color: #5D6975;
+            text-decoration: underline;
+        }
+
         body {
+            position: relative;
+            width: 21cm;
+            height: 29.7cm;
+            margin: 0 auto;
+            color: #001028;
+            background: #FFFFFF;
+            font-family: Arial, sans-serif;
             font-size: 12px;
-            margin: 0;
-            padding: 0;
+            font-family: Arial;
         }
 
-        .page-break {
-            page-break-after: always !important;
+        header {
+            padding: 10px 0;
+            margin-bottom: 30px;
         }
 
-        .location {
-            border-width: 1px;
-            border-color: black;
-            border-style: solid;
-            border-radius: 8px;
-        }
-
-        .locationTop {
-            border-width: 1px;
-            border-color: black;
-            border-style: solid;
-            border-radius: 8px;
-        }
-
-        .dotted {
-            border-width: 1px;
-            border-color: black;
-            border-style: dashed;
-        }
-
-        .table-border-radius {
-            width: 100%;
-            border: 1px solid;
-            border-radius: 8px;
-            border-spacing: 0;
-        }
-
-        .border-right-dashed {
-            border-right: 1px solid;
-            border-right-style: dashed;
-        }
-
-        .border-right-bottom-dashed {
-            border-bottom: 1px solid;
-            border-right: 1px solid;
-            border-bottom-style: dashed;
-            border-right-style: dashed;
-        }
-
-        .border-left-bottom-dashed {
-            border-bottom: 1px solid;
-            border-bottom-style: dashed;
-        }
-
-        .border {
-            border: 1px solid;
-        }
-
-        .border-top {
-            border-top: 1px solid;
-        }
-
-        .border-bottom {
-            border-bottom: 1px solid;
-        }
-
-        .border-right {
-            border-right: 1px solid;
-        }
-
-        .border-left {
-            border-left: 1px solid;
-        }
-
-        .border-radius-8 {
-            border-radius: 8px;
-        }
-
-        .border-radius-3 {
-            border-radius: 3px;
-        }
-
-        .m-0 {
-            margin: 0;
-        }
-
-        .mx-5 {
-            margin-right: 5px;
-            margin-left: 5px;
-        }
-
-        .my-5 {
-            margin-top: 5px;
-            margin-bottom: 5px;
-        }
-
-        .mt-5 {
-            margin-top: 5px;
-        }
-
-        .mr-5 {
-            margin-right: 5px;
-        }
-
-        .ml-20 {
-            margin-left: 20px;
-        }
-
-        .py-5 {
-            padding-top: 5px;
-            padding-bottom: 5px;
-        }
-
-        .py-3 {
-            padding-top: 3px;
-            padding-bottom: 3px;
-        }
-
-        .pt-5 {
-            padding-top: 5px;
-        }
-
-        .pb-5 {
-            padding-bottom: 5px;
-        }
-
-        .width-50 {
-            width: 50%;
-        }
-
-        .text-center {
+        #logo {
             text-align: center;
+            margin-bottom: 10px;
         }
 
-        .text-right {
+        #logo img {
+            width: 90px;
+        }
+
+        h1 {
+            border-top: 1px solid #5D6975;
+            border-bottom: 1px solid #5D6975;
+            color: #5D6975;
+            font-size: 2.4em;
+            line-height: 1.4em;
+            font-weight: normal;
+            text-align: center;
+            margin: 0 0 20px 0;
+            background: url(dimension.png);
+        }
+
+        #project {
+            float: left;
+        }
+
+        #project span {
+            color: #5D6975;
+            text-align: right;
+            width: 52px;
+            margin-right: 10px;
+            display: inline-block;
+            font-size: 0.8em;
+        }
+
+        #company {
+            float: right;
             text-align: right;
         }
 
-        .text-left {
+        #project div,
+        #company div {
+            white-space: nowrap;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border-spacing: 0;
+            margin-bottom: 20px;
+        }
+
+        table tr:nth-child(2n-1) td {
+            background: #F5F5F5;
+        }
+
+        table th,
+        table td {
+            text-align: center;
+        }
+
+        table th {
+            padding: 5px 20px;
+            color: #5D6975;
+            border-bottom: 1px solid #C1CED9;
+            white-space: nowrap;
+            font-weight: normal;
+        }
+
+        table .service,
+        table .desc {
+            text-align: center;
+        }
+
+        table td {
+            padding: 20px;
+            text-align: right;
+        }
+
+        table td.service,
+        table td.desc {
+            vertical-align: top;
+        }
+
+        table td.unit,
+        table td.qty,
+        table td.total {
+            font-size: 1.2em;
+        }
+
+        table td.grand {
+            border-top: 1px solid #5D6975;
+            ;
+        }
+
+        #notices .notice {
+            color: #5D6975;
+            font-size: 1.2em;
+        }
+
+        footer {
+            color: #5D6975;
+            width: 100%;
+            height: 30px;
+            position: absolute;
+            bottom: 0;
+            border-top: 1px solid #C1CED9;
+            padding: 8px 0;
+            text-align: center;
+        }
+        .align-center{
+            text-align: center;
+        }
+        .align-left{
             text-align: left;
         }
-
-        .text-bold {
-            font-weight: bold;
+        .align-right{
+            text-align: right;
         }
-
-        .table-items-bordered {
-            width: 100%;
-            border: 1px solid;
-        }
-
-        .border-bottom-none {
-            border-bottom: none !important;
+        .float-left{
+            float: left;
         }
     </style>
 </head>
+
 <body>
-    @foreach ($salesOrderDetails as $key => $orderDetails)
-        @if ($key != 0)
-            <div class="page-break"></div>
-        @endif
-        @php
-            $listProductsBlackSpace = max(10 - $orderDetails->count() ?? 0, 0);
-        @endphp
-        <div>
-            <table style="width: 100%">
-                <tr>
-                    <td style="width: 60%">
-                        <table style="width: 100%">
-                            <tr>
-                                <td></td>
-                                <td>
-                                    <div class="locationTop py-5">
-                                        <h3 class="m-0 mx-5">PT. PLATINUM ADI SENTOSA</h3>
-                                        <div class="dotted"></div>
-                                        <p class="m-0 mx-5">
-                                            KO Duta Indah Iconic Blok B no. 17 <br />RT.004 RW02 Kel.
-                                            Panunggangan Utara <br />
-                                            Pinang Kota Tangerang Banten
-                                        </p>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Order by</td>
-                                <td>
-                                    <div class="locationTop py-5">
-                                        <h3 class="m-0 mx-5">{{ $salesOrder->reseller?->name }}</h3>
-                                        <p class="m-0 mx-5">
-                                            {{ $salesOrder->reseller?->address }}
-                                        </p>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Ship To</td>
-                                <td>
-                                    <div class="locationTop py-5">
-                                        <h3 class="m-0 mx-5">{{ $salesOrder->reseller->name }}</h3>
-                                        <p class="m-0 mx-5">
-                                            {{ $salesOrder->reseller?->address }}
-                                        </p>
-                                    </div>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                    <td style="width: 40%">
-                        <div class="ml-20">
-                            <h1 class="m-0 text-right">Sales Order</h1>
-                            <table class="table-border-radius">
-                                <tr>
-                                    <td class="border-right-bottom-dashed py-3">
-                                        <p class="mx-5 m-0">SO Date</p>
-                                        <p class="mx-5 m-0 ml-20">
-                                            {{ date('d M Y', strtotime($salesOrder->transaction_date)) }}</p>
-                                    </td>
-                                    <td class="border-left-bottom-dashed py-3">
-                                        <p class="mx-5 m-0">SO Number</p>
-                                        <p class="mx-5 m-0 ml-20">{{ $salesOrder->invoice_no }}</p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="border-right-bottom-dashed py-3">
-                                        <p class="mx-5 m-0">Terms</p>
-                                        <p class="mx-5 m-0 ml-20">C.O.D</p>
-                                    </td>
-                                    <td class="border-left-bottom-dashed py-3">
-                                        <p class="mx-5 m-0">FOB</p>
-                                        <p class="mx-5 m-0 ml-20">&nbsp;</p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="border-right-bottom-dashed py-3">
-                                        <p class="mx-5 m-0">Ship Via</p>
-                                        <p class="mx-5 m-0 ml-20">&nbsp;</p>
-                                    </td>
-                                    <td class="border-left-bottom-dashed py-3">
-                                        <p class="mx-5 m-0">Ship Date</p>
-                                        <p class="mx-5 m-0 ml-20">
-                                            {{ date('d M Y', strtotime($salesOrder->shipment_estimation_datetime)) }}
-                                        </p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="border-right-dashed py-3">
-                                        <p class="mx-5 m-0">PO. No.</p>
-                                        <p class="mx-5 m-0 ml-20">&nbsp;</p>
-                                    </td>
-                                    <td class="py-3">
-                                        <p class="mx-5 m-0">Salesman</p>
-                                        <p class="mx-5 m-0 ml-20">&nbsp;</p>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </td>
-                </tr>
-            </table>
+    <header class="clearfix">
+        <div id="logo">
+            <img src="{{ public_path('images/logo-color.png')}}" />
         </div>
-        <div class="mt-5">
-            <table class="table-items-bordered @if($key != $lastOrderDetailsKey)border-bottom-none @endif" cellspacing="0">
+        <h1>{{$salesOrder->invoice_no}}</h1>
+        <div id="project">
+            <div>PT. PLATINUM ADI SENTOSA</div>
+            <div>Ko Duta Indah Iconic Blok B No. 1 RT. 004 RW. 02 Panunggangan Utara, Pinang, Kota Tangerang, Banten 15143</div>
+            <div>(021) 29866646</div>
+            <div>{{ date('d F Y', strtotime($salesOrder->created_at)) }}</div>
+        </div>
+    </header>
+    <main>
+        <table>
+            <thead>
                 <tr>
-                    <th class="border-bottom border-right">Item</th>
-                    <th class="border-bottom border-right">Item Description</th>
-                    <th class="border-bottom border-right">Qty</th>
-                    <th class="border-bottom border-right">Unit Price</th>
-                    <th class="border-bottom border-right">Disc</th>
-                    <th class="border-bottom border-right">Tax</th>
-                    <th class="border-bottom">Amount</th>
+                    <th class="align-center">Item</th>
+                    <th class="align-center">Item Description</th>
+                    <th class="align-center">Qty</th>
+                    <th class="align-center">Unit Price</th>
+                    <th class="align-center">Total</th>
                 </tr>
-                @foreach ($orderDetails as $detail)
-                    <tr>
-                        <td class="border-right">
-                            <span
-                                class="mx-5">{{ $detail->productUnit?->code . (is_null($detail->packaging_id) ? '' : '*') }}</span>
-                        </td>
-                        <td class="border-right">
-                            <span
-                                class="mx-5">{{ $detail->productUnit?->name . (is_null($detail->packaging_id) ? '' : '*') }}</span>
-                        </td>
-                        <td class="border-right text-right">
-                            <span class="mx-5">{{ $detail->qty }}</span>
-                        </td>
-                        <td class="border-right text-right">
-                            <span class="mx-5">{{ number_format($detail->unit_price) }}</span>
-                        </td>
-                        <td class="border-right">
-                            <span class="mx-5">{{ $detail->discount }}</span>
-                        </td>
-                        <td class="border-right">
-                            <span class="mx-5">{{ $detail->tax }}</span>
-                        </td>
-                        <td class="text-right">
-                            <span class="mx-5">{{ number_format($detail->total_price) }}</span>
-                        </td>
-                    </tr>
+            </thead>
+            <tbody>
+                @foreach ($salesOrder->details as $detail)
+                <tr>
+                    <td class="align-left">{{$detail->productUnit?->code}}</td>
+                    <td class="align-left">{{$detail->productUnit?->name}}</td>
+                    <td class="align-center">{{ $detail->qty }}</td>
+                    <td>
+                        <span class="float-left">Rp. </span>
+                        <span>{{ number_format($detail->unit_price) }}</span>
+                    </td>
+                    <td>
+                        <span class="float-left">Rp. </span>
+                        <span>{{ number_format($detail->total_price) }}</span>
+                    </td>
+                </tr>
                 @endforeach
-                <tr>
-                    @for ($i = 0; $i < 7; $i++)
-                        <td class="border-right">
-                            {!! str_repeat('<br>', $listProductsBlackSpace) !!}
-                        </td>
-                    @endfor
+                {{-- <tr>
+                    <td colspan="4">Sub Total</td>
+                    <td class="total">$5,200.00</td>
                 </tr>
-            </table>
+                <tr>
+                    <td colspan="4">TAX 25%</td>
+                    <td class="total">$1,300.00</td>
+                </tr> --}}
+                <tr>
+                    <td colspan="4" class="grand total">GRAND TOTAL</td>
+                    <td class="grand total">
+                        <span class="float-left">Rp. </span>
+                        <span>{{ number_format($salesOrder->price) }}</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div id="notices">
+            <div>NOTICE:</div>
+            <div class="notice">{{$salesOrder->description}}</div>
         </div>
-        @if ($key == $lastOrderDetailsKey)
-            <div class="mt-5">
-                <table style="width: 100%">
-                    <tr>
-                        <td style="width: 65%">
-                            <table style="width: 100%">
-                                <tr>
-                                    <td>Say :</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="border border-radius-8">
-                                            <p class="mx-5 my-5">{{ $spellTotalPrice ?? ($salesOrder->price ?? 0) }}
-                                            </p>
-                                            <br>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </table>
-                            <table style="width: 100%">
-                                <tr>
-                                    <td>Description :</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="border border-radius-8">
-                                            <p class="mx-5 my-5">
-                                                {{ $salesOrder->description }}
-                                                <br>
-                                                {!! $bankTransferInfo !!}
-                                            </p>
-                                            <br>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </table>
-                            <table style="width: 50%">
-                                <tr>
-                                    <td>
-                                        <p class="text-center">Prepared by</p>
-                                        <br />
-                                        <br />
-                                        <br />
-                                        <br />
-                                        <br />
-                                        <div>
-                                            <hr />
-                                        </div>
-                                        <span>Date:</span>
-                                    </td>
-                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-                                    <td>
-                                        <p class="text-center">Approved by</p>
-                                        <br />
-                                        <br />
-                                        <br />
-                                        <br />
-                                        <br />
-                                        <div>
-                                            <hr />
-                                        </div>
-                                        <span>Date:</span>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                        <td style="width: 35%; vertical-align: top;">
-                            <table class="table-border-radius">
-                                <tr>
-                                    <td class="width-50 border-bottom text-right py-3">Sub Total :</td>
-                                    <td class="width-50 border-bottom text-right py-3">
-                                        <span class="mr-5">{{ number_format($salesOrder->details->sum('total_price')) }}</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="width-50 text-right py-3">Discount :</td>
-                                    <td class="width-50 text-right py-3">
-                                        <span class="mr-5">{{ number_format($salesOrder->additional_discount) }}</span>
-                                    </td>
-                                </tr>
-                            </table>
-                            <table class="mt-5 table-border-radius">
-                                <tr>
-                                    <td class="width-50 border-bottom text-right py-3">PPN :</td>
-                                    <td class="width-50 border-bottom text-right py-3">
-                                        <span class="mr-5">0</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="width-50 text-right py-3">:</td>
-                                    <td class="width-50 text-right py-3">
-                                        <span class="mr-5">0</span>
-                                    </td>
-                                </tr>
-                            </table>
-                            <table class="mt-5 table-border-radius">
-                                <tr>
-                                    <td class="width-50 text-right py-3">Extimated Freight :</td>
-                                    <td class="width-50 text-right py-3">
-                                        <span class="mr-5">{{ number_format($salesOrder->shipment_fee) }}</span>
-                                    </td>
-                                </tr>
-                            </table>
-                            <table class="mt-5 table-border-radius">
-                                <tr>
-                                    <td class="width-50 text-right text-bold py-3">Total Order :</td>
-                                    <td class="width-50 text-right text-bold py-3">
-                                        <span class="mr-5">{{ number_format($salesOrder->price) }}</span>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-        @endif
-    @endforeach
+    </main>
+    <footer>
+        Invoice was created on a computer and is valid without the signature and seal.
+    </footer>
 </body>
+
 </html>
