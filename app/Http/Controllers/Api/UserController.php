@@ -28,6 +28,9 @@ class UserController extends Controller
     {
         // abort_if(!auth()->user()->tokenCan('user_access'), 403);
         $users = QueryBuilder::for(User::with(['roles' => fn ($q) => $q->select('id', 'name')]))
+            ->allowedIncludes(\Spatie\QueryBuilder\AllowedInclude::callback('warehouses', function ($query) {
+                $query->select('id', 'code', 'name');
+            }))
             ->allowedFilters(['name', 'email', 'phone', 'type'])
             ->allowedSorts(['name', 'email', 'phone', 'type'])
             ->paginate($this->per_page);
