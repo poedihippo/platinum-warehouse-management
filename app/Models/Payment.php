@@ -47,7 +47,7 @@ class Payment extends Model implements HasMedia
 
     public function getFilesAttribute()
     {
-        // $files = $this->getMedia();
+        // $files = $this->getMedia('payments');
         // $files->each(function ($item) {
         //     $item->url       = $item->getUrl();
         //     // $item->thumbnail = $item->getUrl('thumb');
@@ -56,7 +56,7 @@ class Payment extends Model implements HasMedia
 
         // return $files;
 
-        return $this->getMedia()->map(function ($media) {
+        return $this->getMedia('payments')->map(function ($media) {
             return [
                 'id'              => $media->id,
                 'url'             => $media->getUrl(),
@@ -71,7 +71,7 @@ class Payment extends Model implements HasMedia
 
     // public function getFilesAttribute()
     // {
-    //     $files = $this->getMedia();
+    //     $files = $this->getMedia('payments');
     //     $data = [];
     //     if ($files->count() > 0) {
     //         foreach ($files as $file) {

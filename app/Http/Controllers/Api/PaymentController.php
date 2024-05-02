@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\Payment\StoreRequest;
 use App\Http\Resources\DefaultResource;
 use App\Models\Payment;
+use App\Models\SalesOrder;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -53,10 +54,16 @@ class PaymentController extends Controller
     {
         DB::beginTransaction();
         try {
-            $payment = Payment::create($request->validated());
+            $data = $request->validated();
+            if ($request->is_full_payment == true) {
+                $salesOrder = SalesOrder::where('id', $request->sales_order_id)->firstOrFail(['price']);
+                $data['amount'] = $salesOrder->price;
+            }
+
+            $payment = Payment::create($data);
             if ($request->hasFile('files')) {
                 foreach ($request->file('files') as $file) {
-                    if ($file->isValid()) $payment->addMedia($file)->toMediaCollection();
+                    if ($file->isValid()) $payment->addMedia($file)->toMediaCollection('payments');
                 }
             }
 
@@ -73,10 +80,16 @@ class PaymentController extends Controller
     {
         DB::beginTransaction();
         try {
-            $payment->update($request->validated());
+            $data = $request->validated();
+            if ($request->is_full_payment == true) {
+                $salesOrder = SalesOrder::where('id', $request->sales_order_id)->firstOrFail(['price']);
+                $data['amount'] = $salesOrder->price;
+            }
+
+            $payment->update($data);
             if ($request->hasFile('files')) {
                 foreach ($request->file('files') as $file) {
-                    if ($file->isValid()) $payment->addMedia($file)->toMediaCollection();
+                    if ($file->isValid()) $payment->addMedia($file)->toMediaCollection('payments');
                 }
             }
 
