@@ -13,7 +13,7 @@ class PermissionStoreRequest extends FormRequest
      */
     public function authorize()
     {
-        return auth()->user()->tokenCan('permission_create');
+        return true;
     }
 
     /**

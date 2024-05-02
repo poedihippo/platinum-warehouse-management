@@ -13,7 +13,7 @@ class WarehouseStoreRequest extends FormRequest
      */
     public function authorize()
     {
-        return auth()->user()->tokenCan('warehouse_create');
+        return true;
     }
 
     /**

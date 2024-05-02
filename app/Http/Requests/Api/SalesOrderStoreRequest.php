@@ -16,7 +16,6 @@ class SalesOrderStoreRequest extends FormRequest
     public function authorize()
     {
         return true;
-        // return auth()->user()->tokenCan('sales_order_create');
     }
 
     /**

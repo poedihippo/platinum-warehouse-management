@@ -13,7 +13,7 @@ class SupplierStoreRequest extends FormRequest
      */
     public function authorize()
     {
-        return auth()->user()->tokenCan('supplier_create');
+        return true;
     }
 
     /**

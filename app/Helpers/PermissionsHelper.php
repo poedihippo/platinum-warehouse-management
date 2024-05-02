@@ -130,6 +130,13 @@ class PermissionsHelper
                 'receive_order_verify_access',
             ],
 
+            'payment_access' => [
+                'payment_read',
+                'payment_create',
+                'payment_edit',
+                'payment_delete',
+            ],
+
             'delivery_order_access' => [
                 'delivery_order_read',
                 'delivery_order_create',
@@ -248,11 +255,14 @@ class PermissionsHelper
 
     public static function getRelatedPermissions(string $permission): array
     {
+        [
+            'payment_access', 'payment_read', 'payment_create', 'payment_edit', 'payment_delete',
+        ];
         return match ($permission) {
             'receive_order_access' => ['stock_read'],
             'stock_access' => ['product_category_read', 'product_brand_read', 'warehouse_read'],
-            'sales_order_access' => ['product_unit_read', 'warehouse_read', 'user_access'],
-            'delivery_order_access' => ['sales_order_read'],
+            'sales_order_access' => ['product_unit_read', 'warehouse_read', 'user_access', 'payment_access', 'payment_read', 'payment_create', 'payment_edit', 'payment_delete'],
+            'delivery_order_access' => ['sales_order_read', 'payment_access', 'payment_read', 'payment_create', 'payment_edit', 'payment_delete'],
             'product_access' => ['product_category_read', 'product_brand_read', 'product_unit_read'],
             'user_access' => ['role_read'],
             default => [],

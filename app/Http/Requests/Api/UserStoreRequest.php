@@ -15,7 +15,7 @@ class UserStoreRequest extends FormRequest
      */
     public function authorize()
     {
-        return auth()->user()->tokenCan('user_create');
+        return true;
     }
 
     /**

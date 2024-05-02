@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AdjustmentRequestController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DeliveryOrderController;
 use App\Http\Controllers\Api\DeliveryOrderDetailController;
+use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProductBrandController;
 use App\Http\Controllers\Api\ProductCategoryController;
 use App\Http\Controllers\Api\ProductController;
@@ -53,9 +54,9 @@ Route::get('/auth/{provider}', [SocialiteController::class, 'redirectToProvider'
 Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProvideCallback']);
 
 Route::middleware('auth:sanctum')->group(function() {
-    Route::resource('roles', RoleController::class);
+    Route::apiResource('roles', RoleController::class);
     Route::get('permissions/all', [PermissionController::class, 'all']);
-    Route::resource('permissions', PermissionController::class);
+    Route::apiResource('permissions', PermissionController::class);
 
     Route::group(['prefix' => 'users/{user}/discounts'], function () {
         Route::get('/', [UserDiscountController::class, 'index']);
@@ -67,20 +68,20 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::put('users/{user}/restore', [UserController::class, 'restore']);
     Route::delete('users/{user}/force-delete', [UserController::class, 'forceDelete']);
     Route::get('users/me', [UserController::class, 'me']);
-    Route::resource('users', UserController::class);
+    Route::apiResource('users', UserController::class);
 
-    Route::resource('warehouses', WarehouseController::class);
-    Route::resource('suppliers', SupplierController::class);
-    Route::resource('product-categories', ProductCategoryController::class);
-    Route::resource('product-brands', ProductBrandController::class);
-    Route::resource('products', ProductController::class);
+    Route::apiResource('warehouses', WarehouseController::class);
+    Route::apiResource('suppliers', SupplierController::class);
+    Route::apiResource('product-categories', ProductCategoryController::class);
+    Route::apiResource('product-brands', ProductBrandController::class);
+    Route::apiResource('products', ProductController::class);
 
     Route::put('product-units/{productUnit}/set-packaging', [ProductUnitController::class, 'setPackaging']);
     Route::get('product-units/{productUnit}/user-price/{user}', [ProductUnitController::class, 'userPrice']);
-    Route::resource('product-units', ProductUnitController::class);
-    Route::resource('product-unit-blacklists', ProductUnitBlacklistController::class)->only(['index', 'store', 'destroy']);
+    Route::apiResource('product-units', ProductUnitController::class);
+    Route::apiResource('product-unit-blacklists', ProductUnitBlacklistController::class)->only(['index', 'store', 'destroy']);
 
-    Route::resource('uoms', UomController::class);
+    Route::apiResource('uoms', UomController::class);
 
     Route::group(['prefix' => 'receive-orders/{receiveOrder}/details'], function () {
         Route::get('/', [ReceiveOrderDetailController::class, 'index']);
@@ -92,7 +93,7 @@ Route::middleware('auth:sanctum')->group(function() {
     });
 
     Route::put('receive-orders/{receiveOrder}/done', [ReceiveOrderController::class, 'done']);
-    Route::resource('receive-orders', ReceiveOrderController::class);
+    Route::apiResource('receive-orders', ReceiveOrderController::class);
 
     Route::group(['prefix' => 'sales-orders/{salesOrder}/details'], function () {
         Route::get('/', [SalesOrderDetailController::class, 'index']);
@@ -104,7 +105,7 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::get('sales-orders/product-units', [SalesOrderController::class, 'productUnits']);
     Route::get('sales-orders/{salesOrder}/print', [SalesOrderController::class, 'print']);
     Route::get('sales-orders/{salesOrder}/export-xml', [SalesOrderController::class, 'exportXml']);
-    Route::resource('sales-orders', SalesOrderController::class);
+    Route::apiResource('sales-orders', SalesOrderController::class);
 
     Route::get('sales-order-items/{salesOrderDetail}', [SalesOrderItemController::class, 'index']);
     Route::post('sales-order-items/{salesOrderDetail}', [SalesOrderItemController::class, 'store']);
@@ -118,7 +119,7 @@ Route::middleware('auth:sanctum')->group(function() {
     });
 
     Route::post('delivery-orders/{deliveryOrder}/attach', [DeliveryOrderController::class, 'attach']);
-    Route::resource('delivery-orders', DeliveryOrderController::class);
+    Route::apiResource('delivery-orders', DeliveryOrderController::class);
     // Route::post('delivery-orders/{deliveryOrder}/verification/{salesOrderDetail}', [DeliveryOrderController::class, 'verification']);
     Route::post('delivery-orders/{deliveryOrder}/verification/{deliveryOrderDetail}', [DeliveryOrderController::class, 'verification']);
     Route::get('delivery-orders/{deliveryOrder}/print', [DeliveryOrderController::class, 'print']);
@@ -126,7 +127,7 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::get('delivery-orders/{deliveryOrder}/export-xml', [DeliveryOrderController::class, 'exportXml']);
 
     Route::put('adjustment-requests/{adjustmentRequest}/approve', [AdjustmentRequestController::class, 'approve']);
-    Route::resource('adjustment-requests', AdjustmentRequestController::class);
+    Route::apiResource('adjustment-requests', AdjustmentRequestController::class);
 
     Route::get('stocks/details', [StockController::class, 'details']);
     Route::get('stocks/print-all', [StockController::class, 'printAll']);
@@ -135,7 +136,7 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::post('stocks/grouping', [StockController::class, 'grouping']);
     Route::post('stocks/{stock}/ungrouping', [StockController::class, 'ungrouping']);
     Route::post('stocks/{stock}/repack', [StockController::class, 'repack']);
-    Route::resource('stocks', StockController::class);
+    Route::apiResource('stocks', StockController::class);
 
     Route::group(['prefix' => 'stock-opnames/{stockOpname}/details'], function () {
         Route::get('{stockOpnameDetail}/items', [StockOpnameItemController::class, 'index']);
@@ -151,9 +152,15 @@ Route::middleware('auth:sanctum')->group(function() {
 
     Route::put('stock-opnames/{stockOpname}/done', [StockOpnameController::class, 'done']);
     Route::put('stock-opnames/{stockOpname}/set-done', [StockOpnameController::class, 'setDone']);
-    Route::resource('stock-opnames', StockOpnameController::class);
+    Route::apiResource('stock-opnames', StockOpnameController::class);
 
-    Route::resource('stock-histories', StockHistoryController::class);
+    Route::apiResource('stock-histories', StockHistoryController::class);
 
-    Route::resource('settings', SettingController::class)->only(['index', 'update']);
+    Route::apiResource('settings', SettingController::class)->only(['index', 'update']);
+
+    Route::group(['prefix' => 'payments/{payment}'], function () {
+        Route::put('restore', [PaymentController::class, 'restore']);
+        Route::delete('force-delete', [PaymentController::class, 'forceDelete']);
+    });
+    Route::apiResource('payments', PaymentController::class);
 });

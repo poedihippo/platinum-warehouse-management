@@ -9,6 +9,10 @@ use BenSampo\Enum\Enum;
 /**
  * @method static static SO_NUMBER()
  * @method static static DO_NUMBER()
+ * @method static static TAX_VALUE()
+ * @method static static BANK_NAME()
+ * @method static static BANK_HOLDER()
+ * @method static static BANK_ACCOUNT()
  */
 final class SettingEnum extends Enum
 {

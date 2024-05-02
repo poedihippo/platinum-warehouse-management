@@ -23,4 +23,9 @@ class Controller extends BaseController
     {
         return response()->json(['message' => 'Data deleted successfully']);
     }
+
+    public function errorResponse(string $message, array $data = [], int $code = 500)
+    {
+        return response()->json(['message' => $message, ...$data], $code);
+    }
 }

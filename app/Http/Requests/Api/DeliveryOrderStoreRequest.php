@@ -15,7 +15,7 @@ class DeliveryOrderStoreRequest extends FormRequest
      */
     public function authorize()
     {
-        return auth()->user()->tokenCan('delivery_order_create');
+        return true;
     }
 
     /**
