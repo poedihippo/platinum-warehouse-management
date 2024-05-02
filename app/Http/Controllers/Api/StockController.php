@@ -40,7 +40,7 @@ class StockController extends Controller
     public function index()
     {
         // abort_if(!auth()->user()->tokenCan('stock_access'), 403);
-        $stockProductUnits = QueryBuilder::for(StockProductUnit::with(['warehouse', 'productUnit'])->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')]))
+        $stockProductUnits = QueryBuilder::for(StockProductUnit::with(['warehouse', 'productUnit'])->whereIn('warehouse_id', auth()->user()->warehouses()->pluck('warehouse_id') ?? [])->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')]))
             ->allowedFilters([
                 AllowedFilter::exact('id'),
                 AllowedFilter::exact('warehouse_id'),
