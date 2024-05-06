@@ -31,6 +31,8 @@ use App\Http\Controllers\Api\StockOpnameDetailController;
 use App\Http\Controllers\Api\StockOpnameItemController;
 use App\Http\Controllers\Api\TestController;
 use App\Http\Controllers\Api\UserDiscountController;
+use App\Http\Controllers\Api\VoucherCategoryController;
+use App\Http\Controllers\Api\VoucherController;
 
 /*
 |--------------------------------------------------------------------------
@@ -53,7 +55,7 @@ Route::post('auth/register', [AuthController::class, 'register']);
 Route::get('/auth/{provider}', [SocialiteController::class, 'redirectToProvider']);
 Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProvideCallback']);
 
-Route::middleware('auth:sanctum')->group(function() {
+Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('roles', RoleController::class);
     Route::get('permissions/all', [PermissionController::class, 'all']);
     Route::apiResource('permissions', PermissionController::class);
@@ -163,4 +165,16 @@ Route::middleware('auth:sanctum')->group(function() {
         Route::delete('force-delete', [PaymentController::class, 'forceDelete']);
     });
     Route::apiResource('payments', PaymentController::class);
+
+    Route::group(['prefix' => 'voucher-categories/{voucher_category}'], function () {
+        Route::put('restore', [VoucherCategoryController::class, 'restore']);
+        Route::delete('force-delete', [VoucherCategoryController::class, 'forceDelete']);
+    });
+    Route::apiResource('voucher-categories', VoucherCategoryController::class);
+
+    Route::group(['prefix' => 'vouchers/{voucher}'], function () {
+        Route::put('restore', [VoucherController::class, 'restore']);
+        Route::delete('force-delete', [VoucherController::class, 'forceDelete']);
+    });
+    Route::apiResource('vouchers', VoucherController::class);
 });
