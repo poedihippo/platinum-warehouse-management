@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\SettingEnum;
 use App\Traits\FilterStartEndDate;
+use App\Traits\Tenanted;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SalesOrder extends Model
 {
-    use SoftDeletes, FilterStartEndDate;
+    use SoftDeletes, FilterStartEndDate, Tenanted;
 
     public ?int $expected_price = null;
 

@@ -21,7 +21,7 @@ class StockHistoryController extends Controller
     {
         // abort_if(!auth()->user()->tokenCan('stock_history_access'), 403);
 
-        $stockHistories = QueryBuilder::for(StockHistory::with(['stockHistoryable', 'user' => fn($q) => $q->select('id', 'name')]))
+        $stockHistories = QueryBuilder::for(StockHistory::tenanted()->with(['stockHistoryable', 'user' => fn ($q) => $q->select('id', 'name')]))
             ->allowedFilters([
                 AllowedFilter::exact('stock_product_unit_id'),
                 AllowedFilter::exact('user_id'),

@@ -40,7 +40,7 @@ class StockController extends Controller
     public function index()
     {
         // abort_if(!auth()->user()->tokenCan('stock_access'), 403);
-        $stockProductUnits = QueryBuilder::for(StockProductUnit::with(['warehouse', 'productUnit'])->whereIn('warehouse_id', auth()->user()->warehouses()->pluck('warehouse_id') ?? [])->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')]))
+        $stockProductUnits = QueryBuilder::for(StockProductUnit::tenanted()->with(['warehouse', 'productUnit'])->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')]))
             ->allowedFilters([
                 AllowedFilter::exact('id'),
                 AllowedFilter::exact('warehouse_id'),
@@ -62,10 +62,10 @@ class StockController extends Controller
         $filter = request()->filter;
 
         if (isset($filter) && !empty($filter['parent_id'])) {
-            $query = Stock::whereNotNull('parent_id');
+            $query = Stock::tenanted()->whereNotNull('parent_id');
         } else {
-            // $query = Stock::whereNull('parent_id');
-            $query = Stock::query();
+            // $query = Stock::tenanted()->whereNull('parent_id');
+            $query = Stock::tenanted()->query();
         }
 
         if (isset($filter) && !empty($filter['is_show_group']) && $filter['is_show_group'] == 1) {
@@ -87,7 +87,7 @@ class StockController extends Controller
                 AllowedFilter::scope('start_date'),
                 AllowedFilter::scope('end_date'),
                 AllowedFilter::callback('show_all', function (\Illuminate\Database\Eloquent\Builder $query, $value) {
-                    if (! $value == 0) $query->whereAvailableStock();
+                    if (!$value == 0) $query->whereAvailableStock();
                 })
             ])
             ->allowedSorts(['scanned_count', 'scanned_datetime', 'warehouse_id', 'created_at'])
@@ -97,11 +97,12 @@ class StockController extends Controller
         return BaseStockResource::collection($stocks);
     }
 
-    public function show(Stock $stock)
+    public function show(int $id)
     {
         // abort_if(!auth()->user()->tokenCan('stock_access'), 403);
+        $stock = Stock::findTenanted($id);
         return new StocksStockProductUnitResource($stock->load([
-            'stockProductUnit' => fn ($q) => $q->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')]),
+            'stockProductUnit' => fn ($q) => $q->tenanted()->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')]),
             'receiveOrderDetail'
         ]));
     }
@@ -140,7 +141,7 @@ class StockController extends Controller
 
         // grouping dari page stock
         if ($request->stock_product_unit_id) {
-            $stockProductUnit = StockProductUnit::findOrFail($request->stock_product_unit_id);
+            $stockProductUnit = StockProductUnit::findTenanted($request->stock_product_unit_id);
             $totalStock = $stockProductUnit->stocks()->whereNull('parent_id')->doesntHave('childs')->count() ?? 0;
 
             if ($totalStock == 0) {
@@ -168,7 +169,6 @@ class StockController extends Controller
             } else {
                 $lastOrderNumberGroup = 000;
             }
-
         } elseif ($request->receive_order_detail_id) {
             //grouping dari page RO
             $receiveOrderDetail = ReceiveOrderDetail::findOrFail($request->receive_order_detail_id);
@@ -185,7 +185,7 @@ class StockController extends Controller
             // $totalGroupStock = $receiveOrderDetail->stocks()->whereNull('parent_id')->has('childs')->count() ?? 0;
 
             $productUnit = $receiveOrderDetail->productUnit;
-            $stockProductUnit = StockProductUnit::where('warehouse_id', $receiveOrderDetail->receiveOrder->warehouse_id)
+            $stockProductUnit = StockProductUnit::tenanted()->where('warehouse_id', $receiveOrderDetail->receiveOrder->warehouse_id)
                 ->where('product_unit_id', $receiveOrderDetail->product_unit_id)
                 ->first();
         }
@@ -221,7 +221,7 @@ class StockController extends Controller
 
             $groupStock->update(['qr_code' => $fullPath]);
 
-            // $stocks = Stock::where('product_unit_id', $productUnit->id)->where('warehouse_id', $warehouseId)->whereNull('parent_id')->where('id', '<>', $groupStock->id)->doesntHave('childs');
+            // $stocks = Stock::tenanted()->where('product_unit_id', $productUnit->id)->where('warehouse_id', $warehouseId)->whereNull('parent_id')->where('id', '<>', $groupStock->id)->doesntHave('childs');
 
             if ($request->stock_product_unit_id) {
                 $stocks = $stockProductUnit->stocks()->whereNull('parent_id')->where('id', '<>', $groupStock->id)->doesntHave('childs');
@@ -243,10 +243,10 @@ class StockController extends Controller
         return response()->json(['message' => 'Group stock berhasil dibuat'], 201);
     }
 
-    public function ungrouping(Stock $stock)
+    public function ungrouping(int $id)
     {
         // abort_if(!auth()->user()->tokenCan('stock_grouping'), 403);
-
+        $stock = Stock::findTenanted($id);
         if ($stock->childs->isEmpty()) return response()->json(['message' => 'Stock bukan grouping / tidak memiliki childs'], 400);
 
         DB::beginTransaction();
@@ -267,7 +267,7 @@ class StockController extends Controller
         // abort_if(!auth()->user()->tokenCan('stock_print'), 403);
 
         $filter = $request->filter;
-        $query = Stock::select('id', 'parent_id', 'qr_code', 'description');
+        $query = Stock::tenanted()->select('id', 'parent_id', 'qr_code', 'description');
 
         if (isset($filter) && isset($filter['stock_product_unit_id']) && $filter['stock_product_unit_id'] != '') {
             $query->where('stock_product_unit_id', $filter['stock_product_unit_id']);
@@ -315,7 +315,7 @@ class StockController extends Controller
                 $time = now();
                 if (count($stockIds) > 0) {
                     foreach ($stockIds as $id) {
-                        $stock = Stock::where($columnName, $value)->where('id', $id)->first();
+                        $stock = Stock::tenanted()->where($columnName, $value)->where('id', $id)->first();
                         if ($stock) {
                             if ($stock->childs->count() > 0) {
                                 // as parent & has childs
@@ -352,17 +352,19 @@ class StockController extends Controller
         die('duarrr nmax');
     }
 
-    public function verificationTempel(Stock $stock, Request $request)
+    public function verificationTempel(int $id, Request $request)
     {
         $request->validate(["is_tempel" => "required"]);
+        $stock = Stock::findTenanted($id, ['id', 'is_tempel']);
         $isTempel = filter_var($request->is_tempel, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true;
         $stock->update(["is_tempel" => $isTempel]);
 
         return new BaseStockResource($stock);
     }
 
-    public function repack(Stock $stock, StockRepackRequest $request)
+    public function repack(int $id, StockRepackRequest $request)
     {
+        $stock = Stock::findTenanted($id, ['id', 'parent_id', 'stock_product_unit_id']);
         if ($stock->childs?->count() > 0) return response()->json(['message' => 'Tidak dapat me-repack stock parent'], 400);
         if ($stock->salesOrderItems?->count() > 0) return response()->json(['message' => 'Tidak dapat me-repack stock. Stock sudah masuk di Sales Order'], 400);
 

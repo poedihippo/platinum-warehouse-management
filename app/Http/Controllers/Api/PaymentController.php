@@ -19,15 +19,15 @@ class PaymentController extends Controller
     {
         parent::__construct();
         // $this->middleware('permission:payment_access', ['only' => ['index', 'show']]);
-        $this->middleware('permission:payment_read', ['only' => ['index', 'show']]);
-        $this->middleware('permission:payment_create', ['only' => 'store']);
-        $this->middleware('permission:payment_edit', ['only' => 'update']);
-        $this->middleware('permission:payment_delete', ['only' => 'destroy', 'forceDelete', 'restore']);
+        // $this->middleware('permission:payment_read', ['only' => ['index', 'show']]);
+        // $this->middleware('permission:payment_create', ['only' => 'store']);
+        // $this->middleware('permission:payment_edit', ['only' => 'update']);
+        // $this->middleware('permission:payment_delete', ['only' => 'destroy', 'forceDelete', 'restore']);
     }
 
     public function index()
     {
-        $payments = QueryBuilder::for(Payment::class)
+        $payments = QueryBuilder::for(Payment::tenanted())
             ->allowedFilters([
                 AllowedFilter::exact('user_id'),
                 AllowedFilter::exact('sales_order_id'),
@@ -45,13 +45,15 @@ class PaymentController extends Controller
         return DefaultResource::collection($payments);
     }
 
-    public function show(Payment $payment)
+    public function show(int $id)
     {
+        $payment = Payment::findTenanted($id);
         return new DefaultResource($payment->load(['salesOrder', 'user' => fn ($q) => $q->select('id', 'name')]));
     }
 
     public function store(StoreRequest $request)
     {
+        dd($request->validated());
         DB::beginTransaction();
         try {
             $data = $request->validated();
@@ -76,8 +78,9 @@ class PaymentController extends Controller
         return new DefaultResource($payment);
     }
 
-    public function update(Payment $payment, StoreRequest $request)
+    public function update(int $id, StoreRequest $request)
     {
+        $payment = Payment::findTenanted($id);
         DB::beginTransaction();
         try {
             $data = $request->validated();
@@ -102,15 +105,16 @@ class PaymentController extends Controller
         return (new DefaultResource($payment))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
-    public function destroy(Payment $payment)
+    public function destroy(int $id)
     {
+        $payment = Payment::findTenanted($id);
         $payment->delete();
         return $this->deletedResponse();
     }
 
     public function forceDelete(int $id)
     {
-        $payment = Payment::withTrashed()->findOrFail($id);
+        $payment = Payment::withTrashed()->findTenanted($id);
         $payment->forceDelete();
 
         return $this->deletedResponse();
@@ -118,7 +122,7 @@ class PaymentController extends Controller
 
     public function restore(int $id)
     {
-        $payment = Payment::withTrashed()->findOrFail($id);
+        $payment = Payment::withTrashed()->findTenanted($id);
         $payment->restore();
 
         return new DefaultResource($payment);

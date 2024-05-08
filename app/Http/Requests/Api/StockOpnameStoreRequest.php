@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Rules\TenantedRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StockOpnameStoreRequest extends FormRequest
@@ -24,7 +25,7 @@ class StockOpnameStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'warehouse_id' => 'required|exists:warehouses,id',
+            'warehouse_id' => ['required', new TenantedRule()],
             'description' => 'required',
         ];
     }

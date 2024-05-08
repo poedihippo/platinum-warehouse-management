@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use App\Events\Stocks\StockOpnameCreated;
+use App\Traits\Tenanted;
 use Illuminate\Database\Eloquent\Model;
 
 class StockOpname extends Model
 {
+    use Tenanted;
     protected $guarded = [];
     protected $casts = [
         'is_done' => 'boolean'

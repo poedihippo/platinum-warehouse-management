@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api;
 
 use App\Models\Voucher;
+use App\Rules\TenantedRule;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
@@ -55,7 +56,7 @@ class SalesOrderStoreRequest extends FormRequest
                     }
                 }
             ],
-            'warehouse_id' => 'required|exists:warehouses,id',
+            'warehouse_id' => ['required', new TenantedRule()],
             'transaction_date' => 'required|date_format:Y-m-d H:i:s',
             'shipment_estimation_datetime' => 'required|date_format:Y-m-d H:i:s',
             'shipment_fee' => 'required|integer',
@@ -80,7 +81,7 @@ class SalesOrderStoreRequest extends FormRequest
             'items.*.discount' => 'required|numeric|min:0',
             'items.*.tax' => 'required|boolean',
             'items.*.total_price' => 'required|numeric|min:0',
-            'items.*.warehouse_id' => 'required|exists:warehouses,id',
+            'items.*.warehouse_id' => ['required', new TenantedRule()],
         ];
     }
 }

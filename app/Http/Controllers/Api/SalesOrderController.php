@@ -35,7 +35,7 @@ class SalesOrderController extends Controller
         // $query = SalesOrder::withCount('details')->whereHas('details', function ($q) {
         //     $q->doesntHave('deliveryOrderDetail');
         // });
-        $query = SalesOrder::withCount('details');
+        $query = SalesOrder::tenanted()->withCount('details');
 
         $salesOrders = QueryBuilder::for($query)
             ->allowedFilters([
@@ -54,9 +54,10 @@ class SalesOrderController extends Controller
         return SalesOrderResource::collection($salesOrders);
     }
 
-    public function show(SalesOrder $salesOrder)
+    public function show(int $id)
     {
         // abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
+        $salesOrder = SalesOrder::findTenanted($id);
         return new SalesOrderResource($salesOrder->load(['details' => fn ($q) => $q->with(['warehouse', 'packaging']), 'user'])->loadCount('details'));
     }
 
@@ -66,9 +67,10 @@ class SalesOrderController extends Controller
         return new SalesOrderResource($salesOrder);
     }
 
-    public function update(SalesOrder $salesOrder, SalesOrderUpdateRequest $request)
+    public function update(int $id, SalesOrderUpdateRequest $request)
     {
-        if (! $salesOrder->details?->every(fn ($salesOrderDetail) => ! $salesOrderDetail->deliveryOrderDetail))
+        $salesOrder = SalesOrder::findTenanted($id);
+        if (!$salesOrder->details?->every(fn ($salesOrderDetail) => !$salesOrderDetail->deliveryOrderDetail))
             return response()->json(['message' => "DO harus dihapus terlebih dahulu sebelum mengedit SO"], 400);
 
         $salesOrder->raw_source = $request->validated();
@@ -76,18 +78,19 @@ class SalesOrderController extends Controller
         return (new SalesOrderResource($salesOrder))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
-    public function destroy(SalesOrder $salesOrder)
+    public function destroy(int $id)
     {
         // abort_if(!auth()->user()->tokenCan('sales_order_delete'), 403);
-        if ($salesOrder->deliveryOrder?->is_done)
-            return response()->json(['message' => "Can't update SO if DO is already done"], 400);
+        $salesOrder = SalesOrder::findTenanted($id);
+        if ($salesOrder->deliveryOrder?->is_done) return response()->json(['message' => "Can't update SO if DO is already done"], 400);
         $salesOrder->delete();
         return $this->deletedResponse();
     }
 
-    public function print(SalesOrder $salesOrder)
+    public function print(int $id)
     {
         // abort_if(!auth()->user()->tokenCan('sales_order_print'), 403);
+        $salesOrder = SalesOrder::findTenanted($id);
         $salesOrder->load([
             'reseller',
             'details' => fn ($q) => $q->with('productUnit.product')
@@ -105,8 +108,9 @@ class SalesOrderController extends Controller
         return $pdf->download('sales-order-' . $salesOrder->invoice_no . '.pdf');
     }
 
-    public function exportXml(SalesOrder $salesOrder)
+    public function exportXml(int $id)
     {
+        $salesOrder = SalesOrder::findTenanted($id);
         $salesOrder->load(['reseller', 'details' => fn ($q) => $q->with('packaging', 'productUnit')]);
         // abort_if(!auth()->user()->tokenCan('sales_order_export_xml'), 403);
         return response(view('xml.salesOrders.salesOrder')->with(compact('salesOrder')), 200, [

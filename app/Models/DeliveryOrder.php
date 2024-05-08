@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\SettingEnum;
 use App\Traits\FilterStartEndDate;
+use App\Traits\Tenanted;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 class DeliveryOrder extends Model
 {
-    use SoftDeletes, FilterStartEndDate;
+    use SoftDeletes, FilterStartEndDate, Tenanted;
 
     protected $fillable = [
         'user_id',

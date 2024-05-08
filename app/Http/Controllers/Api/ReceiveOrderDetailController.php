@@ -27,9 +27,10 @@ class ReceiveOrderDetailController extends Controller
         $this->middleware('permission:receive_order_verify_access', ['only' => 'verify']);
     }
 
-    public function index(ReceiveOrder $receiveOrder)
+    public function index(int $receiveOrderId)
     {
         // abort_if(!auth()->user()->tokenCan('receive_order_access'), 403);
+        $receiveOrder = ReceiveOrder::findTenanted($receiveOrderId, ['id']);
 
         $receiveOrderDetails = QueryBuilder::for(ReceiveOrderDetail::where('receive_order_id', $receiveOrder->id))
             ->allowedFilters([
@@ -47,10 +48,11 @@ class ReceiveOrderDetailController extends Controller
         return ReceiveOrderDetailResource::collection($receiveOrderDetails);
     }
 
-    public function show(ReceiveOrder $receiveOrder, $receiveOrderDetailId)
+    public function show(int $receiveOrderId, int $receiveOrderDetailId)
     {
         // abort_if(!auth()->user()->tokenCan('receive_order_access'), 403);
 
+        $receiveOrder = ReceiveOrder::findTenanted($receiveOrderId, ['id']);
         $receiveOrderDetail = $receiveOrder->details()->where('id', $receiveOrderDetailId)->firstOrFail();
 
         return new ReceiveOrderDetailResource($receiveOrderDetail);
@@ -59,8 +61,9 @@ class ReceiveOrderDetailController extends Controller
     /**
      * manual create RO detail
      */
-    public function store(ReceiveOrder $receiveOrder, ReceiveOrderDetailStoreRequest $request)
+    public function store(int $receiveOrderId, ReceiveOrderDetailStoreRequest $request)
     {
+        $receiveOrder = ReceiveOrder::findTenanted($receiveOrderId, ['id']);
         $receiveOrderDetail = $receiveOrder->details()->create($request->validated());
 
         return new ReceiveOrderDetailResource($receiveOrderDetail);
@@ -69,8 +72,9 @@ class ReceiveOrderDetailController extends Controller
     /**
      * adjust qty RO detail
      */
-    public function update(ReceiveOrder $receiveOrder, $receiveOrderDetailId, ReceiveOrderDetailUpdateRequest $request)
+    public function update(int $receiveOrderId, $receiveOrderDetailId, ReceiveOrderDetailUpdateRequest $request)
     {
+        $receiveOrder = ReceiveOrder::findTenanted($receiveOrderId, ['id']);
         $receiveOrderDetail = $receiveOrder->details()->where('id', $receiveOrderDetailId)->firstOrFail();
 
         $receiveOrderDetail->update($request->validated());
@@ -81,10 +85,11 @@ class ReceiveOrderDetailController extends Controller
     /**
      * verify RO detail and insert to stocks
      */
-    public function verify(ReceiveOrder $receiveOrder, $receiveOrderDetailId, Request $request)
+    public function verify(int $receiveOrderId, $receiveOrderDetailId, Request $request)
     {
         // abort_if(!auth()->user()->tokenCan('receive_order_verify_access'), 403);
 
+        $receiveOrder = ReceiveOrder::findTenanted($receiveOrderId, ['id']);
         if ($receiveOrder->is_done) return response()->json(['message' => "Delivery order sudah diverifikasi. Tidak dapat mengubah detail"], 400);
 
         $receiveOrderDetail = $receiveOrder->details()->where('id', $receiveOrderDetailId)->firstOrFail();
@@ -100,10 +105,11 @@ class ReceiveOrderDetailController extends Controller
         return (new ReceiveOrderDetailResource($receiveOrderDetail))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
-    public function destroy(ReceiveOrder $receiveOrder, ReceiveOrderDetail $receiveOrderDetail)
+    public function destroy(int $receiveOrderId, ReceiveOrderDetail $receiveOrderDetail)
     {
         // abort_if(!auth()->user()->tokenCan('receive_order_delete'), 403);
 
+        $receiveOrder = ReceiveOrder::findTenanted($receiveOrderId, ['id']);
         if ($receiveOrderDetail->is_verified === true) return response()->json(['message' => 'Data harus tidak diverifikasi']);
 
         DB::beginTransaction();

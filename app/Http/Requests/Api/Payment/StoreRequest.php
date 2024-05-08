@@ -3,6 +3,8 @@
 namespace App\Http\Requests\Api\Payment;
 
 use App\Enums\PaymentType;
+use App\Models\SalesOrder;
+use App\Rules\TenantedRule;
 use App\Traits\Requests\RequestToBoolean;
 use BenSampo\Enum\Rules\EnumValue;
 use Illuminate\Foundation\Http\FormRequest;
@@ -39,7 +41,7 @@ class StoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'sales_order_id' => 'required|exists:sales_orders,id',
+            'sales_order_id' => ['required', new TenantedRule(SalesOrder::class)],
             'amount' => 'required|numeric',
             'type' => ['required', new EnumValue(PaymentType::class, false)],
             'note' => 'nullable|string',

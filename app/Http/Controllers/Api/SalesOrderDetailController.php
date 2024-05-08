@@ -17,10 +17,11 @@ class SalesOrderDetailController extends Controller
         $this->middleware('permission:sales_order_access', ['only' => ['index', 'show']]);
     }
 
-    public function index(SalesOrder $salesOrder)
+    public function index(int $salesOrderId)
     {
         // abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
 
+        $salesOrder = SalesOrder::findTenanted($salesOrderId, ['id']);
         $query = SalesOrderDetail::where('sales_order_id', $salesOrder->id)->with([
             'packaging',
             'warehouse' => fn($q) => $q->select('id', 'code', 'name')
@@ -33,10 +34,11 @@ class SalesOrderDetailController extends Controller
         return SalesOrderDetailResource::collection($salesOrderDetails);
     }
 
-    public function show(SalesOrder $salesOrder, $salesOrderDetailId)
+    public function show(int $salesOrderId, $salesOrderDetailId)
     {
         // abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
 
+        $salesOrder = SalesOrder::findTenanted($salesOrderId, ['id']);
         $salesOrderDetail = $salesOrder->details()->where('id', $salesOrderDetailId)->firstOrFail();
 
         return new SalesOrderDetailResource($salesOrderDetail->load(['warehouse' => fn($q) => $q->select('id', 'code', 'name')]));

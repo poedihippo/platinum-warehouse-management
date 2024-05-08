@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Rules\TenantedRule;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
@@ -40,7 +41,7 @@ class DeliveryOrderUpdateRequest extends FormRequest
                     $fail('Reseller Tidak ditemukan');
                 }
             }],
-            'warehouse_id' => 'required|exists:warehouses,id',
+            'warehouse_id' => ['required', new TenantedRule()],
             'transaction_date' => 'required|date_format:Y-m-d H:i:s',
             'shipment_estimation_datetime' => 'required|date_format:Y-m-d H:i:s',
             'description' => 'nullable|string',

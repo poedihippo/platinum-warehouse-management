@@ -27,7 +27,7 @@ class StockOpnameController extends Controller
     public function index()
     {
         // abort_if(!auth()->user()->tokenCan('stock_opname_access'), 403);
-        $stockOpnames = QueryBuilder::for(StockOpname::query())
+        $stockOpnames = QueryBuilder::for(StockOpname::tenanted())
             ->allowedFilters([
                 AllowedFilter::exact('warehouse_id'),
                 'description',
@@ -39,9 +39,10 @@ class StockOpnameController extends Controller
         return StockOpnameResource::collection($stockOpnames);
     }
 
-    public function show(StockOpname $stockOpname)
+    public function show(int $id)
     {
         // abort_if(!auth()->user()->tokenCan('stock_opname_access'), 403);
+        $stockOpname = StockOpname::findTenanted($id);
         return new StockOpnameResource($stockOpname);
     }
 
@@ -52,19 +53,21 @@ class StockOpnameController extends Controller
         return new StockOpnameResource($stockOpname);
     }
 
-    public function destroy(StockOpname $stockOpname)
+    public function destroy(int $id)
     {
         // abort_if(!auth()->user()->tokenCan('stock_opname_delete'), 403);
+        $stockOpname = StockOpname::findTenanted($id);
         $stockOpname->delete();
         return $this->deletedResponse();
     }
 
-    public function done(StockOpname $stockOpname, Request $request)
+    public function done(int $id, Request $request)
     {
         // abort_if(!auth()->user()->tokenCan('stock_opname_done'), 403);
 
         $request->validate(['is_done' => 'required|boolean']);
 
+        $stockOpname = StockOpname::findTenanted($id);
         if (!$stockOpname->details->every(fn($detail) => $detail->is_done === true))
             return response()->json(['message' => 'Semua data stock opname harus diset selesai'], 400);
         $stockOpname->update([
@@ -76,12 +79,13 @@ class StockOpnameController extends Controller
         return response()->json(['message' => $message])->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
-    public function setDone(StockOpname $stockOpname, Request $request)
+    public function setDone(int $id, Request $request)
     {
         // abort_if(!auth()->user()->tokenCan('stock_opname_done'), 403);
 
         $request->validate(['is_done' => 'required|boolean']);
 
+        $stockOpname = StockOpname::findTenanted($id);
         $stockOpname->details->each->update([
             'is_done' => $request->is_done,
             'done_at' => now(),

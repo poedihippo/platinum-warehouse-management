@@ -18,10 +18,11 @@ class DeliveryOrderDetailController extends Controller
         $this->middleware('permission:delivery_order_delete', ['only' => 'destroy']);
     }
 
-    public function index(DeliveryOrder $deliveryOrder)
+    public function index(int $deliveryOrderId)
     {
         // abort_if(!auth()->user()->tokenCan('delivery_order_access'), 403);
-        $deliveryOrderDetails = QueryBuilder::for(DeliveryOrderDetail::with(['salesOrderDetail' => fn($q) => $q->with('warehouse', 'salesOrder', 'packaging')])->where('delivery_order_id', $deliveryOrder->id))
+        $deliveryOrder = DeliveryOrder::findTenanted($deliveryOrderId, ['id']);
+        $deliveryOrderDetails = QueryBuilder::for(DeliveryOrderDetail::with(['salesOrderDetail' => fn ($q) => $q->with('warehouse', 'salesOrder', 'packaging')])->where('delivery_order_id', $deliveryOrder->id))
             ->allowedFilters([
                 AllowedFilter::exact('delivery_order_id'),
                 AllowedFilter::exact('sales_order_detail_id'),
@@ -32,9 +33,10 @@ class DeliveryOrderDetailController extends Controller
         return DeliveryOrderDetailResource::collection($deliveryOrderDetails);
     }
 
-    public function show(DeliveryOrder $deliveryOrder, $deliveryOrderDetailId)
+    public function show(int $deliveryOrderId, $deliveryOrderDetailId)
     {
         // abort_if(!auth()->user()->tokenCan('delivery_order_access'), 403);
+        $deliveryOrder = DeliveryOrder::findTenanted($deliveryOrderId);
         $deliveryOrderDetail = $deliveryOrder->details()->where('id', $deliveryOrderDetailId)->firstOrFail();
 
         $deliveryOrderDetail->load([
@@ -47,8 +49,9 @@ class DeliveryOrderDetailController extends Controller
         return new DeliveryOrderDetailResource($deliveryOrderDetail);
     }
 
-    public function destroy(DeliveryOrder $deliveryOrder, $deliveryOrderDetailId)
+    public function destroy(int $deliveryOrderId, $deliveryOrderDetailId)
     {
+        $deliveryOrder = DeliveryOrder::findTenanted($deliveryOrderId, ['id']);
         abort_if(!auth()->user()->tokenCan('delivery_order_delete'), 403);
 
         $deliveryOrder->details()->where('id', $deliveryOrderDetailId)->delete();

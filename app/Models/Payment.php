@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\PaymentType;
 use App\Traits\CustomSoftDeletes;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -43,6 +44,19 @@ class Payment extends Model implements HasMedia
         static::creating(function ($model) {
             $model->user_id = auth()->id();
         });
+    }
+
+    public function scopeTenanted(Builder $query)
+    {
+        $query->whereHas('salesOrder', fn ($q) => $q->tenanted());
+    }
+
+    public function scopeFindTenanted(Builder $query, int|string $id, array $columns = ['*'], bool $fail = true): self
+    {
+        $query->tenanted()->where('id', $id);
+        if ($fail) return $query->firstOrFail($columns);
+
+        return $query->first($columns);
     }
 
     public function getFilesAttribute()

@@ -27,7 +27,7 @@ class WarehouseController extends Controller
         // abort_if(!auth()->user()->tokenCan('warehouse_access'), 403);
         /** @var \App\Models\User $user */
         $user = auth('sanctum')->user();
-        $warehouses = QueryBuilder::for(Warehouse::whereIn('id', $user->warehouses()->pluck('warehouse_id') ?? []))
+        $warehouses = QueryBuilder::for(Warehouse::tenanted())
             ->allowedFilters(['name'])
             ->allowedSorts(['id', 'name', 'created_at'])
             ->paginate($this->per_page);
@@ -35,9 +35,10 @@ class WarehouseController extends Controller
         return WarehouseResource::collection($warehouses);
     }
 
-    public function show(Warehouse $warehouse)
+    public function show(int $id)
     {
         // abort_if(!auth()->user()->tokenCan('warehouse_access'), 403);
+        $warehouse = Warehouse::findTenanted($id);
         return new WarehouseResource($warehouse);
     }
 
@@ -48,16 +49,18 @@ class WarehouseController extends Controller
         return new WarehouseResource($warehouse);
     }
 
-    public function update(Warehouse $warehouse, WarehouseUpdateRequest $request)
+    public function update(int $id, WarehouseUpdateRequest $request)
     {
+        $warehouse = Warehouse::findTenanted($id);
         $warehouse->update($request->validated());
 
         return (new WarehouseResource($warehouse))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
-    public function destroy(Warehouse $warehouse)
+    public function destroy(int $id)
     {
         // abort_if(!auth()->user()->tokenCan('warehouse_delete'), 403);
+        $warehouse = Warehouse::findTenanted($id);
         $warehouse->delete();
         return $this->deletedResponse();
     }

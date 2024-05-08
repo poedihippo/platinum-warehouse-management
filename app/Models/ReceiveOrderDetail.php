@@ -18,6 +18,19 @@ class ReceiveOrderDetail extends Model
         'is_verified' => 'boolean',
     ];
 
+    public function scopeTenanted(Builder $query)
+    {
+        $query->whereHas('receiveOrder', fn ($q) => $q->tenanted());
+    }
+
+    public function scopeFindTenanted(Builder $query, int|string $id, array $columns = ['*'], bool $fail = true): self
+    {
+        $query->tenanted()->where('id', $id);
+        if ($fail) return $query->firstOrFail($columns);
+
+        return $query->first($columns);
+    }
+
     public function receiveOrder(): BelongsTo
     {
         return $this->belongsTo(ReceiveOrder::class);

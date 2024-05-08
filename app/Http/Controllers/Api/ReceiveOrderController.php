@@ -31,7 +31,7 @@ class ReceiveOrderController extends Controller
     public function index()
     {
         // abort_if(!auth()->user()->tokenCan('receive_order_access'), 403);
-        $receiveOrders = QueryBuilder::for(ReceiveOrder::withCount('details'))
+        $receiveOrders = QueryBuilder::for(ReceiveOrder::tenanted()->withCount('details'))
             ->allowedFilters([
                 'invoice_no',
                 'is_done',
@@ -48,9 +48,10 @@ class ReceiveOrderController extends Controller
         return ReceiveOrderResource::collection($receiveOrders);
     }
 
-    public function show(ReceiveOrder $receiveOrder)
+    public function show(int $id)
     {
         // abort_if(!auth()->user()->tokenCan('receive_order_access'), 403);
+        $receiveOrder = ReceiveOrder::findTenanted($id);
         return new ReceiveOrderResource($receiveOrder->load('details')->loadCount('details'));
     }
 
@@ -125,8 +126,9 @@ class ReceiveOrderController extends Controller
         return new ReceiveOrderResource($receiveOrder);
     }
 
-    public function update(ReceiveOrder $receiveOrder, ReceiveOrderUpdateRequest $request)
+    public function update(int $id, ReceiveOrderUpdateRequest $request)
     {
+        $receiveOrder = ReceiveOrder::findTenanted($id);
         dump($request->all());
         dd($request->validated());
         $receiveOrder->update($request->validated());
@@ -134,11 +136,12 @@ class ReceiveOrderController extends Controller
         return (new ReceiveOrderResource($receiveOrder))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
-    public function destroy(ReceiveOrder $receiveOrder)
+    public function destroy(int $id)
     {
         // abort_if(!auth()->user()->tokenCan('receive_order_delete'), 403);
 
-        if (!$receiveOrder->details->every(fn($detail) => $detail->is_verified === false)) {
+        $receiveOrder = ReceiveOrder::findTenanted($id);
+        if (!$receiveOrder->details->every(fn ($detail) => $detail->is_verified === false)) {
             return response()->json(['message' => 'Semua receive order harus unverified']);
         }
 
@@ -146,13 +149,14 @@ class ReceiveOrderController extends Controller
         return $this->deletedResponse();
     }
 
-    public function done(ReceiveOrder $receiveOrder, \Illuminate\Http\Request $request)
+    public function done(int $id, \Illuminate\Http\Request $request)
     {
         // abort_if(!auth()->user()->tokenCan('receive_order_done'), 403);
+        $receiveOrder = ReceiveOrder::findTenanted($id);
         $request->validate(['is_done' => 'required|boolean']);
 
-        if (!$receiveOrder->details?->every(fn($detail) => $detail->is_verified === true)) return response()->json(['message' => 'Semua receive order harus diverifikasi'], 400);
-        if (!$receiveOrder->details?->every(fn($detail) => $detail->adjust_qty > 0)) return response()->json(['message' => 'Semua qty detail receive order harus di adjust'], 400);
+        if (!$receiveOrder->details?->every(fn ($detail) => $detail->is_verified === true)) return response()->json(['message' => 'Semua receive order harus diverifikasi'], 400);
+        if (!$receiveOrder->details?->every(fn ($detail) => $detail->adjust_qty > 0)) return response()->json(['message' => 'Semua qty detail receive order harus di adjust'], 400);
 
         $receiveOrder->update([
             'is_done' => $request->is_done ?? 1,

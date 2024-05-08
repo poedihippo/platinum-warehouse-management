@@ -2,6 +2,9 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Models\ReceiveOrderDetail;
+use App\Models\StockProductUnit;
+use App\Rules\TenantedRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StockRecordRequest extends FormRequest
@@ -25,8 +28,10 @@ class StockRecordRequest extends FormRequest
     {
         return [
             'is_print_all' => 'nullable|boolean',
-            'stock_product_unit_id' => 'nullable|exists:stock_product_units,id',
-            'receive_order_detail_id' => 'nullable|exists:receive_order_details,id',
+            // 'stock_product_unit_id' => 'nullable|exists:stock_product_units,id',
+            // 'receive_order_detail_id' => 'nullable|exists:receive_order_details,id',
+            'stock_product_unit_id' => ['nullable', new TenantedRule(StockProductUnit::class)],
+            'receive_order_detail_id' => ['nullable', new TenantedRule(ReceiveOrderDetail::class)],
             'stock_ids' => 'nullable|array',
             'stock_ids.*' => 'exists:stocks,id',
         ];

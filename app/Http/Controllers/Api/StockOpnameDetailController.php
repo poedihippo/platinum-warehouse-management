@@ -25,10 +25,11 @@ class StockOpnameDetailController extends Controller
         $this->middleware('permission:stock_opname_done', ['only' => 'done']);
     }
 
-    public function index(StockOpname $stockOpname)
+    public function index(int $stockOpnameId)
     {
         // abort_if(!auth()->user()->tokenCan('stock_opname_access'), 403);
 
+        $stockOpname = StockOpname::findTenanted($stockOpnameId, ['id']);
         $query = StockOpnameDetail::where('stock_opname_id', $stockOpname->id)
             ->with('stockProductUnit.productUnit')
             ->withCount([
@@ -45,10 +46,11 @@ class StockOpnameDetailController extends Controller
         return StockOpnameDetailResource::collection($stockOpnameDetails);
     }
 
-    public function show(StockOpname $stockOpname, $stockOpnameDetailId)
+    public function show(int $stockOpnameId, $stockOpnameDetailId)
     {
         // abort_if(!auth()->user()->tokenCan('stock_opname_access'), 403);
 
+        $stockOpname = StockOpname::findTenanted($stockOpnameId, ['id']);
         $stockOpnameDetail = $stockOpname->details()->where('id', $stockOpnameDetailId)
             ->with(['stockOpname', 'stockProductUnit.productUnit'])
             ->withCount([
@@ -60,8 +62,10 @@ class StockOpnameDetailController extends Controller
         return new StockOpnameDetailResource($stockOpnameDetail);
     }
 
-    public function store(StockOpname $stockOpname, StockOpnameDetailStoreRequest $request)
+    public function store(int $stockOpnameId, StockOpnameDetailStoreRequest $request)
     {
+        $stockOpname = StockOpname::findTenanted($stockOpnameId, ['id', 'warehouse_id']);
+
         $stockProductUnit = StockProductUnit::select('id')
             ->where('warehouse_id', $stockOpname->warehouse_id)
             ->where('product_unit_id', $request->product_unit_id)
@@ -75,19 +79,21 @@ class StockOpnameDetailController extends Controller
         return new StockOpnameDetailResource($stockOpnameDetail);
     }
 
-    public function update(StockOpname $stockOpname, $id, StockOpnameDetailUpdateRequest $request)
+    public function update(int $stockOpnameId, $id, StockOpnameDetailUpdateRequest $request)
     {
+        $stockOpname = StockOpname::findTenanted($stockOpnameId, ['id']);
         $stockOpnameDetail = $stockOpname->details()->where('id', $id)->update($request->validated());
 
         return (new StockOpnameDetailResource($stockOpnameDetail))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
-    public function scan(StockOpname $stockOpname, $stockOpnameDetailId, Request $request)
+    public function scan(int $stockOpnameId, $stockOpnameDetailId, Request $request)
     {
         $request->validate([
             'stock_id' => 'required|exists:stocks,id'
         ]);
 
+        $stockOpname = StockOpname::findTenanted($stockOpnameId, ['id']);
         $stockOpnameDetail = $stockOpname->details()->where('id', $stockOpnameDetailId)->first();
         if (!$stockOpnameDetail) return response()->json(['message' => 'Data stock opname tidak cocok'], 400);
 
@@ -103,7 +109,7 @@ class StockOpnameDetailController extends Controller
 
         // if stock have childs, update childs too
         $stock = $stockOpnameItem->stock;
-        if($stock->childs->count() > 0){
+        if ($stock->childs->count() > 0) {
             StockOpnameItem::whereIn('stock_id', $stock->childs->pluck('id'))->update(['is_scanned' => $isScanned]);
             $message = 'Stock dan childs berhasil di scan';
         }
@@ -111,10 +117,11 @@ class StockOpnameDetailController extends Controller
         return response()->json(['message' => $message], Response::HTTP_ACCEPTED);
     }
 
-    public function done(StockOpname $stockOpname, string $id, Request $request)
+    public function done(int $stockOpnameId, string $id, Request $request)
     {
         // abort_if(!auth()->user()->tokenCan('stock_opname_done'), 403);
 
+        $stockOpname = StockOpname::findTenanted($stockOpnameId, ['id']);
         $stockOpnameDetail = $stockOpname->details()->where('id', $id)->first();
         if (!$stockOpnameDetail) return response()->json(['message' => 'Data stock opname tidak cocok'], 400);
 

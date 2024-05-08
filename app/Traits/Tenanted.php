@@ -1,23 +1,17 @@
 <?php
 
-namespace App\Models;
+namespace App\Traits;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Warehouse extends Model
+trait Tenanted
 {
-    use SoftDeletes;
-    protected $guarded = [];
-
-
     public function scopeTenanted(Builder $query)
     {
         /** @var \App\Models\User $user */
         $user = auth()->user();
         if ($user->hasRole('admin')) return $query;
-        return $query->whereIn('id', $user->warehouses()->pluck('warehouse_id') ?? []);
+        return $query->whereIn('warehouse_id', $user->warehouses()->pluck('warehouse_id') ?? []);
     }
 
     public function scopeFindTenanted(Builder $query, int|string $id, array $columns = ['*'], bool $fail = true): self

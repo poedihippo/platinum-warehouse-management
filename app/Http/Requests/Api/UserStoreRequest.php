@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api;
 
 use App\Enums\UserType;
+use App\Rules\TenantedRule;
 use BenSampo\Enum\Rules\EnumValue;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -45,7 +46,7 @@ class UserStoreRequest extends FormRequest
             'role_ids' => 'nullable|array',
             'role_ids.*' => 'exists:roles,id',
             'warehouse_ids' => 'nullable|array',
-            'warehouse_ids.*' => 'exists:warehouses,id',
+            'warehouse_ids.*' => new TenantedRule(),
         ];
     }
 }

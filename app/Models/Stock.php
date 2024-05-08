@@ -22,38 +22,51 @@ class Stock extends Model
         'is_tempel' => 'boolean'
     ];
 
-    public function parent() : BelongsTo
+    public function scopeTenanted(Builder $query)
+    {
+        $query->whereHas('stockProductUnit', fn ($q) => $q->tenanted());
+    }
+
+    public function scopeFindTenanted(Builder $query, int|string $id, array $columns = ['*'], bool $fail = true): self
+    {
+        $query->tenanted()->where('id', $id);
+        if ($fail) return $query->firstOrFail($columns);
+
+        return $query->first($columns);
+    }
+
+    public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_id');
     }
 
-    public function stockProductUnit() : BelongsTo
+    public function stockProductUnit(): BelongsTo
     {
         return $this->belongsTo(StockProductUnit::class);
     }
 
 
-    public function childs() : HasMany
+    public function childs(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id', 'id');
     }
 
-    public function salesOrderItems() : HasMany
+    public function salesOrderItems(): HasMany
     {
         return $this->hasMany(SalesOrderItem::class);
     }
 
-    public function receiveOrder() : BelongsTo
+    public function receiveOrder(): BelongsTo
     {
         return $this->belongsTo(ReceiveOrder::class);
     }
 
-    public function receiveOrderDetail() : BelongsTo
+    public function receiveOrderDetail(): BelongsTo
     {
         return $this->belongsTo(ReceiveOrderDetail::class);
     }
 
-    protected function qrCode() : Attribute
+    protected function qrCode(): Attribute
     {
         return Attribute::make(
             get: function (string $value) {

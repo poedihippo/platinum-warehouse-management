@@ -40,7 +40,7 @@ class DeliveryOrderController extends Controller
     public function index()
     {
         // abort_if(!auth()->user()->tokenCan('delivery_order_access'), 403);
-        $deliveryOrders = QueryBuilder::for(DeliveryOrder::with('user', 'reseller')->withCount('details'))
+        $deliveryOrders = QueryBuilder::for(DeliveryOrder::tenanted()->with('user', 'reseller')->withCount('details'))
             ->allowedFilters([
                 'invoice_no',
                 AllowedFilter::exact('reseller_id'),
@@ -53,10 +53,11 @@ class DeliveryOrderController extends Controller
         return DeliveryOrderResource::collection($deliveryOrders);
     }
 
-    public function show(DeliveryOrder $deliveryOrder)
+    public function show(int $id)
     {
         // abort_if(!auth()->user()->tokenCan('delivery_order_access'), 403);
 
+        $deliveryOrder = DeliveryOrder::findTenanted($id);
         $deliveryOrder->load([
             'user',
             'reseller'
@@ -78,23 +79,25 @@ class DeliveryOrderController extends Controller
         return response()->json(['data' => $deliveryOrder], 201);
     }
 
-    public function update(DeliveryOrder $deliveryOrder, DeliveryOrderUpdateRequest $request)
+    public function update(int $id, DeliveryOrderUpdateRequest $request)
     {
+        $deliveryOrder = DeliveryOrder::findTenanted($id);
         $deliveryOrder->update($request->validated());
 
         return response()->json(['data' => $deliveryOrder], 200);
     }
 
-    public function destroy(DeliveryOrder $deliveryOrder)
+    public function destroy(int $id)
     {
         // abort_if(!auth()->user()->tokenCan('delivery_order_delete'), 403);
 
+        $deliveryOrder = DeliveryOrder::findTenanted($id);
         DB::beginTransaction();
         try {
             $deliveryOrder->delete();
 
             // $deliveryOrder->salesOrder?->details->each(function ($detail) use ($deliveryOrder) {
-            //     $stockProductUnit = StockProductUnit::select('id')->where('warehouse_id', $deliveryOrder->salesOrder?->warehouse_id)
+            //     $stockProductUnit = StockProductUnit::tenanted()->select('id')->where('warehouse_id', $deliveryOrder->salesOrder?->warehouse_id)
             //         ->where('product_unit_id', $detail->product_unit_id)
             //         ->first();
 
@@ -115,7 +118,7 @@ class DeliveryOrderController extends Controller
             $deliveryOrder->details?->each(function ($detail) use ($deliveryOrder) {
                 $salesOrderDetail = $detail->salesOrderDetail->load('packaging');
 
-                $stockProductUnit = StockProductUnit::select('id')->where('warehouse_id', $salesOrderDetail?->warehouse_id)
+                $stockProductUnit = StockProductUnit::tenanted()->select('id')->where('warehouse_id', $salesOrderDetail?->warehouse_id)
                     ->where('product_unit_id', $salesOrderDetail?->product_unit_id)
                     ->first();
 
@@ -160,23 +163,25 @@ class DeliveryOrderController extends Controller
         return $this->deletedResponse();
     }
 
-    public function print(DeliveryOrder $deliveryOrder)
+    public function print(int $id)
     {
         // abort_if(!auth()->user()->tokenCan('delivery_order_print'), 403);
 
-        $deliveryOrder->load(['reseller', 'details' => fn ($q) => $q->with('salesOrderDetail.productUnit.uom')]);
+        // $deliveryOrder->load(['reseller', 'details' => fn ($q) => $q->with('salesOrderDetail.productUnit.uom')]);
+        $deliveryOrder = DeliveryOrder::with(['reseller', 'details' => fn ($q) => $q->with('salesOrderDetail.productUnit.uom')])->findTenanted($id);
         $deliveryOrderDetailsChunk = $deliveryOrder->details?->chunk(23) ?? collect([]);
         $pdf = Pdf::setPaper('a4', 'portrait')->loadView('pdf.deliveryOrders.deliveryOrder', ['deliveryOrder' => $deliveryOrder, 'deliveryOrderDetailsChunk' => $deliveryOrderDetailsChunk]);
 
         return $pdf->download('delivery-order-' . $deliveryOrder->code . '.pdf');
     }
 
-    public function exportXml(DeliveryOrder $deliveryOrder)
+    public function exportXml(int $id)
     {
         // abort_if(!auth()->user()->tokenCan('sales_order_export_xml'), 403);
 
-        $deliveryOrder->load(['reseller', 'details' => fn ($q) => $q->with('salesOrderDetail.productUnit.uom')]);
+        // $deliveryOrder->load(['reseller', 'details' => fn ($q) => $q->with('salesOrderDetail.productUnit.uom')]);
 
+        $deliveryOrder = DeliveryOrder::with(['reseller', 'details' => fn ($q) => $q->with('salesOrderDetail.productUnit.uom')])->findTenanted($id);
         return response(view('xml.deliveryOrders.deliveryOrder')->with(compact('deliveryOrder')), 200, [
             'Content-Type' => 'application/xml',
             // use your required mime type
@@ -184,20 +189,21 @@ class DeliveryOrderController extends Controller
         ]);
     }
 
-    public function verification(DeliveryOrder $deliveryOrder, DeliveryOrderDetail $deliveryOrderDetail, SalesOrderItemStoreRequest $request)
+    public function verification(int $id, DeliveryOrderDetail $deliveryOrderDetail, SalesOrderItemStoreRequest $request)
     {
+        $deliveryOrder = DeliveryOrder::findTenanted($id, ['id', 'is_done']);
         if ($deliveryOrder->is_done) return response()->json(['message' => 'Delivery Order sudah diselesaikan. Batalkan untuk dapat scan lagi'], 404);
 
         // 1. cek if exist $deliveryOrderDetail
         $salesOrderDetail = $deliveryOrderDetail->salesOrderDetail;
-        if (! $salesOrderDetail)
+        if (!$salesOrderDetail)
             return response()->json(['message' => 'Sales order item Tidak ditemukan'], 404);
 
         // 2. cek stock_id nya apakah sesuai dengan product unit dan warehouse dari SO detail
         $stock = Stock::where('id', $request->stock_id)
             ->whereHas('stockProductUnit', fn ($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id)->where('warehouse_id', $salesOrderDetail->salesOrder?->warehouse_id))
             ->first();
-        if (! $stock)
+        if (!$stock)
             return response()->json(['message' => 'Stok produk tidak sesuai'], 400);
 
         // 3. cek apakah stock sudah pernah di scan
@@ -272,12 +278,13 @@ class DeliveryOrderController extends Controller
         return new SalesOrderItemResource($salesOrderItem);
     }
 
-    public function done(DeliveryOrder $deliveryOrder, Request $request)
+    public function done(int $id, Request $request)
     {
         // abort_if(!auth()->user()->tokenCan('delivery_order_done'), 403);
         $request->validate(['is_done' => 'required|boolean']);
 
-        if (! $deliveryOrder->details->every(fn ($detail) => $detail->salesOrderDetail?->salesOrderItems?->count() >= $detail->salesOrderDetail?->qty))
+        $deliveryOrder = DeliveryOrder::findTenanted($id, ['id', 'is_done', 'invoice_no']);
+        if (!$deliveryOrder->details->every(fn ($detail) => $detail->salesOrderDetail?->salesOrderItems?->count() >= $detail->salesOrderDetail?->qty))
             return response()->json(['message' => 'Semua data delivery order harus terpenuhi'], 400);
 
         DB::beginTransaction();
@@ -290,7 +297,7 @@ class DeliveryOrderController extends Controller
             $deliveryOrder->details?->each(function ($detail) use ($deliveryOrder) {
                 $salesOrderDetail = $detail->salesOrderDetail->load('packaging');
 
-                $stockProductUnit = StockProductUnit::select('id')->where('warehouse_id', $salesOrderDetail?->warehouse_id)
+                $stockProductUnit = StockProductUnit::tenanted()->select('id')->where('warehouse_id', $salesOrderDetail?->warehouse_id)
                     ->where('product_unit_id', $salesOrderDetail?->product_unit_id)
                     ->first();
 
@@ -310,7 +317,7 @@ class DeliveryOrderController extends Controller
                         // record stock history for packaging
                         $stockProductUnit = $salesOrderDetail->packaging->stockProductUnits()->where('warehouse_id', $salesOrderDetail?->warehouse_id)->first();
 
-                        if (! $stockProductUnit->productUnit->is_generate_qr) {
+                        if (!$stockProductUnit->productUnit->is_generate_qr) {
                             $stockProductUnit->decrement('qty', $history->value);
                         }
 
@@ -336,9 +343,10 @@ class DeliveryOrderController extends Controller
         return response()->json(['message' => $message])->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
-    public function attach(DeliveryOrder $deliveryOrder, DeliveryOrderAttachRequest $request)
+    public function attach(int $id, DeliveryOrderAttachRequest $request)
     {
         $count = 0;
+        $deliveryOrder = DeliveryOrder::findTenanted($id, ['id']);
         foreach ($request->sales_order_detail_ids ?? [] as $id) {
             if ($deliveryOrder->details()->where('sales_order_detail_id', $id)->doesntExist()) {
                 $deliveryOrder->details()->create([
