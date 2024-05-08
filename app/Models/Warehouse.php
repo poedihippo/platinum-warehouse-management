@@ -11,6 +11,14 @@ class Warehouse extends Model
     use SoftDeletes;
     protected $guarded = [];
 
+    protected static function booted()
+    {
+        static::created(function ($model) {
+            ProductUnit::get(['id'])->each(fn ($productUnit) => $productUnit->stockProductUnits()->create([
+                'warehouse_id' => $model->id
+            ]));
+        });
+    }
 
     public function scopeTenanted(Builder $query)
     {

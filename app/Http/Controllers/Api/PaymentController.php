@@ -19,10 +19,10 @@ class PaymentController extends Controller
     {
         parent::__construct();
         // $this->middleware('permission:payment_access', ['only' => ['index', 'show']]);
-        // $this->middleware('permission:payment_read', ['only' => ['index', 'show']]);
-        // $this->middleware('permission:payment_create', ['only' => 'store']);
-        // $this->middleware('permission:payment_edit', ['only' => 'update']);
-        // $this->middleware('permission:payment_delete', ['only' => 'destroy', 'forceDelete', 'restore']);
+        $this->middleware('permission:payment_read', ['only' => ['index', 'show']]);
+        $this->middleware('permission:payment_create', ['only' => 'store']);
+        $this->middleware('permission:payment_edit', ['only' => 'update']);
+        $this->middleware('permission:payment_delete', ['only' => 'destroy', 'forceDelete', 'restore']);
     }
 
     public function index()
