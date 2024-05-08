@@ -130,13 +130,6 @@ class PermissionsHelper
                 'receive_order_verify_access',
             ],
 
-            'payment_access' => [
-                'payment_read',
-                'payment_create',
-                'payment_edit',
-                'payment_delete',
-            ],
-
             'delivery_order_access' => [
                 'delivery_order_read',
                 'delivery_order_create',
@@ -188,6 +181,13 @@ class PermissionsHelper
             'setting_access' => [
                 'setting_read',
                 'setting_edit',
+            ],
+
+            'payment_access' => [
+                'payment_read',
+                'payment_create',
+                'payment_edit',
+                'payment_delete',
             ],
 
             'voucher_access' => [
