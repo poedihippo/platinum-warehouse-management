@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Models\Voucher;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
@@ -23,8 +24,6 @@ class SalesOrderStoreRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        $additionalDiscount = $this->additional_discount ?? 0;
-
         $this->merge([
             'shipment_fee' => $this->shipment_fee ? (int) $this->shipment_fee : 0,
             'additional_discount' => $this->additional_discount ? (int) $this->additional_discount : 0,
@@ -61,13 +60,17 @@ class SalesOrderStoreRequest extends FormRequest
             'shipment_estimation_datetime' => 'required|date_format:Y-m-d H:i:s',
             'shipment_fee' => 'required|integer',
             'additional_discount' => 'required|integer',
+            'voucher_code' => ['nullable', function (string $attribute, mixed $value, Closure $fail) {
+                $voucher = Voucher::where('code', $value)->first();
+                if (!$voucher) $fail('Voucher tidak ditemukan!');
+                if ($voucher->is_used) $fail('Voucher sudah digunakan!');
+            }],
             'description' => 'nullable|string',
             'items' => [
                 'required',
                 'array',
                 function (string $attribute, mixed $value, Closure $fail) {
-                    if (count($value) <= 0)
-                        $fail('items required');
+                    if (count($value) <= 0) $fail('items required');
                 }
             ],
             'items.*.product_unit_id' => 'required|integer|exists:product_units,id',

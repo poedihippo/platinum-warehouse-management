@@ -13,11 +13,11 @@ class VoucherCategoryController extends Controller
     public function __construct()
     {
         parent::__construct();
-        // $this->middleware('permission:voucher_category_access', ['only' => ['index', 'show']]);
-        $this->middleware('permission:voucher_category_read', ['only' => ['index', 'show']]);
-        $this->middleware('permission:voucher_category_create', ['only' => 'store']);
-        $this->middleware('permission:voucher_category_edit', ['only' => 'update']);
-        $this->middleware('permission:voucher_category_delete', ['only' => 'destroy']);
+        // $this->middleware('permission:voucher_access', ['only' => ['index', 'show']]);
+        $this->middleware('permission:voucher_read', ['only' => ['index', 'show']]);
+        $this->middleware('permission:voucher_create', ['only' => 'store']);
+        $this->middleware('permission:voucher_edit', ['only' => 'update']);
+        $this->middleware('permission:voucher_delete', ['only' => 'destroy', 'forceDelete', 'restore']);
     }
 
     public function index()

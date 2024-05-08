@@ -189,6 +189,14 @@ class PermissionsHelper
                 'setting_read',
                 'setting_edit',
             ],
+
+            'voucher_access' => [
+                'voucher_read',
+                'voucher_create',
+                'voucher_edit',
+                'voucher_delete',
+                'voucher_import',
+            ],
         ];
     }
 

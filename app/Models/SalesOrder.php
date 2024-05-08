@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SalesOrder extends Model
 {
@@ -26,6 +28,7 @@ class SalesOrder extends Model
 
     protected $fillable = [
         'user_id',
+        'voucher_id',
         'reseller_id',
         'warehouse_id',
         'invoice_no',
@@ -73,27 +76,32 @@ class SalesOrder extends Model
     //     return $this->hasOne(DeliveryOrder::class);
     // }
 
-    public function details()
+    public function details(): HasMany
     {
         return $this->hasMany(SalesOrderDetail::class);
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function reseller()
+    public function voucher(): BelongsTo
+    {
+        return $this->belongsTo(Voucher::class);
+    }
+
+    public function reseller(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reseller_id');
     }
 
-    public function warehouse()
+    public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class, 'warehouse_id');
     }
 
-    public static function getSoNumber() : string
+    public static function getSoNumber(): string
     {
         $key = SettingEnum::SO_NUMBER;
         return DB::transaction(function () use ($key) {
@@ -104,7 +112,7 @@ class SalesOrder extends Model
                 ->lockForUpdate()
                 ->first('value')?->value ?? null;
 
-            if (isset($lastSoNumber) && ! is_null($lastSoNumber) && $lastSoNumber != '') {
+            if (isset($lastSoNumber) && !is_null($lastSoNumber) && $lastSoNumber != '') {
                 $arrayLastSoNumber = explode('/', $lastSoNumber);
 
                 if (is_array($arrayLastSoNumber) && count($arrayLastSoNumber) == 5 && date('m') == $arrayLastSoNumber[2] && date('y') == $arrayLastSoNumber[3]) {

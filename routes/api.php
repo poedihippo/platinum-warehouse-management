@@ -33,6 +33,7 @@ use App\Http\Controllers\Api\TestController;
 use App\Http\Controllers\Api\UserDiscountController;
 use App\Http\Controllers\Api\VoucherCategoryController;
 use App\Http\Controllers\Api\VoucherController;
+use App\Http\Controllers\Api\VoucherGenerateBatchController;
 
 /*
 |--------------------------------------------------------------------------
@@ -172,9 +173,16 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     Route::apiResource('voucher-categories', VoucherCategoryController::class);
 
-    Route::group(['prefix' => 'vouchers/{voucher}'], function () {
-        Route::put('restore', [VoucherController::class, 'restore']);
-        Route::delete('force-delete', [VoucherController::class, 'forceDelete']);
+    Route::group(['prefix' => 'vouchers'], function () {
+        Route::apiResource('generate-batches', VoucherGenerateBatchController::class);
+
+        Route::post('import', [VoucherController::class, 'import']);
+        Route::group(['prefix' => '{voucher}'], function () {
+            Route::put('restore', [VoucherController::class, 'restore']);
+            Route::delete('force-delete', [VoucherController::class, 'forceDelete']);
+        });
     });
     Route::apiResource('vouchers', VoucherController::class);
+
+    Route::get('exports/sample/{type}', [\App\Http\Controllers\Api\ExportController::class, 'sample']);
 });

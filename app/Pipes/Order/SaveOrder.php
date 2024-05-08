@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Pipes\Order;
 
 use App\Models\SalesOrder;
@@ -11,7 +12,6 @@ class SaveOrder
         $salesOrder = DB::transaction(function () use ($salesOrder) {
             $salesOrderDetails = $salesOrder->sales_order_details;
             unset($salesOrder->sales_order_details);
-
             $salesOrder->save();
             $salesOrder->details()->saveMany($salesOrderDetails);
 

@@ -6,6 +6,7 @@ use App\Models\SalesOrder;
 use App\Models\SalesOrderDetail;
 use App\Pipes\Order\CalculateAdditionalDiscount;
 use App\Pipes\Order\CalculateAdditionalFees;
+use App\Pipes\Order\CalculateVoucher;
 use App\Pipes\Order\CheckExpectedOrderPrice;
 use App\Pipes\Order\FillOrderAttributes;
 use App\Pipes\Order\FillOrderRecords;
@@ -41,8 +42,7 @@ class SalesOrderService
 
         $cekTotalPrice += $shipmentFee;
 
-        if ($cekTotalPrice != $totalPrice)
-            return false;
+        if ($cekTotalPrice != $totalPrice) return false;
         return true;
     }
 
@@ -62,6 +62,13 @@ class SalesOrderService
         ]);
     }
 
+    /**
+     * Creates a new sales order.
+     *
+     * @param SalesOrder $salesOrder The sales order object.
+     * @param bool $isPerview (optional) Flag indicating whether the order is a preview. Default is false.
+     * @return SalesOrder The created sales order.
+     */
     public static function createOrder(SalesOrder $salesOrder, bool $isPerview = false): SalesOrder
     {
         $pipes = [
@@ -69,6 +76,7 @@ class SalesOrderService
             FillOrderRecords::class,
             MakeOrderDetails::class,
             CalculateAdditionalDiscount::class,
+            CalculateVoucher::class,
             CalculateAdditionalFees::class,
             CheckExpectedOrderPrice::class,
         ];
@@ -81,6 +89,13 @@ class SalesOrderService
             ->thenReturn();
     }
 
+    /**
+     * Updates a sales order.
+     *
+     * @param SalesOrder $salesOrder The sales order object to be updated.
+     * @param bool $isPerview (optional) Flag indicating whether the order is a preview. Default is false.
+     * @return SalesOrder The updated sales order.
+     */
     public static function updateOrder(SalesOrder $salesOrder, bool $isPerview = false): SalesOrder
     {
         $pipes = [
@@ -88,6 +103,7 @@ class SalesOrderService
             FillOrderRecords::class,
             MakeOrderDetails::class,
             CalculateAdditionalDiscount::class,
+            CalculateVoucher::class,
             CalculateAdditionalFees::class,
             CheckExpectedOrderPrice::class,
         ];

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Api\Voucher;
+namespace App\Http\Requests\Api\VoucherGenerateBatch;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -21,20 +21,16 @@ class StoreRequest extends FormRequest
      */
     public function rules(): array
     {
-        if ($voucher = $this->voucher) {
+        if ($this->generate_batch) {
             return [
-                'voucher_generate_batch_id' => 'required|exists:voucher_generate_batches,id',
-                'voucher_category_id' => 'required|exists:voucher_categories,id',
-                'code' => 'required|unique:vouchers,code,' . $voucher->id,
                 'description' => 'nullable|string',
             ];
         }
 
         return [
-            'voucher_generate_batch_id' => 'required|exists:voucher_generate_batches,id',
             'voucher_category_id' => 'required|exists:voucher_categories,id',
-            'code' => 'required|unique:vouchers,code',
             'description' => 'nullable|string',
+            'value' => 'required|integer|min:1',
         ];
     }
 }

@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
         //     UserSeeder::class,
         //     ResellerSeeder::class,
         //     // CustomerSeeder::class,
+        //     // VoucherCategorySeeder::class,
         //     SettingSeeder::class,
         //     UserDiscountSeeder::class,
         // ]);
