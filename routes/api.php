@@ -105,6 +105,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('{salesOrderDetail}', [SalesOrderDetailController::class, 'destroy']);
     });
 
+    Route::post('sales-orders/invoice', [SalesOrderController::class, 'invoice']);
     Route::get('sales-orders/product-units', [SalesOrderController::class, 'productUnits']);
     Route::get('sales-orders/{salesOrder}/print', [SalesOrderController::class, 'print']);
     Route::get('sales-orders/{salesOrder}/export-xml', [SalesOrderController::class, 'exportXml']);

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\InvoiceStoreRequest;
 use App\Http\Resources\SalesOrderResource;
 use App\Http\Requests\Api\SalesOrderStoreRequest;
 use App\Http\Requests\Api\SalesOrderUpdateRequest;
@@ -64,6 +65,12 @@ class SalesOrderController extends Controller
     public function store(SalesOrderStoreRequest $request)
     {
         $salesOrder = SalesOrderService::createOrder(SalesOrder::make(['raw_source' => $request->validated()]), (bool) $request->is_preview ?? false);
+        return new SalesOrderResource($salesOrder);
+    }
+
+    public function invoice(InvoiceStoreRequest $request)
+    {
+        $salesOrder = SalesOrderService::createOrder(SalesOrder::make(['raw_source' => $request->validated()]), (bool) $request->is_preview ?? false, true);
         return new SalesOrderResource($salesOrder);
     }
 

@@ -69,7 +69,7 @@ class SalesOrderService
      * @param bool $isPerview (optional) Flag indicating whether the order is a preview. Default is false.
      * @return SalesOrder The created sales order.
      */
-    public static function createOrder(SalesOrder $salesOrder, bool $isPerview = false): SalesOrder
+    public static function createOrder(SalesOrder $salesOrder, bool $isPerview = false, bool $isInvoice = false): SalesOrder
     {
         $pipes = [
             FillOrderAttributes::class,

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Pipes\Order;
 
 use App\Models\SalesOrder;
@@ -10,12 +11,11 @@ class FillOrderRecords
     {
         $records = [];
 
-        $reseller = User::findOrFail($salesOrder->reseller_id)?->setHidden(['email_verified_at', 'remember_token', 'created_at', 'updated_at', 'deleted_at'])?->toArray() ?? [];
+        $reseller = User::find($salesOrder->reseller_id)?->setHidden(['email_verified_at', 'remember_token', 'created_at', 'updated_at', 'deleted_at'])?->toArray() ?? [];
 
-        $records['reseller'] = $reseller;
+        if ($reseller) $records['reseller'] = $reseller;
 
         $salesOrder->records = $records;
-
         return $next($salesOrder);
     }
 }
