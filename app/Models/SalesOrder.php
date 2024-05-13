@@ -41,6 +41,7 @@ class SalesOrder extends Model
         'additional_discount',
         'price',
         'description',
+        'is_invoice',
     ];
 
     protected $casts = [
@@ -49,6 +50,7 @@ class SalesOrder extends Model
         'shipment_fee' => 'integer',
         'additional_discount' => 'integer',
         'price' => 'integer',
+        'is_invoice' => 'boolean',
     ];
 
     protected static function booted()

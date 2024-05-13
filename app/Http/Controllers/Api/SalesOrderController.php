@@ -40,7 +40,7 @@ class SalesOrderController extends Controller
 
         $salesOrders = QueryBuilder::for($query)
             ->allowedFilters([
-                'invoice_no',
+                'invoice_no', 'is_invoice',
                 AllowedFilter::exact('user_id'),
                 AllowedFilter::exact('reseller_id'),
                 AllowedFilter::exact('warehouse_id'),
@@ -49,7 +49,9 @@ class SalesOrderController extends Controller
                 AllowedFilter::scope('end_date'),
             ])
             ->allowedSorts(['id', 'invoice_no', 'user_id', 'reseller_id', 'warehouse_id', 'created_at'])
-            ->allowedIncludes(['details', 'warehouse', 'user'])
+            ->allowedIncludes(['details', 'warehouse', 'user', \Spatie\QueryBuilder\AllowedInclude::callback('voucher', function ($q) {
+                $q->with('category');
+            }),])
             ->paginate($this->per_page);
 
         return SalesOrderResource::collection($salesOrders);
@@ -59,7 +61,7 @@ class SalesOrderController extends Controller
     {
         // abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
         $salesOrder = SalesOrder::findTenanted($id);
-        return new SalesOrderResource($salesOrder->load(['details' => fn ($q) => $q->with(['warehouse', 'packaging']), 'user'])->loadCount('details'));
+        return new SalesOrderResource($salesOrder->load(['voucher.category', 'details' => fn ($q) => $q->with(['warehouse', 'packaging']), 'user'])->loadCount('details'));
     }
 
     public function store(SalesOrderStoreRequest $request)
@@ -70,7 +72,7 @@ class SalesOrderController extends Controller
 
     public function invoice(InvoiceStoreRequest $request)
     {
-        $salesOrder = SalesOrderService::createOrder(SalesOrder::make(['raw_source' => $request->validated()]), (bool) $request->is_preview ?? false, true);
+        $salesOrder = SalesOrderService::createOrder(SalesOrder::make(['raw_source' => $request->validated(), 'is_invoice' => true]), (bool) $request->is_preview ?? false, true);
         return new SalesOrderResource($salesOrder);
     }
 

@@ -14,6 +14,7 @@ return new class extends Migration
     {
         Schema::table('sales_orders', function (Blueprint $table) {
             $table->foreignIdFor(Voucher::class)->after('id')->nullable()->constrained();
+            $table->boolean('is_invoice')->default(0);
         });
     }
 
@@ -24,6 +25,7 @@ return new class extends Migration
     {
         Schema::table('sales_orders', function (Blueprint $table) {
             $table->dropConstrainedForeignIdFor(Voucher::class);
+            $table->dropColumn('is_invoice');
         });
     }
 };
