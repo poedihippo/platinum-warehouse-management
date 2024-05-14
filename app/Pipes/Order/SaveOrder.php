@@ -17,6 +17,7 @@ class SaveOrder
                 $salesOrder->raw_source['customer_name'] != '' &&
                 $reseller = $this->createReseller($salesOrder)
             ) {
+                dd($reseller);
                 $salesOrder->reseller_id = $reseller->id;
 
                 $records = $salesOrder->records ?? [];
@@ -40,12 +41,11 @@ class SaveOrder
     public function createReseller(SalesOrder $salesOrder): User|null
     {
         $rawSoruce = $salesOrder->raw_source;
-
         try {
             return User::create([
                 'name' => $rawSoruce['customer_name'],
                 'phone' => $rawSoruce['customer_phone'],
-                'address' => $rawSoruce['customer_address'],
+                'address' => $rawSoruce['customer_address'] ?? null,
                 'type' => UserType::Customer,
             ]);
         } catch (\Exception $e) {

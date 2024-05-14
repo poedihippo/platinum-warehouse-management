@@ -39,6 +39,8 @@ class InvoiceStoreRequest extends FormRequest
      */
     public function rules()
     {
+        // dump(empty($this->customer_name) && empty($this->customer_phone));
+        // dd($this->all());
         return [
             'expected_price' => 'nullable|integer',
             'reseller_id' => [
@@ -49,8 +51,8 @@ class InvoiceStoreRequest extends FormRequest
                     }
                 }
             ],
-            'customer_name' => 'required_without:reseller_id|string',
-            'customer_phone' => 'required_without:reseller_id|string',
+            'customer_name' => 'required_without:reseller_id',
+            'customer_phone' => 'required_without:reseller_id',
             'customer_address' => 'nullable|string',
             'invoice_no' => [
                 'nullable',
