@@ -7,6 +7,7 @@ use App\Rules\TenantedRule;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class InvoiceStoreRequest extends FormRequest
 {
@@ -40,16 +41,16 @@ class InvoiceStoreRequest extends FormRequest
     {
         return [
             'expected_price' => 'nullable|integer',
-            // 'reseller_id' => [
-            //     'required',
-            //     function (string $attribute, mixed $value, Closure $fail) {
-            //         if (!DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::Reseller)->exists()) {
-            //             $fail('Reseller Tidak ditemukan');
-            //         }
-            //     }
-            // ],
-            'customer_name' => 'required|string',
-            'customer_phone' => 'required|string',
+            'reseller_id' => [
+                Rule::requiredIf(empty($this->customer_name) && empty($this->customer_phone)),
+                function (string $attribute, mixed $value, Closure $fail) {
+                    if (!DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::Reseller)->exists()) {
+                        $fail('Reseller Tidak ditemukan');
+                    }
+                }
+            ],
+            'customer_name' => 'required_without:reseller_id|string',
+            'customer_phone' => 'required_without:reseller_id|string',
             'customer_address' => 'nullable|string',
             'invoice_no' => [
                 'nullable',
