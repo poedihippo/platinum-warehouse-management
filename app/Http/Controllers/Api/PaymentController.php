@@ -53,7 +53,6 @@ class PaymentController extends Controller
 
     public function store(StoreRequest $request)
     {
-        dd($request->validated());
         DB::beginTransaction();
         try {
             $data = $request->validated();
