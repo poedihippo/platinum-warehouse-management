@@ -49,7 +49,7 @@ class SalesOrderController extends Controller
                 AllowedFilter::scope('end_date'),
             ])
             ->allowedSorts(['id', 'invoice_no', 'user_id', 'reseller_id', 'warehouse_id', 'created_at'])
-            ->allowedIncludes(['details', 'warehouse', 'user', \Spatie\QueryBuilder\AllowedInclude::callback('voucher', function ($q) {
+            ->allowedIncludes(['details', 'warehouse', 'user', 'payments', \Spatie\QueryBuilder\AllowedInclude::callback('voucher', function ($q) {
                 $q->with('category');
             }),])
             ->paginate($this->per_page);
@@ -61,7 +61,7 @@ class SalesOrderController extends Controller
     {
         // abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
         $salesOrder = SalesOrder::findTenanted($id);
-        return new SalesOrderResource($salesOrder->load(['voucher.category', 'details' => fn ($q) => $q->with(['warehouse', 'packaging']), 'user'])->loadCount('details'));
+        return new SalesOrderResource($salesOrder->load(['voucher.category', 'payments', 'details' => fn ($q) => $q->with(['warehouse', 'packaging']), 'user'])->loadCount('details'));
     }
 
     public function store(SalesOrderStoreRequest $request)

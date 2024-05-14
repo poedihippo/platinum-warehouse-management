@@ -84,6 +84,11 @@ class SalesOrder extends Model
         return $this->hasMany(SalesOrderDetail::class);
     }
 
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
