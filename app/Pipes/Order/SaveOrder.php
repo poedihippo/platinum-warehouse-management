@@ -17,7 +17,6 @@ class SaveOrder
                 $salesOrder->raw_source['customer_name'] != '' &&
                 $reseller = $this->createReseller($salesOrder)
             ) {
-                dd($reseller);
                 $salesOrder->reseller_id = $reseller->id;
 
                 $records = $salesOrder->records ?? [];
