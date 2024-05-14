@@ -29,7 +29,7 @@ return new class extends Migration
             $table->string('province')->nullable();
             $table->string('zip_code')->nullable();
             $table->string('country')->nullable();
-            $table->string('phone')->nullable();
+            $table->string('phone')->unique()->nullable();
             $table->string('contact_person')->nullable();
             $table->string('web_page')->nullable();
             $table->rememberToken();

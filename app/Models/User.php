@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Support\Str;
@@ -89,6 +90,32 @@ class User extends Authenticatable
         return Attribute::make(
             set: fn (string|null $value) => empty($value) ? null : bcrypt($value),
         );
+    }
+
+    protected function phone(): Attribute
+    {
+        return Attribute::make(
+            set: function (string|null $value) {
+                if (!isset($value) || is_null($value) || $value == '' || (string)$value == '0') {
+                    $value = $this->generatePhoneNumber($value);
+                }
+
+                return $value;
+            },
+        );
+    }
+
+    private function generatePhoneNumber(null|int|string $value)
+    {
+        if (!isset($value) || is_null($value) || $value == '' || (string)$value == '0') {
+            $value = "fake" . rand(11111111, 99999999);
+        }
+
+        if (DB::table('users')->where('phone', $value)->exists()) {
+            $this->generatePhoneNumber(null);
+        }
+
+        return $value;
     }
 
     /**
