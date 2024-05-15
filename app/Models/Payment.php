@@ -73,7 +73,7 @@ class Payment extends Model implements HasMedia
         return $this->getMedia('payments')->map(function ($media) {
             return [
                 'id'              => $media->id,
-                'url'             => $media->getUrl(),
+                'url'             => $media->getTemporaryUrl(now()->addMinutes(5)),
                 // 'thumbnail'       => $media->thumbnail,
                 // 'preview'         => $media->preview,
                 'mime_type'       => $media->mime_type,
