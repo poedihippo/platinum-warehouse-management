@@ -21,7 +21,7 @@ class VoucherImport implements ToCollection, SkipsEmptyRows, WithHeadingRow, Ski
 
     public function __construct(
         private string $voucherCategoryId,
-        private string $description,
+        private string $description = '',
     ) {
     }
 
@@ -38,7 +38,7 @@ class VoucherImport implements ToCollection, SkipsEmptyRows, WithHeadingRow, Ski
                 $batch = VoucherGenerateBatch::create([
                     'user_id' => auth()->id(),
                     'source' => BatchSource::IMPORT,
-                    'description' => $this->description
+                    'description' => $this->description ?? ''
                 ]);
             }
 
@@ -46,7 +46,7 @@ class VoucherImport implements ToCollection, SkipsEmptyRows, WithHeadingRow, Ski
                 'voucher_generate_batch_id' => $batch->id,
                 'voucher_category_id' => $this->voucherCategoryId,
                 'code' => trim($row['code']),
-                'description' => trim($row['description'])
+                'description' => trim($row['description'] ?? '')
             ]);
             $this->totalInserted++;
         }
