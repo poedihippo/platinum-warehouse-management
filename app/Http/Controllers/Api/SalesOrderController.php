@@ -72,6 +72,15 @@ class SalesOrderController extends Controller
 
     public function invoice(InvoiceStoreRequest $request)
     {
+        foreach ($request->items ?? [] as $item) {
+            $stocks = \App\Models\Stock::whereAvailableStock()
+                ->whereHas('stockProductUnit', fn ($q) => $q->where('product_unit_id', $item['product_unit_id'])->where('warehouse_id', $item['warehouse_id']))
+                ->limit($item['qty'])
+                ->get(['id']);
+
+            if ($stocks->count() < $item['qty']) return $this->errorResponse(message: sprintf('Stok %s tidak tersedia', \Illuminate\Support\Facades\DB::table('product_units')->where('id', $item['product_unit_id'])->first()?->name ?? ''), code: \Illuminate\Http\Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
         $salesOrder = SalesOrderService::createOrder(SalesOrder::make(['raw_source' => $request->validated(), 'is_invoice' => true]), (bool) $request->is_preview ?? false, true);
         return new SalesOrderResource($salesOrder);
     }
