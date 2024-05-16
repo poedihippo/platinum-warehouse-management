@@ -12,8 +12,9 @@ use BenSampo\Enum\Enum;
  */
 final class UserType extends Enum
 {
-    const Admin = 1;
-    const Reseller = 2;
-    const Customer = 3;
-    const Dealer = 4;
+    const Admin = 'admin';
+    const Reseller = 'reseller';
+    const Customer = 'customer';
+    const Dealer = 'dealer';
+    const CustomerEvent = 'customer_event';
 }

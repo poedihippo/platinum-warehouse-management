@@ -49,7 +49,7 @@ class SaveOrder
                 'name' => $rawSoruce['customer_name'],
                 'phone' => $rawSoruce['customer_phone'],
                 'address' => $rawSoruce['customer_address'] ?? null,
-                'type' => UserType::Customer,
+                'type' => UserType::CustomerEvent,
             ]);
         } catch (\Exception $e) {
             return null;

@@ -136,7 +136,7 @@ class SalesOrderController extends Controller
                         'user_id' => $salesOrder->user_id,
                         'stock_product_unit_id' => $stockProductUnit->id,
                         'value' => $salesOrderDetail->qty,
-                        'is_increment' => 0,
+                        'is_increment' => 1,
                         'description' => "Return stock from delete SO invoice " . $salesOrder->invoice_no,
                         'ip' => request()->ip(),
                         'agent' => request()->header('user-agent'),
