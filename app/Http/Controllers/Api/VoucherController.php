@@ -8,6 +8,7 @@ use App\Http\Resources\DefaultResource;
 use App\Imports\VoucherImport;
 use App\Models\Voucher;
 use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\AllowedInclude;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class VoucherController extends Controller
@@ -19,7 +20,7 @@ class VoucherController extends Controller
         $this->middleware('permission:voucher_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:voucher_create', ['only' => 'store']);
         $this->middleware('permission:voucher_edit', ['only' => 'update']);
-        $this->middleware('permission:voucher_delete', ['only' => 'destroy','forceDelete','restore']);
+        $this->middleware('permission:voucher_delete', ['only' => 'destroy', 'forceDelete', 'restore']);
         $this->middleware('permission:voucher_import', ['only' => 'import']);
     }
 
@@ -31,7 +32,15 @@ class VoucherController extends Controller
                 AllowedFilter::exact('voucher_category_id'),
                 'code'
             ])
-            ->allowedIncludes('category')
+            ->allowedIncludes([
+                'voucherGenerateBatch',
+                AllowedInclude::callback('category', function ($query) {
+                    $query->select('id', 'name', 'discount_type', 'discount_amount');
+                }),
+                AllowedInclude::callback('salesOrder', function ($query) {
+                    $query->select('id', 'invoice_no', 'voucher_id');
+                }),
+            ])
             ->allowedSorts(['id', 'voucher_category_id', 'name', 'code', 'created_at'])
             ->paginate($this->per_page);
 
@@ -40,7 +49,11 @@ class VoucherController extends Controller
 
     public function show(Voucher $voucher)
     {
-        return new DefaultResource($voucher->load('category'));
+        return new DefaultResource($voucher->load([
+            'category',
+            'voucherGenerateBatch',
+            'salesOrder' => fn ($q) => $q->select('id', 'invoice_no', 'voucher_id')
+        ]));
     }
 
     public function store(StoreRequest $request)

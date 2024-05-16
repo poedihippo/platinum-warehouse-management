@@ -101,6 +101,12 @@ class SalesOrderController extends Controller
         // abort_if(!auth()->user()->tokenCan('sales_order_delete'), 403);
         $salesOrder = SalesOrder::findTenanted($id);
         if ($salesOrder->deliveryOrder?->is_done) return response()->json(['message' => "Can't update SO if DO is already done"], 400);
+
+        // return stock if salesorder is invoice
+        if ($salesOrder->is_invoice) {
+            $salesOrder->forceDelete();
+        }
+
         $salesOrder->delete();
         return $this->deletedResponse();
     }
