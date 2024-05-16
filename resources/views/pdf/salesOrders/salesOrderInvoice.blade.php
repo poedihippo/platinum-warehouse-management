@@ -124,7 +124,6 @@
 
         table td.grand {
             border-top: 1px solid #5D6975;
-            ;
         }
 
         #notices .notice {
@@ -142,16 +141,20 @@
             padding: 8px 0;
             text-align: center;
         }
-        .align-center{
+
+        .align-center {
             text-align: center;
         }
-        .align-left{
+
+        .align-left {
             text-align: left;
         }
-        .align-right{
+
+        .align-right {
             text-align: right;
         }
-        .float-left{
+
+        .float-left {
             float: left;
         }
     </style>
@@ -160,12 +163,13 @@
 <body>
     <header class="clearfix">
         <div id="logo">
-            <img src="{{ public_path('images/logo-color.png')}}" />
+            <img src="{{ public_path('images/logo-color.png') }}" />
         </div>
-        <h1>{{$salesOrder->invoice_no}}</h1>
+        <h1>{{ $salesOrder->invoice_no }}</h1>
         <div id="project">
             <div>PT. PLATINUM ADI SENTOSA</div>
-            <div>Ko Duta Indah Iconic Blok B No. 1 RT. 004 RW. 02 Panunggangan Utara, Pinang, Kota Tangerang, Banten 15143</div>
+            <div>Ko Duta Indah Iconic Blok B No. 1 RT. 004 RW. 02 Panunggangan Utara, Pinang, Kota Tangerang, Banten
+                15143</div>
             <div>(021) 29866646</div>
             <div>{{ date('d F Y', strtotime($salesOrder->created_at)) }}</div>
         </div>
@@ -183,19 +187,19 @@
             </thead>
             <tbody>
                 @foreach ($salesOrder->details as $detail)
-                <tr>
-                    <td class="align-left">{{$detail->productUnit?->code}}</td>
-                    <td class="align-left">{{$detail->productUnit?->name}}</td>
-                    <td class="align-center">{{ $detail->qty }}</td>
-                    <td>
-                        <span class="float-left">Rp. </span>
-                        <span>{{ number_format($detail->unit_price) }}</span>
-                    </td>
-                    <td>
-                        <span class="float-left">Rp. </span>
-                        <span>{{ number_format($detail->total_price) }}</span>
-                    </td>
-                </tr>
+                    <tr>
+                        <td class="align-left">{{ $detail->productUnit?->code }}</td>
+                        <td class="align-left">{{ $detail->productUnit?->name }}</td>
+                        <td class="align-center">{{ $detail->qty }}</td>
+                        <td>
+                            <span class="float-left">Rp. </span>
+                            <span>{{ number_format($detail->unit_price) }}</span>
+                        </td>
+                        <td>
+                            <span class="float-left">Rp. </span>
+                            <span>{{ number_format($detail->total_price) }}</span>
+                        </td>
+                    </tr>
                 @endforeach
                 {{-- <tr>
                     <td colspan="4">Sub Total</td>
@@ -206,17 +210,38 @@
                     <td class="total">$1,300.00</td>
                 </tr> --}}
                 <tr>
-                    <td colspan="4" class="grand total">GRAND TOTAL</td>
-                    <td class="grand total">
+                    <td colspan="4" class="grand">ADDITIONAL DISCOUNT</td>
+                    <td class="grand">
+                        <span class="float-left">Rp. </span>
+                        <span>{{ number_format($salesOrder->additional_discount) }}</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="">VOUCHER</td>
+                    <td class="">
+                        <span class="float-left">Rp. </span>
+                        <span>{{ number_format($salesOrder->raw_source['voucher_value'] ?? 0) }}</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="">GRAND TOTAL</td>
+                    <td class="">
                         <span class="float-left">Rp. </span>
                         <span>{{ number_format($salesOrder->price) }}</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="">PAYMENT PAID</td>
+                    <td class="">
+                        <span class="float-left">Rp. </span>
+                        <span>{{ number_format($salesOrder->payments_sum_amount) }}</span>
                     </td>
                 </tr>
             </tbody>
         </table>
         <div id="notices">
             <div>NOTICE:</div>
-            <div class="notice">{{$salesOrder->description}}</div>
+            <div class="notice">{{ $salesOrder->description }}</div>
         </div>
     </main>
     <footer>

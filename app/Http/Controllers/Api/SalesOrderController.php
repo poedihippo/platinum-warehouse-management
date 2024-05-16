@@ -160,8 +160,9 @@ class SalesOrderController extends Controller
         $salesOrder = SalesOrder::findTenanted($id);
         $salesOrder->load([
             'reseller',
-            'details' => fn ($q) => $q->with('productUnit.product')
-        ]);
+            'details' => fn ($q) => $q->with('productUnit.product'),
+        ])->loadSum('payments', 'amount');
+
         $salesOrderDetails = $salesOrder->details->chunk(10);
 
         $lastOrderDetailsKey = $salesOrderDetails->keys()->last();

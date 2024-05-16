@@ -10,7 +10,8 @@ class CalculateVoucher
 {
     public function handle(SalesOrder $salesOrder, \Closure $next)
     {
-        if ($voucherCode = $salesOrder->raw_source['voucher_code'] ?? null) {
+        $rawSource = $salesOrder->raw_source;
+        if ($voucherCode = $rawSource['voucher_code'] ?? null) {
             $voucher = Voucher::where('code', $voucherCode)->with('category', fn ($q) => $q->select('id', 'discount_type', 'discount_amount'))->first(['id', 'voucher_category_id']);
             if (!$voucher) return $next($salesOrder);
 
@@ -24,6 +25,9 @@ class CalculateVoucher
 
             $salesOrder->price = max($salesOrder->price - $discountVoucherAmount, 0);
             $salesOrder->voucher_id = $voucher->id;
+
+            $rawSource['voucher_value'] = $discountVoucherAmount;
+            $salesOrder->raw_source = $rawSource;
         }
 
         return $next($salesOrder);
