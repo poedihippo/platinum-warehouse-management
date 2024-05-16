@@ -50,7 +50,16 @@ class InvoiceStoreRequest extends FormRequest
                 }
             ],
             'customer_name' => 'required_without:reseller_id',
-            'customer_phone' => 'required_without:reseller_id|unique:users,phone',
+            'customer_phone' => [
+                'required_without:reseller_id',
+                function (string $attribute, mixed $value, Closure $fail) {
+                    if (!empty($value) || !is_null($value) || $value != '') {
+                        if (!DB::table('users')->where('phone', $value)->exists()) {
+                            $fail('No. Handphone sudah digunakan');
+                        }
+                    };
+                }
+            ],
             'customer_address' => 'nullable|string',
             'invoice_no' => [
                 'nullable',
