@@ -154,7 +154,7 @@ class SalesOrderController extends Controller
         return $this->deletedResponse();
     }
 
-    public function print(int $id)
+    public function print(int $id, string $type)
     {
         // abort_if(!auth()->user()->tokenCan('sales_order_print'), 403);
         $salesOrder = SalesOrder::findTenanted($id);
@@ -170,7 +170,8 @@ class SalesOrderController extends Controller
         $spellTotalPrice = \NumberToWords\NumberToWords::transformNumber('en', $salesOrder->price);
         $bankTransferInfo = \App\Services\SettingService::bankTransferInfo();
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::setPaper('a4', 'landscape')->loadView('pdf.salesOrders.salesOrder', ['salesOrder' => $salesOrder, 'salesOrderDetails' => $salesOrderDetails, 'maxProductsBlackSpace' => $maxProductsBlackSpace, 'lastOrderDetailsKey' => $lastOrderDetailsKey, 'spellTotalPrice' => $spellTotalPrice, 'bankTransferInfo' => $bankTransferInfo]);
+        $view = $type == 'print' ? 'pdf.salesOrders.salesOrder' : 'pdf.salesOrders.salesOrderInvoice';
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::setPaper('a4', 'landscape')->loadView($view, ['salesOrder' => $salesOrder, 'salesOrderDetails' => $salesOrderDetails, 'maxProductsBlackSpace' => $maxProductsBlackSpace, 'lastOrderDetailsKey' => $lastOrderDetailsKey, 'spellTotalPrice' => $spellTotalPrice, 'bankTransferInfo' => $bankTransferInfo]);
 
         return $pdf->download('sales-order-' . $salesOrder->invoice_no . '.pdf');
     }
