@@ -54,7 +54,7 @@ class InvoiceStoreRequest extends FormRequest
                 'required_without:reseller_id',
                 function (string $attribute, mixed $value, Closure $fail) {
                     if (!empty($value) || !is_null($value) || $value != '') {
-                        if (!DB::table('users')->where('phone', $value)->exists()) {
+                        if (DB::table('users')->where('phone', $value)->exists()) {
                             $fail('No. Handphone sudah digunakan');
                         }
                     };
