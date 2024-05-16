@@ -13,6 +13,7 @@ use App\Models\UserDiscount;
 use App\Services\SalesOrderService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -82,6 +83,26 @@ class SalesOrderController extends Controller
         }
 
         $salesOrder = SalesOrderService::createOrder(SalesOrder::make(['raw_source' => $request->validated(), 'is_invoice' => true]), (bool) $request->is_preview ?? false, true);
+
+        if ($salesOrder) {
+            // create history
+            $salesOrder->details->each(function ($salesOrderDetail) use ($salesOrder) {
+                $stockProductUnit = StockProductUnit::where('warehouse_id', $salesOrderDetail->warehouse_id)
+                    ->where('product_unit_id', $salesOrderDetail->product_unit_id)
+                    ->first(['id']);
+
+                $salesOrderDetail->histories()->create([
+                    'user_id' => $salesOrder->user_id,
+                    'stock_product_unit_id' => $stockProductUnit->id,
+                    'value' => $salesOrderDetail->qty,
+                    'is_increment' => 0,
+                    'description' => "Create SO invoice " . $salesOrder->invoice_no,
+                    'ip' => request()->ip(),
+                    'agent' => request()->header('user-agent'),
+                ]);
+            });
+        }
+
         return new SalesOrderResource($salesOrder);
     }
 
@@ -104,7 +125,29 @@ class SalesOrderController extends Controller
 
         // return stock if salesorder is invoice
         if ($salesOrder->is_invoice) {
-            $salesOrder->forceDelete();
+            DB::beginTransaction();
+            try {
+                $salesOrder->details->each(function ($salesOrderDetail) use ($salesOrder) {
+                    $stockProductUnit = StockProductUnit::where('warehouse_id', $salesOrderDetail->warehouse_id)
+                        ->where('product_unit_id', $salesOrderDetail->product_unit_id)
+                        ->first(['id']);
+
+                    $salesOrderDetail->histories()->create([
+                        'user_id' => $salesOrder->user_id,
+                        'stock_product_unit_id' => $stockProductUnit->id,
+                        'value' => $salesOrderDetail->qty,
+                        'is_increment' => 0,
+                        'description' => "Return stock from delete SO invoice " . $salesOrder->invoice_no,
+                        'ip' => request()->ip(),
+                        'agent' => request()->header('user-agent'),
+                    ]);
+                });
+                $salesOrder->forceDelete();
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return $this->errorResponse(message: $e->getMessage(), code: $e->getCode() ?? 500);
+            }
         }
 
         $salesOrder->delete();

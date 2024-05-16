@@ -38,7 +38,7 @@ class CreateStockROListener implements ShouldQueue
             $qty = $receiveOrderDetail->adjust_qty ?? 0;
             $stockProductUnit = StockProductUnit::where('warehouse_id', $receiveOrder->warehouse_id)
                 ->where('product_unit_id', $receiveOrderDetail->product_unit_id)
-                ->first();
+                ->first(['id', 'qty', 'product_unit_id']);
 
             if ($stockProductUnit) {
                 if ($stockProductUnit->productUnit->is_generate_qr) {

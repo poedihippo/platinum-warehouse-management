@@ -85,7 +85,7 @@ class AdjustmentRequestController extends Controller
         try {
             $adjustmentRequest->reason = $request->reason ?? null;
             $adjustmentRequest->is_approved = $request->is_approved ?? null;
-            $adjustmentRequest->approved_by = auth()->user()->id;
+            $adjustmentRequest->approved_by = auth()->id();
             $adjustmentRequest->approved_datetime = now();
 
             if ($adjustmentRequest->isDirty('is_approved')) {
@@ -111,7 +111,7 @@ class AdjustmentRequestController extends Controller
                     }
 
                     $adjustmentRequest->histories()->create([
-                        'user_id' => auth()->user()->id,
+                        'user_id' => auth()->id(),
                         'stock_product_unit_id' => $adjustmentRequest->stock_product_unit_id,
                         'value' => $adjustmentRequest->value ?? 0,
                         'is_increment' => 1,
@@ -124,7 +124,7 @@ class AdjustmentRequestController extends Controller
 
                     if ($adjustmentRequest->getOriginal('is_approved')) {
                         $adjustmentRequest->histories()->create([
-                            'user_id' => auth()->user()->id,
+                            'user_id' => auth()->id(),
                             'stock_product_unit_id' => $adjustmentRequest->stock_product_unit_id,
                             'value' => $adjustmentRequest->value ?? 0,
                             'is_increment' => 0,

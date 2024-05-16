@@ -73,7 +73,7 @@ class ReceiveOrderController extends Controller
         DB::beginTransaction();
         try {
             $receiveOrder = ReceiveOrder::create([
-                'user_id' => auth()->user()->id,
+                'user_id' => auth()->id(),
                 'supplier_id' => $supplier?->id ?? null,
                 'warehouse_id' => $warehouse?->id ?? null,
                 'receive_datetime' => date('Y-m-d H:i:s', strtotime($request->receive_datetime)),

@@ -97,14 +97,14 @@ class DeliveryOrderController extends Controller
             $deliveryOrder->delete();
 
             // $deliveryOrder->salesOrder?->details->each(function ($detail) use ($deliveryOrder) {
-            //     $stockProductUnit = StockProductUnit::tenanted()->select('id')->where('warehouse_id', $deliveryOrder->salesOrder?->warehouse_id)
+            //     $stockProductUnit = StockProductUnit::tenanted()->where('warehouse_id', $deliveryOrder->salesOrder?->warehouse_id)
             //         ->where('product_unit_id', $detail->product_unit_id)
-            //         ->first();
+            //         ->first(['id']);
 
             //     if ($stockProductUnit) {
             //         // create history
             //         $detail->histories()->create([
-            //             'user_id' => auth()->user()->id,
+            //             'user_id' => auth()->id(),
             //             'stock_product_unit_id' => $stockProductUnit->id,
             //             'value' => $detail->fulfilled_qty,
             //             'is_increment' => 1,
@@ -118,14 +118,14 @@ class DeliveryOrderController extends Controller
             $deliveryOrder->details?->each(function ($detail) use ($deliveryOrder) {
                 $salesOrderDetail = $detail->salesOrderDetail->load('packaging');
 
-                $stockProductUnit = StockProductUnit::tenanted()->select('id')->where('warehouse_id', $salesOrderDetail?->warehouse_id)
+                $stockProductUnit = StockProductUnit::tenanted()->where('warehouse_id', $salesOrderDetail?->warehouse_id)
                     ->where('product_unit_id', $salesOrderDetail?->product_unit_id)
-                    ->first();
+                    ->first(['id']);
 
                 if ($stockProductUnit) {
                     // create history
                     $history = $detail->histories()->create([
-                        'user_id' => auth()->user()->id,
+                        'user_id' => auth()->id(),
                         'stock_product_unit_id' => $stockProductUnit->id,
                         'value' => $salesOrderDetail?->fulfilled_qty ?? 0,
                         'is_increment' => 1,
@@ -297,14 +297,14 @@ class DeliveryOrderController extends Controller
             $deliveryOrder->details?->each(function ($detail) use ($deliveryOrder) {
                 $salesOrderDetail = $detail->salesOrderDetail->load('packaging');
 
-                $stockProductUnit = StockProductUnit::tenanted()->select('id')->where('warehouse_id', $salesOrderDetail?->warehouse_id)
+                $stockProductUnit = StockProductUnit::tenanted()->where('warehouse_id', $salesOrderDetail?->warehouse_id)
                     ->where('product_unit_id', $salesOrderDetail?->product_unit_id)
-                    ->first();
+                    ->first(['id']);
 
                 if ($stockProductUnit) {
                     // create history
                     $history = $salesOrderDetail->histories()->create([
-                        'user_id' => auth()->user()->id,
+                        'user_id' => auth()->id(),
                         'stock_product_unit_id' => $stockProductUnit->id,
                         'value' => $salesOrderDetail?->fulfilled_qty ?? 0,
                         'is_increment' => 0,
