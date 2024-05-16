@@ -44,7 +44,7 @@ class InvoiceStoreRequest extends FormRequest
             'reseller_id' => [
                 Rule::requiredIf(empty($this->customer_name) && empty($this->customer_phone)),
                 function (string $attribute, mixed $value, Closure $fail) {
-                    if (!DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::Reseller)->exists()) {
+                    if (DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::CustomerEvent)->doesntExist()) {
                         $fail('Reseller Tidak ditemukan');
                     }
                 }
