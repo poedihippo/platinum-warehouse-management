@@ -47,7 +47,7 @@ class StoreRequest extends FormRequest
             'note' => 'nullable|string',
             'is_full_payment' => 'nullable|boolean',
             'files' => 'nullable|array',
-            'files.*' => 'required|mimes:jpg,jpeg,png,doc,docx,pdf|max:10240',
+            'files.*' => 'nullable|mimes:jpg,jpeg,png,doc,docx,pdf|max:10240',
         ];
     }
 }
