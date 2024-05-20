@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\UserType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -18,7 +19,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('code')->nullable();
             $table->string('email')->unique()->nullable();
-            $table->unsignedTinyInteger('type')->default(3);
+            $table->string('type')->default(UserType::Customer);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password')->nullable();
             $table->text('address')->nullable();
