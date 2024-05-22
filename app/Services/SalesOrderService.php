@@ -160,7 +160,8 @@ class SalesOrderService
             $salesOrder = SalesOrder::when($query, $query)->findTenanted($id);
             $view = 'pdf.salesOrders.salesOrder';
         } else {
-            $salesOrder = SalesOrder::when($query, $query)->findOrFail($id);
+            $salesOrder = SalesOrder::when($query, $query)->find($id);
+            if (!$salesOrder) return redirect()->away('https://platinumadisentosa.com');
             $view = 'pdf.salesOrders.salesOrderInvoice';
         }
 
@@ -199,7 +200,7 @@ class SalesOrderService
         return sprintf(config('app.format_invoice_no'), date('Y'), date('m'), date('d'), sprintf('%04s', config('app.start_invoice_no', 90)), $warehouseCode);
     }
 
-    public static function getWhatsappUrl(SalesOrder $salesOrder)
+    public static function getWhatsappUrl(SalesOrder $salesOrder, ?string $idHash = null)
     {
         $warehouseName = $salesOrder->warehouse?->company_name ? $salesOrder->warehouse->company_name : $salesOrder->warehouse->name;
 
@@ -233,7 +234,7 @@ class SalesOrderService
         $message .= PHP_EOL;
         $message .= "Download invoice :";
         $message .= PHP_EOL;
-        $message .= url('invoices/' . Crypt::encryptString($salesOrder->id) . '/print');
+        $message .= 'https://platinumadisentosa.com/invoices/' . ($idHash ?? Crypt::encryptString($salesOrder->id)) . '/print';
         return sprintf("https://web.whatsapp.com/send/?phone=%s&text=%s", $salesOrder->reseller->phone, urlencode($message));
     }
 }

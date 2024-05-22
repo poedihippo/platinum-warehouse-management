@@ -33,8 +33,8 @@ class InvoiceController extends Controller
     public function show(int $id)
     {
         $salesOrder = SalesOrderService::show($id, fn ($q) => $q->where('is_invoice', true));
-        $salesOrder->whatsapp_url = SalesOrderService::getWhatsappUrl($salesOrder);
         $salesOrder->id_hash = Crypt::encryptString($salesOrder->id);
+        $salesOrder->whatsapp_url = SalesOrderService::getWhatsappUrl($salesOrder, $salesOrder->id_hash);
         return new SalesOrderResource($salesOrder);
     }
 
@@ -112,7 +112,6 @@ class InvoiceController extends Controller
             $id = Crypt::decryptString($id);
         } catch (\Throwable $th) {
         }
-
         return SalesOrderService::print($id, 'print-invoice', fn ($q) => $q->where('is_invoice', true));
     }
 
