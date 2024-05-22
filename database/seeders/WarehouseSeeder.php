@@ -18,11 +18,19 @@ class WarehouseSeeder extends Seeder
         Warehouse::create([
             'code' => 'Iconic',
             'name' => 'Iconic',
+            'company_name' => 'PT. Platinum Adisentosa',
         ]);
 
         Warehouse::create([
-            'code' => 'PAM',
-            'name' => 'Pameran',
+            'code' => 'WK1',
+            'name' => 'Winkoi 1',
+            'company_name' => 'Winkoi',
+        ]);
+
+        Warehouse::create([
+            'code' => 'WK2',
+            'name' => 'Winkoi 2',
+            'company_name' => 'Winkoi',
         ]);
     }
 }

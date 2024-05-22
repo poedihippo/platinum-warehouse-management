@@ -19,6 +19,7 @@ class FillOrderAttributes
         $salesOrder->shipment_fee = $rawSoruce['shipment_fee'];
         $salesOrder->additional_discount = $rawSoruce['additional_discount'] ?? 0;
         $salesOrder->description = $rawSoruce['description'] ?? null;
+        $salesOrder->type = $rawSoruce['type'] ?? null;
 
         return $next($salesOrder);
     }

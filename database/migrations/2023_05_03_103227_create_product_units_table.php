@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('code', 50);
             $table->boolean('is_generate_qr')->default(1);
             $table->boolean('is_auto_tempel')->default(1);
+            $table->boolean('is_ppn')->default(0);
             $table->timestamps();
             $table->softDeletes();
         });

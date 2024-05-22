@@ -130,6 +130,15 @@ class PermissionsHelper
                 'receive_order_verify_access',
             ],
 
+            'invoice_access' => [
+                'invoice_read',
+                'invoice_create',
+                'invoice_edit',
+                'invoice_delete',
+                // 'invoice_print',
+                'invoice_export_xml',
+            ],
+
             'delivery_order_access' => [
                 'delivery_order_read',
                 'delivery_order_create',
@@ -231,6 +240,7 @@ class PermissionsHelper
 
     public static function getMyPermissions()
     {
+        /** @var \App\Models\User $user */
         $user = auth()->user();
         $allPermissions = [];
         if ($user->hasRole('admin')) {
@@ -263,9 +273,9 @@ class PermissionsHelper
 
     public static function getRelatedPermissions(string $permission): array
     {
-        [
-            'payment_access', 'payment_read', 'payment_create', 'payment_edit', 'payment_delete',
-        ];
+        // [
+        //     'payment_access', 'payment_read', 'payment_create', 'payment_edit', 'payment_delete',
+        // ];
         return match ($permission) {
             'receive_order_access' => ['stock_read'],
             'stock_access' => ['product_category_read', 'product_brand_read', 'warehouse_read'],

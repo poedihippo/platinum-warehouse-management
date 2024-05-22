@@ -2,10 +2,13 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Traits\Requests\RequestToBoolean;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ProductUnitStoreRequest extends FormRequest
 {
+    use RequestToBoolean;
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -26,18 +29,8 @@ class ProductUnitStoreRequest extends FormRequest
         $this->merge([
             'is_generate_qr' => $this->toBoolean($this->is_generate_qr ?? 1),
             'is_auto_tempel' => $this->toBoolean($this->is_auto_tempel ?? 1),
+            'is_ppn' => $this->toBoolean($this->is_auto_tempel ?? 1),
         ]);
-    }
-
-    /**
-     * Convert to boolean
-     *
-     * @param $booleable
-     * @return boolean
-     */
-    private function toBoolean($booleable)
-    {
-        return filter_var($booleable, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
     }
 
     /**
@@ -57,6 +50,7 @@ class ProductUnitStoreRequest extends FormRequest
             'packaging_id' => 'nullable|exists:product_units,id',
             'is_generate_qr' => 'nullable|boolean',
             'is_auto_tempel' => 'nullable|boolean',
+            'is_ppn' => 'nullable|boolean',
         ];
     }
 }

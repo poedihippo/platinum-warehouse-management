@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Enums\SalesOrderType;
 use App\Models\Voucher;
 use App\Rules\TenantedRule;
+use BenSampo\Enum\Rules\EnumValue;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
@@ -40,6 +42,7 @@ class SalesOrderStoreRequest extends FormRequest
     {
         return [
             'expected_price' => 'nullable|integer',
+            'type' => ['nullable', new EnumValue(SalesOrderType::class)],
             'reseller_id' => [
                 'required',
                 function (string $attribute, mixed $value, Closure $fail) {

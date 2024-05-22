@@ -212,5 +212,6 @@ return [
     'aliases' => Facade::defaultAliases()->merge([
         // 'ExampleClass' => App\Example\ExampleClass::class,
     ])->toArray(),
-
+    'start_invoice_no' => env('START_INVOICE_NO', 90),
+    'format_invoice_no' => env('FORMAT_INVOICE_NO', "NUSATIC-%s/%s/%s/%s/%s"),
 ];

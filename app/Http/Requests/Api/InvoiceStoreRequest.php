@@ -2,8 +2,11 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Enums\SalesOrderType;
 use App\Models\Voucher;
 use App\Rules\TenantedRule;
+use App\Traits\Requests\RequestToBoolean;
+use BenSampo\Enum\Rules\EnumValue;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
@@ -11,6 +14,8 @@ use Illuminate\Validation\Rule;
 
 class InvoiceStoreRequest extends FormRequest
 {
+    use RequestToBoolean;
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -29,6 +34,8 @@ class InvoiceStoreRequest extends FormRequest
         $this->merge([
             'shipment_fee' => $this->shipment_fee ? (int) $this->shipment_fee : 0,
             'additional_discount' => $this->additional_discount ? (int) $this->additional_discount : 0,
+            'is_additional_discount_percentage' => $this->toBoolean($this->is_additional_discount_percentage ?? true),
+            // 'is_additional_discount_percentage' => isset($this->is_additional_discount_percentage) && !is_null($this->is_additional_discount_percentage) ? $this->toBoolean($this->is_additional_discount_percentage) : true,
         ]);
     }
 
@@ -41,6 +48,8 @@ class InvoiceStoreRequest extends FormRequest
     {
         return [
             'expected_price' => 'nullable|integer',
+            'is_additional_discount_percentage' => 'required|boolean',
+            'type' => ['required', new EnumValue(SalesOrderType::class)],
             'reseller_id' => [
                 Rule::requiredIf(empty($this->customer_name) && empty($this->customer_phone)),
                 function (string $attribute, mixed $value, Closure $fail) {

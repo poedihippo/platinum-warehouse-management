@@ -22,6 +22,7 @@ class ProductUnitResource extends JsonResource
             'code' => $this->code,
             'is_generate_qr' => $this->is_generate_qr,
             'is_auto_tempel' => $this->is_auto_tempel,
+            'is_ppn' => $this->is_ppn,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'deleted_at' => $this->deleted_at,

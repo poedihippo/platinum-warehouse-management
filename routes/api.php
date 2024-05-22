@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AdjustmentRequestController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DeliveryOrderController;
 use App\Http\Controllers\Api\DeliveryOrderDetailController;
+use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProductBrandController;
 use App\Http\Controllers\Api\ProductCategoryController;
@@ -105,11 +106,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('{salesOrderDetail}', [SalesOrderDetailController::class, 'destroy']);
     });
 
-    Route::post('sales-orders/invoice', [SalesOrderController::class, 'invoice']);
+    // Route::post('sales-orders/invoice', [SalesOrderController::class, 'invoice']);
     Route::get('sales-orders/product-units', [SalesOrderController::class, 'productUnits']);
-    Route::get('sales-orders/{salesOrder}/{type}', [SalesOrderController::class, 'print']); // type (print/print-invoice)
     Route::get('sales-orders/{salesOrder}/export-xml', [SalesOrderController::class, 'exportXml']);
+    Route::get('sales-orders/{salesOrder}/print', [SalesOrderController::class, 'print']); // type (print/print-invoice)
     Route::apiResource('sales-orders', SalesOrderController::class);
+
+    Route::get('invoices/get-invoice-no', [InvoiceController::class, 'getInvoiceNo']);
+    Route::get('invoices/{salesOrder}/export-xml', [InvoiceController::class, 'exportXml']);
+    Route::apiResource('invoices', InvoiceController::class)->except('update');
 
     Route::get('sales-order-items/{salesOrderDetail}', [SalesOrderItemController::class, 'index']);
     Route::post('sales-order-items/{salesOrderDetail}', [SalesOrderItemController::class, 'store']);

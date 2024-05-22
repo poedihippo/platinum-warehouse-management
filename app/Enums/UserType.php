@@ -9,6 +9,7 @@ use BenSampo\Enum\Enum;
  * @method static static Reseller()
  * @method static static Customer()
  * @method static static Dealer()
+ * @method static static CustomerEvent()
  */
 final class UserType extends Enum
 {

@@ -50,6 +50,7 @@ Route::get('/', function () {
     return redirect()->away('https://platinumadisentosa.com/');
     // return view('welcome');
 });
+Route::get('invoices/{salesOrder}/print', [\App\Http\Controllers\Api\InvoiceController::class, 'print']);
 
 Route::get('test', function () {
     $from = [255, 0, 0];

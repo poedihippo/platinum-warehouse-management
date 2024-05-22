@@ -29,13 +29,13 @@ class ProductUnitController extends Controller
 
     public function index()
     {
-        // abort_if(!auth()->user()->tokenCan('product_unit_access'), 403);
         $productUnits = QueryBuilder::for(ProductUnit::with('product'))
             ->allowedFilters([
                 'name',
                 AllowedFilter::exact('product_id'),
                 AllowedFilter::exact('is_generate_qr'),
                 AllowedFilter::exact('is_auto_tempel'),
+                AllowedFilter::exact('is_ppn'),
                 AllowedFilter::scope('product_brand_id', 'whereProductBrandId'),
                 AllowedFilter::scope('product_category_id', 'whereProductCategoryId'),
             ])
@@ -48,7 +48,6 @@ class ProductUnitController extends Controller
 
     public function show(ProductUnit $productUnit)
     {
-        // abort_if(!auth()->user()->tokenCan('product_unit_access'), 403);
         return new ProductUnitResource($productUnit->load('packaging'));
     }
 
@@ -68,17 +67,17 @@ class ProductUnitController extends Controller
 
     public function destroy(ProductUnit $productUnit)
     {
-        // abort_if(!auth()->user()->tokenCan('product_unit_delete'), 403);
         $productUnit->delete();
         return $this->deletedResponse();
     }
 
-    public function userPrice(ProductUnit $productUnit, User $user)
+    public function userPrice(ProductUnit $productUnit, int $userId)
     {
+        $user = User::findOrFail($userId, ['id']);
         $salesOrderDetails = SalesOrderDetail::select('id', 'product_unit_id', 'unit_price', 'created_at')
-            ->whereHas('salesOrder', fn($q) => $q->where('reseller_id', $user->id))
+            ->whereHas('salesOrder', fn ($q) => $q->where('reseller_id', $userId))
             ->where('product_unit_id', $productUnit->id)
-            ->with('productUnit', fn($q) => $q->select('id', 'code', 'name'))
+            ->with('productUnit', fn ($q) => $q->select('id', 'code', 'name'))
             ->paginate($this->per_page);
 
         return SalesOrderDetailResource::collection($salesOrderDetails);

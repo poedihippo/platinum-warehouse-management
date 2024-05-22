@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\SalesOrderType;
 use App\Enums\SettingEnum;
 use App\Traits\FilterStartEndDate;
 use App\Traits\Tenanted;
@@ -42,6 +43,7 @@ class SalesOrder extends Model
         'price',
         'description',
         'is_invoice',
+        'type',
     ];
 
     protected $casts = [
@@ -51,14 +53,18 @@ class SalesOrder extends Model
         'additional_discount' => 'integer',
         'price' => 'integer',
         'is_invoice' => 'boolean',
+        'type' => SalesOrderType::class
     ];
 
     protected static function booted()
     {
+        static::saving(function ($model) {
+            if (empty($model->type)) $model->type = SalesOrderType::DEFAULT;
+        });
+
         static::creating(function ($model) {
             $model->user_id = auth()->id();
-            if (empty($model->description))
-                $model->description = '#Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih';
+            if (empty($model->description)) $model->description = "#Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih";
         });
 
         static::created(function ($model) {

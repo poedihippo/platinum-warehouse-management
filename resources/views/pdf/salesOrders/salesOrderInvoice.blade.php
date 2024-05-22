@@ -164,6 +164,7 @@
     <header class="clearfix">
         <div id="logo">
             <img src="{{ public_path('images/logo-color.png') }}" />
+            <img src="{{ public_path('images/logo-color.png') }}" />
         </div>
         <h1>{{ $salesOrder->invoice_no }}</h1>
         <div id="project">
@@ -209,23 +210,27 @@
                     <td colspan="4">TAX 25%</td>
                     <td class="total">$1,300.00</td>
                 </tr> --}}
+                @if ($salesOrder->additional_discount > 0)
+                    <tr>
+                        <td colspan="4" class="grand">ADDITIONAL DISCOUNT</td>
+                        <td class="grand">
+                            <span class="float-left">Rp. </span>
+                            <span>{{ number_format($salesOrder->additional_discount) }}</span>
+                        </td>
+                    </tr>
+                @endif
+                @if ($salesOrder->voucher_id)
+                    <tr>
+                        <td colspan="4" class="@if ($salesOrder->additional_discount <= 0) grand @endif">VOUCHER</td>
+                        <td class="@if ($salesOrder->additional_discount <= 0) grand @endif">
+                            <span class="float-left">Rp. </span>
+                            <span>{{ number_format($salesOrder->raw_source['voucher_value'] ?? 0) }}</span>
+                        </td>
+                    </tr>
+                @endif
                 <tr>
-                    <td colspan="4" class="grand">ADDITIONAL DISCOUNT</td>
-                    <td class="grand">
-                        <span class="float-left">Rp. </span>
-                        <span>{{ number_format($salesOrder->additional_discount) }}</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="4" class="">VOUCHER</td>
-                    <td class="">
-                        <span class="float-left">Rp. </span>
-                        <span>{{ number_format($salesOrder->raw_source['voucher_value'] ?? 0) }}</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="4" class="">GRAND TOTAL</td>
-                    <td class="">
+                    <td colspan="4" class="@if (!$salesOrder->voucher_id && $salesOrder->additional_discount <= 0) grand @endif">GRAND TOTAL</td>
+                    <td class="@if (!$salesOrder->voucher_id && $salesOrder->additional_discount <= 0) grand @endif">
                         <span class="float-left">Rp. </span>
                         <span>{{ number_format($salesOrder->price) }}</span>
                     </td>

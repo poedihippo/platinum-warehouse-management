@@ -14,7 +14,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-
         // atiati pake seeder, pas deploy takut ke refresh db nya
         $this->call([
             SupplierSeeder::class,

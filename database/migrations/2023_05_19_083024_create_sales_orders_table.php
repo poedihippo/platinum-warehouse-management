@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\SalesOrderType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -19,7 +20,7 @@ return new class extends Migration
             $table->foreignId('reseller_id')->constrained('users', 'id');
             $table->foreignId('warehouse_id')->constrained();
             $table->string('invoice_no', 20)->nullable();
-            // $table->string('status', 20);
+            $table->string('type', 10)->default(SalesOrderType::DEFAULT);
             $table->json('raw_source')->nullable();
             $table->json('records')->nullable();
             $table->integer('shipment_fee')->default(0);
