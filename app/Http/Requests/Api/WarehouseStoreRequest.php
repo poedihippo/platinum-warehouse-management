@@ -25,7 +25,8 @@ class WarehouseStoreRequest extends FormRequest
     {
         return [
             'code' => 'required|unique:warehouses,code',
-            'name' => 'required',
+            'name' => 'required|string',
+            'company_name' => 'required|string',
         ];
     }
 }

@@ -9,7 +9,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Warehouse extends Model
 {
     use SoftDeletes;
-    protected $guarded = [];
+
+    protected $fillable = [
+        'code',
+        'name',
+        'company_name'
+    ];
 
     protected static function booted()
     {
