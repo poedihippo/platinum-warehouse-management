@@ -155,7 +155,6 @@ class SalesOrderService
 
     public static function print(int|string $id, string $type = 'print', ?callable $query = null)
     {
-        // abort_if(!auth()->user()->tokenCan('sales_order_print'), 403);
         if ($type == 'print') {
             $salesOrder = SalesOrder::when($query, $query)->findTenanted($id);
             $view = 'pdf.salesOrders.salesOrder';
@@ -187,7 +186,6 @@ class SalesOrderService
     {
         $salesOrder = SalesOrder::when($query, $query)->findTenanted($id);
         $salesOrder->load(['reseller', 'details' => fn ($q) => $q->with('packaging', 'productUnit')]);
-        // abort_if(!auth()->user()->tokenCan('sales_order_export_xml'), 403);
         return response(view('xml.salesOrders.salesOrder')->with(compact('salesOrder')), 200, [
             'Content-Type' => 'application/xml',
             // use your required mime type

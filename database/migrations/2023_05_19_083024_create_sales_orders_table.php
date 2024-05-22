@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained();
             $table->foreignId('reseller_id')->constrained('users', 'id');
             $table->foreignId('warehouse_id')->constrained();
-            $table->string('invoice_no', 20)->nullable();
+            $table->string('invoice_no', 50)->nullable();
             $table->string('type', 10)->default(SalesOrderType::DEFAULT);
             $table->json('raw_source')->nullable();
             $table->json('records')->nullable();
