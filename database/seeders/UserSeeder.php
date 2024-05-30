@@ -216,6 +216,17 @@ class UserSeeder extends Seeder
         $devi->assignRole(1);
         $devi->warehouses()->sync($warehouseIds);
 
+        // dina assign to Back Office Admin - Receive Order
+        $dina = User::create([
+            'name' => 'Dina Platinum Backoffice',
+            'code' => 'admin-dina',
+            'email' => 'dina@platinumadisentosa.com',
+            'password' => '12345678',
+            'type' => UserType::Admin,
+        ]);
+        $dina->assignRole(1);
+        $dina->warehouses()->sync($warehouseIds);
+
         // Admin Backoffice assign to Back Office Admin - Sales Order
         $adminBackOffice = User::create([
             'name' => 'Admin Backoffice',
@@ -226,17 +237,6 @@ class UserSeeder extends Seeder
         ]);
         $adminBackOffice->assignRole($roleAdminSO);
         $adminBackOffice->warehouses()->sync($warehouseIds);
-
-        // dina assign to Back Office Admin - Receive Order
-        $dina = User::create([
-            'name' => 'Dina Platinum Backoffice',
-            'code' => 'admin-dina',
-            'email' => 'dina@platinumadisentosa.com',
-            'password' => '12345678',
-            'type' => UserType::Admin,
-        ]);
-        $dina->assignRole($roleAdminRO);
-        $dina->warehouses()->sync($warehouseIds);
 
         // devi assign to Warehouse
         $jhon = User::create([
