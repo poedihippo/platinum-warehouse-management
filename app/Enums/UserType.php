@@ -18,4 +18,5 @@ final class UserType extends Enum
     const Customer = 'customer';
     const Dealer = 'dealer';
     const CustomerEvent = 'customer_event';
+    const Spg = 'spg';
 }
