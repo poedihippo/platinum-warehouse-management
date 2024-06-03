@@ -1,5 +1,8 @@
 <?php
 
+use App\Models\ProductUnit;
+use App\Models\SalesOrder;
+use App\Models\Warehouse;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,10 +18,9 @@ return new class extends Migration
     {
         Schema::create('sales_order_details', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('sales_order_id')->constrained()->cascadeOnDelete();
-            // $table->foreignId('sales_order_id')->constrained();
-            $table->foreignId('product_unit_id')->constrained();
-            $table->foreignId('warehouse_id')->constrained();
+            $table->foreignIdFor(SalesOrder::class)->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(ProductUnit::class)->constrained();
+            $table->foreignIdFor(Warehouse::class)->nullable()->constrained();
             $table->foreignId('packaging_id')->nullable();
             $table->integer('qty')->default(0);
             $table->integer('fulfilled_qty')->default(0);

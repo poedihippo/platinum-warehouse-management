@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\SalesOrderType;
 use App\Enums\SettingEnum;
+use App\Enums\UserType;
 use App\Traits\FilterStartEndDate;
 use App\Traits\Tenanted;
 use Illuminate\Database\Eloquent\Model;
@@ -32,6 +33,7 @@ class SalesOrder extends Model
         'user_id',
         'voucher_id',
         'reseller_id',
+        'spg_id',
         'warehouse_id',
         'invoice_no',
         'raw_source',
@@ -59,20 +61,33 @@ class SalesOrder extends Model
     protected static function booted()
     {
         static::saving(function ($model) {
+            $model->user_id = auth()->id();
             if (empty($model->type)) $model->type = SalesOrderType::DEFAULT;
         });
 
         static::creating(function ($model) {
-            $model->user_id = auth()->id();
             if (empty($model->description)) $model->description = "#Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih";
         });
 
         static::created(function ($model) {
-            if (empty($model->invoice_no)) {
+            if (!isset($model->invoice_no)) {
                 $model->invoice_no = self::getSoNumber();
                 $model->save();
             }
         });
+    }
+
+    public function scopeTenanted(Builder $query, User $user = null)
+    {
+        if (!$user) {
+            /** @var \App\Models\User $user */
+            $user = auth()->user();
+        }
+
+        if ($user->type->is(UserType::Spg)) return $query->where('spg_id', $user->id);
+        return $query;
+        // if ($user->hasRole('admin')) return $query;
+        // return $query->whereIn('warehouse_id', $user->warehouses()->pluck('warehouse_id') ?? []);
     }
 
     public function getAdditionalDiscountPercentageAttribute()
@@ -98,6 +113,11 @@ class SalesOrder extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function spg(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'spg_id');
     }
 
     public function voucher(): BelongsTo
@@ -155,5 +175,11 @@ class SalesOrder extends Model
         // if ($value) return $query->whereHas('details', fn ($q) => $q->has('deliveryOrderDetail'));
         // return $query->whereHas('details', fn ($q) => $q->doesntHave('deliveryOrderDetail'));
         return $query->whereHas('details', fn ($q) => $q->hasDeliveryOrder((bool)$value));
+    }
+
+    public function scopeHasSalesOrder(Builder $query, bool $value = true)
+    {
+        $query->when($value === true, fn ($q) => $q->whereNotNull('warehouse_id')->whereNotNull('invoice_no')->where('invoice_no', '!=', ''));
+        // $query->when($value === true, fn ($q) => $q->whereNotNull('warehouse_id')->where(fn ($q) => $q->whereNotNull('invoice_no')->orWhere('invoice_no', '')));
     }
 }

@@ -260,6 +260,21 @@ class UserSeeder extends Seeder
         $safrizal->assignRole($roleAdminWarehouse);
         $safrizal->warehouses()->sync($warehouseIds);
 
+        $roleSpg = Role::create([
+            'name' => 'Role SPG',
+        ]);
+        $roleSpg->syncPermissions([
+            'order_access',
+            'order_read',
+            'order_create',
+            'order_edit',
+            'order_delete',
+            // 'order_print',
+            'order_export_xml',
+
+            'product_unit_read',
+        ]);
+
         $spg = User::create([
             'name' => 'Aldi SPG',
             'code' => 'aldi-spg',
@@ -267,7 +282,7 @@ class UserSeeder extends Seeder
             'password' => '12345678',
             'type' => UserType::Spg,
         ]);
-        // $safrizal->assignRole($roleAdminWarehouse);
+        $spg->assignRole($roleSpg);
         // $safrizal->warehouses()->sync($warehouseIds);
     }
 }

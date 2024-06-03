@@ -35,6 +35,8 @@ use App\Http\Controllers\Api\UserDiscountController;
 use App\Http\Controllers\Api\VoucherCategoryController;
 use App\Http\Controllers\Api\VoucherController;
 use App\Http\Controllers\Api\VoucherGenerateBatchController;
+use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\OrderDetailController;
 
 /*
 |--------------------------------------------------------------------------
@@ -191,4 +193,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('vouchers', VoucherController::class);
 
     Route::get('exports/sample/{type}', [\App\Http\Controllers\Api\ExportController::class, 'sample']);
+
+    Route::group(['prefix' => 'orders/{order}/details'], function () {
+        Route::get('/', [OrderDetailController::class, 'index']);
+        Route::get('{orderDetail}', [OrderDetailController::class, 'show']);
+        Route::put('{orderDetail}', [OrderDetailController::class, 'update']);
+        Route::delete('{orderDetail}', [OrderDetailController::class, 'destroy']);
+    });
+
+    // Route::post('orders/invoice', [OrderController::class, 'invoice']);
+    Route::get('orders/product-units', [OrderController::class, 'productUnits']);
+    Route::get('orders/{order}/export-xml', [OrderController::class, 'exportXml']);
+    Route::get('orders/{order}/print', [OrderController::class, 'print']); // type (print/print-invoice)
+    Route::apiResource('orders', OrderController::class);
 });

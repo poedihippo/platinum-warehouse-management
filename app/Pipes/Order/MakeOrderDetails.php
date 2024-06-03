@@ -24,7 +24,7 @@ class MakeOrderDetails
             $orderDetail->discount = empty($item['discount']) ? 0 : (int) $item['discount'];
             $orderDetail->tax = isset($item['tax']) && $item['tax'] == 1 ? 11 : 0;
             $orderDetail->total_price = empty($item['total_price']) ? 0 : (int) $item['total_price'];
-            $orderDetail->warehouse_id = $item['warehouse_id'];
+            $orderDetail->warehouse_id = empty($item['warehouse_id']) ? null : $item['warehouse_id'];
 
             return $orderDetail;
         });
