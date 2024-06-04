@@ -92,7 +92,8 @@ class SalesOrder extends Model
 
     public function getAdditionalDiscountPercentageAttribute()
     {
-        return $this->raw_source['additional_discount'] ?? 0;
+        // return $this->raw_source['additional_discount'] ?? 0;
+        return 0;
     }
 
     // public function deliveryOrder()
