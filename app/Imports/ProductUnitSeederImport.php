@@ -21,6 +21,7 @@ class ProductUnitSeederImport implements ToModel, WithHeadingRow
         $productName = trim($row['product_name']);
         $uom = trim($row['uom_name']);
         $isGenerateQr = (int) trim($row['is_generate_qr']);
+        $price = isset($row['price']) && !empty($row['price']) ? ((int) trim($row['price'])) : 0;
 
         if (ProductUnit::where('name', $productUnitName)->doesntExist()) {
             return new ProductUnit([
@@ -30,7 +31,7 @@ class ProductUnitSeederImport implements ToModel, WithHeadingRow
                 'name' => $productUnitName,
                 'description' => $productUnitName,
                 'is_generate_qr' => $isGenerateQr,
-                'price' => 0,
+                'price' => $price,
             ]);
         }
 
