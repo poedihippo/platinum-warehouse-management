@@ -7,6 +7,7 @@ use App\Http\Requests\Api\InvoiceStoreRequest;
 use App\Http\Requests\Api\Order\OrderStoreRequest;
 use App\Http\Requests\Api\Order\OrderUpdateRequest;
 use App\Http\Resources\DefaultResource;
+use App\Http\Resources\SalesOrderResource;
 use App\Models\SalesOrder;
 use App\Services\SalesOrderService;
 use Illuminate\Http\Response;
@@ -56,6 +57,8 @@ class OrderController extends Controller
             'reseller' => fn ($q) => $q->select('id', 'name', 'type', 'type', 'email', 'phone', 'address'),
             'spg' => fn ($q) => $q->select('id', 'name', 'type', 'type', 'email', 'phone', 'address'),
         ])->loadCount('details');
+
+        return new SalesOrderResource($order);
     }
 
     public function store(OrderStoreRequest $request)
