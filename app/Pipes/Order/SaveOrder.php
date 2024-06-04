@@ -33,7 +33,10 @@ class SaveOrder
             $salesOrder->save();
             $salesOrder->details()->saveMany($salesOrderDetails);
 
-            if ($salesOrder->is_invoice) $this->createSalesOrderItems($salesOrderDetails, $salesOrder->warehouse_id);
+            $req = request();
+            if (!($req->segment(2) == 'orders' && $req->method() === 'POST')) {
+                if ($salesOrder->is_invoice) $this->createSalesOrderItems($salesOrderDetails, $salesOrder->warehouse_id);
+            }
 
             return $salesOrder;
         });
