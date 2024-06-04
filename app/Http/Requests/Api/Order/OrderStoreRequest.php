@@ -29,6 +29,11 @@ class OrderStoreRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
+        $items = collect($this->items)->map(function ($item) {
+            $productUnitPrice = DB::table('product_units')->where('id', $item['product_unit_id'])->first(['price'])?->price ?? 0;
+            return array_merge($item, ['unit_price' => $productUnitPrice]);
+        })->all();
+
         $this->merge([
             'shipment_fee' => $this->shipment_fee ? (int) $this->shipment_fee : 0,
             'additional_discount' => $this->additional_discount ? (int) $this->additional_discount : 0,
@@ -36,6 +41,7 @@ class OrderStoreRequest extends FormRequest
             'spg_id' => auth()->id(),
             'transaction_date' => $this->transaction_date ?? date('Y-m-d H:i:s'),
             'shipment_estimation_datetime' => $this->shipment_estimation_datetime ?? date('Y-m-d H:i:s'),
+            'items' => $items
         ]);
     }
 
@@ -100,7 +106,7 @@ class OrderStoreRequest extends FormRequest
             'items.*.product_unit_id' => 'required|integer|exists:product_units,id',
             // 'items.*.packaging_id' => 'nullable|integer|exists:product_units,id',
             'items.*.qty' => 'required|integer',
-            // 'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.unit_price' => 'required|numeric|min:0',
             // 'items.*.discount' => 'required|numeric|min:0',
             // 'items.*.tax' => 'required|boolean',
             // 'items.*.total_price' => 'required|numeric|min:0',
