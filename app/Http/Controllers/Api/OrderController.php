@@ -50,7 +50,7 @@ class OrderController extends Controller
 
     public function show(SalesOrder $order)
     {
-        return $order->load([
+        $order->load([
             'voucher.category', 'payments', 'warehouse',
             'details' => fn ($q) => $q->with(['warehouse', 'packaging']),
             'user' => fn ($q) => $q->select('id', 'name', 'type'),
