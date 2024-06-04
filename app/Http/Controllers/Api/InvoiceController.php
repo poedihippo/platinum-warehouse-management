@@ -34,7 +34,8 @@ class InvoiceController extends Controller
     {
         $salesOrder = SalesOrderService::show($id, fn ($q) => $q->where('is_invoice', true));
         $salesOrder->id_hash = Crypt::encryptString($salesOrder->id);
-        $salesOrder->whatsapp_url = SalesOrderService::getWhatsappUrl($salesOrder, $salesOrder->id_hash);
+        $salesOrder->whatsapp_url = !empty($salesOrder->invoice_no) ? '' : SalesOrderService::getWhatsappUrl($salesOrder, $salesOrder->id_hash);
+
         return new SalesOrderResource($salesOrder);
     }
 
