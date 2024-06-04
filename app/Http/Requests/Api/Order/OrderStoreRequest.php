@@ -40,6 +40,7 @@ class OrderStoreRequest extends FormRequest
 
             return [
                 ...$item,
+                'tax' => $item['tax'] ?? 0,
                 'unit_price' => $productUnitPrice,
                 'total_price' => $totalPrice
             ];
