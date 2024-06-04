@@ -9,6 +9,7 @@ use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class UserController extends Controller
@@ -31,7 +32,10 @@ class UserController extends Controller
             ->allowedIncludes(\Spatie\QueryBuilder\AllowedInclude::callback('warehouses', function ($query) {
                 $query->select('id', 'code', 'name');
             }))
-            ->allowedFilters(['name', 'email', 'phone', 'type'])
+            ->allowedFilters([
+                'email', 'phone', 'type',
+                AllowedFilter::callback('name', fn ($q, $value) => $q->where('name', 'like', '%' . $value . '%')->orWhere('phone', 'like', '%' . $value . '%')),
+            ])
             ->allowedSorts(['name', 'email', 'phone', 'type'])
             ->paginate($this->per_page);
 
