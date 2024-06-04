@@ -15,9 +15,8 @@ use App\Pipes\Order\CheckExpectedOrderPrice;
 use App\Pipes\Order\FillOrderAttributes;
 use App\Pipes\Order\FillOrderRecords;
 use App\Pipes\Order\MakeOrderDetails;
-use App\Pipes\Order\SaveOrder;
-use App\Services\SalesOrderService;
-use Illuminate\Http\Response;
+use App\Pipes\Order\Spg\ConvertToSO;
+use App\Pipes\Order\Spg\SaveOrder;
 use Illuminate\Pipeline\Pipeline;
 use Spatie\QueryBuilder\AllowedFilter;
 
@@ -74,33 +73,24 @@ class OrderController extends Controller
         $rawSource = $request->validated();
         $rawSource['invoice_no'] = '';
 
-        $salesOrder = SalesOrderService::createOrder(SalesOrder::make(['raw_source' => $rawSource, 'is_invoice' => true]), (bool) $request->is_preview ?? false);
+        $pipes = [
+            FillOrderAttributes::class,
+            FillOrderRecords::class,
+            MakeOrderDetails::class,
+            CalculateAdditionalDiscount::class,
+            CalculateVoucher::class,
+            CalculateAdditionalFees::class,
+            CheckExpectedOrderPrice::class,
+        ];
+
+        if (!$request->is_preview ?? true) $pipes[] = SaveOrder::class;
+
+        $salesOrder = app(Pipeline::class)
+            ->send(SalesOrder::make(['raw_source' => $rawSource, 'is_invoice' => true]))
+            ->through($pipes)
+            ->thenReturn();
 
         return new DefaultResource($salesOrder);
-
-        // $rawSource = $request->validated();
-        // $rawSource['invoice_no'] = '';
-
-        // $salesOrder = SalesOrderService::createOrder(SalesOrder::make(['raw_source' => $rawSource]), (bool) $request->is_preview ?? false);
-
-        // $pipes = [
-        //     FillOrderAttributes::class,
-        //     FillOrderRecords::class,
-        //     MakeOrderDetails::class,
-        //     CalculateAdditionalDiscount::class,
-        //     CalculateVoucher::class,
-        //     CalculateAdditionalFees::class,
-        //     CheckExpectedOrderPrice::class,
-        // ];
-
-        // if ($request->is_preview ?? false) $pipes[] = SaveOrder::class;
-
-        // $salesOrder = app(Pipeline::class)
-        //     ->send(SalesOrder::make(['raw_source' => $rawSource]))
-        //     ->through($pipes)
-        //     ->thenReturn();
-
-        // return new DefaultResource($salesOrder);
     }
 
     public function convertSalesOrder(SalesOrder $order, ConvertSORequest $request)
@@ -108,11 +98,8 @@ class OrderController extends Controller
         if (!empty($order->invoice_no)) {
             return response()->json(['message' => "Invoice sudah diconvert menjadi Sales Order"], 400);
         }
-        dump($request->validated());
+
         $order->raw_source = $request->validated();
-        // dump($order);
-        // $salesOrder = SalesOrderService::updateOrder($order, (bool) $request->is_preview ?? false);
-        // return (new DefaultResource($salesOrder))->response()->setStatusCode(Response::HTTP_ACCEPTED);
 
         $pipes = [
             FillOrderAttributes::class,
@@ -124,13 +111,12 @@ class OrderController extends Controller
             CheckExpectedOrderPrice::class,
         ];
 
-        if ($request->is_preview ?? false) $pipes[] = SaveOrder::class;
+        if (!$request->is_preview ?? true) $pipes[] = ConvertToSO::class;
 
         $salesOrder = app(Pipeline::class)
             ->send($order)
             ->through($pipes)
             ->thenReturn();
-        dd($salesOrder);
 
         return new DefaultResource($salesOrder);
     }

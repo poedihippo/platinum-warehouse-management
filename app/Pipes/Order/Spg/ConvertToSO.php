@@ -1,39 +1,29 @@
 <?php
 
-namespace App\Pipes\Order;
+namespace App\Pipes\Order\Spg;
 
-use App\Enums\UserType;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderDetail;
-use App\Models\User;
 use App\Services\SalesOrderService;
 use Illuminate\Support\Facades\DB;
 
-class SaveOrder
+class ConvertToSO
 {
     public function handle(SalesOrder $salesOrder, \Closure $next)
     {
         $salesOrder = DB::transaction(function () use ($salesOrder) {
-            if (
-                isset($salesOrder->raw_source['customer_name']) &&
-                $salesOrder->raw_source['customer_name'] != '' &&
-                $reseller = $this->createReseller($salesOrder)
-            ) {
-                $salesOrder->reseller_id = $reseller->id;
-
-                $records = $salesOrder->records ?? [];
-
-                if ($reseller) $records['reseller'] = $reseller->setHidden(['email_verified_at', 'remember_token', 'created_at', 'updated_at', 'deleted_at'])?->toArray() ?? [];
-
-                $salesOrder->records = $records;
-            }
+            $oldDetails = $salesOrder->details;
 
             $salesOrderDetails = $salesOrder->sales_order_details;
             unset($salesOrder->sales_order_details);
+
             $salesOrder->save();
             $salesOrder->details()->saveMany($salesOrderDetails);
 
-            if ($salesOrder->is_invoice) $this->createSalesOrderItems($salesOrderDetails, $salesOrder->warehouse_id);
+            $oldDetails->each->delete();
+
+            // if ($salesOrder->is_invoice) $this->createSalesOrderItems($salesOrderDetails, $salesOrder->warehouse_id);
+            $this->createSalesOrderItems($salesOrderDetails, $salesOrder->warehouse_id);
 
             return $salesOrder;
         });
@@ -41,20 +31,20 @@ class SaveOrder
         return $next($salesOrder);
     }
 
-    private function createReseller(SalesOrder $salesOrder): User|null
-    {
-        $rawSoruce = $salesOrder->raw_source;
-        try {
-            return User::create([
-                'name' => $rawSoruce['customer_name'],
-                'phone' => $rawSoruce['customer_phone'],
-                'address' => $rawSoruce['customer_address'] ?? null,
-                'type' => UserType::CustomerEvent,
-            ]);
-        } catch (\Exception $e) {
-            return null;
-        }
-    }
+    // private function createReseller(SalesOrder $salesOrder): User|null
+    // {
+    //     $rawSoruce = $salesOrder->raw_source;
+    //     try {
+    //         return User::create([
+    //             'name' => $rawSoruce['customer_name'],
+    //             'phone' => $rawSoruce['customer_phone'],
+    //             'address' => $rawSoruce['customer_address'] ?? null,
+    //             'type' => UserType::CustomerEvent,
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return null;
+    //     }
+    // }
 
     private function createSalesOrderItems(\Illuminate\Support\Collection $salesOrderDetails, int $warehouseId): void
     {
