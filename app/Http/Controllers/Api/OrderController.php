@@ -47,9 +47,9 @@ class OrderController extends Controller
         return DefaultResource::collection($salesOrders);
     }
 
-    public function show(SalesOrder $salesOrder)
+    public function show(SalesOrder $order)
     {
-        return $salesOrder->load([
+        return $order->load([
             'voucher.category', 'payments', 'warehouse',
             'details' => fn ($q) => $q->with(['warehouse', 'packaging']),
             'user' => fn ($q) => $q->select('id', 'name', 'type'),
@@ -72,16 +72,15 @@ class OrderController extends Controller
         if (!empty($order->invoice_no)) {
             return response()->json(['message' => "Invoice sudah diconvert menjadi Sales Order"], 400);
         }
-
-        // dump($request->validated());
-        // dump($order);
+        dump($request->validated());
+        dump($order);
         $order->raw_source = $request->validated();
-        // dd($order);
+        dd($order);
         $salesOrder = SalesOrderService::updateOrder($order, (bool) $request->is_preview ?? false);
         return (new DefaultResource($salesOrder))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
-    public function destroy(SalesOrder $salesOrder)
+    public function destroy(SalesOrder $order)
     {
         // abort_if(!auth()->user()->tokenCan('order_delete'), 403);
         if ($salesOrder->deliverySalesOrder?->is_done) return response()->json(['message' => "Can't update SO if DO is already done"], 400);
@@ -90,13 +89,13 @@ class OrderController extends Controller
         return $this->deletedResponse();
     }
 
-    // public function print(SalesOrder $salesOrder)
+    // public function print(SalesOrder $order)
     // {
     //     // abort_if(!auth()->user()->tokenCan('order_print'), 403);
     //     return SalesOrderService::print($id);
     // }
 
-    // public function exportXml(SalesOrder $salesOrder)
+    // public function exportXml(SalesOrder $order)
     // {
     //     return SalesOrderService::exportXml($id);
     // }

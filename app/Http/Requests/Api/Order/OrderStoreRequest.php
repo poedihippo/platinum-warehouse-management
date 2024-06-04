@@ -51,7 +51,7 @@ class OrderStoreRequest extends FormRequest
             'expected_price' => 'nullable|integer',
             'is_additional_discount_percentage' => 'required|boolean',
             'type' => ['required', new EnumValue(SalesOrderType::class)],
-            'customer_id' => [
+            'reseller_id' => [
                 Rule::requiredIf(empty($this->customer_name) && empty($this->customer_phone)),
                 function (string $attribute, mixed $value, Closure $fail) {
                     if (DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::CustomerEvent)->doesntExist()) {
@@ -59,9 +59,9 @@ class OrderStoreRequest extends FormRequest
                     }
                 }
             ],
-            'customer_name' => 'required_without:customer_id',
+            'customer_name' => 'required_without:reseller_id',
             'customer_phone' => [
-                'required_without:customer_id',
+                'required_without:reseller_id',
                 function (string $attribute, mixed $value, Closure $fail) {
                     if (!empty($value) || !is_null($value) || $value != '') {
                         if (DB::table('users')->where('phone', $value)->exists()) {
