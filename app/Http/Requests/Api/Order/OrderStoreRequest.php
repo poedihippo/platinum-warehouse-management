@@ -30,8 +30,19 @@ class OrderStoreRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $items = collect($this->items)->map(function ($item) {
-            $productUnitPrice = DB::table('product_units')->where('id', $item['product_unit_id'])->first(['price'])?->price ?? 0;
-            return array_merge($item, ['unit_price' => $productUnitPrice]);
+            if (!isset($item['unit_price']) && empty($item['unit_price'])) {
+                $productUnitPrice = DB::table('product_units')->where('id', $item['product_unit_id'])->first(['price'])?->price ?? 0;
+            } else {
+                $productUnitPrice = (int)$item['unit_price'];
+            }
+
+            $totalPrice = $productUnitPrice * ($item['qty'] ?? 1);
+
+            return [
+                ...$item,
+                'unit_price' => $productUnitPrice,
+                'total_price' => $totalPrice
+            ];
         })->all();
 
         $this->merge([
@@ -109,7 +120,7 @@ class OrderStoreRequest extends FormRequest
             'items.*.unit_price' => 'required|numeric|min:0',
             // 'items.*.discount' => 'required|numeric|min:0',
             'items.*.tax' => 'required|boolean',
-            // 'items.*.total_price' => 'required|numeric|min:0',
+            'items.*.total_price' => 'required|numeric|min:0',
             // 'items.*.warehouse_id' => ['required'],
         ];
     }
