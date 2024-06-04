@@ -155,10 +155,18 @@ class SalesOrderService
                 'invoice_no', 'is_invoice',
                 AllowedFilter::exact('user_id'),
                 AllowedFilter::exact('reseller_id'),
+                AllowedFilter::exact('spg_id'),
                 AllowedFilter::exact('warehouse_id'),
+                AllowedFilter::scope('has_sales_order', 'hasSalesOrder'),
                 AllowedFilter::scope('has_delivery_order', 'detailsHasDO'),
                 AllowedFilter::scope('start_date'),
                 AllowedFilter::scope('end_date'),
+                AllowedFilter::callback('search', function ($q, $value) {
+                    $q->where('invoice_no', 'like', '%' . $value . '%')
+                        ->orWhereHas('user', fn ($q) => $q->where('name', 'like', '%' . $value . '%'))
+                        ->orWhereHas('reseller', fn ($q) => $q->where('name', 'like', '%' . $value . '%'))
+                        ->orWhereHas('spg', fn ($q) => $q->where('name', 'like', '%' . $value . '%'));
+                })
             ])
             ->allowedSorts(['id', 'invoice_no', 'user_id', 'reseller_id', 'warehouse_id', 'created_at'])
             ->allowedIncludes(['details', 'warehouse', 'user', 'payments', \Spatie\QueryBuilder\AllowedInclude::callback('voucher', function ($q) {

@@ -3,14 +3,22 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\InvoiceStoreRequest;
+use App\Http\Requests\Api\Order\ConvertSORequest;
 use App\Http\Requests\Api\Order\OrderStoreRequest;
-use App\Http\Requests\Api\Order\OrderUpdateRequest;
 use App\Http\Resources\DefaultResource;
 use App\Http\Resources\SalesOrderResource;
 use App\Models\SalesOrder;
+use App\Pipes\Order\CalculateAdditionalDiscount;
+use App\Pipes\Order\CalculateAdditionalFees;
+use App\Pipes\Order\CalculateVoucher;
+use App\Pipes\Order\CheckExpectedOrderPrice;
+use App\Pipes\Order\FillOrderAttributes;
+use App\Pipes\Order\FillOrderRecords;
+use App\Pipes\Order\MakeOrderDetails;
+use App\Pipes\Order\SaveOrder;
 use App\Services\SalesOrderService;
 use Illuminate\Http\Response;
+use Illuminate\Pipeline\Pipeline;
 use Spatie\QueryBuilder\AllowedFilter;
 
 class OrderController extends Controller
@@ -95,17 +103,36 @@ class OrderController extends Controller
         // return new DefaultResource($salesOrder);
     }
 
-    public function convertSalesOrder(SalesOrder $order, InvoiceStoreRequest $request)
+    public function convertSalesOrder(SalesOrder $order, ConvertSORequest $request)
     {
         if (!empty($order->invoice_no)) {
             return response()->json(['message' => "Invoice sudah diconvert menjadi Sales Order"], 400);
         }
         dump($request->validated());
-        dump($order);
         $order->raw_source = $request->validated();
-        dd($order);
-        $salesOrder = SalesOrderService::updateOrder($order, (bool) $request->is_preview ?? false);
-        return (new DefaultResource($salesOrder))->response()->setStatusCode(Response::HTTP_ACCEPTED);
+        // dump($order);
+        // $salesOrder = SalesOrderService::updateOrder($order, (bool) $request->is_preview ?? false);
+        // return (new DefaultResource($salesOrder))->response()->setStatusCode(Response::HTTP_ACCEPTED);
+
+        $pipes = [
+            FillOrderAttributes::class,
+            // FillOrderRecords::class,
+            // MakeOrderDetails::class,
+            // CalculateAdditionalDiscount::class,
+            // CalculateVoucher::class,
+            // CalculateAdditionalFees::class,
+            // CheckExpectedOrderPrice::class,
+        ];
+
+        // if ($request->is_preview ?? false) $pipes[] = SaveOrder::class;
+
+        $salesOrder = app(Pipeline::class)
+            ->send($order)
+            ->through($pipes)
+            ->thenReturn();
+        dd($salesOrder);
+
+        return new DefaultResource($salesOrder);
     }
 
     public function destroy(SalesOrder $order)

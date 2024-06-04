@@ -20,7 +20,7 @@ class VoucherCategorySeeder extends Seeder
         $voucherCategory = VoucherCategory::create([
             'name' => 'Voucher Category Nominal',
             'discount_type' => DiscountType::NOMINAL,
-            'discount_amount' => 100000,
+            'discount_amount' => 1000,
             'description' => 'Voucher Category Nominal',
         ]);
 
