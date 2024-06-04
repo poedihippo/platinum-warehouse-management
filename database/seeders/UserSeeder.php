@@ -260,10 +260,27 @@ class UserSeeder extends Seeder
         $safrizal->assignRole($roleAdminWarehouse);
         $safrizal->warehouses()->sync($warehouseIds);
 
-        $roleSpg = Role::create([
-            'name' => 'Role SPG',
+        $warehouseWk1Id = Warehouse::where('code', 'WK1')->firstOrFail(['id'])->id;
+        $warehouseWk2Id = Warehouse::where('code', 'WK2')->firstOrFail(['id'])->id;
+        // $pameranWarehouseIds = [$warehouseWk1Id, $warehouseWk2Id];
+
+        $roleKasirPameran = Role::create([
+            'name' => 'Kasir Pameran',
         ]);
-        $roleSpg->syncPermissions([
+        $roleKasirPameran->syncPermissions([
+            'user_read',
+            'warehouse_read',
+            'product_unit_read',
+            'voucher_read',
+
+            'invoice_access',
+            'invoice_read',
+            'invoice_create',
+            'invoice_edit',
+            'invoice_delete',
+            // 'invoice_print',
+            'invoice_export_xml',
+
             'order_access',
             'order_read',
             'order_create',
@@ -271,18 +288,57 @@ class UserSeeder extends Seeder
             'order_delete',
             // 'order_print',
             'order_export_xml',
-
-            'product_unit_read',
         ]);
 
-        $spg = User::create([
-            'name' => 'Aldi SPG',
-            'code' => 'aldi-spg',
-            'email' => 'spg@gmail.com',
+        $user = User::create([
+            'name' => 'Winkoi 1',
+            'code' => 'wk1',
+            'email' => 'winkoi1@gmail.com',
             'password' => '12345678',
-            'type' => UserType::Spg,
+            'type' => UserType::Admin,
         ]);
-        $spg->assignRole($roleSpg);
-        // $safrizal->warehouses()->sync($warehouseIds);
+        $user->assignRole($roleKasirPameran);
+        $user->warehouses()->sync([$warehouseWk1Id]);
+
+        $user = User::create([
+            'name' => 'Winkoi 2',
+            'code' => 'wk2',
+            'email' => 'winkoi2@gmail.com',
+            'password' => '12345678',
+            'type' => UserType::Admin,
+        ]);
+        $user->assignRole($roleKasirPameran);
+        $user->warehouses()->sync([$warehouseWk2Id]);
+
+
+        $roleSpg = Role::create([
+            'name' => 'Role SPG',
+        ]);
+        $roleSpg->syncPermissions([
+            'user_read',
+            'warehouse_read',
+            'product_unit_read',
+            'voucher_read',
+
+            'order_access',
+            'order_read',
+            'order_create',
+            'order_edit',
+            'order_delete',
+            // 'order_print',
+            'order_export_xml',
+        ]);
+
+        for ($i = 1; $i < 8; $i++) {
+            $spg = User::create([
+                'name' => 'SPG ' . $i,
+                'code' => 'spg' . $i,
+                'email' => 'spg' . $i . '@gmail.com',
+                'password' => 'nusaticspg' . $i,
+                'type' => UserType::Spg,
+            ]);
+            $spg->assignRole($roleSpg);
+            // $user->warehouses()->sync($pameranWarehouseIds);
+        }
     }
 }

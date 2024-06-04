@@ -3,17 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\InvoiceStoreRequest;
 use App\Http\Requests\Api\Order\OrderStoreRequest;
 use App\Http\Requests\Api\Order\OrderUpdateRequest;
 use App\Http\Resources\DefaultResource;
 use App\Models\SalesOrder;
-use App\Models\StockProductUnit;
-use App\Models\UserDiscount;
 use App\Services\SalesOrderService;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Spatie\QueryBuilder\AllowedFilter;
-use Spatie\QueryBuilder\QueryBuilder;
 
 class OrderController extends Controller
 {
@@ -70,13 +67,17 @@ class OrderController extends Controller
         return new DefaultResource($salesOrder);
     }
 
-    public function update(SalesOrder $salesOrder, OrderUpdateRequest $request)
+    public function convertSalesOrder(SalesOrder $order, InvoiceStoreRequest $request)
     {
-        if (!$salesOrder->details?->every(fn ($salesOrderDetail) => !$salesOrderDetail->deliverySalesOrderDetail))
-            return response()->json(['message' => "DO harus dihapus terlebih dahulu sebelum mengedit SO"], 400);
+        if (!empty($order->invoice_no)) {
+            return response()->json(['message' => "Invoice sudah diconvert menjadi Sales Order"], 400);
+        }
 
-        $salesOrder->raw_source = $request->validated();
-        $salesOrder = SalesOrderService::updateSalesOrder($salesOrder, (bool) $request->is_preview ?? false);
+        // dump($request->validated());
+        // dump($order);
+        $order->raw_source = $request->validated();
+        // dd($order);
+        $salesOrder = SalesOrderService::updateOrder($order, (bool) $request->is_preview ?? false);
         return (new DefaultResource($salesOrder))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 

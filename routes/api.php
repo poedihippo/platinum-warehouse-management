@@ -201,9 +201,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('{orderDetail}', [OrderDetailController::class, 'destroy']);
     });
 
-    // Route::post('orders/invoice', [OrderController::class, 'invoice']);
-    Route::get('orders/product-units', [OrderController::class, 'productUnits']);
-    Route::get('orders/{order}/export-xml', [OrderController::class, 'exportXml']);
-    Route::get('orders/{order}/print', [OrderController::class, 'print']); // type (print/print-invoice)
+    Route::put('orders/{order}/convert-so', [OrderController::class, 'convertSalesOrder']);
+    // Route::get('orders/{order}/print', [OrderController::class, 'print']); // type (print/print-invoice)
     Route::apiResource('orders', OrderController::class);
 });

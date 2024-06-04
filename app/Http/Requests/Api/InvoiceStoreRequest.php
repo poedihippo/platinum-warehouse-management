@@ -31,10 +31,18 @@ class InvoiceStoreRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
+        $items = collect($this->items)->map(function ($item) {
+            return [
+                ...$item,
+                'warehouse_id' => $this->warehouse_id ?? null
+            ];
+        })->all();
+
         $this->merge([
             'shipment_fee' => $this->shipment_fee ? (int) $this->shipment_fee : 0,
             'additional_discount' => $this->additional_discount ? (int) $this->additional_discount : 0,
             'is_additional_discount_percentage' => $this->toBoolean($this->is_additional_discount_percentage ?? true),
+            'items' => $items
             // 'is_additional_discount_percentage' => isset($this->is_additional_discount_percentage) && !is_null($this->is_additional_discount_percentage) ? $this->toBoolean($this->is_additional_discount_percentage) : true,
         ]);
     }

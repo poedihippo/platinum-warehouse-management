@@ -4,9 +4,6 @@ namespace App\Rules;
 
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Database\Eloquent\Model;
-
-use function Laravel\Prompts\table;
 
 class TenantedRule implements ValidationRule
 {

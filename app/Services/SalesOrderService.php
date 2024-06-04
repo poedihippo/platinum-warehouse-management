@@ -119,6 +119,33 @@ class SalesOrderService
             ->thenReturn();
     }
 
+    /**
+     * Updates a sales order.
+     *
+     * @param SalesOrder $salesOrder The sales order object to be updated.
+     * @param bool $isPerview (optional) Flag indicating whether the order is a preview. Default is false.
+     * @return SalesOrder The updated sales order.
+     */
+    public static function convertOrderToSO(SalesOrder $salesOrder, bool $isPerview = false): SalesOrder
+    {
+        $pipes = [
+            FillOrderAttributes::class,
+            FillOrderRecords::class,
+            MakeOrderDetails::class,
+            CalculateAdditionalDiscount::class,
+            CalculateVoucher::class,
+            CalculateAdditionalFees::class,
+            CheckExpectedOrderPrice::class,
+        ];
+
+        if (!$isPerview) $pipes[] = UpdateOrder::class;
+
+        return app(Pipeline::class)
+            ->send($salesOrder)
+            ->through($pipes)
+            ->thenReturn();
+    }
+
     public static function index(int $perPage, ?callable $query = null)
     {
         $salesOrders = \Spatie\QueryBuilder\QueryBuilder::for(
