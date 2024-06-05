@@ -164,7 +164,7 @@
     <header class="clearfix">
         <div id="logo">
             <img src="{{ public_path('images/logo-color.png') }}" />
-            <img src="{{ public_path('images/logo-winkoi.png') }}" />
+            <img src="{{ public_path('images/logo-winkoi.jpg') }}" />
         </div>
         <h1>{{ $salesOrder->invoice_no }}</h1>
         <div id="project">
