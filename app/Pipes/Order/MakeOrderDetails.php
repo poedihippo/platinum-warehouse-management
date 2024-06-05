@@ -5,6 +5,7 @@ namespace App\Pipes\Order;
 use App\Models\ProductUnit;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderDetail;
+use App\Models\StockProductUnit;
 
 class MakeOrderDetails
 {
@@ -31,6 +32,22 @@ class MakeOrderDetails
             $orderDetail->tax = isset($item['tax']) && $item['tax'] == 1 ? 11 : 0;
             $orderDetail->total_price = empty($item['total_price']) ? 0 : (int) $item['total_price'];
             $orderDetail->warehouse_id = empty($item['warehouse_id']) ? null : $item['warehouse_id'];
+
+            if (!empty($orderDetail->warehouse_id)) {
+                $stock = 0;
+                if ($productUnit->is_generate_qr) {
+                    $stock = StockProductUnit::where('product_unit_id', $productUnit->id)
+                        ->where('warehouse_id', $orderDetail->warehouse_id)
+                        ->first(['qty'])?->qty ?? 0;
+                } else {
+                    $stock = StockProductUnit::where('product_unit_id', $productUnit->id)
+                        ->where('warehouse_id', $orderDetail->warehouse_id)
+                        ->withCount('stocks', fn ($q) => $q->whereAvailableStock()->whereNull('description'))
+                        ->first(['id'])?->stocks_count ?? 0;
+                }
+
+                $productUnit->stock = $stock;
+            }
             $orderDetail->product_unit = $productUnit;
 
             return $orderDetail;
