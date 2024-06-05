@@ -14,7 +14,7 @@ class CalculateAutoDiscount
         foreach ($minTrxAutoDiscount as $discount) {
             if ($salesOrder->price > $discount['value']) {
                 $salesOrder->auto_discount = $discount['discount'] ?? 0;
-                return;
+                break;
             }
         }
 
