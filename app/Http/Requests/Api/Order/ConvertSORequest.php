@@ -8,6 +8,7 @@ use App\Rules\TenantedRule;
 use App\Traits\Requests\RequestToBoolean;
 use BenSampo\Enum\Rules\EnumValue;
 use Closure;
+use Exception;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -95,10 +96,10 @@ class ConvertSORequest extends FormRequest
                 $voucher = Voucher::where('code', $value)->first();
                 // dump($voucher->is_used);
                 // dump($voucher->is_used && ($voucher->id != $this->order->voucher_id));
-                dump($voucher);
-                dd($this->order);
+                // dump($voucher);
+                // dd($this->order);
                 if (!$voucher) $fail('Voucher tidak ditemukan!');
-                if ($voucher->is_used && ($voucher->id != $this->order->voucher_id)) $fail('Voucher sudah digunakan!');
+                if (($voucher->id != $this->order->voucher_id)) $fail('Voucher sudah digunakan!');
             }],
             'description' => 'nullable|string',
             'items' => [
