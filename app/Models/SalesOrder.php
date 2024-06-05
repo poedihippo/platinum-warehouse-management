@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DiscountType;
 use App\Enums\SalesOrderType;
 use App\Enums\SettingEnum;
 use App\Enums\UserType;
@@ -23,6 +24,9 @@ class SalesOrder extends Model
     protected $appends = [
         'additional_discount_percentage',
         'auto_discount_nominal',
+        'voucher_type',
+        'voucher_value',
+        'voucher_value_nominal'
     ];
 
     protected $hidden = [
@@ -103,6 +107,19 @@ class SalesOrder extends Model
         if ($this->auto_discount == 0) return 0;
         if (isset($this->raw_source['auto_discount_nominal'])) return $this->raw_source['auto_discount_nominal'];
         return $this->details->sum('total_price') * $this->auto_discount / 100;
+    }
+
+    public function getVoucherTypeAttribute()
+    {
+        return $this->raw_source['voucher_type'] ?? DiscountType::NOMINAL;
+    }
+    public function getVoucherValueAttribute()
+    {
+        return $this->raw_source['voucher_value'] ?? 0;
+    }
+    public function getVoucherValueNominalAttribute()
+    {
+        return $this->raw_source['voucher_value_nominal'] ?? 0;
     }
 
     // public function deliveryOrder()
