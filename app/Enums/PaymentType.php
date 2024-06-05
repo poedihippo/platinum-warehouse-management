@@ -14,4 +14,5 @@ final class PaymentType extends Enum
     const CASH = 'cash';
     const TRANSFER = 'transfer';
     const CREDIT_CARD = 'credit_card';
+    const QRIS = 'qris';
 }
