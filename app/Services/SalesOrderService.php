@@ -251,14 +251,24 @@ class SalesOrderService
             $message .= PHP_EOL;
         }
 
-        if ($salesOrder->additional_discount > 0) {
+        if ($salesOrder->auto_discount_nominal > 0) {
             $message .= PHP_EOL;
-            $message .= "Additional Discount : *Rp " . number_format((float) $salesOrder->additional_discount, 0, ',', '.') . "*";
+            $message .= "Auto Discount            : *Rp " . number_format((float) $salesOrder->auto_discount_nominal, 0, ',', '.') . "*";
         }
 
         if ($salesOrder->voucher_id) {
             $message .= PHP_EOL;
             $message .= "Voucher                        : *Rp " . number_format((float) $salesOrder->raw_source['voucher_value'] ?? 0, 0, ',', '.') . "*";
+        }
+
+        if ($salesOrder->additional_discount > 0) {
+            $message .= PHP_EOL;
+            $message .= "Additional Discount : *Rp " . number_format((float) $salesOrder->additional_discount, 0, ',', '.') . "*";
+        }
+
+        if ($salesOrder->shipment_fee > 0) {
+            $message .= PHP_EOL;
+            $message .= "Delivery Fee                : *Rp " . number_format((float) $salesOrder->shipment_fee, 0, ',', '.') . "*";
         }
 
         $message .= PHP_EOL;
@@ -272,6 +282,9 @@ class SalesOrderService
         $message .= "Download invoice :";
         $message .= PHP_EOL;
         $message .= 'https://platinumadisentosa.com/invoices/' . ($idHash ?? Crypt::encryptString($salesOrder->id)) . '/print';
-        return sprintf("https://web.whatsapp.com/send/?phone=%s&text=%s", $salesOrder->reseller->phone, urlencode($message));
+
+        $phone = $salesOrder->reseller->phone;
+        if ($phone[0] == '0') $phone = substr($phone, 1);
+        return sprintf("https://web.whatsapp.com/send/?phone=%s&text=%s", $phone, urlencode($message));
     }
 }

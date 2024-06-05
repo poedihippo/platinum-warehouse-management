@@ -168,9 +168,9 @@
         </div>
         <h1>{{ $salesOrder->invoice_no }}</h1>
         <div id="project">
-            <div>PT. PLATINUM ADI SENTOSA</div>
-            <div>Ko Duta Indah Iconic Blok B No. 1 RT. 004 RW. 02 Panunggangan Utara, Pinang, Kota Tangerang, Banten
-                15143</div>
+            <div>WINKOI</div>
+            <div>Jl. Citra Dua Extension No.27 Blok BD 1, RT.2/RW.8</div>
+            <div>Pegadungan, Kec. Kalideres, Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11830</div>
             <div>(021) 29866646</div>
             <div>{{ date('d F Y', strtotime($salesOrder->created_at)) }}</div>
         </div>
@@ -210,27 +210,45 @@
                     <td colspan="4">TAX 25%</td>
                     <td class="total">$1,300.00</td>
                 </tr> --}}
-                @if ($salesOrder->additional_discount > 0)
+                @if ($salesOrder->auto_discount_nominal > 0)
                     <tr>
-                        <td colspan="4" class="grand">ADDITIONAL DISCOUNT</td>
+                        <td colspan="4" class="grand">AUTO DISCOUNT</td>
                         <td class="grand">
                             <span class="float-left">Rp. </span>
-                            <span>{{ number_format($salesOrder->additional_discount) }}</span>
+                            <span>{{ number_format($salesOrder->auto_discount_nominal) }}</span>
                         </td>
                     </tr>
                 @endif
                 @if ($salesOrder->voucher_id)
                     <tr>
-                        <td colspan="4" class="@if ($salesOrder->additional_discount <= 0) grand @endif">VOUCHER</td>
-                        <td class="@if ($salesOrder->additional_discount <= 0) grand @endif">
+                        <td colspan="4" class="@if ($salesOrder->auto_discount_nominal <= 0) grand @endif">VOUCHER</td>
+                        <td class="@if ($salesOrder->auto_discount_nominal <= 0) grand @endif">
                             <span class="float-left">Rp. </span>
                             <span>{{ number_format($salesOrder->raw_source['voucher_value'] ?? 0) }}</span>
                         </td>
                     </tr>
                 @endif
+                @if ($salesOrder->additional_discount > 0)
+                    <tr>
+                        <td colspan="4" class="@if (!$salesOrder->voucher_id && $salesOrder->additional_discount <= 0) grand @endif">ADDITIONAL DISCOUNT</td>
+                        <td class="@if (!$salesOrder->voucher_id && $salesOrder->additional_discount <= 0) grand @endif">
+                            <span class="float-left">Rp. </span>
+                            <span>{{ number_format($salesOrder->additional_discount) }}</span>
+                        </td>
+                    </tr>
+                @endif
+                @if ($salesOrder->shipment_fee > 0)
+                    <tr>
+                        <td colspan="4" class="">DELIVERY FEE</td>
+                        <td class="">
+                            <span class="float-left">Rp. </span>
+                            <span>{{ number_format($salesOrder->shipment_fee) }}</span>
+                        </td>
+                    </tr>
+                @endif
                 <tr>
-                    <td colspan="4" class="@if (!$salesOrder->voucher_id && $salesOrder->additional_discount <= 0) grand @endif">GRAND TOTAL</td>
-                    <td class="@if (!$salesOrder->voucher_id && $salesOrder->additional_discount <= 0) grand @endif">
+                    <td colspan="4" class="@if ($salesOrder->additional_discount <= 0) grand @endif">GRAND TOTAL</td>
+                    <td class="@if ($salesOrder->additional_discount <= 0) grand @endif">
                         <span class="float-left">Rp. </span>
                         <span>{{ number_format($salesOrder->price) }}</span>
                     </td>
