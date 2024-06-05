@@ -54,8 +54,6 @@ class ConvertSORequest extends FormRequest
      */
     public function rules()
     {
-        $order = $this->order;
-
         return [
             'expected_price' => 'nullable|integer',
             'is_additional_discount_percentage' => 'required|boolean',
