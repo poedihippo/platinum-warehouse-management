@@ -33,6 +33,13 @@ class SalesOrderDetail extends Model
         'total_price' => 'integer',
     ];
 
+    protected static function booted()
+    {
+        static::saving(function ($model) {
+            if (isset($model->product_unit)) unset($model->product_unit);
+        });
+    }
+
     public function salesOrder(): BelongsTo
     {
         return $this->belongsTo(SalesOrder::class);

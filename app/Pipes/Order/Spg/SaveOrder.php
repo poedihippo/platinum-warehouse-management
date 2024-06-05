@@ -28,6 +28,7 @@ class SaveOrder
 
             $salesOrderDetails = $salesOrder->details;
             unset($salesOrder->details);
+
             $salesOrder->save();
             $salesOrder->details()->saveMany($salesOrderDetails);
 
