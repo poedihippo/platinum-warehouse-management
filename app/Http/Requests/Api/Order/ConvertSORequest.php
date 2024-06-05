@@ -92,9 +92,9 @@ class ConvertSORequest extends FormRequest
             'shipment_fee' => 'required|integer',
             'additional_discount' => 'required|integer',
             'voucher_code' => ['nullable', function (string $attribute, mixed $value, Closure $fail) {
-                $voucher = Voucher::where('code', $value)->first(['id']);
+                $voucher = Voucher::where('code', $value)->first();
                 if (!$voucher) $fail('Voucher tidak ditemukan!');
-                if ($voucher->salesOrder && ($voucher->id != $this->order->voucher_id)) $fail('Voucher sudah digunakan!');
+                if ($voucher->is_used && ($voucher->id != $this->order->voucher_id)) $fail('Voucher sudah digunakan!');
             }],
             'description' => 'nullable|string',
             'items' => [
