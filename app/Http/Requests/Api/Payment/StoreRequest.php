@@ -42,7 +42,7 @@ class StoreRequest extends FormRequest
     {
         return [
             'sales_order_id' => ['required', new TenantedRule(SalesOrder::class)],
-            'amount' => 'required|numeric',
+            'amount' => 'required_without:is_full_payment|numeric',
             'type' => ['required', new EnumValue(PaymentType::class, false)],
             'note' => 'nullable|string',
             'is_full_payment' => 'nullable|boolean',
