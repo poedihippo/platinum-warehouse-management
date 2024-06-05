@@ -2,6 +2,7 @@
 namespace App\Pipes\Order;
 
 use App\Models\SalesOrder;
+use App\Models\SalesOrderDetail;
 use Illuminate\Support\Facades\DB;
 
 class UpdateOrder
@@ -9,7 +10,7 @@ class UpdateOrder
     public function handle(SalesOrder $salesOrder, \Closure $next)
     {
         $salesOrder = DB::transaction(function () use ($salesOrder) {
-            $oldDetails = $salesOrder->details;
+            SalesOrderDetail::where('sales_order_id', $salesOrder->id)->delete();
 
             $salesOrderDetails = $salesOrder->details;
             unset($salesOrder->details);
@@ -17,7 +18,7 @@ class UpdateOrder
             $salesOrder->save();
             $salesOrder->details()->saveMany($salesOrderDetails);
 
-            $oldDetails->each->delete();
+            // $oldDetails->each->delete();
 
             return $salesOrder;
         });

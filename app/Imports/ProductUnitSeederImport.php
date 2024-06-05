@@ -19,7 +19,7 @@ class ProductUnitSeederImport implements ToModel, WithHeadingRow
     {
         $productUnitName = trim($row['product_unit_name']);
         $productName = trim($row['product_name']);
-        $uom = trim($row['uom_name']);
+        $uom = trim($row['uom_name'] ?? 'pcs');
         $isGenerateQr = (int) trim($row['is_generate_qr']);
         $price = isset($row['price']) && !empty($row['price']) ? ((int) trim($row['price'])) : 0;
 
