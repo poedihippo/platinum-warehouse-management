@@ -11,7 +11,18 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class SalesOrderDetail extends Model
 {
-    protected $guarded = [];
+    protected $fillable = [
+        'sales_order_id',
+        'product_unit_id',
+        'warehouse_id',
+        'packaging_id',
+        'qty',
+        'fulfilled_qty',
+        'unit_price',
+        'discount',
+        'tax',
+        'total_price',
+    ];
 
     protected $casts = [
         'qty' => 'integer',
