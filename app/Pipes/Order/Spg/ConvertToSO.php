@@ -14,8 +14,8 @@ class ConvertToSO
         $salesOrder = DB::transaction(function () use ($salesOrder) {
             $oldDetails = $salesOrder->details;
 
-            $salesOrderDetails = $salesOrder->sales_order_details;
-            unset($salesOrder->sales_order_details);
+            $salesOrderDetails = $salesOrder->details;
+            unset($salesOrder->details);
 
             $salesOrder->save();
             $salesOrder->details()->saveMany($salesOrderDetails);

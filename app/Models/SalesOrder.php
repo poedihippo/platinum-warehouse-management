@@ -98,10 +98,10 @@ class SalesOrder extends Model
         return $this->raw_source['additional_discount'] ?? 0;
     }
 
-    public function getAutoDiscountNominalAttribute()
+    public function getAutoDiscountNominalAttribute(): int|float
     {
         if ($this->auto_discount == 0) return 0;
-
+        if (isset($this->raw_source['auto_discount_nominal'])) return $this->raw_source['auto_discount_nominal'];
         return $this->details->sum('total_price') * $this->auto_discount / 100;
     }
 

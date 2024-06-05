@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Pipes\Order;
 
 use App\Models\ProductUnit;
@@ -11,7 +12,12 @@ class MakeOrderDetails
     {
         $rawSoruce = $salesOrder->raw_source;
         $items = collect($rawSoruce['items']);
-        $productUnits = ProductUnit::withTrashed()->whereIn('id', $items->pluck('product_unit_id'))->with('product', fn($q) => $q->with('productBrand', 'productCategory'))->get()->keyBy('id');
+        $productUnits = ProductUnit::withTrashed()->whereIn('id', $items->pluck('product_unit_id'))
+            ->with('product', fn ($q) => $q->select('id', 'name', 'product_brand_id', 'product_category_id')
+                ->with([
+                    'productBrand' => fn ($q) => $q->select('id', 'name'),
+                    'productCategory' => fn ($q) => $q->select('id', 'name'),
+                ]))->get()->keyBy('id');
 
         $salesOrderDetails = $items->map(function ($item) use ($productUnits) {
             $productUnit = $productUnits[$item['product_unit_id']];
@@ -25,12 +31,13 @@ class MakeOrderDetails
             $orderDetail->tax = isset($item['tax']) && $item['tax'] == 1 ? 11 : 0;
             $orderDetail->total_price = empty($item['total_price']) ? 0 : (int) $item['total_price'];
             $orderDetail->warehouse_id = empty($item['warehouse_id']) ? null : $item['warehouse_id'];
+            $orderDetail->product_unit = $productUnit;
 
             return $orderDetail;
         });
 
-        $salesOrder->sales_order_details = $salesOrderDetails;
-        $salesOrder->price = $salesOrder->sales_order_details->sum('total_price') ?? 0;
+        $salesOrder->details = $salesOrderDetails;
+        $salesOrder->price = $salesOrder->details->sum('total_price') ?? 0;
 
         return $next($salesOrder);
     }
