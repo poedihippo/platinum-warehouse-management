@@ -50,9 +50,10 @@ class InvoiceController extends Controller
             if ($stocks->count() < $item['qty']) return $this->errorResponse(message: sprintf('Stok %s tidak tersedia', \Illuminate\Support\Facades\DB::table('product_units')->where('id', $item['product_unit_id'])->first()?->name ?? ''), code: \Illuminate\Http\Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $salesOrder = SalesOrderService::createOrder(SalesOrder::make(['raw_source' => $request->validated(), 'is_invoice' => true]), (bool) $request->is_preview ?? false, true);
+        $isPreview = (bool) $request->is_preview ?? false;
+        $salesOrder = SalesOrderService::createOrder(SalesOrder::make(['raw_source' => $request->validated(), 'is_invoice' => true]), $isPreview, true);
 
-        if ($salesOrder) {
+        if ($salesOrder && $isPreview === false) {
             // create history
             $salesOrder->details->each(function ($salesOrderDetail) use ($salesOrder) {
                 $stockProductUnit = StockProductUnit::where('warehouse_id', $salesOrderDetail->warehouse_id)
