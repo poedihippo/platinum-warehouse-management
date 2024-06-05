@@ -10,6 +10,7 @@ use App\Http\Resources\SalesOrderResource;
 use App\Models\SalesOrder;
 use App\Pipes\Order\CalculateAdditionalDiscount;
 use App\Pipes\Order\CalculateAdditionalFees;
+use App\Pipes\Order\CalculateAutoDiscount;
 use App\Pipes\Order\CalculateVoucher;
 use App\Pipes\Order\CheckExpectedOrderPrice;
 use App\Pipes\Order\FillOrderAttributes;
@@ -77,8 +78,9 @@ class OrderController extends Controller
             FillOrderAttributes::class,
             FillOrderRecords::class,
             MakeOrderDetails::class,
-            CalculateAdditionalDiscount::class,
+            CalculateAutoDiscount::class,
             CalculateVoucher::class,
+            CalculateAdditionalDiscount::class,
             CalculateAdditionalFees::class,
             CheckExpectedOrderPrice::class,
         ];
@@ -105,8 +107,9 @@ class OrderController extends Controller
             FillOrderAttributes::class,
             FillOrderRecords::class,
             MakeOrderDetails::class,
-            CalculateAdditionalDiscount::class,
+            CalculateAutoDiscount::class,
             CalculateVoucher::class,
+            CalculateAdditionalDiscount::class,
             CalculateAdditionalFees::class,
             CheckExpectedOrderPrice::class,
         ];

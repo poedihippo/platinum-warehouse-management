@@ -18,15 +18,20 @@ class CalculateVoucher
             $discountVoucherAmount = 0;
             if ($voucher->category->discount_type->is(DiscountType::NOMINAL)) {
                 $discountVoucherAmount = $voucher->category->discount_amount;
+
+                $rawSource['voucher_type'] = DiscountType::NOMINAL;
+                $rawSource['voucher_value'] = $discountVoucherAmount;
             } else {
-                $originalPrice = $salesOrder->sales_order_details->sum('total_price') ?? 0;
-                $discountVoucherAmount = $originalPrice * $voucher->category->discount_amount / 100;
+                $discountVoucherAmount = $salesOrder->price * $voucher->category->discount_amount / 100;
+
+                $rawSource['voucher_type'] = DiscountType::PERCENTAGE;
+                $rawSource['voucher_value'] = $voucher->category->discount_amount;
             }
 
             $salesOrder->price = max($salesOrder->price - $discountVoucherAmount, 0);
             $salesOrder->voucher_id = $voucher->id;
 
-            $rawSource['voucher_value'] = $discountVoucherAmount;
+            $rawSource['voucher_value_nominal'] = $discountVoucherAmount;
             $salesOrder->raw_source = $rawSource;
         }
 

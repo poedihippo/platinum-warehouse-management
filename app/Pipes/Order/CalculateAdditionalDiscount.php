@@ -8,6 +8,8 @@ class CalculateAdditionalDiscount
 {
     public function handle(SalesOrder $salesOrder, \Closure $next)
     {
+        if ($salesOrder->price <= 0) return $next($salesOrder);
+
         if ($salesOrder->additional_discount > 0) {
             if (isset($salesOrder->raw_source['is_additional_discount_percentage']) && $salesOrder->raw_source['is_additional_discount_percentage'] == false) {
                 $salesOrder->additional_discount = $salesOrder->additional_discount;

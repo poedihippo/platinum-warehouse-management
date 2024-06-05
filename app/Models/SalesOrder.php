@@ -22,6 +22,7 @@ class SalesOrder extends Model
 
     protected $appends = [
         'additional_discount_percentage',
+        'auto_discount_nominal',
     ];
 
     protected $hidden = [
@@ -42,6 +43,7 @@ class SalesOrder extends Model
         'shipment_estimation_datetime',
         'shipment_fee',
         'additional_discount',
+        'auto_discount',
         'price',
         'description',
         'is_invoice',
@@ -53,6 +55,7 @@ class SalesOrder extends Model
         'records' => 'array',
         'shipment_fee' => 'integer',
         'additional_discount' => 'integer',
+        'auto_discount' => 'float',
         'price' => 'integer',
         'is_invoice' => 'boolean',
         'type' => SalesOrderType::class
@@ -92,8 +95,14 @@ class SalesOrder extends Model
 
     public function getAdditionalDiscountPercentageAttribute()
     {
-        // return $this->raw_source['additional_discount'] ?? 0;
-        return 0;
+        return $this->raw_source['additional_discount'] ?? 0;
+    }
+
+    public function getAutoDiscountNominalAttribute()
+    {
+        if ($this->auto_discount == 0) return 0;
+
+        return $this->details->sum('total_price') * $this->auto_discount / 100;
     }
 
     // public function deliveryOrder()

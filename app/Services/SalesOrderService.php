@@ -7,6 +7,7 @@ use App\Models\SalesOrder;
 use App\Models\SalesOrderDetail;
 use App\Pipes\Order\CalculateAdditionalDiscount;
 use App\Pipes\Order\CalculateAdditionalFees;
+use App\Pipes\Order\CalculateAutoDiscount;
 use App\Pipes\Order\CalculateVoucher;
 use App\Pipes\Order\CheckExpectedOrderPrice;
 use App\Pipes\Order\FillOrderAttributes;
@@ -78,8 +79,9 @@ class SalesOrderService
             FillOrderAttributes::class,
             FillOrderRecords::class,
             MakeOrderDetails::class,
-            CalculateAdditionalDiscount::class,
+            CalculateAutoDiscount::class,
             CalculateVoucher::class,
+            CalculateAdditionalDiscount::class,
             CalculateAdditionalFees::class,
             CheckExpectedOrderPrice::class,
         ];
@@ -105,8 +107,9 @@ class SalesOrderService
             FillOrderAttributes::class,
             FillOrderRecords::class,
             MakeOrderDetails::class,
-            CalculateAdditionalDiscount::class,
+            CalculateAutoDiscount::class,
             CalculateVoucher::class,
+            CalculateAdditionalDiscount::class,
             CalculateAdditionalFees::class,
             CheckExpectedOrderPrice::class,
         ];
@@ -132,8 +135,9 @@ class SalesOrderService
             FillOrderAttributes::class,
             FillOrderRecords::class,
             MakeOrderDetails::class,
-            CalculateAdditionalDiscount::class,
+            CalculateAutoDiscount::class,
             CalculateVoucher::class,
+            CalculateAdditionalDiscount::class,
             CalculateAdditionalFees::class,
             CheckExpectedOrderPrice::class,
         ];
