@@ -23,13 +23,13 @@ class WarehouseSeeder extends Seeder
 
         Warehouse::create([
             'code' => 'WK1',
-            'name' => 'Winkoi 1',
+            'name' => 'Booth 1',
             'company_name' => 'Winkoi',
         ]);
 
         Warehouse::create([
             'code' => 'WK2',
-            'name' => 'Winkoi 2',
+            'name' => 'Booth 2',
             'company_name' => 'Winkoi',
         ]);
     }

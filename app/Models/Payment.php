@@ -42,7 +42,7 @@ class Payment extends Model implements HasMedia
     protected static function booted()
     {
         static::creating(function ($model) {
-            $model->user_id = auth()->id();
+            $model->user_id = auth('sanctum')->id();
         });
     }
 

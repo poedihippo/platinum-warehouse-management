@@ -19,7 +19,7 @@ class OrderDetailController extends Controller
 
     public function index(int $orderId)
     {
-        // abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('sales_order_access'), 403);
 
         $order = Order::findTenanted($orderId, ['id']);
         $query = OrderDetail::where('sales_order_id', $order->id)->with([
@@ -36,7 +36,7 @@ class OrderDetailController extends Controller
 
     public function show(int $orderId, $orderDetailId)
     {
-        // abort_if(!auth()->user()->tokenCan('sales_order_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('sales_order_access'), 403);
 
         $order = Order::findTenanted($orderId, ['id']);
         $orderDetail = $order->details()->where('id', $orderDetailId)->firstOrFail();

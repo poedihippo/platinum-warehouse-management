@@ -28,7 +28,7 @@ class PermissionController extends Controller
     public function index(Request $request)
     {
         $perPage = $request->per_page ?? 100;
-        // abort_if(!auth()->user()->tokenCan('permission_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('permission_access'), 403);
         $roles = QueryBuilder::for(Permission::class)
             ->allowedFilters([
                 'name',
@@ -43,7 +43,7 @@ class PermissionController extends Controller
 
     public function show(Permission $permission)
     {
-        // abort_if(!auth()->user()->tokenCan('permission_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('permission_access'), 403);
 
         return new PermissionResource($permission);
     }
@@ -62,7 +62,7 @@ class PermissionController extends Controller
 
     public function destroy(Permission $permission)
     {
-        // abort_if(!auth()->user()->tokenCan('permission_delete'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('permission_delete'), 403);
         $permission->delete();
         return $this->deletedResponse();
     }

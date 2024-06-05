@@ -22,7 +22,7 @@ class VoucherGenerateBatch extends Model
     protected static function booted()
     {
         static::saving(function ($model) {
-            $model->user_id = auth()->id();
+            $model->user_id = auth('sanctum')->id();
         });
     }
 

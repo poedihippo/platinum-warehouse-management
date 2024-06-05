@@ -20,7 +20,7 @@ class DeliveryOrderDetailController extends Controller
 
     public function index(int $deliveryOrderId)
     {
-        // abort_if(!auth()->user()->tokenCan('delivery_order_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('delivery_order_access'), 403);
         $deliveryOrder = DeliveryOrder::findTenanted($deliveryOrderId, ['id']);
         $deliveryOrderDetails = QueryBuilder::for(DeliveryOrderDetail::with(['salesOrderDetail' => fn ($q) => $q->with('warehouse', 'salesOrder', 'packaging')])->where('delivery_order_id', $deliveryOrder->id))
             ->allowedFilters([
@@ -35,7 +35,7 @@ class DeliveryOrderDetailController extends Controller
 
     public function show(int $deliveryOrderId, $deliveryOrderDetailId)
     {
-        // abort_if(!auth()->user()->tokenCan('delivery_order_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('delivery_order_access'), 403);
         $deliveryOrder = DeliveryOrder::findTenanted($deliveryOrderId);
         $deliveryOrderDetail = $deliveryOrder->details()->where('id', $deliveryOrderDetailId)->firstOrFail();
 
@@ -52,7 +52,7 @@ class DeliveryOrderDetailController extends Controller
     public function destroy(int $deliveryOrderId, $deliveryOrderDetailId)
     {
         $deliveryOrder = DeliveryOrder::findTenanted($deliveryOrderId, ['id']);
-        abort_if(!auth()->user()->tokenCan('delivery_order_delete'), 403);
+        abort_if(!auth('sanctum')->user()->tokenCan('delivery_order_delete'), 403);
 
         $deliveryOrder->details()->where('id', $deliveryOrderDetailId)->delete();
 

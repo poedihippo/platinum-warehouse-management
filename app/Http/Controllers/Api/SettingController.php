@@ -19,14 +19,14 @@ class SettingController extends Controller
 
     public function index()
     {
-        abort_if(!auth()->user()->tokenCan('setting_access'), 403);
+        abort_if(!auth('sanctum')->user()->tokenCan('setting_access'), 403);
 
         return SettingResource::collection(Setting::all());
     }
 
     public function update(Setting $setting, Request $request)
     {
-        abort_if(!auth()->user()->tokenCan('setting_edit'), 403);
+        abort_if(!auth('sanctum')->user()->tokenCan('setting_edit'), 403);
 
         $request->validate([
             'value' => 'required'

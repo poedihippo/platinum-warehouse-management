@@ -128,7 +128,7 @@ class OrderController extends Controller
 
     public function destroy(SalesOrder $order)
     {
-        // abort_if(!auth()->user()->tokenCan('order_delete'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('order_delete'), 403);
         if ($salesOrder->deliverySalesOrder?->is_done) return response()->json(['message' => "Can't update SO if DO is already done"], 400);
 
         $salesOrder->delete();
@@ -137,7 +137,7 @@ class OrderController extends Controller
 
     // public function print(SalesOrder $order)
     // {
-    //     // abort_if(!auth()->user()->tokenCan('order_print'), 403);
+    //     // abort_if(!auth('sanctum')->user()->tokenCan('order_print'), 403);
     //     return SalesOrderService::print($id);
     // }
 

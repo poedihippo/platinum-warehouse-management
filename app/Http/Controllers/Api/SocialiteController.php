@@ -33,7 +33,7 @@ class SocialiteController extends Controller
         $authUser = $this->findOrCreateUser($user, $provider);
 
         // login user
-        Auth()->login($authUser, true);
+        auth('sanctum')->login($authUser, true);
 
         $token = $authUser->tokens()->latest()->first()->plain_text_token ?? $authUser->createToken('default')->plainTextToken;
 

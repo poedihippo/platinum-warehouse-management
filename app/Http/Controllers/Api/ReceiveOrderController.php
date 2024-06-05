@@ -30,7 +30,7 @@ class ReceiveOrderController extends Controller
 
     public function index()
     {
-        // abort_if(!auth()->user()->tokenCan('receive_order_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('receive_order_access'), 403);
         $receiveOrders = QueryBuilder::for(ReceiveOrder::tenanted()->withCount('details'))
             ->allowedFilters([
                 'invoice_no',
@@ -50,7 +50,7 @@ class ReceiveOrderController extends Controller
 
     public function show(int $id)
     {
-        // abort_if(!auth()->user()->tokenCan('receive_order_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('receive_order_access'), 403);
         $receiveOrder = ReceiveOrder::findTenanted($id);
         return new ReceiveOrderResource($receiveOrder->load('details')->loadCount('details'));
     }
@@ -73,7 +73,7 @@ class ReceiveOrderController extends Controller
         DB::beginTransaction();
         try {
             $receiveOrder = ReceiveOrder::create([
-                'user_id' => auth()->id(),
+                'user_id' => auth('sanctum')->id(),
                 'supplier_id' => $supplier?->id ?? null,
                 'warehouse_id' => $warehouse?->id ?? null,
                 'receive_datetime' => date('Y-m-d H:i:s', strtotime($request->receive_datetime)),
@@ -138,7 +138,7 @@ class ReceiveOrderController extends Controller
 
     public function destroy(int $id)
     {
-        // abort_if(!auth()->user()->tokenCan('receive_order_delete'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('receive_order_delete'), 403);
 
         $receiveOrder = ReceiveOrder::findTenanted($id);
         if (!$receiveOrder->details->every(fn ($detail) => $detail->is_verified === false)) {
@@ -151,7 +151,7 @@ class ReceiveOrderController extends Controller
 
     public function done(int $id, \Illuminate\Http\Request $request)
     {
-        // abort_if(!auth()->user()->tokenCan('receive_order_done'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('receive_order_done'), 403);
         $receiveOrder = ReceiveOrder::findTenanted($id);
         $request->validate(['is_done' => 'required|boolean']);
 

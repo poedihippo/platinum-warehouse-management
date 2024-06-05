@@ -19,7 +19,7 @@ class StockHistoryController extends Controller
 
     public function index()
     {
-        // abort_if(!auth()->user()->tokenCan('stock_history_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('stock_history_access'), 403);
 
         $stockHistories = QueryBuilder::for(StockHistory::tenanted()->with(['stockHistoryable', 'user' => fn ($q) => $q->select('id', 'name')]))
             ->allowedFilters([

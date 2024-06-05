@@ -51,7 +51,7 @@ class OrderStoreRequest extends FormRequest
             'shipment_fee' => $this->shipment_fee ? (int) $this->shipment_fee : 0,
             'additional_discount' => $this->additional_discount ? (int) $this->additional_discount : 0,
             'is_additional_discount_percentage' => $this->toBoolean($this->is_additional_discount_percentage ?? true),
-            'spg_id' => auth()->id(),
+            'spg_id' => auth('sanctum')->id(),
             'transaction_date' => $this->transaction_date ?? date('Y-m-d H:i:s'),
             'shipment_estimation_datetime' => $this->shipment_estimation_datetime ?? date('Y-m-d H:i:s'),
             'items' => $items

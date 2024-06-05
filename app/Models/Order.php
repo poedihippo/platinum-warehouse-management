@@ -36,7 +36,7 @@ class Order extends Model
         });
 
         static::creating(function ($model) {
-            $model->user_id = auth()->id();
+            $model->user_id = auth('sanctum')->id();
             if (empty($model->description)) $model->description = "#Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih";
         });
     }

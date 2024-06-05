@@ -59,7 +59,7 @@ class SalesOrderController extends Controller
 
     public function destroy(int $id)
     {
-        // abort_if(!auth()->user()->tokenCan('sales_order_delete'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('sales_order_delete'), 403);
         $salesOrder = SalesOrder::findTenanted($id);
         if ($salesOrder->deliveryOrder?->is_done) return response()->json(['message' => "Can't update SO if DO is already done"], 400);
 
@@ -69,7 +69,7 @@ class SalesOrderController extends Controller
 
     public function print(int $id)
     {
-        // abort_if(!auth()->user()->tokenCan('sales_order_print'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('sales_order_print'), 403);
         return SalesOrderService::print($id);
     }
 

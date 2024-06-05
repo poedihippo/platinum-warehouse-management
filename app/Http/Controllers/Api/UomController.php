@@ -23,7 +23,7 @@ class UomController extends Controller
 
     public function index()
     {
-        // abort_if(!auth()->user()->tokenCan('uom_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('uom_access'), 403);
         $uoms = QueryBuilder::for(Uom::class)
             ->allowedFilters('name')
             ->allowedSorts(['id', 'name', 'created_at'])
@@ -34,7 +34,7 @@ class UomController extends Controller
 
     public function show(Uom $uom)
     {
-        // abort_if(!auth()->user()->tokenCan('uom_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('uom_access'), 403);
         return new UomResource($uom);
     }
 
@@ -54,7 +54,7 @@ class UomController extends Controller
 
     public function destroy(Uom $uom)
     {
-        // abort_if(!auth()->user()->tokenCan('uom_delete'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('uom_delete'), 403);
         $uom->delete();
         return $this->deletedResponse();
     }

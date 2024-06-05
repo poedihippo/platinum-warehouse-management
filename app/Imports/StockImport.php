@@ -27,7 +27,6 @@ class StockImport implements ToModel, WithHeadingRow
         $productUnit = ProductUnit::where('code', trim($row['code']))->first();
         if ($productUnit) {
             $folder = 'qrcode/';
-
             $stockProductUnit = StockProductUnit::where('warehouse_id', $this->warehouse_id)
                 ->where('product_unit_id', $productUnit->id)
                 ->first();
@@ -61,15 +60,15 @@ class StockImport implements ToModel, WithHeadingRow
                 // }
 
                 // create history
-                // $receiveOrderDetail->histories()->create([
-                //     'user_id' => $user->id,
-                //     'stock_product_unit_id' => $stockProductUnit->id,
-                //     'value' => $qty,
-                //     'is_increment' => 1,
-                //     'description' => $receiveOrder->invoice_no,
-                //     'ip' => request()->ip(),
-                //     'agent' => request()->header('user-agent'),
-                // ]);
+                $stockProductUnit->histories()->create([
+                    'user_id' => auth('sanctum')->id(),
+                    'stock_product_unit_id' => $stockProductUnit->id,
+                    'value' => $qty,
+                    'is_increment' => 1,
+                    'description' => 'Import stock',
+                    'ip' => request()->ip(),
+                    'agent' => request()->header('user-agent'),
+                ]);
             }
         }
     }

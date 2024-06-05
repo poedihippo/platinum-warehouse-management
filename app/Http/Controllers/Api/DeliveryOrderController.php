@@ -39,7 +39,7 @@ class DeliveryOrderController extends Controller
 
     public function index()
     {
-        // abort_if(!auth()->user()->tokenCan('delivery_order_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('delivery_order_access'), 403);
         $deliveryOrders = QueryBuilder::for(DeliveryOrder::tenanted()->with('user', 'reseller')->withCount('details'))
             ->allowedFilters([
                 'invoice_no',
@@ -55,7 +55,7 @@ class DeliveryOrderController extends Controller
 
     public function show(int $id)
     {
-        // abort_if(!auth()->user()->tokenCan('delivery_order_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('delivery_order_access'), 403);
 
         $deliveryOrder = DeliveryOrder::findTenanted($id);
         $deliveryOrder->load([
@@ -89,7 +89,7 @@ class DeliveryOrderController extends Controller
 
     public function destroy(int $id)
     {
-        // abort_if(!auth()->user()->tokenCan('delivery_order_delete'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('delivery_order_delete'), 403);
 
         $deliveryOrder = DeliveryOrder::findTenanted($id);
         DB::beginTransaction();
@@ -104,7 +104,7 @@ class DeliveryOrderController extends Controller
             //     if ($stockProductUnit) {
             //         // create history
             //         $detail->histories()->create([
-            //             'user_id' => auth()->id(),
+            //             'user_id' => auth('sanctum')->id(),
             //             'stock_product_unit_id' => $stockProductUnit->id,
             //             'value' => $detail->fulfilled_qty,
             //             'is_increment' => 1,
@@ -125,7 +125,7 @@ class DeliveryOrderController extends Controller
                 if ($stockProductUnit) {
                     // create history
                     $history = $detail->histories()->create([
-                        'user_id' => auth()->id(),
+                        'user_id' => auth('sanctum')->id(),
                         'stock_product_unit_id' => $stockProductUnit->id,
                         'value' => $salesOrderDetail?->fulfilled_qty ?? 0,
                         'is_increment' => 1,
@@ -165,7 +165,7 @@ class DeliveryOrderController extends Controller
 
     public function print(int $id)
     {
-        // abort_if(!auth()->user()->tokenCan('delivery_order_print'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('delivery_order_print'), 403);
 
         // $deliveryOrder->load(['reseller', 'details' => fn ($q) => $q->with('salesOrderDetail.productUnit.uom')]);
         $deliveryOrder = DeliveryOrder::with(['reseller', 'details' => fn ($q) => $q->with('salesOrderDetail.productUnit.uom')])->findTenanted($id);
@@ -177,7 +177,7 @@ class DeliveryOrderController extends Controller
 
     public function exportXml(int $id)
     {
-        // abort_if(!auth()->user()->tokenCan('sales_order_export_xml'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('sales_order_export_xml'), 403);
 
         // $deliveryOrder->load(['reseller', 'details' => fn ($q) => $q->with('salesOrderDetail.productUnit.uom')]);
 
@@ -280,7 +280,7 @@ class DeliveryOrderController extends Controller
 
     public function done(int $id, Request $request)
     {
-        // abort_if(!auth()->user()->tokenCan('delivery_order_done'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('delivery_order_done'), 403);
         $request->validate(['is_done' => 'required|boolean']);
 
         $deliveryOrder = DeliveryOrder::findTenanted($id, ['id', 'is_done', 'invoice_no']);
@@ -304,7 +304,7 @@ class DeliveryOrderController extends Controller
                 if ($stockProductUnit) {
                     // create history
                     $history = $salesOrderDetail->histories()->create([
-                        'user_id' => auth()->id(),
+                        'user_id' => auth('sanctum')->id(),
                         'stock_product_unit_id' => $stockProductUnit->id,
                         'value' => $salesOrderDetail?->fulfilled_qty ?? 0,
                         'is_increment' => 0,

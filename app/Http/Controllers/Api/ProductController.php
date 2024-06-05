@@ -25,7 +25,7 @@ class ProductController extends Controller
 
     public function index()
     {
-        // abort_if(!auth()->user()->tokenCan('product_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('product_access'), 403);
         $products = QueryBuilder::for(Product::with(['productCategory', 'productBrand']))
             ->allowedFilters([
                 AllowedFilter::exact('product_category_id'),
@@ -40,7 +40,7 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
-        // abort_if(!auth()->user()->tokenCan('product_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('product_access'), 403);
         return new ProductResource($product);
     }
 
@@ -60,7 +60,7 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
-        // abort_if(!auth()->user()->tokenCan('product_delete'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('product_delete'), 403);
         $product->delete();
         return $this->deletedResponse();
     }

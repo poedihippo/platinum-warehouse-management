@@ -25,7 +25,7 @@ class UserDiscountController extends Controller
 
     public function index(User $user)
     {
-        // abort_if(!auth()->user()->tokenCan('user_discount_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('user_discount_access'), 403);
         $users = QueryBuilder::for(UserDiscount::with('productBrand')->where('user_id', $user->id))
             // ->allowedFilters(['name', 'email', 'phone', 'type'])
             ->allowedSorts(['id', 'product_brand_id', 'value', 'is_percentage'])
@@ -36,7 +36,7 @@ class UserDiscountController extends Controller
 
     public function show(User $user, $id)
     {
-        // abort_if(!auth()->user()->tokenCan('user_discount_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('user_discount_access'), 403);
         $userDiscount = $user->userDiscounts()->where('id', $id)->firstOrFail();
         return new UserDiscountResource($userDiscount->load('productBrand'));
     }

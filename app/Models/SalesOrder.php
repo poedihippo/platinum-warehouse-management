@@ -70,7 +70,7 @@ class SalesOrder extends Model
     protected static function booted()
     {
         static::saving(function ($model) {
-            $model->user_id = auth()->id();
+            $model->user_id = auth('sanctum')->id();
             if (empty($model->type)) $model->type = SalesOrderType::DEFAULT;
         });
 
@@ -90,7 +90,7 @@ class SalesOrder extends Model
     {
         if (!$user) {
             /** @var \App\Models\User $user */
-            $user = auth()->user();
+            $user = auth('sanctum')->user();
         }
 
         if ($user->type->is(UserType::Spg)) return $query->where('spg_id', $user->id);

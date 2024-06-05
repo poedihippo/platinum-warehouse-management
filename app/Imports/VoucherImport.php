@@ -36,7 +36,7 @@ class VoucherImport implements ToCollection, SkipsEmptyRows, WithHeadingRow, Ski
         foreach ($rows as $row) {
             if (is_null($batch)) {
                 $batch = VoucherGenerateBatch::create([
-                    'user_id' => auth()->id(),
+                    'user_id' => auth('sanctum')->id(),
                     'source' => BatchSource::IMPORT,
                     'description' => $this->description ?? ''
                 ]);

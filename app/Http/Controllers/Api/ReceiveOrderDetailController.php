@@ -29,7 +29,7 @@ class ReceiveOrderDetailController extends Controller
 
     public function index(int $receiveOrderId)
     {
-        // abort_if(!auth()->user()->tokenCan('receive_order_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('receive_order_access'), 403);
         $receiveOrder = ReceiveOrder::findTenanted($receiveOrderId, ['id']);
 
         $receiveOrderDetails = QueryBuilder::for(ReceiveOrderDetail::where('receive_order_id', $receiveOrder->id))
@@ -50,7 +50,7 @@ class ReceiveOrderDetailController extends Controller
 
     public function show(int $receiveOrderId, int $receiveOrderDetailId)
     {
-        // abort_if(!auth()->user()->tokenCan('receive_order_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('receive_order_access'), 403);
 
         $receiveOrder = ReceiveOrder::findTenanted($receiveOrderId, ['id']);
         $receiveOrderDetail = $receiveOrder->details()->where('id', $receiveOrderDetailId)->firstOrFail();
@@ -87,7 +87,7 @@ class ReceiveOrderDetailController extends Controller
      */
     public function verify(int $receiveOrderId, $receiveOrderDetailId, Request $request)
     {
-        // abort_if(!auth()->user()->tokenCan('receive_order_verify_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('receive_order_verify_access'), 403);
 
         $receiveOrder = ReceiveOrder::findTenanted($receiveOrderId, ['id']);
         if ($receiveOrder->is_done) return response()->json(['message' => "Delivery order sudah diverifikasi. Tidak dapat mengubah detail"], 400);
@@ -107,7 +107,7 @@ class ReceiveOrderDetailController extends Controller
 
     public function destroy(int $receiveOrderId, ReceiveOrderDetail $receiveOrderDetail)
     {
-        // abort_if(!auth()->user()->tokenCan('receive_order_delete'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('receive_order_delete'), 403);
 
         $receiveOrder = ReceiveOrder::findTenanted($receiveOrderId, ['id']);
         if ($receiveOrderDetail->is_verified === true) return response()->json(['message' => 'Data harus tidak diverifikasi']);

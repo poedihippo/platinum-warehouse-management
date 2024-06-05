@@ -26,7 +26,7 @@ class SupplierController extends Controller
 
     public function index()
     {
-        // abort_if(!auth()->user()->tokenCan('supplier_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('supplier_access'), 403);
         $suppliers = QueryBuilder::for(Supplier::class)
             ->allowedFilters([
                 AllowedFilter::callback('search', function (Builder $query, $value) {
@@ -43,7 +43,7 @@ class SupplierController extends Controller
 
     public function show(Supplier $supplier)
     {
-        // abort_if(!auth()->user()->tokenCan('supplier_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('supplier_access'), 403);
         return new SupplierResource($supplier);
     }
 
@@ -63,7 +63,7 @@ class SupplierController extends Controller
 
     public function destroy(Supplier $supplier)
     {
-        // abort_if(!auth()->user()->tokenCan('supplier_delete'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('supplier_delete'), 403);
         $supplier->delete();
         return $this->deletedResponse();
     }

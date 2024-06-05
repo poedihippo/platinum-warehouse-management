@@ -24,7 +24,7 @@ class WarehouseController extends Controller
 
     public function index()
     {
-        // abort_if(!auth()->user()->tokenCan('warehouse_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('warehouse_access'), 403);
         $warehouses = QueryBuilder::for(Warehouse::tenanted())
             ->allowedFilters(['name'])
             ->allowedSorts(['id', 'name', 'created_at'])
@@ -35,7 +35,7 @@ class WarehouseController extends Controller
 
     public function show(int $id)
     {
-        // abort_if(!auth()->user()->tokenCan('warehouse_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('warehouse_access'), 403);
         $warehouse = Warehouse::findTenanted($id);
         return new WarehouseResource($warehouse);
     }
@@ -57,7 +57,7 @@ class WarehouseController extends Controller
 
     public function destroy(int $id)
     {
-        // abort_if(!auth()->user()->tokenCan('warehouse_delete'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('warehouse_delete'), 403);
         $warehouse = Warehouse::findTenanted($id);
         $warehouse->delete();
         return $this->deletedResponse();

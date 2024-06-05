@@ -39,7 +39,7 @@ class StockController extends Controller
 
     public function index()
     {
-        // abort_if(!auth()->user()->tokenCan('stock_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('stock_access'), 403);
         $stockProductUnits = QueryBuilder::for(StockProductUnit::tenanted()->with(['warehouse', 'productUnit'])->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')]))
             ->allowedFilters([
                 AllowedFilter::exact('id'),
@@ -57,7 +57,7 @@ class StockController extends Controller
 
     public function details()
     {
-        // abort_if(!auth()->user()->tokenCan('stock_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('stock_access'), 403);
 
         $filter = request()->filter;
 
@@ -99,7 +99,7 @@ class StockController extends Controller
 
     public function show(int $id)
     {
-        // abort_if(!auth()->user()->tokenCan('stock_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('stock_access'), 403);
         $stock = Stock::findTenanted($id);
         return new StocksStockProductUnitResource($stock->load([
             'stockProductUnit' => fn ($q) => $q->tenanted()->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')]),
@@ -109,13 +109,13 @@ class StockController extends Controller
 
     public function store(Request $request)
     {
-        // abort_if(!auth()->user()->tokenCan('stock_create'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('stock_create'), 403);
         return response()->json($request->all());
     }
 
     public function destroy(Stock $stock)
     {
-        // abort_if(!auth()->user()->tokenCan('stock_delete'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('stock_delete'), 403);
 
         if ($stock->childs?->count() > 0) return response()->json(['message' => 'Tidak dapat menghapus stock parent'], 400);
         if ($stock->salesOrderItems?->count() > 0) return response()->json(['message' => 'Tidak dapat menghapus stock. Stock sudah masuk di Sales Order'], 400);
@@ -126,7 +126,7 @@ class StockController extends Controller
 
     public function grouping(Request $request)
     {
-        // abort_if(!auth()->user()->tokenCan('stock_grouping'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('stock_grouping'), 403);
 
         $request->validate([
             'total_group' => 'required|integer|gt:0',
@@ -245,7 +245,7 @@ class StockController extends Controller
 
     public function ungrouping(int $id)
     {
-        // abort_if(!auth()->user()->tokenCan('stock_grouping'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('stock_grouping'), 403);
         $stock = Stock::findTenanted($id);
         if ($stock->childs->isEmpty()) return response()->json(['message' => 'Stock bukan grouping / tidak memiliki childs'], 400);
 
@@ -264,7 +264,7 @@ class StockController extends Controller
 
     public function printAll(Request $request)
     {
-        // abort_if(!auth()->user()->tokenCan('stock_print'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('stock_print'), 403);
 
         $filter = $request->filter;
         $query = Stock::tenanted()->select('id', 'parent_id', 'qr_code', 'description');
@@ -344,7 +344,7 @@ class StockController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'file' => 'mimes:xls,xlsx,csv'
+            'file' => 'required|mimes:xls,xlsx,csv'
         ]);
 
         // Excel::queueImport(new StockImport($request->warehouse_id ?? 1), $request->file);

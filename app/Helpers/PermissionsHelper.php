@@ -251,7 +251,7 @@ class PermissionsHelper
     public static function getMyPermissions()
     {
         /** @var \App\Models\User $user */
-        $user = auth()->user();
+        $user = auth('sanctum')->user();
         $allPermissions = [];
         if ($user->hasRole('admin')) {
             foreach (self::getAllPermissions() as $parent => $childs) {

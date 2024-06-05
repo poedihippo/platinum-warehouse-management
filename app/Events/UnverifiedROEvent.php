@@ -24,7 +24,7 @@ class UnverifiedROEvent
      */
     public function __construct(public ReceiveOrder $receiveOrder)
     {
-        $this->user = auth()->user();
+        $this->user = auth('sanctum')->user();
     }
 
     /**

@@ -11,7 +11,7 @@ trait Tenanted
     {
         if (!$user) {
             /** @var \App\Models\User $user */
-            $user = auth()->user();
+            $user = auth('sanctum')->user();
         }
 
         if ($user->hasRole('admin')) return $query;

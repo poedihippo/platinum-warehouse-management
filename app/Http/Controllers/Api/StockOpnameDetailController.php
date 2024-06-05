@@ -27,7 +27,7 @@ class StockOpnameDetailController extends Controller
 
     public function index(int $stockOpnameId)
     {
-        // abort_if(!auth()->user()->tokenCan('stock_opname_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('stock_opname_access'), 403);
 
         $stockOpname = StockOpname::findTenanted($stockOpnameId, ['id']);
         $query = StockOpnameDetail::where('stock_opname_id', $stockOpname->id)
@@ -48,7 +48,7 @@ class StockOpnameDetailController extends Controller
 
     public function show(int $stockOpnameId, $stockOpnameDetailId)
     {
-        // abort_if(!auth()->user()->tokenCan('stock_opname_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('stock_opname_access'), 403);
 
         $stockOpname = StockOpname::findTenanted($stockOpnameId, ['id']);
         $stockOpnameDetail = $stockOpname->details()->where('id', $stockOpnameDetailId)
@@ -119,7 +119,7 @@ class StockOpnameDetailController extends Controller
 
     public function done(int $stockOpnameId, string $id, Request $request)
     {
-        // abort_if(!auth()->user()->tokenCan('stock_opname_done'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('stock_opname_done'), 403);
 
         $stockOpname = StockOpname::findTenanted($stockOpnameId, ['id']);
         $stockOpnameDetail = $stockOpname->details()->where('id', $id)->first();

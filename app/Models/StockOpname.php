@@ -17,7 +17,7 @@ class StockOpname extends Model
     protected static function booted()
     {
         static::creating(function ($model) {
-            $model->user_id = auth()->id();
+            $model->user_id = auth('sanctum')->id();
         });
 
         static::created(function ($model) {
@@ -38,7 +38,7 @@ class StockOpname extends Model
                         });
 
                         $stockOpnameDetail->histories()->create([
-                            'user_id' => auth()->id(),
+                            'user_id' => auth('sanctum')->id(),
                             'stock_product_unit_id' => $stockOpnameDetail->stock_product_unit_id,
                             'value' => $stockOpnameItems?->count() ?? 0,
                             'is_increment' => 0,
@@ -57,7 +57,7 @@ class StockOpname extends Model
                         });
 
                         $stockOpnameDetail->histories()->create([
-                            'user_id' => auth()->id(),
+                            'user_id' => auth('sanctum')->id(),
                             'stock_product_unit_id' => $stockOpnameDetail->stock_product_unit_id,
                             'value' => $stockOpnameItems?->count() ?? 0,
                             'is_increment' => 1,

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\UserType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\UserStoreRequest;
 use App\Http\Requests\Api\UserUpdateRequest;
@@ -27,14 +28,17 @@ class UserController extends Controller
 
     public function index()
     {
-        // abort_if(!auth()->user()->tokenCan('user_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('user_access'), 403);
         $users = QueryBuilder::for(User::with(['roles' => fn ($q) => $q->select('id', 'name')]))
             ->allowedIncludes(\Spatie\QueryBuilder\AllowedInclude::callback('warehouses', function ($query) {
                 $query->select('id', 'code', 'name');
             }))
             ->allowedFilters([
-                'email', 'phone', 'type',
-                AllowedFilter::callback('name', fn ($q, $value) => $q->where('name', 'like', '%' . $value . '%')->orWhere('phone', 'like', '%' . $value . '%')),
+                'email', 'phone',
+                'type',
+                AllowedFilter::scope('name', fn ($q, $value) => $q->where('name', 'like', '%' . $value . '%')->orWhere('phone', 'like', '%' . $value . '%')),
+                // AllowedFilter::exact('type'),
+                // AllowedFilter::callback('name', fn ($q, $value) => die($value)),
             ])
             ->allowedSorts(['name', 'email', 'phone', 'type'])
             ->paginate($this->per_page);
@@ -44,12 +48,12 @@ class UserController extends Controller
 
     public function me()
     {
-        return new UserResource(auth()->user()?->load(['roles' => fn ($q) => $q->select('id', 'name')]));
+        return new UserResource(auth('sanctum')->user()?->load(['roles' => fn ($q) => $q->select('id', 'name')]));
     }
 
     public function show(User $user)
     {
-        // abort_if(!auth()->user()->tokenCan('user_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('user_access'), 403);
         return new UserResource($user->load(['roles' => fn ($q) => $q->select('id', 'name')]));
     }
 
@@ -99,7 +103,7 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         if ($user->id == 1) return response()->json(['message' => 'Admin dengan id 1 tidak dapat dihapus!']);
-        // abort_if(!auth()->user()->tokenCan('user_delete'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('user_delete'), 403);
         $user->delete();
         return $this->deletedResponse();
     }
@@ -107,7 +111,7 @@ class UserController extends Controller
     public function forceDelete($id)
     {
         if ($id == 1) return response()->json(['message' => 'Admin dengan id 1 tidak dapat dihapus!']);
-        // abort_if(!auth()->user()->tokenCan('user_delete'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('user_delete'), 403);
         $user = User::withTrashed()->findOrFail($id);
         $user->forceDelete();
         return $this->deletedResponse();
@@ -115,7 +119,7 @@ class UserController extends Controller
 
     public function restore($id)
     {
-        // abort_if(!auth()->user()->tokenCan('user_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('user_access'), 403);
         $user = User::withTrashed()->findOrFail($id);
         $user->restore();
         return new UserResource($user);

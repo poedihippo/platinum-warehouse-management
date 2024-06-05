@@ -28,7 +28,7 @@ class Warehouse extends Model
     public function scopeTenanted(Builder $query)
     {
         /** @var \App\Models\User $user */
-        $user = auth()->user();
+        $user = auth('sanctum')->user();
         if ($user->hasRole('admin')) return $query;
         return $query->whereIn('id', $user->warehouses()->pluck('warehouse_id') ?? []);
     }

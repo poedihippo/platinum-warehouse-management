@@ -29,7 +29,7 @@ class AdjustmentRequestController extends Controller
 
     public function index()
     {
-        // abort_if(!auth()->user()->tokenCan('adjustment_request_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('adjustment_request_access'), 403);
 
         $adjustmentRequests = QueryBuilder::for(AdjustmentRequest::with(['user', 'stockProductUnit']))
             ->allowedFilters([
@@ -46,7 +46,7 @@ class AdjustmentRequestController extends Controller
 
     public function show(AdjustmentRequest $adjustmentRequest)
     {
-        // abort_if(!auth()->user()->tokenCan('adjustment_request_access'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('adjustment_request_access'), 403);
         return new AdjustmentRequestResource($adjustmentRequest->load('stockProductUnit'));
     }
 
@@ -67,7 +67,7 @@ class AdjustmentRequestController extends Controller
 
     public function destroy(AdjustmentRequest $adjustmentRequest)
     {
-        // abort_if(!auth()->user()->tokenCan('adjustment_request_delete'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('adjustment_request_delete'), 403);
         if ($adjustmentRequest->is_approved) return response()->json(['message' => "Tidak dapat menghapus data jika sudah di approved"], 400);
 
         $adjustmentRequest->delete();
@@ -76,7 +76,7 @@ class AdjustmentRequestController extends Controller
 
     public function approve(AdjustmentRequest $adjustmentRequest, Request $request)
     {
-        // abort_if(!auth()->user()->tokenCan('adjustment_request_approve'), 403);
+        // abort_if(!auth('sanctum')->user()->tokenCan('adjustment_request_approve'), 403);
 
         $stockProductUnit = $adjustmentRequest->stockProductUnit;
         if (!$stockProductUnit) return response()->json(['message' => "Stock product unit Tidak ditemukan"], 404);
@@ -85,7 +85,7 @@ class AdjustmentRequestController extends Controller
         try {
             $adjustmentRequest->reason = $request->reason ?? null;
             $adjustmentRequest->is_approved = $request->is_approved ?? null;
-            $adjustmentRequest->approved_by = auth()->id();
+            $adjustmentRequest->approved_by = auth('sanctum')->id();
             $adjustmentRequest->approved_datetime = now();
 
             if ($adjustmentRequest->isDirty('is_approved')) {
@@ -111,7 +111,7 @@ class AdjustmentRequestController extends Controller
                     }
 
                     $adjustmentRequest->histories()->create([
-                        'user_id' => auth()->id(),
+                        'user_id' => auth('sanctum')->id(),
                         'stock_product_unit_id' => $adjustmentRequest->stock_product_unit_id,
                         'value' => $adjustmentRequest->value ?? 0,
                         'is_increment' => 1,
@@ -124,7 +124,7 @@ class AdjustmentRequestController extends Controller
 
                     if ($adjustmentRequest->getOriginal('is_approved')) {
                         $adjustmentRequest->histories()->create([
-                            'user_id' => auth()->id(),
+                            'user_id' => auth('sanctum')->id(),
                             'stock_product_unit_id' => $adjustmentRequest->stock_product_unit_id,
                             'value' => $adjustmentRequest->value ?? 0,
                             'is_increment' => 0,
