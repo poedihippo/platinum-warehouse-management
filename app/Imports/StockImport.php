@@ -61,7 +61,7 @@ class StockImport implements ToModel, WithHeadingRow
 
                 // create history
                 $stockProductUnit->histories()->create([
-                    'user_id' => auth('sanctum')->id(),
+                    'user_id' => auth('sanctum')?->id() ?? 1,
                     'stock_product_unit_id' => $stockProductUnit->id,
                     'value' => $qty,
                     'is_increment' => 1,
