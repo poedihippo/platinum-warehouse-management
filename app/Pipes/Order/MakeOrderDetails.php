@@ -39,12 +39,12 @@ class MakeOrderDetails
                 if ($productUnit->is_generate_qr) {
                     $stock = StockProductUnit::where('product_unit_id', $productUnit->id)
                         ->where('warehouse_id', $orderDetail->warehouse_id)
-                        ->first(['qty'])?->qty ?? 0;
+                        ->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')])
+                        ->first(['id'])?->stocks_count ?? 0;
                 } else {
                     $stock = StockProductUnit::where('product_unit_id', $productUnit->id)
                         ->where('warehouse_id', $orderDetail->warehouse_id)
-                        ->withCount('stocks', fn ($q) => $q->whereAvailableStock()->whereNull('description'))
-                        ->first(['id'])?->stocks_count ?? 0;
+                        ->first(['qty'])?->qty ?? 0;
                 }
 
                 $productUnit->stock = $stock;

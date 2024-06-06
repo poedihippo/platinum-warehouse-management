@@ -33,8 +33,10 @@ class ConvertSORequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $items = collect($this->items)->map(function ($item) {
+            $tax = !isset($item['tax']) ? 0 : $item['tax'];
             return [
                 ...$item,
+                'tax' => $tax,
                 'warehouse_id' => $this->warehouse_id ?? null
             ];
         })->all();
