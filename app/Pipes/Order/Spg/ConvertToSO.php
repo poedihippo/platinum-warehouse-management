@@ -18,7 +18,9 @@ class ConvertToSO
             $salesOrderDetails = $salesOrder->details;
             unset($salesOrder->details);
 
-            $salesOrder->invoice_no = SalesOrderService::getSoNumber($salesOrder->warehouse);
+            if (request()->segment(2) != 'invoices' && request()->method() != 'PUT') {
+                $salesOrder->invoice_no = SalesOrderService::getSoNumber($salesOrder->warehouse);
+            }
 
             $salesOrder->save();
             $salesOrder->details()->saveMany($salesOrderDetails);
