@@ -29,7 +29,7 @@ class VoucherCategorySeeder extends Seeder
         foreach ($codes as $code) {
             Voucher::create([
                 'voucher_category_id' => $voucherCategory->id,
-                'code' => $code,
+                'code' => trim($code),
                 'description' => 'Voucher Arwana - ' . $code,
             ]);
         }
@@ -46,7 +46,7 @@ class VoucherCategorySeeder extends Seeder
         foreach ($codes as $code) {
             Voucher::create([
                 'voucher_category_id' => $voucherCategory->id,
-                'code' => $code,
+                'code' => trim($code),
                 'description' => 'Voucher Discus - ' . $code,
             ]);
         }
@@ -63,7 +63,7 @@ class VoucherCategorySeeder extends Seeder
         foreach ($codes as $code) {
             Voucher::create([
                 'voucher_category_id' => $voucherCategory->id,
-                'code' => $code,
+                'code' => trim($code),
                 'description' => 'Voucher Koi - ' . $code,
             ]);
         }
@@ -80,7 +80,7 @@ class VoucherCategorySeeder extends Seeder
         foreach ($codes as $code) {
             Voucher::create([
                 'voucher_category_id' => $voucherCategory->id,
-                'code' => $code,
+                'code' => trim($code),
                 'description' => 'Voucher Goldfish - ' . $code,
             ]);
         }
@@ -97,7 +97,7 @@ class VoucherCategorySeeder extends Seeder
         foreach ($codes as $code) {
             Voucher::create([
                 'voucher_category_id' => $voucherCategory->id,
-                'code' => $code,
+                'code' => trim($code),
                 'description' => 'Voucher Manfish - ' . $code,
             ]);
         }
