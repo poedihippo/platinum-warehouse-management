@@ -8,6 +8,7 @@ use App\Http\Requests\Api\Order\OrderStoreRequest;
 use App\Http\Resources\DefaultResource;
 use App\Http\Resources\SalesOrderResource;
 use App\Models\SalesOrder;
+use App\Models\StockProductUnit;
 use App\Pipes\Order\CalculateAdditionalDiscount;
 use App\Pipes\Order\CalculateAdditionalFees;
 use App\Pipes\Order\CalculateAutoDiscount;
@@ -102,6 +103,7 @@ class OrderController extends Controller
         }
 
         $order->raw_source = $request->validated();
+        $isPreview = !$request->is_preview ?? true;
 
         $pipes = [
             FillOrderAttributes::class,
@@ -114,12 +116,31 @@ class OrderController extends Controller
             CheckExpectedOrderPrice::class,
         ];
 
-        if (!$request->is_preview ?? true) $pipes[] = ConvertToSO::class;
+        if ($isPreview) $pipes[] = ConvertToSO::class;
 
         $salesOrder = app(Pipeline::class)
             ->send($order)
             ->through($pipes)
             ->thenReturn();
+
+        if ($salesOrder && !$isPreview === false) {
+            // create history
+            $salesOrder->details->each(function ($salesOrderDetail) use ($salesOrder) {
+                $stockProductUnit = StockProductUnit::where('warehouse_id', $salesOrderDetail->warehouse_id)
+                    ->where('product_unit_id', $salesOrderDetail->product_unit_id)
+                    ->first(['id']);
+
+                $salesOrderDetail->histories()->create([
+                    'user_id' => $salesOrder->user_id,
+                    'stock_product_unit_id' => $stockProductUnit->id,
+                    'value' => $salesOrderDetail->qty,
+                    'is_increment' => 0,
+                    'description' => "Create SO invoice " . $salesOrder->invoice_no,
+                    'ip' => request()->ip(),
+                    'agent' => request()->header('user-agent'),
+                ]);
+            });
+        }
 
         return new DefaultResource($salesOrder);
     }
