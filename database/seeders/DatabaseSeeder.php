@@ -31,7 +31,7 @@ class DatabaseSeeder extends Seeder
             VoucherCategorySeeder::class,
             SettingSeeder::class,
             UserDiscountSeeder::class,
-            ImportStockSeeder::class,
+            // ImportStockSeeder::class,
         ]);
         // \App\Models\User::factory(10)->create();
 
