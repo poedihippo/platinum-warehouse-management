@@ -55,6 +55,7 @@ class UserSeeder extends Seeder
             'stock_delete',
             'stock_grouping',
             'stock_print',
+            'stock_export',
 
             'stock_opname_access',
             'stock_opname_read',
@@ -140,6 +141,7 @@ class UserSeeder extends Seeder
             'stock_delete',
             'stock_grouping',
             'stock_print',
+            'stock_export',
 
             'stock_opname_access',
             'stock_opname_read',
@@ -187,6 +189,7 @@ class UserSeeder extends Seeder
             'stock_delete',
             'stock_grouping',
             'stock_print',
+            'stock_export',
 
             'stock_opname_access',
             'stock_opname_read',

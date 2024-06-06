@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exports\StockExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StockRecordRequest;
 use App\Http\Requests\Api\StockRepackRequest;
@@ -426,5 +427,10 @@ class StockController extends Controller
         }
 
         return response()->json(["message" => sprintf("Berhasil me-repack %s ke %s sebanyak %d", $stock->stockProductUnit->productUnit?->name ?? "", $stockProductUnit->productUnit?->name ?? "", $qty)]);
+    }
+
+    public function export()
+    {
+        return Excel::download(new StockExport, 'stock-' . date('Y-m-d H:i') . '.xlsx');
     }
 }

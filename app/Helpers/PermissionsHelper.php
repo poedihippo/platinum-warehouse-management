@@ -165,6 +165,7 @@ class PermissionsHelper
                 'stock_delete',
                 'stock_grouping',
                 'stock_print',
+                'stock_export',
             ],
 
             'stock_opname_access' => [

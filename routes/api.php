@@ -51,6 +51,7 @@ use App\Http\Controllers\Api\OrderDetailController;
 
 Route::get('phpinfo', [TestController::class, 'phpinfo']);
 Route::get('test', [TestController::class, 'index']);
+Route::get('stocks/export', [StockController::class, 'export']);
 Route::post('stocks/import', [StockController::class, 'import']);
 Route::post('auth/token', [AuthController::class, 'token']);
 Route::post('auth/register', [AuthController::class, 'register']);
