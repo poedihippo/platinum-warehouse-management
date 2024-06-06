@@ -21,7 +21,7 @@ return [
 
     // 'allowed_origins' => ['*'],
     'allowed_origins' => [
-        'bejo.platinumadisentosa.com',
+        'https://bejo.platinumadisentosa.com',
         'localhost:8000',
         'localhost:3000',
     ],
