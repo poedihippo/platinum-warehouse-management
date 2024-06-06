@@ -288,6 +288,34 @@ class UserSeeder extends Seeder
             'order_delete',
             // 'order_print',
             'order_export_xml',
+
+            'payment_access',
+            'payment_read',
+            'payment_create',
+            'payment_edit',
+            'payment_delete',
+
+            'stock_access',
+            'stock_read',
+            // 'stock_create',
+            // 'stock_edit',
+            // 'stock_delete',
+            // 'stock_grouping',
+            // 'stock_print',
+
+            // 'stock_opname_access',
+            // 'stock_opname_read',
+            // 'stock_opname_create',
+            // 'stock_opname_edit',
+            // 'stock_opname_delete',
+            // 'stock_opname_done',
+
+            'stock_history_access',
+            'stock_history_read',
+            'stock_history_create',
+            'stock_history_edit',
+            // 'stock_history_delete',
+            // 'stock_history_done',
         ]);
 
         $user = User::create([
@@ -327,17 +355,55 @@ class UserSeeder extends Seeder
             'order_delete',
             // 'order_print',
             'order_export_xml',
+
+            'payment_access',
+            'payment_read',
+            // 'payment_create',
+            // 'payment_edit',
+            // 'payment_delete',
+
+            // 'stock_access',
+            'stock_read',
+            // 'stock_create',
+            // 'stock_edit',
+            // 'stock_delete',
+            // 'stock_grouping',
+            // 'stock_print',
+
+            // 'stock_opname_access',
+            // 'stock_opname_read',
+            // 'stock_opname_create',
+            // 'stock_opname_edit',
+            // 'stock_opname_delete',
+            // 'stock_opname_done',
+
+            // 'stock_history_access',
+            'stock_history_read',
+            'stock_history_create',
+            // 'stock_history_edit',
+            // 'stock_history_delete',
+            // 'stock_history_done',
         ]);
 
-        for ($i = 1; $i < 8; $i++) {
-            $spg = User::create([
-                'name' => 'SPG ' . $i,
-                'code' => 'spg' . $i,
-                'email' => 'spg' . $i . '@gmail.com',
-                'password' => 'nusaticspg' . $i,
+        $spgNames = [
+            'tasya',
+            'afifah',
+            'sharren',
+            'dhea',
+            'vanessa',
+            'gisel',
+            'jordan',
+        ];
+
+        foreach ($spgNames as $spgName) {
+            $user = User::create([
+                'name' => $spgName,
+                'code' => $spgName . '-spg',
+                'email' => $spgName . '@gmail.com',
+                'password' => $spgName . 'spg',
                 'type' => UserType::Spg,
             ]);
-            $spg->assignRole($roleSpg);
+            $user->assignRole($roleSpg);
             // $user->warehouses()->sync($pameranWarehouseIds);
         }
     }

@@ -16,7 +16,8 @@ class ProductUnitSeeder extends Seeder
      */
     public function run()
     {
-        Excel::import(new ProductUnitSeederImport, public_path('product_units1.xlsx'));
-        Excel::import(new ProductUnitSeederImport, public_path('product_units2.xlsx'));
+        Excel::import(new ProductUnitSeederImport, public_path('product_units_all.xlsx'));
+        // Excel::import(new ProductUnitSeederImport, public_path('product_units1.xlsx'));
+        // Excel::import(new ProductUnitSeederImport, public_path('product_units2.xlsx'));
     }
 }
