@@ -15,6 +15,8 @@ class TrustHosts extends Middleware
     {
         return [
             $this->allSubdomainsOfApplicationUrl(),
+            'bejo.platinumadisentosa.com',
+            'localhost:3000',
         ];
     }
 }
