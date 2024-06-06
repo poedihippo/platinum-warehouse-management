@@ -3,6 +3,7 @@
         <tr>
             <th>Code</th>
             <th>Product Unit</th>
+            <th>Price</th>
             @foreach ($warehouses as $warehouse)
                 <th>{{ $warehouse->name }}</th>
             @endforeach
@@ -13,6 +14,7 @@
             <tr>
                 <td>{{ $productUnit->code }}</td>
                 <td>{{ $productUnit->name }}</td>
+                <td>{{ $productUnit->price }}</td>
                 @foreach ($warehouses as $warehouse)
                     @php
                         $stock = \App\Models\StockProductUnit::where('warehouse_id', $warehouse->id)
