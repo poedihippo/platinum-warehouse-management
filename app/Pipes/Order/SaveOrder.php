@@ -31,6 +31,10 @@ class SaveOrder
             $salesOrderDetails = $salesOrder->details;
             unset($salesOrder->details);
 
+            if (request()->segment(2) == 'invoices' && request()->method() === 'POST' && $salesOrder->warehouse) {
+                $salesOrder->invoice_no = SalesOrderService::getSoNumber($salesOrder->warehouse);
+            }
+
             $salesOrder->save();
             $salesOrder->details()->saveMany($salesOrderDetails);
 

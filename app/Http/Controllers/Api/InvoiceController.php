@@ -9,7 +9,17 @@ use App\Http\Resources\SalesOrderResource;
 use App\Models\SalesOrder;
 use App\Models\StockProductUnit;
 use App\Models\Warehouse;
+use App\Pipes\Order\CalculateAdditionalDiscount;
+use App\Pipes\Order\CalculateAdditionalFees;
+use App\Pipes\Order\CalculateAutoDiscount;
+use App\Pipes\Order\CalculateVoucher;
+use App\Pipes\Order\CheckExpectedOrderPrice;
+use App\Pipes\Order\FillOrderAttributes;
+use App\Pipes\Order\FillOrderRecords;
+use App\Pipes\Order\MakeOrderDetails;
+use App\Pipes\Order\Spg\ConvertToSO;
 use App\Services\SalesOrderService;
+use Illuminate\Pipeline\Pipeline;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 
@@ -78,16 +88,35 @@ class InvoiceController extends Controller
 
     public function update(int $id, InvoiceUpdateRequest $request)
     {
-        dump($request->validated());
+        // dump($request->validated());
         $salesOrder = SalesOrder::whereInvoice()->findTenanted($id);
-        dd($salesOrder);
+        // dd($salesOrder);
         // kalo udah settle gabisa diupdate
         // if (!$salesOrder->details?->every(fn ($salesOrderDetail) => !$salesOrderDetail->deliveryOrderDetail))
         //     return response()->json(['message' => "DO harus dihapus terlebih dahulu sebelum mengedit SO"], 400);
 
         $salesOrder->raw_source = $request->validated();
-        $salesOrder = SalesOrderService::updateOrder($salesOrder, (bool) $request->is_preview ?? false);
-        return (new SalesOrderResource($salesOrder))->response()->setStatusCode(Response::HTTP_ACCEPTED);
+
+        $pipes = [
+            FillOrderAttributes::class,
+            FillOrderRecords::class,
+            MakeOrderDetails::class,
+            CalculateAutoDiscount::class,
+            CalculateVoucher::class,
+            CalculateAdditionalDiscount::class,
+            CalculateAdditionalFees::class,
+            CheckExpectedOrderPrice::class,
+        ];
+
+        if (!$request->is_preview ?? true) $pipes[] = ConvertToSO::class;
+
+        $salesOrder = app(Pipeline::class)
+            ->send($salesOrder)
+            ->through($pipes)
+            ->thenReturn();
+
+        // $salesOrder = SalesOrderService::updateOrder($salesOrder, (bool) $request->is_preview ?? false);
+        return (new SalesOrderResource($salesOrder))->response()->setStatusCode(\Illuminate\Http\Response::HTTP_ACCEPTED);
     }
 
     public function destroy(int $id)
@@ -143,26 +172,8 @@ class InvoiceController extends Controller
             'warehouse_id' => ['required', new \App\Rules\TenantedRule()],
         ]);
 
-        $warehouseCode = Warehouse::findOrFail($request->warehouse_id, ['code'])?->code;
+        $warehouse = Warehouse::findOrFail($request->warehouse_id, ['id', 'code']);
 
-        $lastInoviceNo = SalesOrder::where('is_invoice', true)
-            ->whereDate('created_at', date('Y-m-d'))
-            ->where('warehouse_id', $request->warehouse_id)
-            ->where('invoice_no', 'like', '%NUSATIC%')
-            ->orderByDesc('invoice_no')
-            ->first(['invoice_no']);
-
-        if ($lastInoviceNo) {
-            try {
-                $lastInoviceNo = explode('/', $lastInoviceNo->invoice_no)[3];
-                $lastInoviceNo = sprintf(config('app.format_invoice_no'), date('Y'), date('m'), date('d'), sprintf('%04s', (int) $lastInoviceNo + 1), $warehouseCode);
-            } catch (\Exception $e) {
-                $lastInoviceNo = SalesOrderService::getDefaultInvoiceNo($warehouseCode);
-            }
-        } else {
-            $lastInoviceNo = SalesOrderService::getDefaultInvoiceNo($warehouseCode);
-        }
-
-        return $lastInoviceNo;
+        return SalesOrderService::getSoNumber($warehouse);
     }
 }

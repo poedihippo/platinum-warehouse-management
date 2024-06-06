@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Http\Resources\SalesOrderResource;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderDetail;
+use App\Models\Warehouse;
 use App\Pipes\Order\CalculateAdditionalDiscount;
 use App\Pipes\Order\CalculateAdditionalFees;
 use App\Pipes\Order\CalculateAutoDiscount;
@@ -232,11 +233,6 @@ class SalesOrderService
         ]);
     }
 
-    public static function getDefaultInvoiceNo(string $warehouseCode): string
-    {
-        return sprintf(config('app.format_invoice_no'), date('Y'), date('m'), date('d'), sprintf('%04s', config('app.start_invoice_no', 90)), $warehouseCode);
-    }
-
     public static function getWhatsappUrl(SalesOrder $salesOrder, ?string $idHash = null)
     {
         $warehouseName = $salesOrder->warehouse?->company_name ? $salesOrder->warehouse->company_name : $salesOrder->warehouse->name;
@@ -286,5 +282,33 @@ class SalesOrderService
         $phone = $salesOrder->reseller->phone;
         if ($phone[0] == '0') $phone = substr($phone, 1);
         return sprintf("https://web.whatsapp.com/send/?phone=%s&text=%s", $phone, urlencode($message));
+    }
+
+    public static function getDefaultInvoiceNo(string $warehouseCode): string
+    {
+        return sprintf(config('app.format_invoice_no'), date('Y'), date('m'), date('d'), sprintf('%04s', config('app.start_invoice_no', 90)), $warehouseCode);
+    }
+
+    public static function getSoNumber(Warehouse $warehouse): string
+    {
+        $lastInoviceNo = SalesOrder::where('is_invoice', true)
+            ->whereDate('created_at', date('Y-m-d'))
+            ->where('warehouse_id', $warehouse->id)
+            ->where('invoice_no', 'like', '%NUSATIC%')
+            ->orderByDesc('invoice_no')
+            ->first(['invoice_no']);
+
+        if ($lastInoviceNo) {
+            try {
+                $lastInoviceNo = explode('/', $lastInoviceNo->invoice_no)[3];
+                $lastInoviceNo = sprintf(config('app.format_invoice_no'), date('Y'), date('m'), date('d'), sprintf('%04s', (int) $lastInoviceNo + 1), $warehouse->code);
+            } catch (\Exception $e) {
+                $lastInoviceNo = self::getDefaultInvoiceNo($warehouse->code);
+            }
+        } else {
+            $lastInoviceNo = self::getDefaultInvoiceNo($warehouse->code);
+        }
+
+        return $lastInoviceNo;
     }
 }
