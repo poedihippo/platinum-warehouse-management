@@ -37,7 +37,9 @@ class OrderStoreRequest extends FormRequest
                 $productUnitPrice = (int)$item['unit_price'];
             }
 
+            $tax = $item['tax'] ?? 0;
             $totalPrice = $productUnitPrice * ($item['qty'] ?? 1);
+            if ($tax == true) $totalPrice += $totalPrice * 0.11;
 
             return [
                 ...$item,
@@ -128,9 +130,9 @@ class OrderStoreRequest extends FormRequest
     }
 
     public function messages(): array
-{
-    return [
-        'reseller_id.required' => 'Data customer harus diisi',
-    ];
-}
+    {
+        return [
+            'reseller_id.required' => 'Data customer harus diisi',
+        ];
+    }
 }

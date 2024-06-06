@@ -13,6 +13,7 @@ class MakeOrderDetails
     {
         $rawSoruce = $salesOrder->raw_source;
         $items = collect($rawSoruce['items']);
+
         $productUnits = ProductUnit::withTrashed()->whereIn('id', $items->pluck('product_unit_id'))
             ->with('product', fn ($q) => $q->select('id', 'name', 'product_brand_id', 'product_category_id')
                 ->with([
