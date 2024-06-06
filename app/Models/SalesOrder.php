@@ -204,6 +204,11 @@ class SalesOrder extends Model
         });
     }
 
+    public function scopeWhereInvoice(Builder $query)
+    {
+        $query->where('is_invoice', true);
+    }
+
     public function scopeDetailsHasDO(Builder $query, bool $value = true)
     {
         // if ($value) return $query->whereHas('details', fn ($q) => $q->has('deliveryOrderDetail'));

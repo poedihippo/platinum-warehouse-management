@@ -8,7 +8,6 @@ use App\Http\Requests\Api\Order\OrderStoreRequest;
 use App\Http\Resources\DefaultResource;
 use App\Http\Resources\SalesOrderResource;
 use App\Models\SalesOrder;
-use App\Models\SalesOrderDetail;
 use App\Pipes\Order\CalculateAdditionalDiscount;
 use App\Pipes\Order\CalculateAdditionalFees;
 use App\Pipes\Order\CalculateAutoDiscount;
@@ -19,7 +18,6 @@ use App\Pipes\Order\FillOrderRecords;
 use App\Pipes\Order\MakeOrderDetails;
 use App\Pipes\Order\Spg\ConvertToSO;
 use App\Pipes\Order\Spg\SaveOrder;
-use App\Services\SalesOrderService;
 use Illuminate\Pipeline\Pipeline;
 use Spatie\QueryBuilder\AllowedFilter;
 

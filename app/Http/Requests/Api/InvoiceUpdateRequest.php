@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api;
 
 use App\Enums\SalesOrderType;
+use App\Models\SalesOrder;
 use App\Models\Voucher;
 use App\Rules\TenantedRule;
 use App\Traits\Requests\RequestToBoolean;
@@ -10,9 +11,8 @@ use BenSampo\Enum\Rules\EnumValue;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 
-class InvoiceStoreRequest extends FormRequest
+class InvoiceUpdateRequest extends FormRequest
 {
     use RequestToBoolean;
 
@@ -43,7 +43,6 @@ class InvoiceStoreRequest extends FormRequest
             'additional_discount' => $this->additional_discount ? (int) $this->additional_discount : 0,
             'is_additional_discount_percentage' => $this->toBoolean($this->is_additional_discount_percentage ?? true),
             'items' => $items
-            // 'is_additional_discount_percentage' => isset($this->is_additional_discount_percentage) && !is_null($this->is_additional_discount_percentage) ? $this->toBoolean($this->is_additional_discount_percentage) : true,
         ]);
     }
 
@@ -54,18 +53,17 @@ class InvoiceStoreRequest extends FormRequest
      */
     public function rules()
     {
+        $salesOrder = SalesOrder::whereInvoice()->findOrFail($this->invoice);
+
         return [
             'expected_price' => 'nullable|integer',
             'is_additional_discount_percentage' => 'required|boolean',
-            'type' => ['required', new EnumValue(SalesOrderType::class)],
-            'reseller_id' => [
-                Rule::requiredIf(empty($this->customer_name) && empty($this->customer_phone)),
-                function (string $attribute, mixed $value, Closure $fail) {
-                    if (DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::CustomerEvent)->doesntExist()) {
-                        $fail('Customer Tidak ditemukan');
-                    }
+            'type' => ['nullable', new EnumValue(SalesOrderType::class)],
+            'reseller_id' => ['required', function (string $attribute, mixed $value, Closure $fail) {
+                if (!DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::CustomerEvent)->exists()) {
+                    $fail('Reseller Tidak ditemukan');
                 }
-            ],
+            }],
             'customer_name' => 'required_without:reseller_id',
             'customer_phone' => [
                 'required_without:reseller_id',
@@ -78,32 +76,30 @@ class InvoiceStoreRequest extends FormRequest
                 }
             ],
             'customer_address' => 'nullable|string',
-            'invoice_no' => [
-                'nullable',
-                function (string $attribute, mixed $value, Closure $fail) {
-                    if (DB::table('sales_orders')->whereNull('deleted_at')->where('invoice_no', trim($value))->exists()) {
-                        $fail('Invoice number sudah digunakan');
-                    }
-                }
-            ],
+            // 'invoice_no' => [
+            //     'required',
+            //     function (string $attribute, mixed $value, Closure $fail) use($salesOrder) {
+            //         if (DB::table('sales_orders')->whereNull('deleted_at')->where('id', '!=', $salesOrder->id)->where('invoice_no', trim($value))->exists()) {
+            //             $fail('Invoice number sudah digunakan');
+            //         }
+            //     }
+            // ],
             'warehouse_id' => ['required', new TenantedRule()],
             'transaction_date' => 'required|date_format:Y-m-d H:i:s',
             'shipment_estimation_datetime' => 'required|date_format:Y-m-d H:i:s',
             'shipment_fee' => 'required|integer',
             'additional_discount' => 'required|integer',
-            'voucher_code' => ['nullable', function (string $attribute, mixed $value, Closure $fail) {
+            'voucher_code' => ['nullable', function (string $attribute, mixed $value, Closure $fail) use($salesOrder) {
                 $voucher = Voucher::where('code', $value)->first();
                 if (!$voucher) return $fail('Voucher tidak ditemukan!');
-                if ($voucher?->is_used) return $fail('Voucher sudah digunakan!');
+                // if ($voucher?->is_used) return $fail('Voucher sudah digunakan!');
+                if ($voucher->is_used && ($voucher->id != $salesOrder->voucher_id)) $fail('Voucher sudah digunakan!');
+
             }],
             'description' => 'nullable|string',
-            'items' => [
-                'required',
-                'array',
-                function (string $attribute, mixed $value, Closure $fail) {
-                    if (count($value) <= 0) $fail('items required');
-                }
-            ],
+            'items' => ['required', 'array', function (string $attribute, mixed $value, Closure $fail) {
+                if (count($value) <= 0) $fail('items required');
+            }],
             'items.*.product_unit_id' => 'required|integer|exists:product_units,id',
             'items.*.packaging_id' => 'nullable|integer|exists:product_units,id',
             'items.*.qty' => 'required|integer',

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\InvoiceStoreRequest;
+use App\Http\Requests\Api\InvoiceUpdateRequest;
 use App\Http\Resources\SalesOrderResource;
 use App\Models\SalesOrder;
 use App\Models\StockProductUnit;
@@ -73,6 +74,20 @@ class InvoiceController extends Controller
         }
 
         return new SalesOrderResource($salesOrder);
+    }
+
+    public function update(int $id, InvoiceUpdateRequest $request)
+    {
+        dump($request->validated());
+        $salesOrder = SalesOrder::whereInvoice()->findTenanted($id);
+        dd($salesOrder);
+        // kalo udah settle gabisa diupdate
+        // if (!$salesOrder->details?->every(fn ($salesOrderDetail) => !$salesOrderDetail->deliveryOrderDetail))
+        //     return response()->json(['message' => "DO harus dihapus terlebih dahulu sebelum mengedit SO"], 400);
+
+        $salesOrder->raw_source = $request->validated();
+        $salesOrder = SalesOrderService::updateOrder($salesOrder, (bool) $request->is_preview ?? false);
+        return (new SalesOrderResource($salesOrder))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
     public function destroy(int $id)
