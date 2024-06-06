@@ -126,4 +126,11 @@ class OrderStoreRequest extends FormRequest
             // 'items.*.warehouse_id' => ['required'],
         ];
     }
+
+    public function messages(): array
+{
+    return [
+        'reseller_id.required' => 'Data customer harus diisi',
+    ];
+}
 }
