@@ -19,7 +19,12 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    // 'allowed_origins' => ['*'],
+    'allowed_origins' => [
+        'bejo.platinumadisentosa.com',
+        'localhost:8000',
+        'localhost:3000',
+    ],
 
     'allowed_origins_patterns' => [],
 
