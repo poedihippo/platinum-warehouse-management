@@ -28,7 +28,10 @@ class SalesOrder extends Model
         'voucher_code',
         'voucher_type',
         'voucher_value',
-        'voucher_value_nominal'
+        'voucher_value_nominal',
+
+        'payment_amount',
+        'payment_status',
     ];
 
     protected $hidden = [
@@ -127,6 +130,22 @@ class SalesOrder extends Model
     public function getVoucherValueNominalAttribute()
     {
         return $this->raw_source['voucher_value_nominal'] ?? 0;
+    }
+
+    public function getPaymentAmountAttribute()
+    {
+        return $this->payments?->sum('amount') ?? 0;
+    }
+
+    public function getPaymentStatusAttribute()
+    {
+        if ($this->payment_amount == 0) {
+            return 'none';
+        } elseif ($this->payment_amount >= $this->price) {
+            return 'paid';
+        } else {
+            return 'down_payment';
+        }
     }
 
     // public function deliveryOrder()
