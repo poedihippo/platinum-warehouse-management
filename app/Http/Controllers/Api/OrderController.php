@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\UserType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\Order\ConvertSORequest;
 use App\Http\Requests\Api\Order\OrderStoreRequest;
@@ -148,9 +149,13 @@ class OrderController extends Controller
     public function destroy(SalesOrder $order)
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('order_delete'), 403);
-        if ($salesOrder->deliverySalesOrder?->is_done) return response()->json(['message' => "Can't update SO if DO is already done"], 400);
+        // if ($order->deliverySalesOrder?->is_done) return response()->json(['message' => "Can't update SO if DO is already done"], 400);
+        $user = auth('sanctum')->user();
+        if($user->type->is(UserType::Spg) && $order->spg_id != $user->id){
+            return response()->json(['message' => "Anda tidak dapat menghapus quotation ini"], 400);
+        }
 
-        $salesOrder->delete();
+        $order->forceDelete();
         return $this->deletedResponse();
     }
 

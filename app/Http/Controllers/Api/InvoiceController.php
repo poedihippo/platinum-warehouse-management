@@ -150,23 +150,23 @@ class InvoiceController extends Controller
         // return stock if salesorder is invoice
         DB::beginTransaction();
         try {
-            // $salesOrder->details->each(function ($salesOrderDetail) use ($salesOrder) {
-            //     $stockProductUnit = StockProductUnit::where('warehouse_id', $salesOrderDetail->warehouse_id)
-            //         ->where('product_unit_id', $salesOrderDetail->product_unit_id)
-            //         ->first(['id']);
+            $salesOrder->details->each(function ($salesOrderDetail) use ($salesOrder) {
+                $stockProductUnit = StockProductUnit::where('warehouse_id', $salesOrderDetail->warehouse_id)
+                    ->where('product_unit_id', $salesOrderDetail->product_unit_id)
+                    ->first(['id']);
 
-            //     $salesOrderDetail->histories()->create([
-            //         'user_id' => $salesOrder->user_id,
-            //         'stock_product_unit_id' => $stockProductUnit->id,
-            //         'value' => $salesOrderDetail->qty,
-            //         'is_increment' => 1,
-            //         'description' => "Return stock from delete SO invoice " . $salesOrder->invoice_no,
-            //         'ip' => request()->ip(),
-            //         'agent' => request()->header('user-agent'),
-            //     ]);
-            // });
+                $salesOrderDetail->histories()->create([
+                    'user_id' => $salesOrder->user_id,
+                    'stock_product_unit_id' => $stockProductUnit->id,
+                    'value' => $salesOrderDetail->qty,
+                    'is_increment' => 1,
+                    'description' => "Return stock from delete SO invoice " . $salesOrder->invoice_no,
+                    'ip' => request()->ip(),
+                    'agent' => request()->header('user-agent'),
+                ]);
+            });
 
-            $salesOrder->details->each(fn ($salesOrderDetail) => $salesOrderDetail->histories()->delete());
+            // $salesOrder->details->each(fn ($salesOrderDetail) => $salesOrderDetail->histories()->delete());
             $salesOrder->forceDelete();
             DB::commit();
         } catch (\Exception $e) {
