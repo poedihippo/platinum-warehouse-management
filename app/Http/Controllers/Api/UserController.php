@@ -36,7 +36,7 @@ class UserController extends Controller
             ->allowedFilters([
                 'email', 'phone',
                 'type',
-                AllowedFilter::callback('name', fn ($q, $value) => $q->where('name', 'like', '%' . $value . '%')->orWhere('phone', 'like', '%' . $value . '%')),
+                AllowedFilter::callback('name', fn ($q, $value) => $q->where(fn ($q) => $q->where('name', 'like', '%' . $value . '%')->orWhere('phone', 'like', '%' . $value . '%'))),
                 // AllowedFilter::exact('type'),
                 // AllowedFilter::callback('name', fn ($q, $value) => die($value)),
             ])
