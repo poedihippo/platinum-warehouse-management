@@ -176,4 +176,9 @@ class InvoiceController extends Controller
 
         return SalesOrderService::getSoNumber($warehouse);
     }
+
+    public function bill(string $id)
+    {
+        return SalesOrderService::print($id, 'print-invoice', fn ($q) => $q->where('is_invoice', true));
+    }
 }

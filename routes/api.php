@@ -117,6 +117,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('invoices/get-invoice-no', [InvoiceController::class, 'getInvoiceNo']);
     Route::get('invoices/{salesOrder}/export-xml', [InvoiceController::class, 'exportXml']);
+    Route::get('invoices/{salesOrder}/bill', [InvoiceController::class, 'bill']);
     Route::apiResource('invoices', InvoiceController::class);
 
     Route::get('sales-order-items/{salesOrderDetail}', [SalesOrderItemController::class, 'index']);
