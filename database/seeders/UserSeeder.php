@@ -298,6 +298,10 @@ class UserSeeder extends Seeder
             'payment_edit',
             'payment_delete',
 
+            'adjustment_request_access',
+            'adjustment_request_read',
+            'adjustment_request_create',
+
             'stock_access',
             'stock_read',
             // 'stock_create',

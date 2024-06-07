@@ -29,7 +29,7 @@ class ProductUnitStoreRequest extends FormRequest
         $this->merge([
             'is_generate_qr' => $this->toBoolean($this->is_generate_qr ?? 1),
             'is_auto_tempel' => $this->toBoolean($this->is_auto_tempel ?? 1),
-            'is_ppn' => $this->toBoolean($this->is_auto_tempel ?? 1),
+            'is_ppn' => $this->toBoolean($this->is_ppn ?? 0),
         ]);
     }
 
