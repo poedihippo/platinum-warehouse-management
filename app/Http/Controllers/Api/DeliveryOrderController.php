@@ -170,7 +170,7 @@ class DeliveryOrderController extends Controller
         // $deliveryOrder->load(['reseller', 'details' => fn ($q) => $q->with('salesOrderDetail.productUnit.uom')]);
         $deliveryOrder = DeliveryOrder::with(['reseller', 'details' => fn ($q) => $q->with('salesOrderDetail.productUnit.uom')])->findTenanted($id);
         $deliveryOrderDetailsChunk = $deliveryOrder->details?->chunk(23) ?? collect([]);
-        $pdf = Pdf::setPaper('a4')->loadView('pdf.deliveryOrders.deliveryOrder', ['deliveryOrder' => $deliveryOrder, 'deliveryOrderDetailsChunk' => $deliveryOrderDetailsChunk]);
+        $pdf = Pdf::setPaper('a4', 'portrait')->loadView('pdf.deliveryOrders.deliveryOrder', ['deliveryOrder' => $deliveryOrder, 'deliveryOrderDetailsChunk' => $deliveryOrderDetailsChunk]);
 
         return $pdf->download('delivery-order-' . $deliveryOrder->code . '.pdf');
     }
