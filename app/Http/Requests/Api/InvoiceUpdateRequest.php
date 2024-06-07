@@ -92,7 +92,7 @@ class InvoiceUpdateRequest extends FormRequest
             'voucher_code' => ['nullable', function (string $attribute, mixed $value, Closure $fail) use($salesOrder) {
                 $voucher = Voucher::where('code', $value)->first();
                 if (!$voucher) return $fail('Voucher tidak ditemukan!');
-                if ($voucher->is_used && ($voucher->id != $salesOrder->voucher_id)) $fail('Voucher sudah digunakan!');
+                if ($voucher->is_used && ($voucher->id != $salesOrder->voucher_id)) return $fail('Voucher sudah digunakan!');
 
             }],
             'description' => 'nullable|string',
