@@ -174,7 +174,7 @@ class SalesOrderService
                 })
             ])
             ->allowedSorts(['id', 'invoice_no', 'user_id', 'reseller_id', 'warehouse_id', 'created_at'])
-            ->allowedIncludes(['details', 'warehouse', 'user', 'payments', \Spatie\QueryBuilder\AllowedInclude::callback('voucher', function ($q) {
+            ->allowedIncludes(['details', 'warehouse', 'user', 'spg', 'payments', \Spatie\QueryBuilder\AllowedInclude::callback('voucher', function ($q) {
                 $q->with('category');
             }),])
             ->paginate($perPage);
