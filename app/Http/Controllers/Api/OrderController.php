@@ -105,7 +105,7 @@ class OrderController extends Controller
         }
 
         if (!empty($order->invoice_no)) {
-            return response()->json(['message' => "Invoice sudah diconvert menjadi Sales Order"], 400);
+            return response()->json(['message' => "Quotation sudah diconvert menjadi Invoice"], 400);
         }
 
         $order->raw_source = $request->validated();
@@ -161,7 +161,7 @@ class OrderController extends Controller
         }
 
         if (!empty($order->invoice_no)) {
-            return response()->json(['message' => "Invoice sudah diconvert menjadi Sales Order. Tidak dapat dihapus"], 400);
+            return response()->json(['message' => "Quotation sudah diconvert menjadi Invoice. Tidak dapat dihapus"], 400);
         }
 
         $order->forceDelete();

@@ -89,6 +89,8 @@ class InvoiceController extends Controller
     public function update(int $id, InvoiceUpdateRequest $request)
     {
         $salesOrder = SalesOrder::whereInvoice()->findTenanted($id);
+        if ($salesOrder->payment_status == 'paid') return response()->json(['message' => "Invoice sudah lunas tidak dapat diupdate"], 400);
+        if (empty($salesOrder->invoice_no)) return response()->json(['message' => "Konversi ke invoice terlebih dahulu untuk dapat mengedit."], 400);
 
         // kalo udah settle gabisa diupdate
         if ($salesOrder->payment_status == 'paid') {
