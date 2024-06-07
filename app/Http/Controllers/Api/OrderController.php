@@ -99,6 +99,11 @@ class OrderController extends Controller
 
     public function convertSalesOrder(SalesOrder $order, ConvertSORequest $request)
     {
+        $user = auth('sanctum')->user();
+        if ($user->type->is(UserType::Spg)) {
+            return response()->json(['message' => "Anda tidak dapat mengkonversi invoice ini"], 400);
+        }
+
         if (!empty($order->invoice_no)) {
             return response()->json(['message' => "Invoice sudah diconvert menjadi Sales Order"], 400);
         }
@@ -151,8 +156,12 @@ class OrderController extends Controller
         // abort_if(!auth('sanctum')->user()->tokenCan('order_delete'), 403);
         // if ($order->deliverySalesOrder?->is_done) return response()->json(['message' => "Can't update SO if DO is already done"], 400);
         $user = auth('sanctum')->user();
-        if($user->type->is(UserType::Spg) && $order->spg_id != $user->id){
-            return response()->json(['message' => "Anda tidak dapat menghapus quotation ini"], 400);
+        if ($user->type->is(UserType::Spg) && $order->spg_id != $user->id) {
+            return response()->json(['message' => "Anda tidak dapat menghapus invoice ini"], 400);
+        }
+
+        if (!empty($order->invoice_no)) {
+            return response()->json(['message' => "Invoice sudah diconvert menjadi Sales Order. Tidak dapat dihapus"], 400);
         }
 
         $order->forceDelete();
