@@ -82,7 +82,7 @@ class SalesOrderController extends Controller
     {
         $userDiscounts = UserDiscount::select('product_brand_id', 'value', 'is_percentage')->where('user_id', $request->customer_id)->get();
 
-        $query = StockProductUnit::select('id', 'warehouse_id', 'product_unit_id')
+        $query = StockProductUnit::select('id', 'warehouse_id', 'product_unit_id')->has('productUnit')
             ->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')])
             ->with([
                 'warehouse' => fn ($q) => $q->select('id', 'code'),

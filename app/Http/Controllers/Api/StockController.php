@@ -41,7 +41,7 @@ class StockController extends Controller
     public function index()
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('stock_access'), 403);
-        $stockProductUnits = QueryBuilder::for(StockProductUnit::tenanted()->with(['warehouse', 'productUnit'])->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')]))
+        $stockProductUnits = QueryBuilder::for(StockProductUnit::tenanted()->has('productUnit')->with(['warehouse', 'productUnit'])->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')]))
             ->allowedFilters([
                 AllowedFilter::exact('id'),
                 AllowedFilter::exact('warehouse_id'),

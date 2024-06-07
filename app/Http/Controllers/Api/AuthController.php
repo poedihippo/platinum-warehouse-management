@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\PersonalAccessToken;
+use App\Models\ProductUnit;
+use App\Models\StockProductUnit;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -66,6 +68,20 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
+        $productUnits = ProductUnit::get(['id', 'code']);
+        foreach ($productUnits as $productUnit) {
+            $stockProductUnit = StockProductUnit::where('product_unit_id', $productUnit->id)->whereHas('stocks')->first();
+            if (!$stockProductUnit) {
+                $productUnit->update([
+                    'deleted_at' => now()
+                ]);
+
+                StockProductUnit::where('product_unit_id', $productUnit->id)->update([
+                    'deleted_at' => now()
+                ]);
+            }
+        }
+        die('mantullll');
         $this->validate($request, [
             'name' => 'required',
             'email' => 'required|email|unique:users,email',
