@@ -254,7 +254,7 @@ class SalesOrderService
 
         if ($salesOrder->voucher_id) {
             $message .= PHP_EOL;
-            $message .= "Voucher                        : *Rp " . number_format((float) $salesOrder->raw_source['voucher_value'] ?? 0, 0, ',', '.') . "*";
+            $message .= "Voucher                        : *Rp " . number_format((float) $salesOrder->voucher_value_nominal ?? 0, 0, ',', '.') . "*";
         }
 
         if ($salesOrder->additional_discount > 0) {
