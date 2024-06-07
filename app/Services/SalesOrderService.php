@@ -217,9 +217,9 @@ class SalesOrderService
         $spellTotalPrice = \NumberToWords\NumberToWords::transformNumber('en', $salesOrder->price);
         $bankTransferInfo = \App\Services\SettingService::bankTransferInfo();
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::setPaper('a4', 'landscape')->loadView($view, ['salesOrder' => $salesOrder, 'salesOrderDetails' => $salesOrderDetails, 'maxProductsBlackSpace' => $maxProductsBlackSpace, 'lastOrderDetailsKey' => $lastOrderDetailsKey, 'spellTotalPrice' => $spellTotalPrice, 'bankTransferInfo' => $bankTransferInfo]);
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::setPaper('a4')->loadView($view, ['salesOrder' => $salesOrder, 'salesOrderDetails' => $salesOrderDetails, 'maxProductsBlackSpace' => $maxProductsBlackSpace, 'lastOrderDetailsKey' => $lastOrderDetailsKey, 'spellTotalPrice' => $spellTotalPrice, 'bankTransferInfo' => $bankTransferInfo]);
 
-        return $pdf->download('sales-order-' . $salesOrder->invoice_no . '.pdf');
+        return $pdf->setPaper('a4', 'portrait')->download('sales-order-' . $salesOrder->invoice_no . '.pdf');
     }
 
     public static function exportXml(int $id, ?callable $query = null)
