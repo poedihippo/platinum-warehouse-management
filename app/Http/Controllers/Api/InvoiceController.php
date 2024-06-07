@@ -152,7 +152,6 @@ class InvoiceController extends Controller
         try {
 
             if (!empty($salesOrder->invoice_no)) {
-                die('oke');
                 $salesOrder->details->each(function ($salesOrderDetail) use ($salesOrder) {
                     $stockProductUnit = StockProductUnit::where('warehouse_id', $salesOrderDetail->warehouse_id)
                         ->where('product_unit_id', $salesOrderDetail->product_unit_id)
