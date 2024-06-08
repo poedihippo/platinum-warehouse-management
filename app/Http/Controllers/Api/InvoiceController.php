@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exports\InvoiceExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\InvoiceStoreRequest;
 use App\Http\Requests\Api\InvoiceUpdateRequest;
@@ -22,6 +23,7 @@ use App\Services\SalesOrderService;
 use Illuminate\Pipeline\Pipeline;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class InvoiceController extends Controller
 {
@@ -210,5 +212,10 @@ class InvoiceController extends Controller
     public function bill(string $id)
     {
         return SalesOrderService::print($id, 'print-invoice', fn ($q) => $q->where('is_invoice', true));
+    }
+
+    public function export()
+    {
+        return Excel::download(new InvoiceExport, 'invoices.xlsx');
     }
 }
