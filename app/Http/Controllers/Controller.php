@@ -16,7 +16,7 @@ class Controller extends BaseController
     public function __construct()
     {
         $perPage = (int) request()->per_page;
-        $this->per_page = $perPage > 0 ? $perPage : 30;
+        $this->per_page = $perPage > 0 ? $perPage : 15;
     }
 
     public function createdResponse(string $message = null)
