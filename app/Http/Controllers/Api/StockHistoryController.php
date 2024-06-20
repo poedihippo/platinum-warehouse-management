@@ -36,6 +36,6 @@ class StockHistoryController extends Controller
 
     public function export(StockHistoryExport $request)
     {
-        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\StockHistoryExport($request->start_date, $request->end_date), 'stock history - ' . date('Y-m-d H:i') . '.xlsx');
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\StockHistoryExport($request->start_date, $request->end_date), 'stock history ' . $request->start_date . ' sd ' . $request->end_date . '.xlsx');
     }
 }
