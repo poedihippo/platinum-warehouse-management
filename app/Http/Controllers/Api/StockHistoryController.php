@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\StockHistory\StockHistoryExport;
 use App\Http\Resources\StockHistoryResource;
 use App\Models\StockHistory;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -31,5 +32,10 @@ class StockHistoryController extends Controller
             ->paginate($this->per_page);
 
         return StockHistoryResource::collection($stockHistories);
+    }
+
+    public function export(StockHistoryExport $request)
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\StockHistoryExport($request->start_date, $request->end_date), 'stock history - ' . date('Y-m-d H:i') . '.xlsx');
     }
 }

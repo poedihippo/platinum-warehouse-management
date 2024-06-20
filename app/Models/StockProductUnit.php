@@ -23,6 +23,11 @@ class StockProductUnit extends Model
         return $this->morphMany(StockHistory::class, 'model');
     }
 
+    public function stockHistories(): HasMany
+    {
+        return $this->hasMany(StockHistory::class, 'stock_product_unit_id');
+    }
+
     public function stocks(): HasMany
     {
         return $this->hasMany(Stock::class);

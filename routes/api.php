@@ -168,7 +168,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('stock-opnames/{stockOpname}/set-done', [StockOpnameController::class, 'setDone']);
     Route::apiResource('stock-opnames', StockOpnameController::class);
 
-    Route::apiResource('stock-histories', StockHistoryController::class);
+    // Route::apiResource('stock-histories', StockHistoryController::class);
+    Route::get('stock-histories/export', [StockHistoryController::class, 'export']);
+    Route::get('stock-histories', [StockHistoryController::class, 'index']);
 
     Route::apiResource('settings', SettingController::class)->only(['index', 'update']);
 
