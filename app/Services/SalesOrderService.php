@@ -157,7 +157,8 @@ class SalesOrderService
             SalesOrder::tenanted()->withCount('details')->when($query, $query)
         )
             ->allowedFilters([
-                'invoice_no', 'is_invoice',
+                'invoice_no',
+                'is_invoice',
                 AllowedFilter::exact('user_id'),
                 AllowedFilter::exact('reseller_id'),
                 AllowedFilter::exact('spg_id'),
@@ -168,9 +169,9 @@ class SalesOrderService
                 AllowedFilter::scope('end_date'),
                 AllowedFilter::callback('search', function ($q, $value) {
                     $q->where('invoice_no', 'like', '%' . $value . '%')
-                        ->orWhereHas('user', fn ($q) => $q->where('name', 'like', '%' . $value . '%'))
-                        ->orWhereHas('reseller', fn ($q) => $q->where('name', 'like', '%' . $value . '%'))
-                        ->orWhereHas('spg', fn ($q) => $q->where('name', 'like', '%' . $value . '%'));
+                        ->orWhereHas('user', fn($q) => $q->where('name', 'like', '%' . $value . '%'))
+                        ->orWhereHas('reseller', fn($q) => $q->where('name', 'like', '%' . $value . '%'))
+                        ->orWhereHas('spg', fn($q) => $q->where('name', 'like', '%' . $value . '%'));
                 })
             ])
             ->allowedSorts(['id', 'invoice_no', 'user_id', 'reseller_id', 'warehouse_id', 'created_at'])
@@ -186,10 +187,12 @@ class SalesOrderService
     {
         $salesOrder = SalesOrder::when($query, $query)->findTenanted($id);
         return $salesOrder->load([
-            'voucher.category', 'payments', 'warehouse',
-            'details' => fn ($q) => $q->with(['warehouse', 'packaging']),
-            'user' => fn ($q) => $q->select('id', 'name', 'type'),
-            'reseller' => fn ($q) => $q->select('id', 'name', 'type', 'type', 'email', 'phone', 'address'),
+            'voucher.category',
+            'payments',
+            'warehouse',
+            'details' => fn($q) => $q->with(['warehouse', 'packaging']),
+            'user' => fn($q) => $q->select('id', 'name', 'type'),
+            'reseller' => fn($q) => $q->select('id', 'name', 'type', 'type', 'email', 'phone', 'address'),
         ])->loadCount('details');
     }
 
@@ -206,7 +209,7 @@ class SalesOrderService
 
         $salesOrder->load([
             'reseller',
-            'details' => fn ($q) => $q->with('productUnit.product'),
+            'details' => fn($q) => $q->with('productUnit.product'),
         ])->loadSum('payments', 'amount');
 
         $salesOrderDetails = $salesOrder->details->chunk(10);
@@ -225,7 +228,7 @@ class SalesOrderService
     public static function exportXml(int $id, ?callable $query = null)
     {
         $salesOrder = SalesOrder::when($query, $query)->findTenanted($id);
-        $salesOrder->load(['reseller', 'details' => fn ($q) => $q->with('packaging', 'productUnit')]);
+        $salesOrder->load(['reseller', 'details' => fn($q) => $q->with('packaging', 'productUnit')]);
         return response(view('xml.salesOrders.salesOrder')->with(compact('salesOrder')), 200, [
             'Content-Type' => 'application/xml',
             // use your required mime type
@@ -294,7 +297,7 @@ class SalesOrderService
         $lastInoviceNo = SalesOrder::where('is_invoice', true)
             ->whereDate('created_at', date('Y-m-d'))
             ->where('warehouse_id', $warehouse->id)
-            ->where('invoice_no', 'like', '%NUSATIC%')
+            ->where('invoice_no', 'like', '%' . config('app.format_invoice_prefix') . '%')
             ->orderByDesc('invoice_no')
             ->first(['invoice_no']);
 
