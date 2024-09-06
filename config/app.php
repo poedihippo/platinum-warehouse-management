@@ -221,7 +221,7 @@ return [
         // ],
         [
             'value' => 0,
-            'discount' => 0
+            'discount' => 10
         ]
     ]
 ];
