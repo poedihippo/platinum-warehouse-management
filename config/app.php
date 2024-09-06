@@ -213,7 +213,7 @@ return [
         // 'ExampleClass' => App\Example\ExampleClass::class,
     ])->toArray(),
     'start_invoice_no' => env('START_INVOICE_NO', 90),
-    'format_invoice_no' => env('FORMAT_INVOICE_NO', "NUSATIC-%s/%s/%s/%s/%s"),
+    'format_invoice_no' => env('FORMAT_INVOICE_NO', "IIPE-%s/%s/%s/%s/%s"),
     'min_trx_auto_discount' => [
         // [
         //     'value' => 2499999,
