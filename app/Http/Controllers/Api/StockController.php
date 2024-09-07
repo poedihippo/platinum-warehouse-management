@@ -66,7 +66,7 @@ class StockController extends Controller
             $query = Stock::tenanted()->whereNotNull('parent_id');
         } else {
             // $query = Stock::tenanted()->whereNull('parent_id');
-            $query = Stock::tenanted()->query();
+            $query = Stock::tenanted();
         }
 
         if (isset($filter) && !empty($filter['is_show_group']) && $filter['is_show_group'] == 1) {
