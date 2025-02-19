@@ -451,6 +451,7 @@ class StockController extends Controller
     public function setToPrintingQueue(VerifyRequest $request)
     {
         Stock::whereIn('id', $request->stocks)->update([
+            'printed_at' => null,
             'in_printing_queue' => 1,
         ]);
 
