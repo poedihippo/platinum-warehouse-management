@@ -6,6 +6,7 @@ use App\Exports\StockExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StockRecordRequest;
 use App\Http\Requests\Api\StockRepackRequest;
+use App\Http\Requests\Api\Stock\VerifyRequest;
 use App\Http\Resources\StockProductUnitResource;
 use App\Http\Resources\Stocks\BaseStockResource;
 use App\Http\Resources\Stocks\StockProductUnitResource as StocksStockProductUnitResource;
@@ -41,7 +42,7 @@ class StockController extends Controller
     public function index()
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('stock_access'), 403);
-        $stockProductUnits = QueryBuilder::for(StockProductUnit::tenanted()->has('productUnit')->with(['warehouse', 'productUnit'])->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')]))
+        $stockProductUnits = QueryBuilder::for(StockProductUnit::tenanted()->has('productUnit')->with(['warehouse', 'productUnit'])->withCount(['stocks' => fn($q) => $q->whereAvailableStock()->whereNull('description')]))
             ->allowedFilters([
                 AllowedFilter::exact('id'),
                 AllowedFilter::exact('warehouse_id'),
@@ -89,9 +90,10 @@ class StockController extends Controller
                 AllowedFilter::scope('end_date'),
                 AllowedFilter::callback('show_all', function (\Illuminate\Database\Eloquent\Builder $query, $value) {
                     if (!$value == 0) $query->whereAvailableStock();
-                })
+                }),
+                'in_printing_queue',
             ])
-            ->allowedSorts(['scanned_count', 'scanned_datetime', 'warehouse_id', 'created_at'])
+            ->allowedSorts(['in_printing_queue', 'printed_at', 'scanned_count', 'scanned_datetime', 'warehouse_id', 'created_at'])
             // ->allowedIncludes(['productUnit', 'warehouse', 'receiveOrderDetail'])
             ->paginate($this->per_page);
 
@@ -103,7 +105,7 @@ class StockController extends Controller
         // abort_if(!auth('sanctum')->user()->tokenCan('stock_access'), 403);
         $stock = Stock::findTenanted($id);
         return new StocksStockProductUnitResource($stock->load([
-            'stockProductUnit' => fn ($q) => $q->tenanted()->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')]),
+            'stockProductUnit' => fn($q) => $q->tenanted()->withCount(['stocks' => fn($q) => $q->whereAvailableStock()->whereNull('description')]),
             'receiveOrderDetail'
         ]));
     }
@@ -432,5 +434,40 @@ class StockController extends Controller
     public function export()
     {
         return Excel::download(new StockExport, 'stock-' . date('Y-m-d H:i') . '.xlsx');
+    }
+
+    public function setToPrinted(VerifyRequest $request)
+    {
+        Stock::whereIn('id', $request->stocks)->update([
+            'printed_at' => now(),
+            'in_printing_queue' => 0,
+        ]);
+
+        return response()->json([
+            'message' => count($request->stocks) . ' stocks set to printed successfully',
+        ]);
+    }
+
+    public function setToPrintingQueue(VerifyRequest $request)
+    {
+        Stock::whereIn('id', $request->stocks)->update([
+            'in_printing_queue' => 1,
+        ]);
+
+        return response()->json([
+            'message' => count($request->stocks) . ' stocks added to printing queue',
+        ]);
+    }
+
+    public function printVerification(VerifyRequest $request)
+    {
+        Stock::whereIn('id', $request->stocks)->update([
+            'printed_at' => now(),
+            'in_printing_queue' => 0,
+        ]);
+
+        return response()->json([
+            'message' => count($request->stocks) . ' stocks scanned successfully',
+        ]);
     }
 }

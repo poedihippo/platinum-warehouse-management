@@ -19,12 +19,13 @@ class Stock extends Model
     protected $guarded = [];
     protected $casts = [
         'scanned_count' => 'integer',
-        'is_tempel' => 'boolean'
+        'is_tempel' => 'boolean',
+        'in_printing_queue' => 'boolean'
     ];
 
     public function scopeTenanted(Builder $query)
     {
-        $query->whereHas('stockProductUnit', fn ($q) => $q->tenanted());
+        $query->whereHas('stockProductUnit', fn($q) => $q->tenanted());
     }
 
     public function scopeFindTenanted(Builder $query, int|string $id, array $columns = ['*'], bool $fail = true): self
