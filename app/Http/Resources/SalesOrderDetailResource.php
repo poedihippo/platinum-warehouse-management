@@ -20,7 +20,7 @@ class SalesOrderDetailResource extends JsonResource
                 'warehouse' => new WarehouseResource($this->whenLoaded('warehouse')),
                 'sales_order' => new SalesOrderResource($this->whenLoaded('salesOrder')),
                 'packaging' => new SalesOrderResource($this->whenLoaded('packaging')),
-                'product_unit' => new ProductUnitResource($this->productUnit->load('packaging')),
+                'product_unit' => new ProductUnitResource($this->productUnit?->load('packaging')),
             ]
         );
     }

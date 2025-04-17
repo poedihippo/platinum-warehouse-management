@@ -42,6 +42,7 @@ class SalesOrderController extends Controller
 
     public function store(SalesOrderStoreRequest $request)
     {
+        // dd($request->validated());
         $salesOrder = SalesOrderService::createOrder(SalesOrder::make(['raw_source' => $request->validated()]), (bool) $request->is_preview ?? false);
         return new SalesOrderResource($salesOrder);
     }
@@ -49,7 +50,7 @@ class SalesOrderController extends Controller
     public function update(int $id, SalesOrderUpdateRequest $request)
     {
         $salesOrder = SalesOrder::findTenanted($id);
-        if (!$salesOrder->details?->every(fn ($salesOrderDetail) => !$salesOrderDetail->deliveryOrderDetail))
+        if (!$salesOrder->details?->every(fn($salesOrderDetail) => !$salesOrderDetail->deliveryOrderDetail))
             return response()->json(['message' => "DO harus dihapus terlebih dahulu sebelum mengedit SO"], 400);
 
         $salesOrder->raw_source = $request->validated();
@@ -83,18 +84,18 @@ class SalesOrderController extends Controller
         $userDiscounts = UserDiscount::select('product_brand_id', 'value', 'is_percentage')->where('user_id', $request->customer_id)->get();
 
         $query = StockProductUnit::select('id', 'warehouse_id', 'product_unit_id')->has('productUnit')
-            ->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')])
+            ->withCount(['stocks' => fn($q) => $q->whereAvailableStock()->whereNull('description')])
             ->with([
-                'warehouse' => fn ($q) => $q->select('id', 'code'),
+                'warehouse' => fn($q) => $q->select('id', 'code'),
                 'productUnit' => function ($q) {
                     $q->select('id', 'uom_id', 'product_id', 'packaging_id', 'name', 'price', 'is_ppn')
                         ->with([
-                            'uom' => fn ($q) => $q->select('id', 'name'),
-                            'product' => fn ($q) => $q->select('id', 'name', 'product_brand_id'),
+                            'uom' => fn($q) => $q->select('id', 'name'),
+                            'product' => fn($q) => $q->select('id', 'name', 'product_brand_id'),
                         ]);
                 },
-            ])
-            ->having('stocks_count', '>', 0);
+            ]);
+            // ->having('stocks_count', '>', 0);
 
         $stockProductUnits = QueryBuilder::for($query)
             ->allowedFilters([

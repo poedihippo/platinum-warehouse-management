@@ -16,6 +16,7 @@ use App\Models\Stock;
 use App\Models\StockProductUnit;
 use App\Services\SalesOrderService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -155,9 +156,9 @@ class DeliveryOrderController extends Controller
                 }
             });
             DB::commit();
-        } catch (\Throwable $th) {
+        } catch (Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => $th->getMessage()], 500);
+            return response()->json(['message' => $e->getMessage()], 500);
         }
 
         return $this->deletedResponse();
@@ -255,9 +256,9 @@ class DeliveryOrderController extends Controller
 
                 SalesOrderService::countFulfilledQty($salesOrderDetail);
                 DB::commit();
-            } catch (\Throwable $th) {
+            } catch (Exception $e) {
                 DB::rollBack();
-                return response()->json(['message' => $th->getMessage()], 500);
+                return response()->json(['message' => $e->getMessage()], 500);
             }
         } else {
             // 6. insert stock_id ke sales_order_items. jika stock grouping, insert childs nya
@@ -269,9 +270,9 @@ class DeliveryOrderController extends Controller
 
                 SalesOrderService::countFulfilledQty($salesOrderDetail);
                 DB::commit();
-            } catch (\Throwable $th) {
+            } catch (Exception $e) {
                 DB::rollBack();
-                return response()->json(['message' => $th->getMessage()], 500);
+                return response()->json(['message' => $e->getMessage()], 500);
             }
         }
 
@@ -284,8 +285,10 @@ class DeliveryOrderController extends Controller
         $request->validate(['is_done' => 'required|boolean']);
 
         $deliveryOrder = DeliveryOrder::findTenanted($id, ['id', 'is_done', 'invoice_no']);
-        if (!$deliveryOrder->details->every(fn ($detail) => $detail->salesOrderDetail?->salesOrderItems?->count() >= $detail->salesOrderDetail?->qty))
-            return response()->json(['message' => 'Semua data delivery order harus terpenuhi'], 400);
+
+        // matiin dulu disuruh bu kur
+        // if (!$deliveryOrder->details->every(fn ($detail) => $detail->salesOrderDetail?->salesOrderItems?->count() >= $detail->salesOrderDetail?->qty))
+        //     return response()->json(['message' => 'Semua data delivery order harus terpenuhi'], 400);
 
         DB::beginTransaction();
         try {
@@ -334,9 +337,9 @@ class DeliveryOrderController extends Controller
                 }
             });
             DB::commit();
-        } catch (\Throwable $th) {
+        } catch (Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => $th->getMessage()], 500);
+            return response()->json(['message' => $e->getMessage()], 500);
         }
 
         $message = 'Data set as ' . ($deliveryOrder->is_done ? 'Done' : 'Pending');
