@@ -220,9 +220,9 @@ return [
         //     'value' => 2499999,
         //     'discount' => 0
         // ],
-        [
-            'value' => 0,
-            'discount' => 10
-        ]
+        // [
+        //     'value' => 0,
+        //     'discount' => 10
+        // ]
     ]
 ];
