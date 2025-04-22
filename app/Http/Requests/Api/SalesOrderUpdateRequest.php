@@ -39,7 +39,8 @@ class SalesOrderUpdateRequest extends FormRequest
      */
     public function rules()
     {
-        $salesOrder = $this->sales_order;
+        $salesOrderId = $this->sales_order;
+
         return [
             'expected_price' => 'nullable|integer',
             'type' => ['nullable', new EnumValue(SalesOrderType::class)],
@@ -50,8 +51,8 @@ class SalesOrderUpdateRequest extends FormRequest
             }],
             'invoice_no' => [
                 'nullable',
-                function (string $attribute, mixed $value, Closure $fail) use($salesOrder) {
-                    if (DB::table('sales_orders')->whereNull('deleted_at')->where('id', '!=', $salesOrder->id)->where('invoice_no', trim($value))->exists()) {
+                function (string $attribute, mixed $value, Closure $fail) use($salesOrderId) {
+                    if (DB::table('sales_orders')->whereNull('deleted_at')->where('id', '!=', $salesOrderId)->where('invoice_no', trim($value))->exists()) {
                         $fail('Invoice number sudah digunakan');
                     }
                 }
