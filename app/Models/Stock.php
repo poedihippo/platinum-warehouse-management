@@ -71,7 +71,7 @@ class Stock extends Model
     {
         return Attribute::make(
             get: function (string $value) {
-                return null;
+                return "";
                 // if (is_null($value) || $value == '') return null;
                 // if (config('app.env') === 'production') return Storage::temporaryUrl($value, now()->addMinutes(5));
 
