@@ -42,7 +42,6 @@ class SalesOrderController extends Controller
 
     public function store(SalesOrderStoreRequest $request)
     {
-        // dd($request->validated());
         $salesOrder = SalesOrderService::createOrder(SalesOrder::make(['raw_source' => $request->validated()]), (bool) $request->is_preview ?? false);
         return new SalesOrderResource($salesOrder);
     }
@@ -95,7 +94,7 @@ class SalesOrderController extends Controller
                         ]);
                 },
             ]);
-            // ->having('stocks_count', '>', 0);
+        // ->having('stocks_count', '>', 0);
 
         $stockProductUnits = QueryBuilder::for($query)
             ->allowedFilters([

@@ -151,6 +151,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('stocks/print-verification', [StockController::class, 'printVerification']);
     Route::post('stocks/record', [StockController::class, 'record']);
     Route::post('stocks/grouping', [StockController::class, 'grouping']);
+    Route::post('stocks/grouping-by-scan', [StockController::class, 'groupingByScan']);
     Route::post('stocks/{stock}/ungrouping', [StockController::class, 'ungrouping']);
     Route::post('stocks/{stock}/repack', [StockController::class, 'repack']);
     Route::apiResource('stocks', StockController::class);

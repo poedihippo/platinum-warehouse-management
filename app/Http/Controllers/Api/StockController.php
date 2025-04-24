@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Exports\StockExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\Stock\GroupingByScanRequest;
+use App\Http\Requests\Api\Stock\GroupingRequest;
 use App\Http\Requests\Api\StockRecordRequest;
 use App\Http\Requests\Api\StockRepackRequest;
 use App\Http\Requests\Api\Stock\VerifyRequest;
@@ -15,6 +17,7 @@ use App\Models\AdjustmentRequest;
 use App\Models\ReceiveOrderDetail;
 use App\Models\Stock;
 use App\Models\StockProductUnit;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -127,18 +130,48 @@ class StockController extends Controller
         return $this->deletedResponse();
     }
 
-    public function grouping(Request $request)
+    public function groupingByScan(GroupingByScanRequest $request)
+    {
+        $stockProductUnit = StockProductUnit::findTenanted($request->stock_product_unit_id);
+        $totalStock = $stockProductUnit->stocks()->whereNull('parent_id')->doesntHave('childs')->count() ?? 0;
+
+        if ($totalStock == 0 || $totalStock < count($request->ids)) {
+            return response()->json(['message' => 'Stock tidak mencukupi'], 400);
+        }
+
+        $productUnit = $stockProductUnit->productUnit;
+
+        //cari nama grouping berdasarkan self::FORMAT_GROUPING
+        $description = $request->name;
+        if (!$description) {
+            $lastGroupName = $stockProductUnit->stocks()->whereNull('parent_id')->has('childs')->whereMonth('stocks.created_at', date('m'))->whereYear('stocks.created_at', date('Y'))->orderByDesc('description')->first(['description'])?->description ?? "";
+            $lastOrderNumberGroup = explode(" ", $lastGroupName);
+            $lastOrderNumberGroup = $lastOrderNumberGroup[1] ?? "";
+            if ($lastOrderNumberGroup) {
+                $lastOrderNumberGroup = (int) substr($lastOrderNumberGroup, -3);
+            } else {
+                $lastOrderNumberGroup = 000;
+            }
+
+            $formatMMYY = date('my');
+            $description = sprintf(self::FORMAT_GROUPING, $productUnit->code, $formatMMYY, sprintf('%03d', (int) $lastOrderNumberGroup + 1));
+        }
+
+        DB::transaction(function () use ($request, $stockProductUnit, $description) {
+            $groupStock = Stock::create([
+                'stock_product_unit_id' => $stockProductUnit->id,
+                'description' => $description,
+            ]);
+
+            Stock::whereIn('id', $request->ids)->update(['parent_id' => $groupStock->id]);
+        });
+
+        return response()->json(['message' => 'Group stock berhasil dibuat'], 201);
+    }
+
+    public function grouping(GroupingRequest $request)
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('stock_grouping'), 403);
-
-        $request->validate([
-            'total_group' => 'required|integer|gt:0',
-            'qty' => 'required|integer|gt:0',
-            // 'warehouse_id' => 'required|exists:warehouses,id',
-            'stock_product_unit_id' => 'required_without:receive_order_detail_id|missing_with:receive_order_detail_id|exists:stock_product_units,id',
-            'receive_order_detail_id' => 'required_without:stock_product_unit_id|missing_with:stock_product_unit_id|exists:receive_order_details,id',
-        ]);
-
         $totalQtyGrouping = $request->total_group * $request->qty;
         $receiveOrderDetailId = $request->receive_order_detail_id ?? null;
 
@@ -160,15 +193,10 @@ class StockController extends Controller
 
             //cari nama grouping berdasarkan self::FORMAT_GROUPING
             $lastGroupName = $stockProductUnit->stocks()->whereNull('parent_id')->has('childs')->whereMonth('stocks.created_at', date('m'))->whereYear('stocks.created_at', date('Y'))->orderByDesc('description')->first(['description'])?->description ?? "";
-            // dd($lastGroupName);
             $lastOrderNumberGroup = explode(" ", $lastGroupName);
             $lastOrderNumberGroup = $lastOrderNumberGroup[1] ?? "";
             if ($lastOrderNumberGroup) {
-                // dump($lastOrderNumberGroup);
                 $lastOrderNumberGroup = (int) substr($lastOrderNumberGroup, -3);
-                // dump($lastOrderNumberGroup);
-                // $ee = sprintf('%03d', (int) $lastOrderNumberGroup + 1);
-                // dd($ee);
             } else {
                 $lastOrderNumberGroup = 000;
             }
@@ -257,9 +285,9 @@ class StockController extends Controller
             $stock->delete();
             Stock::where('parent_id', $stock->id)->update(['parent_id' => null]);
             DB::commit();
-        } catch (\Throwable $th) {
+        } catch (Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => $th->getMessage()], 400);
+            return response()->json(['message' => $e->getMessage()], 400);
         }
 
         return response()->json(['message' => 'success']);
@@ -333,9 +361,9 @@ class StockController extends Controller
                     DB::table('stocks')->where($columnName, $value)->increment('scanned_count', 1, ['scanned_datetime' => $time]);
                 }
                 DB::commit();
-            } catch (\Throwable $th) {
+            } catch (Exception $e) {
                 DB::rollBack();
-                return response()->json(['message' => $th->getMessage()], 400);
+                return response()->json(['message' => $e->getMessage()], 400);
             }
 
             return response()->json(['message' => 'Data berhasil diupdate']);
@@ -423,9 +451,9 @@ class StockController extends Controller
                 'created_at' => $createdAt,
             ]);
             DB::commit();
-        } catch (\Throwable $th) {
+        } catch (Exception $e) {
             DB::rollBack();
-            return response()->json(["message" => $th->getMessage()], 500);
+            return response()->json(["message" => $e->getMessage()], 500);
         }
 
         return response()->json(["message" => sprintf("Berhasil me-repack %s ke %s sebanyak %d", $stock->stockProductUnit->productUnit?->name ?? "", $stockProductUnit->productUnit?->name ?? "", $qty)]);
