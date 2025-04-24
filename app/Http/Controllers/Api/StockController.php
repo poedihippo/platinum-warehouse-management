@@ -20,9 +20,7 @@ use App\Models\StockProductUnit;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -240,17 +238,17 @@ class StockController extends Controller
                 'description' => $description,
             ]);
 
-            $data = QrCode::size(350)
-                ->format('png')
-                // ->merge(public_path('images/logo-platinum.png'), absolute: true)
-                ->generate($groupStock->id);
+            // $data = QrCode::size(350)
+            //     ->format('png')
+            //     // ->merge(public_path('images/logo-platinum.png'), absolute: true)
+            //     ->generate($groupStock->id);
 
-            $folder = 'qrcode/';
-            $fileName = 'group/' . $groupStock->id . '.png';
-            $fullPath = $folder . $fileName;
-            Storage::put($fullPath, $data);
+            // $folder = 'qrcode/';
+            // $fileName = 'group/' . $groupStock->id . '.png';
+            // $fullPath = $folder . $fileName;
+            // Storage::put($fullPath, $data);
 
-            $groupStock->update(['qr_code' => $fullPath]);
+            // $groupStock->update(['qr_code' => $fullPath]);
 
             // $stocks = Stock::tenanted()->where('product_unit_id', $productUnit->id)->where('warehouse_id', $warehouseId)->whereNull('parent_id')->where('id', '<>', $groupStock->id)->doesntHave('childs');
 

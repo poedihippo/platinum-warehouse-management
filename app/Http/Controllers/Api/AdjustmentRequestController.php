@@ -10,10 +10,8 @@ use App\Models\Stock;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class AdjustmentRequestController extends Controller
 {
@@ -106,16 +104,16 @@ class AdjustmentRequestController extends Controller
 
                             // $logo = public_path('images/logo-platinum.png');
 
-                            $data = QrCode::size(350)
-                                ->format('png')
-                                // ->merge($logo, absolute: true)
-                                ->generate($stock->id);
+                            // $data = QrCode::size(350)
+                            //     ->format('png')
+                            //     // ->merge($logo, absolute: true)
+                            //     ->generate($stock->id);
 
-                            $fileName = $adjustmentRequest->id . '/' . $stock->id . '.png';
-                            $fullPath = $folder .  $fileName;
-                            Storage::put($fullPath, $data);
+                            // $fileName = $adjustmentRequest->id . '/' . $stock->id . '.png';
+                            // $fullPath = $folder .  $fileName;
+                            // Storage::put($fullPath, $data);
 
-                            $stock->update(['qr_code' => $fullPath]);
+                            // $stock->update(['qr_code' => $fullPath]);
                         }
                     } else {
                         $stockProductUnit->increment('qty', $adjustmentRequest->value);

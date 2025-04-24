@@ -9,8 +9,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Storage;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class GenerateStockQrcode implements ShouldQueue
 {
@@ -39,17 +37,17 @@ class GenerateStockQrcode implements ShouldQueue
 
             // $logo = public_path('images/logo-platinum.png');
 
-            $data = QrCode::size(350)
-                ->format('png')
-                // ->merge($logo, absolute: true)
-                ->generate($stock->id);
+            // $data = QrCode::size(350)
+            //     ->format('png')
+            //     // ->merge($logo, absolute: true)
+            //     ->generate($stock->id);
 
-            // $fileName = $receiveOrderDetail->id . '/' . $stock->id . '.png';
-            $fileName = 'import/' . $stock->id . '.png';
-            $fullPath = $folder .  $fileName;
-            Storage::put($fullPath, $data);
+            // // $fileName = $receiveOrderDetail->id . '/' . $stock->id . '.png';
+            // $fileName = 'import/' . $stock->id . '.png';
+            // $fullPath = $folder .  $fileName;
+            // Storage::put($fullPath, $data);
 
-            $stock->update(['qr_code' => $fullPath]);
+            // $stock->update(['qr_code' => $fullPath]);
         }
     }
 }

@@ -6,8 +6,6 @@ use App\Events\VerifiedROEvent;
 use App\Models\StockProductUnit;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Support\Facades\Storage;
-// use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class CreateStockROListener implements ShouldQueue
 {
@@ -50,16 +48,16 @@ class CreateStockROListener implements ShouldQueue
 
                         // $logo = public_path('images/logo-platinum.png');
 
-                        $data = QrCode::size(350)
-                            ->format('png')
-                            // ->merge($logo, absolute: true)
-                            ->generate($stock->id);
+                        // $data = QrCode::size(350)
+                        //     ->format('png')
+                        //     // ->merge($logo, absolute: true)
+                        //     ->generate($stock->id);
 
-                        $fileName = $receiveOrderDetail->id . '/' . $stock->id . '.png';
-                        $fullPath = $folder . $fileName;
-                        Storage::put($fullPath, $data);
+                        // $fileName = $receiveOrderDetail->id . '/' . $stock->id . '.png';
+                        // $fullPath = $folder . $fileName;
+                        // Storage::put($fullPath, $data);
 
-                        $stock->update(['qr_code' => $fullPath]);
+                        // $stock->update(['qr_code' => $fullPath]);
                     }
                 } else {
                     $stockProductUnit->increment('qty', $qty);
