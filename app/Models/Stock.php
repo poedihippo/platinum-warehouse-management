@@ -71,10 +71,11 @@ class Stock extends Model
     {
         return Attribute::make(
             get: function (string $value) {
-                if (is_null($value) || $value == '') return null;
-                if (config('app.env') === 'production') return Storage::temporaryUrl($value, now()->addMinutes(5));
+                return null;
+                // if (is_null($value) || $value == '') return null;
+                // if (config('app.env') === 'production') return Storage::temporaryUrl($value, now()->addMinutes(5));
 
-                return url(Storage::url($value));
+                // return url(Storage::url($value));
             },
         );
     }
