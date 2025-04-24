@@ -70,8 +70,8 @@ class Stock extends Model
     protected function qrCode(): Attribute
     {
         return Attribute::make(
-            get: function (string $value) {
-                return "";
+            get: function ($value) {
+                return null;
                 // if (is_null($value) || $value == '') return null;
                 // if (config('app.env') === 'production') return Storage::temporaryUrl($value, now()->addMinutes(5));
 
