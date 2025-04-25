@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -89,7 +90,7 @@ class SalesOrder extends Model
         });
     }
 
-    public function scopeTenanted(Builder $query, User $user = null)
+    public function scopeTenanted(Builder $query, ?User $user = null)
     {
         if (!$user) {
             /** @var \App\Models\User $user */
@@ -100,6 +101,13 @@ class SalesOrder extends Model
         return $query;
         // if ($user->hasRole('admin')) return $query;
         // return $query->whereIn('warehouse_id', $user->warehouses()->pluck('warehouse_id') ?? []);
+    }
+
+    protected function hasDeliveryOrder(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => $this->details()->has('deliveryOrderDetail')->exists(),
+        );
     }
 
     public function getAdditionalDiscountPercentageAttribute()
@@ -232,12 +240,12 @@ class SalesOrder extends Model
     {
         // if ($value) return $query->whereHas('details', fn ($q) => $q->has('deliveryOrderDetail'));
         // return $query->whereHas('details', fn ($q) => $q->doesntHave('deliveryOrderDetail'));
-        return $query->whereHas('details', fn ($q) => $q->hasDeliveryOrder((bool)$value));
+        return $query->whereHas('details', fn($q) => $q->hasDeliveryOrder((bool)$value));
     }
 
     public function scopeHasSalesOrder(Builder $query, bool $value = true)
     {
-        $query->when($value === true, fn ($q) => $q->whereNotNull('warehouse_id')->whereNotNull('invoice_no')->where('invoice_no', '!=', ''));
+        $query->when($value === true, fn($q) => $q->whereNotNull('warehouse_id')->whereNotNull('invoice_no')->where('invoice_no', '!=', ''));
         // $query->when($value === true, fn ($q) => $q->whereNotNull('warehouse_id')->where(fn ($q) => $q->whereNotNull('invoice_no')->orWhere('invoice_no', '')));
     }
 }
