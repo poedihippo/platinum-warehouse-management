@@ -8,12 +8,11 @@ use App\Traits\Tenanted;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 
 class DeliveryOrder extends Model
 {
-    use SoftDeletes, FilterStartEndDate, Tenanted;
+    use FilterStartEndDate, Tenanted;
 
     protected $fillable = [
         'user_id',
@@ -56,7 +55,7 @@ class DeliveryOrder extends Model
         // });
     }
 
-    public function details() : HasMany
+    public function details(): HasMany
     {
         return $this->hasMany(DeliveryOrderDetail::class);
     }
@@ -66,22 +65,22 @@ class DeliveryOrder extends Model
     //     return $this->belongsTo(SalesOrder::class);
     // }
 
-    public function user() : BelongsTo
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function warehouse() : BelongsTo
+    public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class);
     }
 
-    public function reseller() : BelongsTo
+    public function reseller(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reseller_id');
     }
 
-    public static function getDoNumber() : string
+    public static function getDoNumber(): string
     {
         $key = SettingEnum::DO_NUMBER;
         return DB::transaction(function () use ($key) {

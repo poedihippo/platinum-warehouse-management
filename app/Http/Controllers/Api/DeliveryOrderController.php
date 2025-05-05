@@ -95,6 +95,7 @@ class DeliveryOrderController extends Controller
         $deliveryOrder = DeliveryOrder::findTenanted($id);
         DB::beginTransaction();
         try {
+            SalesOrderItem::whereIn('sales_order_detail_id', $deliveryOrder->details->pluck('sales_order_detail_id'))->delete();
             $deliveryOrder->delete();
 
             // $deliveryOrder->salesOrder?->details->each(function ($detail) use ($deliveryOrder) {
@@ -116,45 +117,49 @@ class DeliveryOrderController extends Controller
             //     }
             // });
 
-            $deliveryOrder->details?->each(function ($detail) use ($deliveryOrder) {
-                $salesOrderDetail = $detail->salesOrderDetail->load('packaging');
+            if ($deliveryOrder->is_done) {
+                $deliveryOrder->details?->each(function ($detail) use ($deliveryOrder) {
+                    $salesOrderDetail = $detail->salesOrderDetail->load('packaging');
 
-                $stockProductUnit = StockProductUnit::tenanted()->where('warehouse_id', $salesOrderDetail?->warehouse_id)
-                    ->where('product_unit_id', $salesOrderDetail?->product_unit_id)
-                    ->first(['id']);
+                    $stockProductUnit = StockProductUnit::tenanted()->where('warehouse_id', $salesOrderDetail?->warehouse_id)
+                        ->where('product_unit_id', $salesOrderDetail?->product_unit_id)
+                        ->first(['id']);
 
-                if ($stockProductUnit) {
-                    // create history
-                    $history = $detail->histories()->create([
-                        'user_id' => auth('sanctum')->id(),
-                        'stock_product_unit_id' => $stockProductUnit->id,
-                        'value' => $salesOrderDetail?->fulfilled_qty ?? 0,
-                        'is_increment' => 1,
-                        'description' => $deliveryOrder->invoice_no . ' - Delete DO',
-                        'ip' => request()->ip(),
-                        'agent' => request()->header('user-agent'),
-                    ]);
+                    if ($stockProductUnit) {
+                        // create history
+                        if ($salesOrderDetail?->fulfilled_qty > 0) {
+                            $history = $stockProductUnit->histories()->create([
+                                'user_id' => auth('sanctum')->id(),
+                                'stock_product_unit_id' => $stockProductUnit->id,
+                                'value' => $salesOrderDetail?->fulfilled_qty ?? 0,
+                                'is_increment' => 1,
+                                'description' => $deliveryOrder->invoice_no . ' - Delete DO',
+                                'ip' => request()->ip(),
+                                'agent' => request()->header('user-agent'),
+                            ]);
 
-                    if ($salesOrderDetail->packaging) {
-                        // record stock history for packaging
-                        $stockProductUnit = $salesOrderDetail->packaging->stockProductUnits()->where('warehouse_id', $salesOrderDetail?->warehouse_id)->first();
+                            if ($salesOrderDetail->packaging) {
+                                // record stock history for packaging
+                                $stockProductUnit = $salesOrderDetail->packaging->stockProductUnits()->where('warehouse_id', $salesOrderDetail?->warehouse_id)->first();
 
-                        if ($stockProductUnit->productUnit->is_generate_qr) {
-                            $stockProductUnit->increment('qty', $history->value);
+                                if (!$stockProductUnit->productUnit->is_generate_qr) {
+                                    $stockProductUnit->increment('qty', $history->value);
+                                }
+
+                                $stockProductUnit->histories()->create([
+                                    'user_id' => $history->user_id,
+                                    'stock_product_unit_id' => $stockProductUnit->id,
+                                    'value' => $history->value,
+                                    'is_increment' => $history->is_increment,
+                                    'description' => $history->description,
+                                    'ip' => $history->ip,
+                                    'agent' => $history->agent,
+                                ]);
+                            }
                         }
-
-                        $detail->histories()->create([
-                            'user_id' => $history->user_id,
-                            'stock_product_unit_id' => $stockProductUnit->id,
-                            'value' => $history->value,
-                            'is_increment' => $history->is_increment,
-                            'description' => $history->description,
-                            'ip' => $history->ip,
-                            'agent' => $history->agent,
-                        ]);
                     }
-                }
-            });
+                });
+            }
             DB::commit();
         } catch (Exception $e) {
             DB::rollBack();
@@ -169,7 +174,7 @@ class DeliveryOrderController extends Controller
         // abort_if(!auth('sanctum')->user()->tokenCan('delivery_order_print'), 403);
 
         // $deliveryOrder->load(['reseller', 'details' => fn ($q) => $q->with('salesOrderDetail.productUnit.uom')]);
-        $deliveryOrder = DeliveryOrder::with(['reseller', 'details' => fn ($q) => $q->with('salesOrderDetail.productUnit.uom')])->findTenanted($id);
+        $deliveryOrder = DeliveryOrder::with(['reseller', 'details' => fn($q) => $q->with('salesOrderDetail.productUnit.uom')])->findTenanted($id);
         $deliveryOrderDetailsChunk = $deliveryOrder->details?->chunk(23) ?? collect([]);
         $pdf = Pdf::setPaper('a4', 'portrait')->loadView('pdf.deliveryOrders.deliveryOrder', ['deliveryOrder' => $deliveryOrder, 'deliveryOrderDetailsChunk' => $deliveryOrderDetailsChunk]);
 
@@ -182,7 +187,7 @@ class DeliveryOrderController extends Controller
 
         // $deliveryOrder->load(['reseller', 'details' => fn ($q) => $q->with('salesOrderDetail.productUnit.uom')]);
 
-        $deliveryOrder = DeliveryOrder::with(['reseller', 'details' => fn ($q) => $q->with('salesOrderDetail.productUnit.uom')])->findTenanted($id);
+        $deliveryOrder = DeliveryOrder::with(['reseller', 'details' => fn($q) => $q->with('salesOrderDetail.productUnit.uom')])->findTenanted($id);
         return response(view('xml.deliveryOrders.deliveryOrder')->with(compact('deliveryOrder')), 200, [
             'Content-Type' => 'application/xml',
             // use your required mime type
@@ -202,7 +207,7 @@ class DeliveryOrderController extends Controller
 
         // 2. cek stock_id nya apakah sesuai dengan product unit dan warehouse dari SO detail
         $stock = Stock::where('id', $request->stock_id)
-            ->whereHas('stockProductUnit', fn ($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id)->where('warehouse_id', $salesOrderDetail->salesOrder?->warehouse_id))
+            ->whereHas('stockProductUnit', fn($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id)->where('warehouse_id', $salesOrderDetail->salesOrder?->warehouse_id))
             ->first();
         if (!$stock)
             return response()->json(['message' => 'Stok produk tidak sesuai'], 400);
@@ -220,12 +225,12 @@ class DeliveryOrderController extends Controller
             return response()->json(['message' => 'Qty sudah terpenuhi'], 400);
         }
 
-        $stock->load(['childs' => fn ($q) => $q->select('id', 'parent_id')]);
+        $stock->load(['childs' => fn($q) => $q->select('id', 'parent_id')]);
         $stockChilds = $stock->childs;
         $totalChilds = $stockChilds->count() ?? 0;
         if ($totalChilds > 0) {
 
-            $stockIds = $salesOrderDetail->salesOrderItems->filter(fn ($salesOrderItem) => $stockChilds->contains($salesOrderItem->stock_id))?->pluck('stock_id');
+            $stockIds = $salesOrderDetail->salesOrderItems->filter(fn($salesOrderItem) => $stockChilds->contains($salesOrderItem->stock_id))?->pluck('stock_id');
             if ($stockIds->count() > 0) {
                 // 1. kalo parent yang di scan child nya sudah ada
                 $totalStockScanned = $fulfilledQty + $totalChilds - $stockIds->count();
@@ -297,45 +302,47 @@ class DeliveryOrderController extends Controller
                 'done_at' => now(),
             ]);
 
-            $deliveryOrder->details?->each(function ($detail) use ($deliveryOrder) {
-                $salesOrderDetail = $detail->salesOrderDetail->load('packaging');
+            if ($deliveryOrder->is_done) {
+                $deliveryOrder->details?->each(function ($detail) use ($deliveryOrder) {
+                    $salesOrderDetail = $detail->salesOrderDetail->load('packaging');
 
-                $stockProductUnit = StockProductUnit::tenanted()->where('warehouse_id', $salesOrderDetail?->warehouse_id)
-                    ->where('product_unit_id', $salesOrderDetail?->product_unit_id)
-                    ->first(['id']);
+                    $stockProductUnit = StockProductUnit::tenanted()->where('warehouse_id', $salesOrderDetail?->warehouse_id)
+                        ->where('product_unit_id', $salesOrderDetail?->product_unit_id)
+                        ->first(['id']);
 
-                if ($stockProductUnit) {
-                    // create history
-                    $history = $salesOrderDetail->histories()->create([
-                        'user_id' => auth('sanctum')->id(),
-                        'stock_product_unit_id' => $stockProductUnit->id,
-                        'value' => $salesOrderDetail?->fulfilled_qty ?? 0,
-                        'is_increment' => 0,
-                        'description' => $deliveryOrder->invoice_no . ' - Verified DO',
-                        'ip' => request()->ip(),
-                        'agent' => request()->header('user-agent'),
-                    ]);
-
-                    if ($salesOrderDetail->packaging) {
-                        // record stock history for packaging
-                        $stockProductUnit = $salesOrderDetail->packaging->stockProductUnits()->where('warehouse_id', $salesOrderDetail?->warehouse_id)->first();
-
-                        if (!$stockProductUnit->productUnit->is_generate_qr) {
-                            $stockProductUnit->decrement('qty', $history->value);
-                        }
-
-                        $salesOrderDetail->histories()->create([
-                            'user_id' => $history->user_id,
+                    if ($stockProductUnit) {
+                        // create history
+                        $history = $salesOrderDetail->histories()->create([
+                            'user_id' => auth('sanctum')->id(),
                             'stock_product_unit_id' => $stockProductUnit->id,
-                            'value' => $history->value,
-                            'is_increment' => $history->is_increment,
-                            'description' => $history->description,
-                            'ip' => $history->ip,
-                            'agent' => $history->agent,
+                            'value' => $salesOrderDetail?->fulfilled_qty ?? 0,
+                            'is_increment' => 0,
+                            'description' => $deliveryOrder->invoice_no . ' - Verified DO',
+                            'ip' => request()->ip(),
+                            'agent' => request()->header('user-agent'),
                         ]);
+
+                        if ($salesOrderDetail->packaging) {
+                            // record stock history for packaging
+                            $stockProductUnit = $salesOrderDetail->packaging->stockProductUnits()->where('warehouse_id', $salesOrderDetail?->warehouse_id)->first();
+
+                            if (!$stockProductUnit->productUnit->is_generate_qr) {
+                                $stockProductUnit->decrement('qty', $history->value);
+                            }
+
+                            $salesOrderDetail->histories()->create([
+                                'user_id' => $history->user_id,
+                                'stock_product_unit_id' => $stockProductUnit->id,
+                                'value' => $history->value,
+                                'is_increment' => $history->is_increment,
+                                'description' => $history->description,
+                                'ip' => $history->ip,
+                                'agent' => $history->agent,
+                            ]);
+                        }
                     }
-                }
-            });
+                });
+            }
             DB::commit();
         } catch (Exception $e) {
             DB::rollBack();
