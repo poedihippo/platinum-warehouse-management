@@ -95,8 +95,8 @@ class DeliveryOrderController extends Controller
         $deliveryOrder = DeliveryOrder::findTenanted($id);
         DB::beginTransaction();
         try {
-            SalesOrderItem::whereIn('sales_order_detail_id', $deliveryOrder->details->pluck('sales_order_detail_id'))->delete();
             $deliveryOrder->delete();
+            SalesOrderItem::whereIn('sales_order_detail_id', $deliveryOrder->details->pluck('sales_order_detail_id'))->delete();
 
             // $deliveryOrder->salesOrder?->details->each(function ($detail) use ($deliveryOrder) {
             //     $stockProductUnit = StockProductUnit::tenanted()->where('warehouse_id', $deliveryOrder->salesOrder?->warehouse_id)
