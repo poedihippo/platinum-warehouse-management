@@ -49,10 +49,16 @@ class StockController extends Controller
                 AllowedFilter::exact('warehouse_id'),
                 AllowedFilter::exact('product_unit_id'),
                 AllowedFilter::scope('product_unit'),
-                AllowedFilter::scope('product_brand_id', 'whereProductBrandId'),
-                AllowedFilter::scope('product_category_id', 'whereProductCategoryId'),
+                // AllowedFilter::scope('product_brand_id', 'whereProductBrandId'),
+                // AllowedFilter::scope('product_category_id', 'whereProductCategoryId'),
             ])
-            ->allowedSorts(['id', 'qty', 'product_unit_id', 'warehouse_id', 'created_at'])
+            ->allowedSorts([
+                'id',
+                'created_at',
+                // 'qty',
+                // 'product_unit_id',
+                // 'warehouse_id'
+            ])
             ->paginate($this->per_page);
 
         return StockProductUnitResource::collection($stockProductUnits);
