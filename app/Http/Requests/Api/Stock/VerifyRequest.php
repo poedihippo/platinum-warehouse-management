@@ -24,7 +24,7 @@ class VerifyRequest extends FormRequest
     public function rules()
     {
         return [
-            'printer_id' => 'required|numeric',
+            'printer_id' => 'required|numeric|in:1,2',
             'stocks' => 'required|array',
             'stocks.*' => 'string|exists:stocks,id',
         ];
