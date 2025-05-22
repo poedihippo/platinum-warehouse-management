@@ -4,7 +4,7 @@ namespace App\Http\Requests\Api\Stock;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class VerifyRequest extends FormRequest
+class SetToPrintingQueueRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,6 +24,7 @@ class VerifyRequest extends FormRequest
     public function rules()
     {
         return [
+            'printer_id' => 'required|numeric|in:1,2',
             'stocks' => 'required|array',
             'stocks.*' => 'string|exists:stocks,id',
         ];

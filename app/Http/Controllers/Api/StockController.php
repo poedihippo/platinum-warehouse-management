@@ -6,6 +6,7 @@ use App\Exports\StockExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\Stock\GroupingByScanRequest;
 use App\Http\Requests\Api\Stock\GroupingRequest;
+use App\Http\Requests\Api\Stock\SetToPrintingQueueRequest;
 use App\Http\Requests\Api\StockRecordRequest;
 use App\Http\Requests\Api\StockRepackRequest;
 use App\Http\Requests\Api\Stock\VerifyRequest;
@@ -489,7 +490,7 @@ class StockController extends Controller
         ]);
     }
 
-    public function setToPrintingQueue(VerifyRequest $request)
+    public function setToPrintingQueue(SetToPrintingQueueRequest $request)
     {
         Stock::whereIn('id', $request->stocks)->update([
             'printer_id' => $request->printer_id,
@@ -505,7 +506,6 @@ class StockController extends Controller
     public function printVerification(VerifyRequest $request)
     {
         Stock::whereIn('id', $request->stocks)->update([
-            'printer_id' => null,
             'printed_at' => now(),
             'in_printing_queue' => 0,
         ]);
