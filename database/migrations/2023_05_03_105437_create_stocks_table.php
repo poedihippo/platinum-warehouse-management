@@ -15,6 +15,7 @@ return new class extends Migration
     {
         Schema::create('stocks', function (Blueprint $table) {
             $table->ulid('id')->primary();
+            $table->tinyInteger('printer_id')->unsigned()->nullable();
             $table->ulid('parent_id')->nullable()->constrained('stocks', 'id');
             $table->foreignId('stock_product_unit_id')->constrained();
             $table->foreignId('adjustment_request_id')->nullable()->index();

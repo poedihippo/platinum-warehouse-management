@@ -80,6 +80,7 @@ class StockController extends Controller
         $stocks = QueryBuilder::for($query)
             ->allowedFilters([
                 AllowedFilter::exact('id'),
+                AllowedFilter::exact('printer_id'),
                 AllowedFilter::exact('parent_id'),
                 AllowedFilter::exact('stock_product_unit_id'),
                 AllowedFilter::exact('warehouse_id'),
@@ -477,6 +478,7 @@ class StockController extends Controller
     public function setToPrintingQueue(VerifyRequest $request)
     {
         Stock::whereIn('id', $request->stocks)->update([
+            'printer_id' => $request->printer_id,
             'printed_at' => null,
             'in_printing_queue' => 1,
         ]);
