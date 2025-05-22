@@ -49,7 +49,7 @@ class StockController extends Controller
             ->has('warehouse')
             ->with([
                 'warehouse' => fn($q) => $q->select('warehouses.id', 'warehouses.name'),
-                'productUnit' => fn($q) => $q->select('product_units.id', 'product_units.name', 'product_units.code', 'product_units.description', 'product_units.price', 'product_units.is_auto_tempel', 'product_units.is_generate_qr', 'product_units.is_ppn'),
+                'productUnit'
             ])
             ->withCount(['stocks' => fn($q) => $q->whereAvailableStock()->whereNull('description')]))
             ->allowedFilters([
