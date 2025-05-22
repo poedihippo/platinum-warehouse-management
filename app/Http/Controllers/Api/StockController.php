@@ -43,7 +43,7 @@ class StockController extends Controller
     public function index()
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('stock_access'), 403);
-        $stockProductUnits = QueryBuilder::for(StockProductUnit::select('stock_product_units.id', 'stock_product_units.qty', 'stock_product_units.product_unit', 'stock_product_units.warehouse_id')
+        $stockProductUnits = QueryBuilder::for(StockProductUnit::select('stock_product_units.id', 'stock_product_units.qty', 'stock_product_units.product_unit_id', 'stock_product_units.warehouse_id')
             ->tenanted()
             ->has('productUnit')
             ->has('warehouse')
