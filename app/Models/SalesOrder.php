@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SalesOrder extends Model
 {
-    use SoftDeletes, FilterStartEndDate, Tenanted;
+    use FilterStartEndDate, Tenanted;
 
     public ?int $expected_price = null;
 

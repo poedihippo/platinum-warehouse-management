@@ -96,7 +96,10 @@ class DeliveryOrderController extends Controller
         try {
             $deliveryOrder->details->each(fn($d) => $d->salesOrderDetail->update(['fulfilled_qty' => 0]));
             $deliveryOrder->delete();
+
+            DB::statement('SET FOREIGN_KEY_CHECKS=0');
             SalesOrderItem::whereIn('sales_order_detail_id', $deliveryOrder->details->pluck('sales_order_detail_id'))->delete();
+            DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
             // $deliveryOrder->salesOrder?->details->each(function ($detail) use ($deliveryOrder) {
             //     $stockProductUnit = StockProductUnit::tenanted()->where('warehouse_id', $deliveryOrder->salesOrder?->warehouse_id)
