@@ -21,12 +21,12 @@ class SalesOrderController extends Controller
     {
         parent::__construct();
         // $this->middleware('permission:sales_order_access', ['only' => ['index', 'show']]);
-        $this->middleware('permission:sales_order_read', ['only' => ['index', 'show']]);
-        $this->middleware('permission:sales_order_create', ['only' => 'store']);
-        $this->middleware('permission:sales_order_edit', ['only' => 'update']);
-        $this->middleware('permission:sales_order_delete', ['only' => 'destroy']);
-        $this->middleware('permission:sales_order_print', ['only' => 'print']);
-        $this->middleware('permission:sales_order_export_xml', ['only' => 'exportXml']);
+        // $this->middleware('permission:sales_order_read', ['only' => ['index', 'show']]);
+        // $this->middleware('permission:sales_order_create', ['only' => 'store']);
+        // $this->middleware('permission:sales_order_edit', ['only' => 'update']);
+        // $this->middleware('permission:sales_order_delete', ['only' => 'destroy']);
+        // $this->middleware('permission:sales_order_print', ['only' => 'print']);
+        // $this->middleware('permission:sales_order_export_xml', ['only' => 'exportXml']);
     }
 
     public function index()
@@ -61,7 +61,7 @@ class SalesOrderController extends Controller
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('sales_order_delete'), 403);
         $salesOrder = SalesOrder::findTenanted($id);
-        if ($salesOrder->deliveryOrder?->is_done) return response()->json(['message' => "Can't update SO if DO is already done"], 400);
+        if ($salesOrder->has_delivery_order) return response()->json(['message' => "Tidak dapat menghapus SO yang sudah direlasikan dengan DO"], 400);
 
         $salesOrder->delete();
         return $this->deletedResponse();
