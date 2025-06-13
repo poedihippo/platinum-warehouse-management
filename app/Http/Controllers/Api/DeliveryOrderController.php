@@ -91,10 +91,10 @@ class DeliveryOrderController extends Controller
     public function destroy(int $id)
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('delivery_order_delete'), 403);
-
         $deliveryOrder = DeliveryOrder::findTenanted($id);
         DB::beginTransaction();
         try {
+            $deliveryOrder->details->each(fn($d) => $d->salesOrderDetail->update(['fulfilled_qty' => 0]));
             $deliveryOrder->delete();
             SalesOrderItem::whereIn('sales_order_detail_id', $deliveryOrder->details->pluck('sales_order_detail_id'))->delete();
 
