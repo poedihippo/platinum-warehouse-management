@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -20,7 +19,8 @@ class Stock extends Model
     protected $casts = [
         'scanned_count' => 'integer',
         'is_tempel' => 'boolean',
-        'in_printing_queue' => 'boolean'
+        'in_printing_queue' => 'boolean',
+        'is_stock' => 'boolean',
     ];
 
     public function scopeTenanted(Builder $query)
@@ -101,5 +101,10 @@ class Stock extends Model
     {
         if ($value == 0) return $query->doesntHave('childs');
         return $query->has('childs');
+    }
+
+    public function scopeWhereIsStock(Builder $query, $value = 1)
+    {
+        return $query->where('is_stock', $value);
     }
 }

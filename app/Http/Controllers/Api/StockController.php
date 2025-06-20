@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Exports\StockExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\Stock\AddToStockRequest;
 use App\Http\Requests\Api\Stock\GroupingByScanRequest;
 use App\Http\Requests\Api\Stock\GroupingRequest;
 use App\Http\Requests\Api\Stock\SetToPrintingQueueRequest;
@@ -52,7 +53,7 @@ class StockController extends Controller
                 'warehouse' => fn($q) => $q->select('warehouses.id', 'warehouses.name'),
                 'productUnit'
             ])
-            ->withCount(['stocks' => fn($q) => $q->whereAvailableStock()->whereNull('description')]))
+            ->withCount(['stocks' => fn($q) => $q->whereAvailableStock()->whereIsStock()->whereNull('description')]))
             ->allowedFilters([
                 AllowedFilter::exact('id'),
                 AllowedFilter::exact('warehouse_id'),
@@ -238,7 +239,6 @@ class StockController extends Controller
         // 1. hitung total stock dari product unit tsb yang parent_id nya null (stock tanpa gruping)
         // 2. qty grouping harus lebih kecil dari total stock
         // 3.
-        // dd($lastOrderNumberGroup);
 
         $formatMMYY = date('my');
         for ($i = 0; $i < $request->total_group; $i++) {
@@ -280,9 +280,16 @@ class StockController extends Controller
                 $stocks->where('receive_order_detail_id', $groupStock->receive_order_detail_id);
             }
 
-            $stocks->limit($request->qty)->get()?->each->update([
-                'parent_id' => $groupStock->id
-            ]);
+            $data = [
+                'parent_id' => $groupStock->id,
+                'is_stock' => 1,
+            ];
+
+            if ($request->expired_date) {
+                $data['expired_date'] = $request->expired_date;
+            }
+
+            $stocks->limit($request->qty)->get()?->each->update($data);
         }
 
         return response()->json(['message' => 'Group stock berhasil dibuat'], 201);
@@ -492,11 +499,17 @@ class StockController extends Controller
 
     public function setToPrintingQueue(SetToPrintingQueueRequest $request)
     {
-        Stock::whereIn('id', $request->stocks)->update([
+        $data = [
             'printer_id' => $request->printer_id,
             'printed_at' => null,
             'in_printing_queue' => 1,
-        ]);
+        ];
+
+        if ($request->expired_date) {
+            $data['expired_date'] = $request->expired_date;
+        }
+
+        Stock::whereIn('id', $request->stocks)->update($data);
 
         return response()->json([
             'message' => count($request->stocks) . ' stocks added to printing queue',
@@ -512,6 +525,17 @@ class StockController extends Controller
 
         return response()->json([
             'message' => count($request->stocks) . ' stocks scanned successfully',
+        ]);
+    }
+
+    public function addToStock(AddToStockRequest $request)
+    {
+        Stock::whereIn('id', $request->ids)->update([
+            'is_stock' => $request->is_add,
+        ]);
+
+        return response()->json([
+            'message' => count($request->ids) . ' stocks ' . ($request->is_add ? 'added' : 'removed') . ' successfully',
         ]);
     }
 }

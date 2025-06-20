@@ -17,16 +17,6 @@ class InvoiceStoreRequest extends FormRequest
     use RequestToBoolean;
 
     /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
-     */
-    public function authorize()
-    {
-        return true;
-    }
-
-    /**
      * Prepare the data for validation.
      */
     protected function prepareForValidation(): void

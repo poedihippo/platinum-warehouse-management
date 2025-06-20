@@ -7,16 +7,6 @@ use Illuminate\Foundation\Http\FormRequest;
 class GroupingRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
-     */
-    public function authorize()
-    {
-        return true;
-    }
-
-    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, mixed>
@@ -24,6 +14,7 @@ class GroupingRequest extends FormRequest
     public function rules()
     {
         return [
+            'expired_date' => 'nullable|date',
             'total_group' => 'required|integer|gt:0',
             'qty' => 'required|integer|gt:0',
             // 'warehouse_id' => 'required|exists:warehouses,id',

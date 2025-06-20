@@ -30,7 +30,7 @@ class SalesOrderService
      *
      * @return bool
      */
-    public static function validateTotalPrice(int $totalPrice, int $shipmentFee = 0, array $items): bool
+    public static function validateTotalPrice(int $totalPrice, ?int $shipmentFee = 0, array $items): bool
     {
         $cekTotalPrice = 0;
         $pricePerItem = 0;

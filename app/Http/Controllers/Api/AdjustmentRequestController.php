@@ -92,14 +92,16 @@ class AdjustmentRequestController extends Controller
 
             if ($adjustmentRequest->is_approved == true) {
                 if ($adjustmentRequest->is_increment == 1) {
-                    $folder = 'qrcode/';
+                    // $folder = 'qrcode/';
 
                     if ($stockProductUnit->productUnit->is_generate_qr) {
+                        $isStock = $stockProductUnit->productUnit->is_auto_stock;
                         // GenerateStockQrcode::dispatch($stockProductUnit, $qty, $folder);
 
                         for ($i = 0; $i < $adjustmentRequest->value ?? 0; $i++) {
-                            $stock = $stockProductUnit->stocks()->create([
-                                'adjustment_request_id' => $adjustmentRequest->id
+                            $stockProductUnit->stocks()->create([
+                                'adjustment_request_id' => $adjustmentRequest->id,
+                                'is_stock' => $isStock,
                             ]);
 
                             // $logo = public_path('images/logo-platinum.png');
@@ -162,79 +164,4 @@ class AdjustmentRequestController extends Controller
         $message = 'Data ' . ($adjustmentRequest->is_approved ? 'approved' : 'rejected') . ' successfully';
         return response()->json(['message' => $message]);
     }
-
-    // public function approve(AdjustmentRequest $adjustmentRequest, Request $request)
-    // {
-    //     // abort_if(!auth('sanctum')->user()->tokenCan('adjustment_request_approve'), 403);
-
-    //     $stockProductUnit = $adjustmentRequest->stockProductUnit;
-    //     if (!$stockProductUnit) return response()->json(['message' => "Stock product unit Tidak ditemukan"], 404);
-
-    //     DB::beginTransaction();
-    //     try {
-    //         $adjustmentRequest->reason = $request->reason ?? null;
-    //         $adjustmentRequest->is_approved = $request->is_approved ?? null;
-    //         $adjustmentRequest->approved_by = auth('sanctum')->id();
-    //         $adjustmentRequest->approved_datetime = now();
-
-    //         if ($adjustmentRequest->isDirty('is_approved')) {
-    //             if ($adjustmentRequest->is_approved == 1) {
-    //                 $folder = 'qrcode/';
-    //                 for ($i = 0; $i < $adjustmentRequest->value ?? 0; $i++) {
-    //                     $stock = $stockProductUnit->stocks()->create([
-    //                         'adjustment_request_id' => $adjustmentRequest->id
-    //                     ]);
-
-    //                     // $logo = public_path('images/logo-platinum.png');
-
-    //                     $data = QrCode::size(350)
-    //                         ->format('png')
-    //                         // ->merge($logo, absolute: true)
-    //                         ->generate($stock->id);
-
-    //                     $fileName = $adjustmentRequest->id . '/' . $stock->id . '.png';
-    //                     $fullPath = $folder .  $fileName;
-    //                     Storage::put($fullPath, $data);
-
-    //                     $stock->update(['qr_code' => $fullPath]);
-    //                 }
-
-    //                 $adjustmentRequest->histories()->create([
-    //                     'user_id' => auth('sanctum')->id(),
-    //                     'stock_product_unit_id' => $adjustmentRequest->stock_product_unit_id,
-    //                     'value' => $adjustmentRequest->value ?? 0,
-    //                     'is_increment' => 1,
-    //                     'description' => 'Adjustment request - ' . $adjustmentRequest->description,
-    //                     'ip' => request()->ip(),
-    //                     'agent' => request()->header('user-agent'),
-    //                 ]);
-    //             } else {
-    //                 $adjustmentRequest->stocks?->each->forceDelete();
-
-    //                 if ($adjustmentRequest->getOriginal('is_approved')) {
-    //                     $adjustmentRequest->histories()->create([
-    //                         'user_id' => auth('sanctum')->id(),
-    //                         'stock_product_unit_id' => $adjustmentRequest->stock_product_unit_id,
-    //                         'value' => $adjustmentRequest->value ?? 0,
-    //                         'is_increment' => 0,
-    //                         'description' => 'Adjustment request - ' . $adjustmentRequest->description,
-    //                         'ip' => request()->ip(),
-    //                         'agent' => request()->header('user-agent'),
-    //                     ]);
-    //                 }
-
-    //                 Storage::deleteDirectory($adjustmentRequest->id);
-    //             }
-    //         }
-
-    //         $adjustmentRequest->save();
-    //         DB::commit();
-    //     } catch (\Throwable $th) {
-    //         DB::rollBack();
-    //         return response()->json(['message' => $th->getMessage()], 500);
-    //     }
-
-    //     $message = 'Data ' . ($adjustmentRequest->is_approved ? 'approved' : 'rejected') . ' successfully';
-    //     return response()->json(['message' => $message]);
-    // }
 }
