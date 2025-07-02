@@ -173,14 +173,16 @@ class StockController extends Controller
         }
 
         DB::transaction(function () use ($request, $stockProductUnit, $description) {
+            $expiredDate = $request->expired_date ? date('Y-m-d', strtotime($request->expired_date)) : null;
             $groupStock = Stock::create([
                 'stock_product_unit_id' => $stockProductUnit->id,
                 'description' => $description,
+                'expired_date' => $expiredDate,
             ]);
 
             $data = ['parent_id' => $groupStock->id];
             if ($request->expired_date) {
-                $data['expired_date'] = $request->expired_date;
+                $data['expired_date'] = $expiredDate;
             }
 
             Stock::whereIn('id', $request->ids)->update($data);
