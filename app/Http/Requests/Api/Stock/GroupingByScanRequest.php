@@ -18,6 +18,7 @@ class GroupingByScanRequest extends FormRequest
         return [
             'name' => 'nullable|string|unique:stocks,description',
             'stock_product_unit_id' => 'required|exists:stock_product_units,id',
+            'expired_date' => 'nullable|date',
             'ids' => 'required|array',
             'ids.*' => ['required', function ($attribute, string $value, Closure $fail) {
                 $stock = Stock::select('id', 'stock_product_unit_id', 'parent_id')->where('id', $value)->first();
