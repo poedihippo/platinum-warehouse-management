@@ -2,12 +2,7 @@
 
 namespace App\Http\Requests\Api\StockHistory;
 
-use App\Enums\SalesOrderType;
-use App\Rules\TenantedRule;
-use BenSampo\Enum\Rules\EnumValue;
-use Closure;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\DB;
 
 class StockHistoryExport extends FormRequest
 {

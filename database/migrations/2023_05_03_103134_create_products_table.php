@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\CompanyEnum;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,6 +18,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('product_category_id')->constrained();
             $table->foreignId('product_brand_id')->constrained();
+            $table->string('company', 10)->default(CompanyEnum::PAS);
             $table->string('name', 100);
             $table->text('description');
             $table->timestamps();

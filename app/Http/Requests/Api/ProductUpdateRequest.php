@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Enums\CompanyEnum;
+use BenSampo\Enum\Rules\EnumValue;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ProductUpdateRequest extends FormRequest
@@ -14,10 +16,11 @@ class ProductUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|unique:products,id,' . $this->product->id,
+            'company' => ['required', new EnumValue(CompanyEnum::class)],
+            'name' => ['required', 'unique:products,name,' . $this->product->id],
             'description' => 'required',
-            'product_category_id' => 'required',
-            'product_brand_id' => 'required',
+            'product_category_id' => ['required', 'exists:product_categories,id'],
+            'product_brand_id' => ['required', 'exists:product_brands,id'],
         ];
     }
 }
