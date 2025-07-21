@@ -40,7 +40,6 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('product_access'), 403);
         return new ProductResource($product);
     }
 
