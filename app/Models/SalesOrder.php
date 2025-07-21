@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CompanyEnum;
 use App\Enums\DiscountType;
 use App\Enums\SalesOrderType;
 use App\Enums\SettingEnum;
@@ -9,7 +10,6 @@ use App\Enums\UserType;
 use App\Traits\FilterStartEndDate;
 use App\Traits\Tenanted;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -46,6 +46,7 @@ class SalesOrder extends Model
         'reseller_id',
         'spg_id',
         'warehouse_id',
+        'company',
         'invoice_no',
         'raw_source',
         'records',
@@ -68,7 +69,8 @@ class SalesOrder extends Model
         'auto_discount' => 'float',
         'price' => 'integer',
         'is_invoice' => 'boolean',
-        'type' => SalesOrderType::class
+        'type' => SalesOrderType::class,
+        'company' => CompanyEnum::class,
     ];
 
     protected static function booted()

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Enums\CompanyEnum;
 use App\Enums\SalesOrderType;
 use App\Rules\TenantedRule;
 use BenSampo\Enum\Rules\EnumValue;
@@ -32,6 +33,7 @@ class SalesOrderUpdateRequest extends FormRequest
         $salesOrderId = $this->sales_order;
 
         return [
+            'company' => ['required', new EnumValue(CompanyEnum::class)],
             'expected_price' => 'nullable|integer',
             'type' => ['nullable', new EnumValue(SalesOrderType::class)],
             'reseller_id' => ['required', function (string $attribute, mixed $value, Closure $fail) {

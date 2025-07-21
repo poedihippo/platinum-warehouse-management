@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\CompanyEnum;
 use App\Enums\SettingEnum;
 use App\Traits\FilterStartEndDate;
 use App\Traits\Tenanted;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -18,6 +20,7 @@ class DeliveryOrder extends Model
         'user_id',
         'warehouse_id',
         'reseller_id',
+        'company',
         'invoice_no',
         'transaction_date',
         'shipment_estimation_datetime',
@@ -27,7 +30,8 @@ class DeliveryOrder extends Model
     ];
 
     protected $casts = [
-        'is_done' => 'boolean'
+        'company' => CompanyEnum::class,
+        'is_done' => 'boolean',
     ];
 
     protected static function booted()

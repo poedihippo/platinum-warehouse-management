@@ -30,9 +30,10 @@ class ProductController extends Controller
             ->allowedFilters([
                 AllowedFilter::exact('product_category_id'),
                 AllowedFilter::exact('product_brand_id'),
+                AllowedFilter::exact('company'),
                 'name'
             ])
-            ->allowedSorts(['id', 'product_category_id', 'product_brand_id', 'name', 'created_at'])
+            ->allowedSorts(['id', 'product_category_id', 'product_brand_id', 'company', 'name', 'created_at'])
             ->paginate($this->per_page);
 
         return ProductResource::collection($products);

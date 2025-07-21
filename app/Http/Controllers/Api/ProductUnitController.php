@@ -38,6 +38,7 @@ class ProductUnitController extends Controller
                 AllowedFilter::exact('is_ppn'),
                 AllowedFilter::scope('product_brand_id', 'whereProductBrandId'),
                 AllowedFilter::scope('product_category_id', 'whereProductCategoryId'),
+                AllowedFilter::scope('company', 'whereCompany'),
             ])
             ->allowedIncludes('packaging')
             ->allowedSorts(['id', 'product_id', 'name', 'price', 'created_at'])
@@ -75,9 +76,9 @@ class ProductUnitController extends Controller
     {
         $user = User::findOrFail($userId, ['id']);
         $salesOrderDetails = SalesOrderDetail::select('id', 'product_unit_id', 'unit_price', 'created_at')
-            ->whereHas('salesOrder', fn ($q) => $q->where('reseller_id', $userId))
+            ->whereHas('salesOrder', fn($q) => $q->where('reseller_id', $userId))
             ->where('product_unit_id', $productUnit->id)
-            ->with('productUnit', fn ($q) => $q->select('id', 'code', 'name'))
+            ->with('productUnit', fn($q) => $q->select('id', 'code', 'name'))
             ->paginate($this->per_page);
 
         return SalesOrderDetailResource::collection($salesOrderDetails);

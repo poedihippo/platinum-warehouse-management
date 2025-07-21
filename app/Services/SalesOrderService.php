@@ -163,6 +163,7 @@ class SalesOrderService
                 AllowedFilter::exact('reseller_id'),
                 AllowedFilter::exact('spg_id'),
                 AllowedFilter::exact('warehouse_id'),
+                AllowedFilter::exact('company'),
                 AllowedFilter::scope('has_sales_order', 'hasSalesOrder'),
                 AllowedFilter::scope('has_delivery_order', 'detailsHasDO'),
                 AllowedFilter::scope('start_date'),

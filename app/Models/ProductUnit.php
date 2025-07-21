@@ -54,4 +54,9 @@ class ProductUnit extends Model
     {
         return $query->whereHas('product', fn($q) => $q->where('product_category_id', $id));
     }
+
+    public function scopeWhereCompany(Builder $query, string $company)
+    {
+        return $query->whereHas('product', fn($q) => $q->where('company', $company));
+    }
 }

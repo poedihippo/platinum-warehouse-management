@@ -100,6 +100,7 @@ class SalesOrderController extends Controller
             ->allowedFilters([
                 AllowedFilter::exact('warehouse_id'),
                 AllowedFilter::scope('product_unit'),
+                AllowedFilter::scope('company', 'whereCompany'),
             ])
             ->paginate($this->per_page);
 

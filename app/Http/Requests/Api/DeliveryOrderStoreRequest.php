@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Enums\CompanyEnum;
 use App\Rules\TenantedRule;
+use BenSampo\Enum\Rules\EnumValue;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +24,7 @@ class DeliveryOrderStoreRequest extends FormRequest
             //     if (!$salesOrder) $fail('Sales order Tidak ditemukan');
             //     if ($salesOrder->deliveryOrder) $fail("Can't select a sales order that already has a delivery order");
             // }],
+            'company' => ['required', new EnumValue(CompanyEnum::class)],
             'invoice_no' => [
                 'nullable',
                 function (string $attribute, mixed $value, Closure $fail) {
