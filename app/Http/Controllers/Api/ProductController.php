@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\ImportByFileRequest;
 use App\Http\Requests\Api\ProductStoreRequest;
 use App\Http\Requests\Api\ProductUpdateRequest;
 use App\Http\Resources\ProductResource;
@@ -63,5 +64,11 @@ class ProductController extends Controller
         // abort_if(!auth('sanctum')->user()->tokenCan('product_delete'), 403);
         $product->delete();
         return $this->deletedResponse();
+    }
+
+    public function import(ImportByFileRequest $request)
+    {
+        \Maatwebsite\Excel\Facades\Excel::import(new \App\Imports\ProductSeederImport, $request->file);
+        return $this->createdResponse('Data imported successfully', 200);
     }
 }

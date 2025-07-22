@@ -81,6 +81,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('suppliers', SupplierController::class);
     Route::apiResource('product-categories', ProductCategoryController::class);
     Route::apiResource('product-brands', ProductBrandController::class);
+    Route::post('products/import', [ProductController::class, 'import']);
     Route::apiResource('products', ProductController::class);
 
     Route::put('product-units/{productUnit}/set-packaging', [ProductUnitController::class, 'setPackaging']);

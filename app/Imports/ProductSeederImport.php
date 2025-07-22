@@ -18,6 +18,7 @@ class ProductSeederImport implements ToModel, WithHeadingRow
     public function model(array $row)
     {
         $categoryName = trim($row['category_name']);
+        $company = trim($row['company']);
         $brandName = trim($row['brand_name']);
         $productName = trim($row['product_name']);
 
@@ -25,6 +26,7 @@ class ProductSeederImport implements ToModel, WithHeadingRow
             return new Product([
                 'product_category_id' => ProductCategory::where('name', $categoryName)->first()?->id ?? 1,
                 'product_brand_id' => ProductBrand::where('name', $brandName)->first()?->id ?? 1,
+                'company' => $company,
                 'name' => $productName,
                 'description' => $productName,
             ]);
