@@ -86,6 +86,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::put('product-units/{productUnit}/set-packaging', [ProductUnitController::class, 'setPackaging']);
     Route::get('product-units/{productUnit}/user-price/{user}', [ProductUnitController::class, 'userPrice']);
+    Route::post('product-units/import', [ProductUnitController::class, 'import']);
     Route::apiResource('product-units', ProductUnitController::class);
     Route::apiResource('product-unit-blacklists', ProductUnitBlacklistController::class)->only(['index', 'store', 'destroy']);
 

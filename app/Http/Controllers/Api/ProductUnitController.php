@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\ImportByFileRequest;
 use App\Http\Requests\Api\ProductUnitStoreRequest;
 use App\Http\Requests\Api\ProductUnitUpdateRequest;
 use App\Http\Resources\ProductUnitResource;
@@ -93,5 +94,11 @@ class ProductUnitController extends Controller
         $productUnit->update(['packaging_id' => $request->product_unit_id ?? null]);
 
         return $this->show($productUnit->load('packaging'));
+    }
+
+    public function import(ImportByFileRequest $request)
+    {
+        \Maatwebsite\Excel\Facades\Excel::import(new \App\Imports\ProductUnitSeederImport, $request->file);
+        return $this->createdResponse('Data imported successfully', 200);
     }
 }

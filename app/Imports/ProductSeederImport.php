@@ -31,7 +31,5 @@ class ProductSeederImport implements ToModel, WithHeadingRow
                 'description' => $productName,
             ]);
         }
-
-        return;
     }
 }
