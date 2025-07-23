@@ -66,6 +66,11 @@ class ProductController extends Controller
         return $this->deletedResponse();
     }
 
+    public function sampleImport()
+    {
+        return response()->download(public_path('products.xlsx'));
+    }
+
     public function import(ImportByFileRequest $request)
     {
         \Maatwebsite\Excel\Facades\Excel::import(new \App\Imports\ProductSeederImport, $request->file);

@@ -81,11 +81,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('suppliers', SupplierController::class);
     Route::apiResource('product-categories', ProductCategoryController::class);
     Route::apiResource('product-brands', ProductBrandController::class);
+    Route::get('products/sample-import', [ProductController::class, 'sampleImport']);
     Route::post('products/import', [ProductController::class, 'import']);
     Route::apiResource('products', ProductController::class);
 
     Route::put('product-units/{productUnit}/set-packaging', [ProductUnitController::class, 'setPackaging']);
     Route::get('product-units/{productUnit}/user-price/{user}', [ProductUnitController::class, 'userPrice']);
+    Route::get('product-units/sample-import', [ProductUnitController::class, 'sampleImport']);
     Route::post('product-units/import', [ProductUnitController::class, 'import']);
     Route::apiResource('product-units', ProductUnitController::class);
     Route::apiResource('product-unit-blacklists', ProductUnitBlacklistController::class)->only(['index', 'store', 'destroy']);

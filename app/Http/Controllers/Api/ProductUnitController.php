@@ -96,6 +96,11 @@ class ProductUnitController extends Controller
         return $this->show($productUnit->load('packaging'));
     }
 
+    public function sampleImport()
+    {
+        return response()->download(public_path('product_units.xlsx'));
+    }
+
     public function import(ImportByFileRequest $request)
     {
         \Maatwebsite\Excel\Facades\Excel::import(new \App\Imports\ProductUnitSeederImport, $request->file);
