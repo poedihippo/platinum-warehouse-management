@@ -24,20 +24,20 @@ class ProductUnitSeederImport implements ToModel, WithHeadingRow
         // $isGenerateQr = (int) trim($row['is_generate_qr'] ?? 1);
         $price = isset($row['price']) && !empty($row['price']) ? ((int) trim($row['price'])) : 0;
 
-        $productId = Product::select('id')->firstWhere('name', $productName);
-        if (!$productId) {
+        $product = Product::select('id')->firstWhere('name', $productName);
+        if (!$product) {
             throw new UnprocessableEntityHttpException('Product not found');
         }
 
-        $uomId = Uom::select('id')->firstWhere('name', $uom);
-        if (!$uomId) {
+        $uom = Uom::select('id')->firstWhere('name', $uom);
+        if (!$uom) {
             throw new UnprocessableEntityHttpException('Product category not found');
         }
 
         if (ProductUnit::where('name', $productUnitName)->doesntExist()) {
             return new ProductUnit([
-                'product_id' => $productId,
-                'uom_id' => $uomId,
+                'product_id' => $product->id,
+                'uom_id' => $uom->id,
                 'code' => trim($row['code']),
                 'name' => $productUnitName,
                 'description' => $productUnitName,

@@ -24,20 +24,20 @@ class ProductSeederImport implements ToModel, WithHeadingRow
         $brandName = trim($row['brand_name']);
         $productName = trim($row['product_name']);
 
-        $prodcutCategoryId = ProductCategory::select('id')->firstWhere('name', $categoryName);
-        if (!$prodcutCategoryId) {
+        $prodcutCategory = ProductCategory::select('id')->firstWhere('name', $categoryName);
+        if (!$prodcutCategory) {
             throw new UnprocessableEntityHttpException('Product category not found');
         }
 
-        $prodcutbrandId = ProductBrand::select('id')->firstWhere('name', $brandName);
-        if (!$prodcutbrandId) {
+        $prodcutbrand = ProductBrand::select('id')->firstWhere('name', $brandName);
+        if (!$prodcutbrand) {
             throw new UnprocessableEntityHttpException('Product category not found');
         }
 
         if (Product::where('name', $productName)->doesntExist()) {
             return new Product([
-                'product_category_id' => $prodcutCategoryId,
-                'product_brand_id' => $prodcutbrandId,
+                'product_category_id' => $prodcutCategory->id,
+                'product_brand_id' => $prodcutbrand->id,
                 'company' => $company,
                 'name' => $productName,
                 'description' => $productName,
