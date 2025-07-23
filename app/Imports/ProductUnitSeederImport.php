@@ -7,6 +7,7 @@ use App\Models\ProductUnit;
 use App\Models\Uom;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 class ProductUnitSeederImport implements ToModel, WithHeadingRow
 {
@@ -19,18 +20,28 @@ class ProductUnitSeederImport implements ToModel, WithHeadingRow
     {
         $productUnitName = trim($row['product_unit_name']);
         $productName = trim($row['product_name']);
-        $uom = trim($row['uom_name'] ?? 'pcs');
-        $isGenerateQr = (int) trim($row['is_generate_qr'] ?? 1);
+        $uom = trim($row['uom_name']);
+        // $isGenerateQr = (int) trim($row['is_generate_qr'] ?? 1);
         $price = isset($row['price']) && !empty($row['price']) ? ((int) trim($row['price'])) : 0;
+
+        $productId = Product::select('id')->firstWhere('name', $productName);
+        if (!$productId) {
+            throw new UnprocessableEntityHttpException('Product not found');
+        }
+
+        $uomId = Uom::select('id')->firstWhere('name', $uom);
+        if (!$uomId) {
+            throw new UnprocessableEntityHttpException('Product category not found');
+        }
 
         if (ProductUnit::where('name', $productUnitName)->doesntExist()) {
             return new ProductUnit([
-                'product_id' => Product::where('name', $productName)->first()?->id ?? 1,
-                'uom_id' => Uom::where('name', $uom)->first()?->id ?? 1,
+                'product_id' => $productId,
+                'uom_id' => $uomId,
                 'code' => trim($row['code']),
                 'name' => $productUnitName,
                 'description' => $productUnitName,
-                'is_generate_qr' => $isGenerateQr,
+                'is_generate_qr' => 1,
                 'price' => $price,
             ]);
         }
