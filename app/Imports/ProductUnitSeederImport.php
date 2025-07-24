@@ -18,11 +18,13 @@ class ProductUnitSeederImport implements ToModel, WithHeadingRow
      */
     public function model(array $row)
     {
+        // dd($row);
         $productUnitName = trim($row['product_unit_name']);
         $productName = trim($row['product_name']);
         $uom = trim($row['uom_name']);
         // $isGenerateQr = (int) trim($row['is_generate_qr'] ?? 1);
         $price = isset($row['price']) && !empty($row['price']) ? ((int) trim($row['price'])) : 0;
+        $code = trim($row['code']);
 
         $product = Product::select('id')->firstWhere('name', $productName);
         if (!$product) {
@@ -34,11 +36,11 @@ class ProductUnitSeederImport implements ToModel, WithHeadingRow
             throw new UnprocessableEntityHttpException('Product category not found');
         }
 
-        if (ProductUnit::where('name', $productUnitName)->doesntExist()) {
+        if (ProductUnit::where('name', $productUnitName)->doesntExist() || ProductUnit::where('code', $code)->doesntExist()) {
             return new ProductUnit([
                 'product_id' => $product->id,
                 'uom_id' => $uom->id,
-                'code' => trim($row['code']),
+                'code' => $code,
                 'name' => $productUnitName,
                 'description' => $productUnitName,
                 'is_generate_qr' => 1,
