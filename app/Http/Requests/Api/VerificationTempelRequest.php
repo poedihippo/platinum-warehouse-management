@@ -12,7 +12,7 @@ class VerificationTempelRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'is_tempel' => $this->is_tempel ? $this->toBoolean($this->is_tempel) : null,
+            'is_tempel' => isset($this->is_tempel) ? $this->toBoolean($this->is_tempel) : null,
         ]);
     }
 
