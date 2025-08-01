@@ -139,8 +139,8 @@ class StockController extends Controller
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('stock_delete'), 403);
 
-        if ($stock->childs?->count() > 0) return response()->json(['message' => 'Tidak dapat menghapus stock parent'], 400);
-        if ($stock->salesOrderItems?->count() > 0) return response()->json(['message' => 'Tidak dapat menghapus stock. Stock sudah masuk di Sales Order'], 400);
+        if ($stock->childs()->count() > 0) return response()->json(['message' => 'Tidak dapat menghapus stock parent'], 400);
+        if ($stock->salesOrderItems()->count() > 0) return response()->json(['message' => 'Tidak dapat menghapus stock. Stock sudah masuk di Sales Order'], 400);
 
         $stock->delete();
         return $this->deletedResponse();
@@ -412,7 +412,7 @@ class StockController extends Controller
         die('duarrr nmax');
     }
 
-    public function verificationTempel(int $id, Request $request)
+    public function verificationTempel(string $id, Request $request)
     {
         $request->validate(["is_tempel" => "required"]);
         $stock = Stock::findTenanted($id, ['id', 'is_tempel']);
