@@ -412,14 +412,16 @@ class StockController extends Controller
         die('duarrr nmax');
     }
 
-    public function verificationTempel(string $id, Request $request)
+    public function verificationTempel(\App\Http\Requests\Api\VerificationTempelRequest $request)
     {
-        $request->validate(["is_tempel" => "required"]);
-        $stock = Stock::findTenanted($id, ['id', 'is_tempel']);
-        $isTempel = filter_var($request->is_tempel, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true;
-        $stock->update(["is_tempel" => $isTempel]);
+        Stock::whereIn('id', $request->ids)->update(["is_tempel" => $request->is_tempel]);
 
-        return new BaseStockResource($stock);
+        return $this->updatedResponse('Stock berhasil diupdate tempel = ' . ($request->is_tempel ? 'Yes' : 'No'));
+
+        // $stock = Stock::findTenanted($id, ['id', 'is_tempel']);
+        // $isTempel = filter_var($request->is_tempel, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true;
+        // $stock->update(["is_tempel" => $isTempel]);
+        // return new BaseStockResource($stock);
     }
 
     public function repack(int $id, StockRepackRequest $request)
