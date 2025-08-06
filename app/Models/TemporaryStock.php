@@ -10,7 +10,8 @@ class TemporaryStock extends Model
     use HasFactory;
 
     protected $fillable = [
-        'created_by_id'
+        'id',
+        'created_by_id',
     ];
 
     public function createdBy()

@@ -220,6 +220,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // Route::get('orders/{order}/print', [OrderController::class, 'print']); // type (print/print-invoice)
     Route::apiResource('orders', OrderController::class);
 
-    Route::get('temporary-qr', [TemporaryStockController::class, 'index']);
-    Route::post('temporary-qr', [TemporaryStockController::class, 'store']);
+    Route::get('temporary-stocks', [TemporaryStockController::class, 'index']);
+    Route::post('temporary-stocks', [TemporaryStockController::class, 'store']);
 });
