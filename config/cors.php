@@ -25,6 +25,7 @@ return [
         'http://localhost:8000',
         'http://localhost:3000',
         'https://platinum-warehouse.vercel.app',
+        'https://platinum-warehouse-beta.vercel.app'
     ],
 
     'allowed_origins_patterns' => [],
