@@ -37,6 +37,7 @@ use App\Http\Controllers\Api\VoucherController;
 use App\Http\Controllers\Api\VoucherGenerateBatchController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\OrderDetailController;
+use App\Http\Controllers\Api\TemporaryStockController;
 
 /*
 |--------------------------------------------------------------------------
@@ -218,4 +219,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('orders/{order}/convert-so', [OrderController::class, 'convertSalesOrder']);
     // Route::get('orders/{order}/print', [OrderController::class, 'print']); // type (print/print-invoice)
     Route::apiResource('orders', OrderController::class);
+
+    Route::get('temporary-qr', [TemporaryStockController::class, 'index']);
+    Route::post('temporary-qr', [TemporaryStockController::class, 'store']);
 });
