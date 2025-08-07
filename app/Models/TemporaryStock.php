@@ -9,6 +9,9 @@ class TemporaryStock extends Model
 {
     use HasFactory;
 
+    public $incrementing = false; // ⬅️ wajib
+    protected $keyType = 'string'; // ⬅️ wajib
+
     protected $fillable = [
         'id',
         'created_by_id',
