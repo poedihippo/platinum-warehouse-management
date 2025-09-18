@@ -80,7 +80,7 @@ class SalesOrderController extends Controller
 
     public function productUnits(Request $request)
     {
-        $userDiscounts = UserDiscount::select('product_brand_id', 'value', 'is_percentage')->where('user_id', $request->customer_id)->get();
+        // $userDiscounts = UserDiscount::select('product_brand_id', 'value', 'is_percentage')->where('user_id', $request->customer_id)->get();
 
         $query = StockProductUnit::select('id', 'warehouse_id', 'product_unit_id')->has('productUnit')->has('warehouse')
             ->withCount(['stocks' => fn($q) => $q->whereAvailableStock()->whereNull('description')])
@@ -104,28 +104,28 @@ class SalesOrderController extends Controller
             ])
             ->paginate($this->per_page);
 
-        $stockProductUnits->each(function ($stockProductUnit) use ($userDiscounts) {
+        $stockProductUnits->each(function ($stockProductUnit) {
             $productUnit = $stockProductUnit->productUnit;
             $productUnit->name = $productUnit->name . ' - ' . $stockProductUnit->warehouse?->code ?? '';
             $productUnit->price_discount = $productUnit->price;
             $productUnit->discount = 0;
             $productUnit->is_percentage = 1;
 
-            $productBrandId = $productUnit?->product?->product_brand_id ?? null;
-            if ($userDiscounts->contains('product_brand_id', $productBrandId)) {
-                $discount = $userDiscounts->firstWhere('product_brand_id', $productBrandId);
-                if ($discount->is_percentage) {
-                    $totalDiscount = $productUnit->price * $discount->value;
-                    $totalDiscount = $totalDiscount <= 0 ? 0 : ($totalDiscount / 100);
-                    $totalPrice = $productUnit->price - $totalDiscount;
-                } else {
-                    $totalPrice = $productUnit->price - $discount->value;
-                }
+            // $productBrandId = $productUnit?->product?->product_brand_id ?? null;
+            // if ($userDiscounts->contains('product_brand_id', $productBrandId)) {
+            //     $discount = $userDiscounts->firstWhere('product_brand_id', $productBrandId);
+            //     if ($discount->is_percentage) {
+            //         $totalDiscount = $productUnit->price * $discount->value;
+            //         $totalDiscount = $totalDiscount <= 0 ? 0 : ($totalDiscount / 100);
+            //         $totalPrice = $productUnit->price - $totalDiscount;
+            //     } else {
+            //         $totalPrice = $productUnit->price - $discount->value;
+            //     }
 
-                $productUnit->price_discount = $totalPrice <= 0 ? 0 : $totalPrice;
-                $productUnit->discount = $discount->value;
-                $productUnit->is_percentage = $discount->is_percentage;
-            }
+            //     $productUnit->price_discount = $totalPrice <= 0 ? 0 : $totalPrice;
+            //     $productUnit->discount = $discount->value;
+            //     $productUnit->is_percentage = $discount->is_percentage;
+            // }
 
             unset($stockProductUnit->warehouse_id);
             unset($stockProductUnit->product_unit_id);
