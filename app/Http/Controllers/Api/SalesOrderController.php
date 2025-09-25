@@ -102,38 +102,47 @@ class SalesOrderController extends Controller
                 AllowedFilter::scope('product_unit'),
                 AllowedFilter::scope('company', 'whereCompany'),
             ])
-            ->paginate($this->per_page);
+            ->paginate($this->per_page)
+            ->through(function ($stockProductUnit) {
+                $productUnit = $stockProductUnit->productUnit;
+                $productUnit->name = $productUnit->name . ' - ' . ($stockProductUnit->warehouse?->code ?? '');
+                $productUnit->price_discount = $productUnit->price;
+                $productUnit->discount = 0;
+                $productUnit->is_percentage = 1;
 
-        $stockProductUnits->each(function ($stockProductUnit) {
-            $productUnit = $stockProductUnit->productUnit;
-            $productUnit->name = $productUnit->name . ' - ' . $stockProductUnit->warehouse?->code ?? '';
-            $productUnit->price_discount = $productUnit->price;
-            $productUnit->discount = 0;
-            $productUnit->is_percentage = 1;
+                return $stockProductUnit;
+            });
 
-            // $productBrandId = $productUnit?->product?->product_brand_id ?? null;
-            // if ($userDiscounts->contains('product_brand_id', $productBrandId)) {
-            //     $discount = $userDiscounts->firstWhere('product_brand_id', $productBrandId);
-            //     if ($discount->is_percentage) {
-            //         $totalDiscount = $productUnit->price * $discount->value;
-            //         $totalDiscount = $totalDiscount <= 0 ? 0 : ($totalDiscount / 100);
-            //         $totalPrice = $productUnit->price - $totalDiscount;
-            //     } else {
-            //         $totalPrice = $productUnit->price - $discount->value;
-            //     }
+        // $stockProductUnits->each(function ($stockProductUnit) {
+        //     $productUnit = $stockProductUnit->productUnit;
+        //     $productUnit->name = $productUnit->name . ' - ' . $stockProductUnit->warehouse?->code ?? '';
+        //     $productUnit->price_discount = $productUnit->price;
+        //     $productUnit->discount = 0;
+        //     $productUnit->is_percentage = 1;
 
-            //     $productUnit->price_discount = $totalPrice <= 0 ? 0 : $totalPrice;
-            //     $productUnit->discount = $discount->value;
-            //     $productUnit->is_percentage = $discount->is_percentage;
-            // }
+        //     // $productBrandId = $productUnit?->product?->product_brand_id ?? null;
+        //     // if ($userDiscounts->contains('product_brand_id', $productBrandId)) {
+        //     //     $discount = $userDiscounts->firstWhere('product_brand_id', $productBrandId);
+        //     //     if ($discount->is_percentage) {
+        //     //         $totalDiscount = $productUnit->price * $discount->value;
+        //     //         $totalDiscount = $totalDiscount <= 0 ? 0 : ($totalDiscount / 100);
+        //     //         $totalPrice = $productUnit->price - $totalDiscount;
+        //     //     } else {
+        //     //         $totalPrice = $productUnit->price - $discount->value;
+        //     //     }
 
-            unset($stockProductUnit->warehouse_id);
-            unset($stockProductUnit->product_unit_id);
+        //     //     $productUnit->price_discount = $totalPrice <= 0 ? 0 : $totalPrice;
+        //     //     $productUnit->discount = $discount->value;
+        //     //     $productUnit->is_percentage = $discount->is_percentage;
+        //     // }
 
-            unset($productUnit->product);
-            unset($productUnit->uom_id);
-            unset($productUnit->product_id);
-        });
+        //     unset($stockProductUnit->warehouse_id);
+        //     unset($stockProductUnit->product_unit_id);
+
+        //     unset($productUnit->product);
+        //     unset($productUnit->uom_id);
+        //     unset($productUnit->product_id);
+        // });
 
         return response()->json($stockProductUnits);
     }
