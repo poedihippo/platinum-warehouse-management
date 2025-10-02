@@ -86,6 +86,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('products/import', [ProductController::class, 'import']);
     Route::apiResource('products', ProductController::class);
 
+    Route::put('product-units/{productUnit}/change-product', [ProductUnitController::class, 'changeProduct']);
     Route::put('product-units/{productUnit}/set-packaging', [ProductUnitController::class, 'setPackaging']);
     Route::get('product-units/{productUnit}/user-price/{user}', [ProductUnitController::class, 'userPrice']);
     Route::get('product-units/sample-import', [ProductUnitController::class, 'sampleImport']);
