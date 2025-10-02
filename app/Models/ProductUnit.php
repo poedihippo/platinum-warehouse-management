@@ -11,7 +11,20 @@ class ProductUnit extends Model
 {
     use SoftDeletes;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'product_id',
+        'packaging_id',
+        'uom_id',
+        'name',
+        'price',
+        'description',
+        'code',
+        'is_generate_qr',
+        'is_auto_tempel',
+        'is_ppn',
+        'is_auto_stock',
+    ];
+
     protected $casts = [
         'is_generate_qr' => 'boolean',
         'is_auto_tempel' => 'boolean',
@@ -24,7 +37,7 @@ class ProductUnit extends Model
             ProductUnitCreated::dispatch($model);
         });
 
-         static::deleting(function ($model) {
+        static::deleting(function ($model) {
             $model->code = $model->code . '-deleted';
         });
     }
