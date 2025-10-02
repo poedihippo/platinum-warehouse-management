@@ -23,6 +23,10 @@ class ProductUnit extends Model
         static::created(function ($model) {
             ProductUnitCreated::dispatch($model);
         });
+
+         static::deleting(function ($model) {
+            $model->code = $model->code . '-deleted';
+        });
     }
 
     public function product()
