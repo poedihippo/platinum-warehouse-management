@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ImportByFileRequest;
+use App\Http\Requests\Api\ProductUnitChangeProductRequest;
 use App\Http\Requests\Api\ProductUnitStoreRequest;
 use App\Http\Requests\Api\ProductUnitUpdateRequest;
 use App\Http\Resources\ProductUnitResource;
@@ -71,6 +72,13 @@ class ProductUnitController extends Controller
     {
         $productUnit->delete();
         return $this->deletedResponse();
+    }
+
+    public function changeProduct(ProductUnit $productUnit, ProductUnitChangeProductRequest $request)
+    {
+        $productUnit->update($request->validated());
+
+        return (new ProductUnitResource($productUnit))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
     public function userPrice(ProductUnit $productUnit, int $userId)
