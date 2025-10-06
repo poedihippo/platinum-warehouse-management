@@ -181,7 +181,11 @@ class StockController extends Controller
                 'expired_date' => $expiredDate,
             ]);
 
-            $data = ['parent_id' => $groupStock->id];
+            $data = [
+                'parent_id' => $groupStock->id,
+                'is_stock' => 1
+            ];
+
             if ($request->expired_date) {
                 $data['expired_date'] = $expiredDate;
             }
