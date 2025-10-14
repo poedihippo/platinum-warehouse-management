@@ -2,10 +2,20 @@
 
 namespace App\Http\Requests\Api\Stock;
 
+use App\Traits\Requests\RequestToBoolean;
 use Illuminate\Foundation\Http\FormRequest;
 
 class VerifyRequest extends FormRequest
 {
+    use RequestToBoolean;
+
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'is_preview' => $this->toBoolean($this->is_preview ?? 0),
+        ]);
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -14,8 +24,9 @@ class VerifyRequest extends FormRequest
     public function rules()
     {
         return [
-            'stocks' => 'required|array',
-            'stocks.*' => 'string|exists:stocks,id',
+            'is_preview' => ['nullable', 'boolean'],
+            'stocks' => ['required', 'array'],
+            'stocks.*' => ['string', 'exists:stocks,id'],
         ];
     }
 }

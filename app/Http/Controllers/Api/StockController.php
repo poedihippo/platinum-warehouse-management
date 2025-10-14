@@ -11,6 +11,7 @@ use App\Http\Requests\Api\Stock\SetToPrintingQueueRequest;
 use App\Http\Requests\Api\StockRecordRequest;
 use App\Http\Requests\Api\StockRepackRequest;
 use App\Http\Requests\Api\Stock\VerifyRequest;
+use App\Http\Resources\DefaultResource;
 use App\Http\Resources\StockProductUnitResource;
 use App\Http\Resources\Stocks\BaseStockResource;
 use App\Http\Resources\Stocks\StockProductUnitResource as StocksStockProductUnitResource;
@@ -532,6 +533,13 @@ class StockController extends Controller
 
     public function printVerification(VerifyRequest $request)
     {
+        if ($request->is_preview) {
+            $stock = Stock::with(['stockProductUnit' => fn($q) => $q->select('id', 'product_unit_id')->with('productUnit', fn($q) => $q->select('id', 'name'))])
+                ->whereIn('id', $request->stocks)->whereNotNull('printed_at')->get(['id', 'printed_at', 'stock_product_unit_id']);
+
+            return DefaultResource::collection($stock);
+        }
+
         Stock::whereIn('id', $request->stocks)->update([
             'printed_at' => now(),
             'in_printing_queue' => 0,
