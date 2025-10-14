@@ -102,6 +102,7 @@ class AdjustmentRequestController extends Controller
                             $stockProductUnit->stocks()->create([
                                 'adjustment_request_id' => $adjustmentRequest->id,
                                 'is_stock' => $isStock,
+                                'description' => null
                             ]);
 
                             // $logo = public_path('images/logo-platinum.png');
