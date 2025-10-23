@@ -308,7 +308,7 @@ class StockController extends Controller
         return response()->json(['message' => 'Group stock berhasil dibuat'], 201);
     }
 
-    public function ungrouping(int $id)
+    public function ungrouping(string $id)
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('stock_grouping'), 403);
         $stock = Stock::findTenanted($id);
@@ -316,8 +316,8 @@ class StockController extends Controller
 
         DB::beginTransaction();
         try {
-            $stock->delete();
             Stock::where('parent_id', $stock->id)->update(['parent_id' => null]);
+            $stock->delete();
             DB::commit();
         } catch (Exception $e) {
             DB::rollBack();
