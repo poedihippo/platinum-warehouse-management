@@ -19,12 +19,12 @@ class Controller extends BaseController
         $this->per_page = $perPage > 0 ? $perPage : 15;
     }
 
-    public function createdResponse(string $message = null, int $code = 201)
+    public function createdResponse(?string $message = null, int $code = 201)
     {
         return response()->json(['message' => $message ?? 'Data created successfully'], $code);
     }
 
-    public function updatedResponse(string $message = null, int $code = 200)
+    public function updatedResponse(?string $message = null, int $code = 200)
     {
         return response()->json(['message' => $message ?? 'Data updated successfully'], $code);
     }

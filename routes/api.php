@@ -134,7 +134,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::group(['prefix' => 'delivery-orders/{deliveryOrder}/details'], function () {
         Route::get('/', [DeliveryOrderDetailController::class, 'index']);
         Route::get('{deliveryOrderDetail}', [DeliveryOrderDetailController::class, 'show']);
-        Route::put('{deliveryOrderDetail}', [DeliveryOrderDetailController::class, 'update']);
+        Route::put('{deliveryOrderDetail}/reset-verified-stock', [DeliveryOrderDetailController::class, 'resetVerifiedStock']);
         Route::delete('{deliveryOrderDetail}', [DeliveryOrderDetailController::class, 'destroy']);
     });
 
