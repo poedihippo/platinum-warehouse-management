@@ -70,12 +70,13 @@ class DeliveryOrderDetailController extends Controller
 
         $salesOrderDetail = $deliveryOrderDetail->salesOrderDetail()->select('id', 'product_unit_id', 'fulfilled_qty')->with('productUnit', fn($q) => $q->select('id', 'name'))->firstOrFail();
 
-        DB::transaction(function () use ($salesOrderDetail, $deliveryOrderDetail) {
+        DB::transaction(function () use ($deliveryOrder, $salesOrderDetail) {
             // Revert fulfilled qty in sales order detail
             $salesOrderDetail->update(['fulfilled_qty' => 0]);
 
             // Delete stock verified
             $salesOrderDetail->salesOrderItems()->delete();
+            $deliveryOrder->update(['is_done' => 0]);
         });
 
         return $this->updatedResponse($salesOrderDetail->productUnit->name . " on DO: " . $deliveryOrder->invoice_no . " reset successfully");

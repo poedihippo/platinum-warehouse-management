@@ -220,9 +220,9 @@ class DeliveryOrderController extends Controller
         // $cek = $salesOrderDetail->salesOrderItems()->where('stock_id', $stock?->id)->exists();
         $cek = SalesOrderItem::where('stock_id', $stock?->id)->exists();
         if ($cek)
-            return response()->json(['message' => 'Product sudah di scan'], 400);
+            return response()->json(['message' => 'Product sudah pernah di verifikasi'], 400);
 
-        // 4. cek apakah required qty dari SO sudah terpenuhi
+        // 4. cek apakah required qty dari SO Detail sudah terpenuhi
         // 5. jika stock_id yang di scan adalah grouping, hitung dulu jumlah childs nya lalu compare dengan required qty yang ada di step 4
         $fulfilledQty = $salesOrderDetail->salesOrderItems()->where('is_parent', 0)->count() ?? 0;
         if ($fulfilledQty >= $salesOrderDetail->qty) {
@@ -248,6 +248,7 @@ class DeliveryOrderController extends Controller
             }
 
             $dataStocks = []; // data stock to be insert into salesOrderItems
+
             // 6. insert stock_id ke sales_order_items. jika stock grouping, insert childs nya
             DB::beginTransaction();
             try {
