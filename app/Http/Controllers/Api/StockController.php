@@ -317,7 +317,7 @@ class StockController extends Controller
         DB::beginTransaction();
         try {
             Stock::where('parent_id', $stock->id)->update(['parent_id' => null]);
-            $stock->delete();
+            $stock->forceDelete();
             DB::commit();
         } catch (Exception $e) {
             DB::rollBack();
