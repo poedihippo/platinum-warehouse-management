@@ -73,6 +73,11 @@ class ProductUnit extends Model
         return $this->hasMany(StockProductUnit::class);
     }
 
+    public function scopeSearch(Builder $query, string $value)
+    {
+        return $query->where(fn($q) => $q->where('name', 'like', "%$value%")->orWhere('code', 'like', "%$value%"));
+    }
+
     public function scopeWhereProductBrandId(Builder $query, $id)
     {
         return $query->whereHas('product', fn($q) => $q->where('product_brand_id', $id));

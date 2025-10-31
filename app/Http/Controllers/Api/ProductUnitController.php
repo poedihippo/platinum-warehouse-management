@@ -36,11 +36,12 @@ class ProductUnitController extends Controller
     {
         $productUnits = QueryBuilder::for(ProductUnit::with('product'))
             ->allowedFilters([
-                'name',
+                // 'name',
                 AllowedFilter::exact('product_id'),
                 AllowedFilter::exact('is_generate_qr'),
                 // AllowedFilter::exact('is_auto_tempel'),
                 AllowedFilter::exact('is_ppn'),
+                AllowedFilter::scope('name', 'search'),
                 AllowedFilter::scope('product_brand_id', 'whereProductBrandId'),
                 AllowedFilter::scope('product_category_id', 'whereProductCategoryId'),
                 AllowedFilter::scope('company', 'whereCompany'),
