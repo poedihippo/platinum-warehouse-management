@@ -191,7 +191,7 @@ class SalesOrderService
             'voucher.category',
             'payments',
             'warehouse',
-            'details' => fn($q) => $q->with(['warehouse', 'packaging']),
+            'details' => fn($q) => $q->with(['warehouse']),
             'user' => fn($q) => $q->select('id', 'name', 'type'),
             'reseller' => fn($q) => $q->select('id', 'name', 'type', 'type', 'email', 'phone', 'address'),
         ])->loadCount('details');
@@ -229,7 +229,8 @@ class SalesOrderService
     public static function exportXml(int $id, ?callable $query = null)
     {
         $salesOrder = SalesOrder::when($query, $query)->findTenanted($id);
-        $salesOrder->load(['reseller', 'details' => fn($q) => $q->with('packaging', 'productUnit')]);
+        $salesOrder->load(['reseller', 'details' => fn($q) => $q->with('productUnit')]);
+        // $salesOrder->load(['reseller', 'details' => fn($q) => $q->with('packaging', 'productUnit')]);
         return response(view('xml.salesOrders.salesOrder')->with(compact('salesOrder')), 200, [
             'Content-Type' => 'application/xml',
             // use your required mime type

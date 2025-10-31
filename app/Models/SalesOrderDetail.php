@@ -15,7 +15,7 @@ class SalesOrderDetail extends Model
         'sales_order_id',
         'product_unit_id',
         'warehouse_id',
-        'packaging_id',
+        // 'packaging_id',
         'qty',
         'fulfilled_qty',
         'unit_price',
@@ -55,10 +55,10 @@ class SalesOrderDetail extends Model
         return $this->belongsTo(ProductUnit::class);
     }
 
-    public function packaging(): BelongsTo
-    {
-        return $this->belongsTo(ProductUnit::class, 'packaging_id');
-    }
+    // public function packaging(): BelongsTo
+    // {
+    //     return $this->belongsTo(ProductUnit::class, 'packaging_id');
+    // }
 
     public function salesOrderItems(): HasMany
     {

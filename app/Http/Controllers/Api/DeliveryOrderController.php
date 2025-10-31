@@ -205,22 +205,36 @@ class DeliveryOrderController extends Controller
         if ($deliveryOrder->is_done) return response()->json(['message' => 'Delivery Order sudah diselesaikan. Batalkan untuk dapat scan lagi'], 404);
 
         // 1. cek if exist $deliveryOrderDetail
-        $salesOrderDetail = $deliveryOrderDetail->salesOrderDetail;
-        if (!$salesOrderDetail)
+        $salesOrderDetail = $deliveryOrderDetail->salesOrderDetail->load(['productUnit' => fn($q) => $q->select('id', 'refer_id')]);
+        if (!$salesOrderDetail) {
             return response()->json(['message' => 'Sales order item Tidak ditemukan'], 404);
+        }
 
         // 2. cek stock_id nya apakah sesuai dengan product unit dan warehouse dari SO detail
         $stock = Stock::where('id', $request->stock_id)
-            ->whereHas('stockProductUnit', fn($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id)->where('warehouse_id', $salesOrderDetail->salesOrder?->warehouse_id))
+            ->whereHas(
+                'stockProductUnit',
+                fn($q) => $q->where('warehouse_id', $salesOrderDetail->salesOrder?->warehouse_id)
+                    ->when(
+                        $salesOrderDetail->productUnit->refer_id,
+                        fn($q) => $q->where('product_unit_id', $salesOrderDetail->productUnit->refer_id),
+                        fn($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id),
+                    )
+                // ->where('product_unit_id', $salesOrderDetail->product_unit_id)
+
+            )
             ->first();
-        if (!$stock)
+
+        if (!$stock) {
             return response()->json(['message' => 'Stok produk tidak sesuai'], 400);
+        }
 
         // 3. cek apakah stock sudah pernah di scan
         // $cek = $salesOrderDetail->salesOrderItems()->where('stock_id', $stock?->id)->exists();
         $cek = SalesOrderItem::where('stock_id', $stock?->id)->exists();
-        if ($cek)
+        if ($cek) {
             return response()->json(['message' => 'Product sudah pernah di verifikasi'], 400);
+        }
 
         // 4. cek apakah required qty dari SO Detail sudah terpenuhi
         // 5. jika stock_id yang di scan adalah grouping, hitung dulu jumlah childs nya lalu compare dengan required qty yang ada di step 4

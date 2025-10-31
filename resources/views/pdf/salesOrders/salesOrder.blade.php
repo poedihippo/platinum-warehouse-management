@@ -279,13 +279,21 @@
                 </tr>
                 @foreach ($orderDetails as $detail)
                     <tr>
-                        <td class="border-right">
+                        {{-- <td class="border-right">
                             <span
                                 class="mx-5">{{ $detail->productUnit?->code . (is_null($detail->packaging_id) ? '' : '*') }}</span>
                         </td>
                         <td class="border-right">
                             <span
                                 class="mx-5">{{ $detail->productUnit?->name . (is_null($detail->packaging_id) ? '' : '*') }}</span>
+                        </td> --}}
+                         <td class="border-right">
+                            <span
+                                class="mx-5">{{ $detail->productUnit?->code }}</span>
+                        </td>
+                        <td class="border-right">
+                            <span
+                                class="mx-5">{{ $detail->productUnit?->name }}</span>
                         </td>
                         <td class="border-right text-right">
                             <span class="mx-5">{{ $detail->qty }}</span>

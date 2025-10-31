@@ -7,7 +7,8 @@
                 $GROUPSEQ = 0;
             @endphp
             @foreach ($salesOrder->details ?? [] as $detail)
-                @if ($detail->packaging)
+                {{-- @if ($detail->packaging) --}}
+                @if (false)
                     @for ($i = 0; $i < 2; $i++)
                         <ITEMLINE operation="Add">
                             <KeyID>{{ $keyId++ }}</KeyID>

@@ -13,7 +13,8 @@ class ProductUnit extends Model
 
     protected $fillable = [
         'product_id',
-        'packaging_id',
+        'refer_id',
+        // 'packaging_id',
         'uom_id',
         'name',
         'price',
@@ -34,7 +35,7 @@ class ProductUnit extends Model
     protected static function booted()
     {
         static::created(function ($model) {
-            ProductUnitCreated::dispatch($model);
+            ProductUnitCreated::dispatchIf(is_null($model->refer_id), $model);
         });
 
         static::deleting(function ($model) {
@@ -47,14 +48,24 @@ class ProductUnit extends Model
         return $this->belongsTo(Product::class);
     }
 
-    public function packaging()
+    // public function packaging()
+    // {
+    //     return $this->belongsTo(self::class, 'packaging_id');
+    // }
+
+    public function refer()
     {
-        return $this->belongsTo(self::class, 'packaging_id');
+        return $this->belongsTo(self::class, 'refer_id');
     }
 
     public function uom()
     {
         return $this->belongsTo(Uom::class);
+    }
+
+    public function relations()
+    {
+        return $this->hasMany(ProductUnitRelation::class);
     }
 
     public function stockProductUnits()

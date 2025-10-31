@@ -23,7 +23,7 @@ class OrderDetailController extends Controller
 
         $order = Order::findTenanted($orderId, ['id']);
         $query = OrderDetail::where('sales_order_id', $order->id)->with([
-            'packaging',
+            // 'packaging',
             'warehouse' => fn($q) => $q->select('id', 'code', 'name')
         ]);
         $orderDetails = QueryBuilder::for($query)

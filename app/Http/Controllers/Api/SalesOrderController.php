@@ -8,9 +8,7 @@ use App\Http\Requests\Api\SalesOrderStoreRequest;
 use App\Http\Requests\Api\SalesOrderUpdateRequest;
 use App\Models\SalesOrder;
 use App\Models\StockProductUnit;
-use App\Models\UserDiscount;
 use App\Services\SalesOrderService;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -78,7 +76,7 @@ class SalesOrderController extends Controller
         return SalesOrderService::exportXml($id);
     }
 
-    public function productUnits(Request $request)
+    public function productUnits()
     {
         // $userDiscounts = UserDiscount::select('product_brand_id', 'value', 'is_percentage')->where('user_id', $request->customer_id)->get();
 
@@ -87,7 +85,8 @@ class SalesOrderController extends Controller
             ->with([
                 'warehouse' => fn($q) => $q->select('id', 'code'),
                 'productUnit' => function ($q) {
-                    $q->select('id', 'uom_id', 'product_id', 'packaging_id', 'name', 'price', 'is_ppn')
+                    // $q->select('id', 'uom_id', 'product_id', 'packaging_id', 'name', 'price', 'is_ppn')
+                    $q->select('id', 'uom_id', 'product_id', 'name', 'price', 'is_ppn')
                         ->with([
                             'uom' => fn($q) => $q->select('id', 'name'),
                             'product' => fn($q) => $q->select('id', 'name', 'product_brand_id'),

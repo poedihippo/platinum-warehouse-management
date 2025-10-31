@@ -17,10 +17,10 @@ class ProductUnitStoreRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            'is_auto_stock' => $this->toBoolean($this->is_auto_stock ?? 1),
-            'is_generate_qr' => $this->toBoolean($this->is_generate_qr ?? 1),
-            'is_auto_tempel' => $this->toBoolean($this->is_auto_tempel ?? 1),
-            'is_ppn' => $this->toBoolean($this->is_ppn ?? 0),
+            'is_generate_qr' => $this->is_generate_qr ? $this->toBoolean($this->is_generate_qr) : null,
+            'is_ppn' => $this->is_ppn ? $this->toBoolean($this->is_ppn) : null,
+            // 'is_auto_stock' => $this->toBoolean($this->is_auto_stock ?? 1),
+            // 'is_auto_tempel' => $this->toBoolean($this->is_auto_tempel ?? 1),
         ]);
     }
 
@@ -38,11 +38,11 @@ class ProductUnitStoreRequest extends FormRequest
             'description' => 'required',
             'product_id' => 'required',
             'price' => 'required',
-            'packaging_id' => 'nullable|exists:product_units,id',
-            'is_generate_qr' => 'nullable|boolean',
-            'is_auto_tempel' => 'nullable|boolean',
-            'is_ppn' => 'nullable|boolean',
-            'is_auto_stock' => 'required|boolean',
+            // 'packaging_id' => 'nullable|exists:product_units,id',
+            'is_generate_qr' => 'required|boolean',
+            // 'is_auto_tempel' => 'nullable|boolean',
+            'is_ppn' => 'required|boolean',
+            // 'is_auto_stock' => 'required|boolean',
         ];
     }
 }

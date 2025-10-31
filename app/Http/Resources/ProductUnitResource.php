@@ -29,7 +29,7 @@ class ProductUnitResource extends JsonResource
             'deleted_at' => $this->deleted_at,
             'uom' => new UomResource($this->uom),
             'product' => new ProductResource($this->product),
-            'packaging' =>  new self($this->whenLoaded('packaging')),
+            // 'packaging' =>  new self($this->whenLoaded('packaging')),
         ];
     }
 }

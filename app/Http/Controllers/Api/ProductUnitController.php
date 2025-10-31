@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ImportByFileRequest;
+use App\Http\Requests\Api\ProductUnit\ProductUnitRelationRequest;
 use App\Http\Requests\Api\ProductUnitChangeProductRequest;
 use App\Http\Requests\Api\ProductUnitStoreRequest;
 use App\Http\Requests\Api\ProductUnitUpdateRequest;
@@ -14,6 +15,8 @@ use App\Models\SalesOrderDetail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -42,7 +45,7 @@ class ProductUnitController extends Controller
                 AllowedFilter::scope('product_category_id', 'whereProductCategoryId'),
                 AllowedFilter::scope('company', 'whereCompany'),
             ])
-            ->allowedIncludes('packaging')
+            // ->allowedIncludes('packaging')
             ->allowedSorts(['id', 'product_id', 'name', 'price', 'created_at'])
             ->paginate($this->per_page);
 
@@ -51,14 +54,15 @@ class ProductUnitController extends Controller
 
     public function show(ProductUnit $productUnit)
     {
-        return new ProductUnitResource($productUnit->load('packaging'));
+        return new ProductUnitResource($productUnit);
+        // return new ProductUnitResource($productUnit->load('packaging'));
     }
 
     public function store(ProductUnitStoreRequest $request)
     {
-        $productUnit = ProductUnit::create($request->validated());
+        ProductUnit::create($request->validated());
 
-        return new ProductUnitResource($productUnit);
+        return $this->createdResponse();
     }
 
     public function update(ProductUnit $productUnit, ProductUnitUpdateRequest $request)
@@ -72,6 +76,42 @@ class ProductUnitController extends Controller
     {
         $productUnit->delete();
         return $this->deletedResponse();
+    }
+
+    public function createProductUnitRelations(ProductUnitRelationRequest $request, ProductUnit $productUnit)
+    {
+        $relatedProductUnits = collect($request->related_product_units);
+
+        // ✅ Query ProductUnit untuk dapetin is_generate_qr
+        $totalProductUnitGenerateQr = ProductUnit::whereIn('id', $relatedProductUnits->pluck('id')->all())->where('is_generate_qr', 1)->count();
+
+        // ✅ 2. Pastikan hanya satu yang is_generate_qr == true
+        if ($totalProductUnitGenerateQr > 0) {
+            throw ValidationException::withMessages([
+                'related_product_units' => ['Can not related to product unit that have is_generate_qr = true.'],
+            ]);
+        }
+
+        DB::transaction(function () use ($request, $productUnit) {
+            $data = array_merge(
+                $productUnit->toArray(),
+                $request->validated(),
+                [
+                    'refer_id' => $productUnit->id
+                ]
+            );
+
+            unset($data['id'], $data['created_at'], $data['updated_at']);
+
+            $groupingProductUnit = ProductUnit::create($data);
+
+            if ($request->related_product_units) {
+                $data = collect($request->related_product_units)->map(fn($req) => ['related_product_unit_id' => $req['id'], 'qty' => $req['qty']]);
+                $groupingProductUnit->relations()->createMany($data);
+            }
+        });
+
+        return $this->createdResponse();
     }
 
     public function changeProduct(ProductUnit $productUnit, ProductUnitChangeProductRequest $request)
@@ -93,16 +133,16 @@ class ProductUnitController extends Controller
         return SalesOrderDetailResource::collection($salesOrderDetails);
     }
 
-    public function setPackaging(ProductUnit $productUnit, Request $request)
-    {
-        $request->validate([
-            'product_unit_id' => 'nullable|exists:product_units,id'
-        ]);
+    // public function setPackaging(ProductUnit $productUnit, Request $request)
+    // {
+    //     $request->validate([
+    //         'product_unit_id' => 'nullable|exists:product_units,id'
+    //     ]);
 
-        $productUnit->update(['packaging_id' => $request->product_unit_id ?? null]);
+    //     $productUnit->update(['packaging_id' => $request->product_unit_id ?? null]);
 
-        return $this->show($productUnit->load('packaging'));
-    }
+    //     return $this->show($productUnit->load('packaging'));
+    // }
 
     public function sampleImport()
     {
