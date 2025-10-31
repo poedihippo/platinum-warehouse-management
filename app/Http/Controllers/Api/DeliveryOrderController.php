@@ -96,7 +96,6 @@ class DeliveryOrderController extends Controller
         DB::beginTransaction();
         try {
             $deliveryOrder->details->each(fn($d) => $d->salesOrderDetail->update(['fulfilled_qty' => 0]));
-            $deliveryOrder->delete();
 
             DB::statement('SET FOREIGN_KEY_CHECKS=0');
             SalesOrderItem::whereIn('sales_order_detail_id', $deliveryOrder->details->pluck('sales_order_detail_id'))->delete();
@@ -124,10 +123,16 @@ class DeliveryOrderController extends Controller
             if ($deliveryOrder->is_done) {
                 $deliveryOrder->details?->each(function ($detail) use ($deliveryOrder) {
                     // $salesOrderDetail = $detail->salesOrderDetail->load('packaging');
-                    $salesOrderDetail = $detail->salesOrderDetail;
+                    $salesOrderDetail = $detail->salesOrderDetail->load([
+                        'productUnit' => fn($q) => $q->select('id', 'refer_id')->with('relations', fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select('id', 'is_generate_qr')))
+                    ]);
 
                     $stockProductUnit = StockProductUnit::tenanted()->where('warehouse_id', $salesOrderDetail?->warehouse_id)
-                        ->where('product_unit_id', $salesOrderDetail?->product_unit_id)
+                        ->when(
+                            $salesOrderDetail->productUnit->refer_id,
+                            fn($q) => $q->where('product_unit_id', $salesOrderDetail->productUnit->refer_id),
+                            fn($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id),
+                        )
                         ->first(['id']);
 
                     if ($stockProductUnit) {
@@ -142,6 +147,30 @@ class DeliveryOrderController extends Controller
                                 'ip' => request()->ip(),
                                 'agent' => request()->header('user-agent'),
                             ]);
+
+
+                            if ($salesOrderDetail->productUnit->refer_id && $salesOrderDetail->productUnit->relations->count()) {
+                                // record stock history for relations
+                                foreach ($salesOrderDetail->productUnit->relations as $relation) {
+                                    $stockProductUnit = StockProductUnit::where('product_unit_id', $relation->related_product_unit_id)->where('warehouse_id', $salesOrderDetail?->warehouse_id)->first();
+
+                                    if ($stockProductUnit) {
+                                        if (!$relation->relatedProductUnit->is_generate_qr) {
+                                            $stockProductUnit->increment('qty', $relation->qty);
+                                        }
+
+                                        $stockProductUnit->histories()->create([
+                                            'user_id' => $history->user_id,
+                                            'stock_product_unit_id' => $stockProductUnit->id,
+                                            'value' => $relation->qty,
+                                            'is_increment' => $history->is_increment,
+                                            'description' => $history->description,
+                                            'ip' => $history->ip,
+                                            'agent' => $history->agent,
+                                        ]);
+                                    }
+                                }
+                            }
 
                             // if ($salesOrderDetail->packaging) {
                             //     // record stock history for packaging
@@ -165,6 +194,8 @@ class DeliveryOrderController extends Controller
                     }
                 });
             }
+
+            $deliveryOrder->delete();
             DB::commit();
         } catch (Exception $e) {
             DB::rollBack();
@@ -325,10 +356,17 @@ class DeliveryOrderController extends Controller
             if ($deliveryOrder->is_done) {
                 $deliveryOrder->details?->each(function ($detail) use ($deliveryOrder) {
                     // $salesOrderDetail = $detail->salesOrderDetail->load('packaging');
-                    $salesOrderDetail = $detail->salesOrderDetail;
+                    $salesOrderDetail = $detail->salesOrderDetail->load([
+                        'productUnit' => fn($q) => $q->select('id', 'refer_id')->with('relations', fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select('id', 'is_generate_qr')))
+                    ]);
+                    // dd($salesOrderDetail);
 
                     $stockProductUnit = StockProductUnit::tenanted()->where('warehouse_id', $salesOrderDetail?->warehouse_id)
-                        ->where('product_unit_id', $salesOrderDetail?->product_unit_id)
+                        ->when(
+                            $salesOrderDetail->productUnit->refer_id,
+                            fn($q) => $q->where('product_unit_id', $salesOrderDetail->productUnit->refer_id),
+                            fn($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id),
+                        )
                         ->first(['id']);
 
                     if ($stockProductUnit) {
@@ -342,6 +380,29 @@ class DeliveryOrderController extends Controller
                             'ip' => request()->ip(),
                             'agent' => request()->header('user-agent'),
                         ]);
+
+                        if ($salesOrderDetail->productUnit->refer_id && $salesOrderDetail->productUnit->relations->count()) {
+                            // record stock history for relations
+                            foreach ($salesOrderDetail->productUnit->relations as $relation) {
+                                $stockProductUnit = StockProductUnit::where('product_unit_id', $relation->related_product_unit_id)->where('warehouse_id', $salesOrderDetail?->warehouse_id)->first();
+
+                                if ($stockProductUnit) {
+                                    if (!$relation->relatedProductUnit->is_generate_qr) {
+                                        $stockProductUnit->decrement('qty', $relation->qty);
+                                    }
+
+                                    $stockProductUnit->histories()->create([
+                                        'user_id' => $history->user_id,
+                                        'stock_product_unit_id' => $stockProductUnit->id,
+                                        'value' => $relation->qty,
+                                        'is_increment' => $history->is_increment,
+                                        'description' => $history->description,
+                                        'ip' => $history->ip,
+                                        'agent' => $history->agent,
+                                    ]);
+                                }
+                            }
+                        }
 
                         // if ($salesOrderDetail->packaging) {
                         //     // record stock history for packaging

@@ -17,8 +17,8 @@ class ProductUnitUpdateRequest extends FormRequest
     protected function prepareForValidation()
     {
         $data = [
-            'is_generate_qr' => $this->is_generate_qr ? $this->toBoolean($this->is_generate_qr) : null,
-            'is_ppn' => $this->is_ppn ? $this->toBoolean($this->is_ppn) : null,
+            'is_generate_qr' => isset($this->is_generate_qr) ? $this->toBoolean($this->is_generate_qr) : null,
+            'is_ppn' => isset($this->is_ppn) ? !empty($this->toBoolean)($this->is_ppn) : null,
             // 'is_auto_tempel' => $this->toBoolean($this->is_auto_tempel ?? 1),
         ];
 

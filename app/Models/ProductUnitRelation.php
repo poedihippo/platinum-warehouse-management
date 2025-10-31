@@ -17,4 +17,9 @@ class ProductUnitRelation extends Model
     {
         return $this->belongsTo(ProductUnit::class);
     }
+
+    public function relatedProductUnit(): BelongsTo
+    {
+        return $this->belongsTo(ProductUnit::class, 'related_product_unit_id');
+    }
 }
