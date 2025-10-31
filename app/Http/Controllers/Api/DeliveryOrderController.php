@@ -123,7 +123,8 @@ class DeliveryOrderController extends Controller
 
             if ($deliveryOrder->is_done) {
                 $deliveryOrder->details?->each(function ($detail) use ($deliveryOrder) {
-                    $salesOrderDetail = $detail->salesOrderDetail->load('packaging');
+                    // $salesOrderDetail = $detail->salesOrderDetail->load('packaging');
+                    $salesOrderDetail = $detail->salesOrderDetail;
 
                     $stockProductUnit = StockProductUnit::tenanted()->where('warehouse_id', $salesOrderDetail?->warehouse_id)
                         ->where('product_unit_id', $salesOrderDetail?->product_unit_id)
@@ -142,24 +143,24 @@ class DeliveryOrderController extends Controller
                                 'agent' => request()->header('user-agent'),
                             ]);
 
-                            if ($salesOrderDetail->packaging) {
-                                // record stock history for packaging
-                                $stockProductUnit = $salesOrderDetail->packaging->stockProductUnits()->where('warehouse_id', $salesOrderDetail?->warehouse_id)->first();
+                            // if ($salesOrderDetail->packaging) {
+                            //     // record stock history for packaging
+                            //     $stockProductUnit = $salesOrderDetail->packaging->stockProductUnits()->where('warehouse_id', $salesOrderDetail?->warehouse_id)->first();
 
-                                if (!$stockProductUnit->productUnit->is_generate_qr) {
-                                    $stockProductUnit->increment('qty', $history->value);
-                                }
+                            //     if (!$stockProductUnit->productUnit->is_generate_qr) {
+                            //         $stockProductUnit->increment('qty', $history->value);
+                            //     }
 
-                                $stockProductUnit->histories()->create([
-                                    'user_id' => $history->user_id,
-                                    'stock_product_unit_id' => $stockProductUnit->id,
-                                    'value' => $history->value,
-                                    'is_increment' => $history->is_increment,
-                                    'description' => $history->description,
-                                    'ip' => $history->ip,
-                                    'agent' => $history->agent,
-                                ]);
-                            }
+                            //     $stockProductUnit->histories()->create([
+                            //         'user_id' => $history->user_id,
+                            //         'stock_product_unit_id' => $stockProductUnit->id,
+                            //         'value' => $history->value,
+                            //         'is_increment' => $history->is_increment,
+                            //         'description' => $history->description,
+                            //         'ip' => $history->ip,
+                            //         'agent' => $history->agent,
+                            //     ]);
+                            // }
                         }
                     }
                 });
@@ -323,7 +324,8 @@ class DeliveryOrderController extends Controller
 
             if ($deliveryOrder->is_done) {
                 $deliveryOrder->details?->each(function ($detail) use ($deliveryOrder) {
-                    $salesOrderDetail = $detail->salesOrderDetail->load('packaging');
+                    // $salesOrderDetail = $detail->salesOrderDetail->load('packaging');
+                    $salesOrderDetail = $detail->salesOrderDetail;
 
                     $stockProductUnit = StockProductUnit::tenanted()->where('warehouse_id', $salesOrderDetail?->warehouse_id)
                         ->where('product_unit_id', $salesOrderDetail?->product_unit_id)
@@ -341,24 +343,24 @@ class DeliveryOrderController extends Controller
                             'agent' => request()->header('user-agent'),
                         ]);
 
-                        if ($salesOrderDetail->packaging) {
-                            // record stock history for packaging
-                            $stockProductUnit = $salesOrderDetail->packaging->stockProductUnits()->where('warehouse_id', $salesOrderDetail?->warehouse_id)->first();
+                        // if ($salesOrderDetail->packaging) {
+                        //     // record stock history for packaging
+                        //     $stockProductUnit = $salesOrderDetail->packaging->stockProductUnits()->where('warehouse_id', $salesOrderDetail?->warehouse_id)->first();
 
-                            if (!$stockProductUnit->productUnit->is_generate_qr) {
-                                $stockProductUnit->decrement('qty', $history->value);
-                            }
+                        //     if (!$stockProductUnit->productUnit->is_generate_qr) {
+                        //         $stockProductUnit->decrement('qty', $history->value);
+                        //     }
 
-                            $salesOrderDetail->histories()->create([
-                                'user_id' => $history->user_id,
-                                'stock_product_unit_id' => $stockProductUnit->id,
-                                'value' => $history->value,
-                                'is_increment' => $history->is_increment,
-                                'description' => $history->description,
-                                'ip' => $history->ip,
-                                'agent' => $history->agent,
-                            ]);
-                        }
+                        //     $salesOrderDetail->histories()->create([
+                        //         'user_id' => $history->user_id,
+                        //         'stock_product_unit_id' => $stockProductUnit->id,
+                        //         'value' => $history->value,
+                        //         'is_increment' => $history->is_increment,
+                        //         'description' => $history->description,
+                        //         'ip' => $history->ip,
+                        //         'agent' => $history->agent,
+                        //     ]);
+                        // }
                     }
                 });
             }

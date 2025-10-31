@@ -26,7 +26,8 @@
                             <ITEMRESERVED8 />
                             <ITEMRESERVED9 />
                             <ITEMRESERVED10 />
-                            <ITEMOVDESC>{{ ($i == 0 ? '' : '--') . $detail->productUnit->name . ($i == 0 ? '*' : '') }}</ITEMOVDESC>
+                            <ITEMOVDESC>{{ ($i == 0 ? '' : '--') . $detail->productUnit->name . ($i == 0 ? '*' : '') }}
+                            </ITEMOVDESC>
                             <UNITPRICE>{{ $i == 0 ? $detail->unit_price : 0 }}</UNITPRICE>
                             <DISCPC />
                             @if ($detail->tax > 0)
@@ -34,7 +35,7 @@
                             @else
                                 <TAXCODES />
                             @endif
-                            <GROUPSEQ>{{ ($i == 0 ? null : $GROUPSEQ) }}</GROUPSEQ>
+                            <GROUPSEQ>{{ $i == 0 ? null : $GROUPSEQ }}</GROUPSEQ>
                             <QTYSHIPPED>0</QTYSHIPPED>
                         </ITEMLINE>
                     @endfor
@@ -95,7 +96,7 @@
                     </ITEMLINE>
                 @endif
                 @php
-                    $GROUPSEQ++
+                    $GROUPSEQ++;
                 @endphp
             @endforeach
             <SONO>{{ $salesOrder->invoice_no }}</SONO>

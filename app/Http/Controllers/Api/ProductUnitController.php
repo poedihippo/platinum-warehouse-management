@@ -39,7 +39,7 @@ class ProductUnitController extends Controller
                 'name',
                 AllowedFilter::exact('product_id'),
                 AllowedFilter::exact('is_generate_qr'),
-                AllowedFilter::exact('is_auto_tempel'),
+                // AllowedFilter::exact('is_auto_tempel'),
                 AllowedFilter::exact('is_ppn'),
                 AllowedFilter::scope('product_brand_id', 'whereProductBrandId'),
                 AllowedFilter::scope('product_category_id', 'whereProductCategoryId'),
@@ -57,6 +57,7 @@ class ProductUnitController extends Controller
         return new ProductUnitResource($productUnit);
         // return new ProductUnitResource($productUnit->load('packaging'));
     }
+
 
     public function store(ProductUnitStoreRequest $request)
     {

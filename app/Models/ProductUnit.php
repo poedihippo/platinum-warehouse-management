@@ -21,15 +21,15 @@ class ProductUnit extends Model
         'description',
         'code',
         'is_generate_qr',
-        'is_auto_tempel',
         'is_ppn',
-        'is_auto_stock',
+        // 'is_auto_tempel',
+        // 'is_auto_stock',
     ];
 
     protected $casts = [
         'is_generate_qr' => 'boolean',
-        'is_auto_tempel' => 'boolean',
-        'is_auto_stock' => 'boolean',
+        // 'is_auto_tempel' => 'boolean',
+        // 'is_auto_stock' => 'boolean',
     ];
 
     protected static function booted()
