@@ -124,7 +124,7 @@ class DeliveryOrderController extends Controller
                 $deliveryOrder->details?->each(function ($detail) use ($deliveryOrder) {
                     // $salesOrderDetail = $detail->salesOrderDetail->load('packaging');
                     $salesOrderDetail = $detail->salesOrderDetail->load([
-                        'productUnit' => fn($q) => $q->select('id', 'refer_id')->with('relations', fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select('id', 'is_generate_qr')))
+                        'productUnit' => fn($q) => $q->select('id', 'refer_id', 'refer_qty')->with('relations', fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select('id', 'is_generate_qr')))
                     ]);
 
                     $stockProductUnit = StockProductUnit::tenanted()->where('warehouse_id', $salesOrderDetail?->warehouse_id)
@@ -151,18 +151,21 @@ class DeliveryOrderController extends Controller
 
                             if ($salesOrderDetail->productUnit->refer_id && $salesOrderDetail->productUnit->relations->count()) {
                                 // record stock history for relations
+
+                                $multiply = floor($salesOrderDetail->qty / $salesOrderDetail->productUnit->refer_qty);
                                 foreach ($salesOrderDetail->productUnit->relations as $relation) {
                                     $stockProductUnit = StockProductUnit::where('product_unit_id', $relation->related_product_unit_id)->where('warehouse_id', $salesOrderDetail?->warehouse_id)->first();
 
                                     if ($stockProductUnit) {
+                                        $qty = $relation->qty * $multiply;
                                         if (!$relation->relatedProductUnit->is_generate_qr) {
-                                            $stockProductUnit->increment('qty', $relation->qty);
+                                            $stockProductUnit->increment('qty', $qty);
                                         }
 
                                         $stockProductUnit->histories()->create([
                                             'user_id' => $history->user_id,
                                             'stock_product_unit_id' => $stockProductUnit->id,
-                                            'value' => $relation->qty,
+                                            'value' => $qty,
                                             'is_increment' => $history->is_increment,
                                             'description' => $history->description,
                                             'ip' => $history->ip,
@@ -357,9 +360,8 @@ class DeliveryOrderController extends Controller
                 $deliveryOrder->details?->each(function ($detail) use ($deliveryOrder) {
                     // $salesOrderDetail = $detail->salesOrderDetail->load('packaging');
                     $salesOrderDetail = $detail->salesOrderDetail->load([
-                        'productUnit' => fn($q) => $q->select('id', 'refer_id')->with('relations', fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select('id', 'is_generate_qr')))
+                        'productUnit' => fn($q) => $q->select('id', 'refer_id', 'refer_qty')->with('relations', fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select('id', 'is_generate_qr')))
                     ]);
-                    // dd($salesOrderDetail);
 
                     $stockProductUnit = StockProductUnit::tenanted()->where('warehouse_id', $salesOrderDetail?->warehouse_id)
                         ->when(
@@ -383,18 +385,21 @@ class DeliveryOrderController extends Controller
 
                         if ($salesOrderDetail->productUnit->refer_id && $salesOrderDetail->productUnit->relations->count()) {
                             // record stock history for relations
+
+                            $multiply = floor($salesOrderDetail->qty / $salesOrderDetail->productUnit->refer_qty);
                             foreach ($salesOrderDetail->productUnit->relations as $relation) {
                                 $stockProductUnit = StockProductUnit::where('product_unit_id', $relation->related_product_unit_id)->where('warehouse_id', $salesOrderDetail?->warehouse_id)->first();
 
                                 if ($stockProductUnit) {
+                                    $qty = $relation->qty * $multiply;
                                     if (!$relation->relatedProductUnit->is_generate_qr) {
-                                        $stockProductUnit->decrement('qty', $relation->qty);
+                                        $stockProductUnit->decrement('qty', $qty);
                                     }
 
                                     $stockProductUnit->histories()->create([
                                         'user_id' => $history->user_id,
                                         'stock_product_unit_id' => $stockProductUnit->id,
-                                        'value' => $relation->qty,
+                                        'value' => $qty,
                                         'is_increment' => $history->is_increment,
                                         'description' => $history->description,
                                         'ip' => $history->ip,

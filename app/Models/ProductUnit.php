@@ -18,6 +18,7 @@ class ProductUnit extends Model
         'uom_id',
         'name',
         'price',
+        'refer_qty',
         'description',
         'code',
         'is_generate_qr',
@@ -72,6 +73,12 @@ class ProductUnit extends Model
     {
         return $this->hasMany(StockProductUnit::class);
     }
+
+    public function stockProductUnit()
+    {
+        return $this->hasOne(StockProductUnit::class);
+    }
+
 
     public function scopeSearch(Builder $query, string $value)
     {
