@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ImportByFileRequest;
 use App\Http\Requests\Api\ProductUnit\ProductUnitRelationRequest;
+use App\Http\Requests\Api\ProductUnit\UpdateProductUnitRelationRequest;
 use App\Http\Requests\Api\ProductUnitChangeProductRequest;
 use App\Http\Requests\Api\ProductUnitStoreRequest;
 use App\Http\Requests\Api\ProductUnitUpdateRequest;
@@ -12,12 +13,12 @@ use App\Http\Resources\ProductUnitResource;
 use App\Http\Resources\SalesOrderDetailResource;
 use App\Models\ProductUnit;
 use App\Models\SalesOrderDetail;
-use App\Models\User;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class ProductUnitController extends Controller
 {
@@ -68,6 +69,10 @@ class ProductUnitController extends Controller
 
     public function update(ProductUnit $productUnit, ProductUnitUpdateRequest $request)
     {
+        if ($productUnit->refer_id) {
+            throw new BadRequestHttpException("Product Grouping can not update here");
+        }
+
         $productUnit->update($request->validated());
 
         return (new ProductUnitResource($productUnit))->response()->setStatusCode(Response::HTTP_ACCEPTED);
@@ -115,6 +120,41 @@ class ProductUnitController extends Controller
         return $this->createdResponse();
     }
 
+    public function updateProductUnitRelations(UpdateProductUnitRelationRequest $request, ProductUnit $productUnit, int $id)
+    {
+        $relatedProductUnits = collect($request->related_product_units);
+
+        // ✅ Query ProductUnit untuk dapetin is_generate_qr
+        $totalProductUnitGenerateQr = ProductUnit::whereIn('id', $relatedProductUnits->pluck('id')->all())->where('is_generate_qr', 1)->count();
+
+        // ✅ 2. Pastikan hanya satu yang is_generate_qr == true
+        if ($totalProductUnitGenerateQr > 0) {
+            throw ValidationException::withMessages([
+                'related_product_units' => ['Can not related to product unit that have is_generate_qr = true.'],
+            ]);
+        }
+
+        $groupingProductUnit = ProductUnit::where('id', $id)->where('refer_id', $productUnit->id)->firstOrFail();
+
+        DB::transaction(function () use ($groupingProductUnit, $request, $productUnit) {
+            $data = array_merge(
+                $productUnit->toArray(),
+                $request->validated(),
+            );
+            unset($data['id'], $data['created_at'], $data['updated_at']);
+
+            $groupingProductUnit->update($data);
+            $groupingProductUnit->relations()->delete();
+
+            if ($request->related_product_units) {
+                $data = collect($request->related_product_units)->map(fn($req) => ['related_product_unit_id' => $req['id'], 'qty' => $req['qty']]);
+                $groupingProductUnit->relations()->createMany($data);
+            }
+        });
+
+        return $this->updatedResponse();
+    }
+
     public function changeProduct(ProductUnit $productUnit, ProductUnitChangeProductRequest $request)
     {
         $productUnit->update($request->validated());
@@ -124,7 +164,7 @@ class ProductUnitController extends Controller
 
     public function userPrice(ProductUnit $productUnit, int $userId)
     {
-        $user = User::findOrFail($userId, ['id']);
+        // $user = User::findOrFail($userId, ['id']);
         $salesOrderDetails = SalesOrderDetail::select('id', 'product_unit_id', 'unit_price', 'created_at')
             ->whereHas('salesOrder', fn($q) => $q->where('reseller_id', $userId))
             ->where('product_unit_id', $productUnit->id)
