@@ -108,13 +108,15 @@ class SalesOrderController extends Controller
             ])
             ->paginate($this->per_page)
             ->through(function ($productUnit) {
-                $productUnit->name = $productUnit->name . ' - ' . ($productUnit->stockProductUnit->warehouse?->code ?? '');
                 $productUnit->price_discount = $productUnit->price;
                 $productUnit->discount = 0;
                 $productUnit->is_percentage = 1;
 
                 if ($productUnit->refer && !$productUnit->stockProductUnit) {
+                    $productUnit->name = $productUnit->name . ' - ' . ($productUnit->refer->stockProductUnit->warehouse?->code ?? '');
                     $productUnit->setRelation('stockProductUnit', $productUnit->refer->stockProductUnit);
+                } else {
+                    $productUnit->name = $productUnit->name . ' - ' . ($productUnit->stockProductUnit->warehouse?->code ?? '');
                 }
                 $productUnit->unsetRelation('refer');
 
