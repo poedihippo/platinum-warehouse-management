@@ -9,6 +9,7 @@ use App\Models\DeliveryOrderDetail;
 use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class DeliveryOrderDetailController extends Controller
 {
@@ -67,6 +68,10 @@ class DeliveryOrderDetailController extends Controller
     public function resetVerifiedStock(int $deliveryOrderId, int $deliveryOrderDetailId)
     {
         $deliveryOrder = DeliveryOrder::findTenanted($deliveryOrderId);
+        if($deliveryOrder->is_done) {
+            throw new BadRequestHttpException("Delivery Order must be not finished. Please set as In Progress first.");
+        }
+
         $deliveryOrderDetail = $deliveryOrder->details()->select('id', 'delivery_order_id', 'sales_order_detail_id')->where('id', $deliveryOrderDetailId)->firstOrFail();
 
         $salesOrderDetail = $deliveryOrderDetail->salesOrderDetail()->select('id', 'product_unit_id', 'fulfilled_qty')->with('productUnit', fn($q) => $q->select('id', 'name'))->firstOrFail();
@@ -77,7 +82,6 @@ class DeliveryOrderDetailController extends Controller
 
             // Delete stock verified
             $salesOrderDetail->salesOrderItems()->delete();
-            $deliveryOrder->update(['is_done' => 0]);
         });
 
         return $this->updatedResponse($salesOrderDetail->productUnit->name . " on DO: " . $deliveryOrder->invoice_no . " reset successfully");
