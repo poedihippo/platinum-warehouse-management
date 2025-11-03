@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\SalesOrderResource;
 use App\Http\Requests\Api\SalesOrderStoreRequest;
 use App\Http\Requests\Api\SalesOrderUpdateRequest;
-use App\Models\Product;
 use App\Models\ProductUnit;
 use App\Models\SalesOrder;
 use App\Models\StockProductUnit;

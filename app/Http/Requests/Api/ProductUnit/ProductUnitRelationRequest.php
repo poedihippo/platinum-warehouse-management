@@ -14,7 +14,7 @@ class ProductUnitRelationRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            'refer_qty' => $this->refer_qty ?? $this->refer_qty ?? null,
+            'refer_qty' => $this->refer_qty ?? $this->qty ?? null,
         ]);
     }
 
