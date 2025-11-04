@@ -55,7 +55,11 @@ class ProductUnitController extends Controller
 
     public function show(ProductUnit $productUnit)
     {
-        return new ProductUnitResource($productUnit);
+        return new ProductUnitResource($productUnit->load([
+            'uom',
+            'product',
+            'relations' => fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select('id', 'name'))
+        ]));
         // return new ProductUnitResource($productUnit->load('packaging'));
     }
 
@@ -75,7 +79,7 @@ class ProductUnitController extends Controller
 
         $productUnit->update($request->validated());
 
-        return (new ProductUnitResource($productUnit))->response()->setStatusCode(Response::HTTP_ACCEPTED);
+        return $this->updatedResponse();
     }
 
     public function destroy(ProductUnit $productUnit)
