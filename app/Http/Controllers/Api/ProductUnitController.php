@@ -148,7 +148,7 @@ class ProductUnitController extends Controller
                 $productUnit->toArray(),
                 $request->validated(),
             );
-            unset($data['id'], $data['created_at'], $data['updated_at']);
+            unset($data['id'], $data['refer_id'], $data['created_at'], $data['updated_at']);
 
             $groupingProductUnit->update($data);
             $groupingProductUnit->relations()->delete();
