@@ -17,6 +17,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\AllowedInclude;
 use Spatie\QueryBuilder\QueryBuilder;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
@@ -46,7 +47,9 @@ class ProductUnitController extends Controller
                 AllowedFilter::scope('product_category_id', 'whereProductCategoryId'),
                 AllowedFilter::scope('company', 'whereCompany'),
             ])
-            // ->allowedIncludes('packaging')
+            ->allowedIncludes([
+                AllowedInclude::callback('relations', fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select('id', 'name')))
+            ])
             ->allowedSorts(['id', 'product_id', 'name', 'price', 'created_at'])
             ->paginate($this->per_page);
 
