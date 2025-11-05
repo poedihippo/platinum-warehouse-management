@@ -95,13 +95,13 @@ class AdjustmentRequestController extends Controller
                     // $folder = 'qrcode/';
 
                     if ($stockProductUnit->productUnit->is_generate_qr) {
-                        // $isStock = $stockProductUnit->productUnit->is_auto_stock;
+                        $isStock = $stockProductUnit->productUnit->is_auto_stock;
                         // GenerateStockQrcode::dispatch($stockProductUnit, $qty, $folder);
 
                         for ($i = 0; $i < $adjustmentRequest->value ?? 0; $i++) {
                             $stockProductUnit->stocks()->create([
                                 'adjustment_request_id' => $adjustmentRequest->id,
-                                // 'is_stock' => $isStock,
+                                'is_stock' => $isStock,
                                 'description' => null
                             ]);
 

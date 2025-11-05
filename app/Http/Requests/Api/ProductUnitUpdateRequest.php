@@ -19,6 +19,7 @@ class ProductUnitUpdateRequest extends FormRequest
         $data = [
             'is_generate_qr' => isset($this->is_generate_qr) ? $this->toBoolean($this->is_generate_qr) : null,
             'is_ppn' => isset($this->is_ppn) ? $this->toBoolean($this->is_ppn) : null,
+            'is_auto_stock' => isset($this->is_auto_stock) ? $this->toBoolean($this->is_auto_stock) : null,
             // 'is_auto_tempel' => $this->toBoolean($this->is_auto_tempel ?? 1),
         ];
 
@@ -47,7 +48,7 @@ class ProductUnitUpdateRequest extends FormRequest
             'is_generate_qr' => 'required|boolean',
             // 'is_auto_tempel' => 'nullable|boolean',
             'is_ppn' => 'required|boolean',
-            // 'is_auto_stock' => 'nullable|boolean',
+            'is_auto_stock' => 'required|boolean',
         ];
     }
 }
