@@ -35,7 +35,7 @@ class ProductUnitController extends Controller
 
     public function index()
     {
-        $productUnits = QueryBuilder::for(ProductUnit::with('product'))
+        $productUnits = QueryBuilder::for(ProductUnit::with('product')->has('product')->orderBy('id'))
             ->allowedFilters([
                 // 'name',
                 AllowedFilter::exact('product_id'),
@@ -56,14 +56,14 @@ class ProductUnitController extends Controller
         return ProductUnitResource::collection($productUnits);
     }
 
-    public function show(ProductUnit $productUnit)
+    public function show(int $id)
     {
-        return new ProductUnitResource($productUnit->load([
+        $productUnit = ProductUnit::with([
             'uom',
             'product',
             'relations' => fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select('id', 'name'))
-        ]));
-        // return new ProductUnitResource($productUnit->load('packaging'));
+        ])->has('product')->findOrFail($id);
+        return new ProductUnitResource($productUnit);
     }
 
 
