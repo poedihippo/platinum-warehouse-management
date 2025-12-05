@@ -120,7 +120,7 @@ class StockController extends Controller
         return BaseStockResource::collection($stocks);
     }
 
-    public function show(int $id)
+    public function show(string $id)
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('stock_access'), 403);
         $stock = Stock::findTenanted($id);
