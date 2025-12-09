@@ -120,10 +120,13 @@ class StockController extends Controller
         return BaseStockResource::collection($stocks);
     }
 
-    public function show(string $id)
+    public function show(string $id, Request $request)
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('stock_access'), 403);
-        $stock = Stock::findTenanted($id);
+        $stock = Stock::query()
+            ->when($request->query('include', 'childs') == 'childs', fn($q) => $q->with('childs', fn($q) => $q->select('id', 'parent_id')))
+            ->findTenanted($id);
+
         return new StocksStockProductUnitResource($stock->load([
             'stockProductUnit' => fn($q) => $q->tenanted()->withCount(['stocks' => fn($q) => $q->whereAvailableStock()->whereNull('description')]),
             'receiveOrderDetail'
