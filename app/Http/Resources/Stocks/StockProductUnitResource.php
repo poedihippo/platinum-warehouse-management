@@ -8,42 +8,53 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class StockProductUnitResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
-     */
     public function toArray($request)
     {
         $data = [
             'childs_count' => $this->whenCounted('childs'),
-            'receive_order_detail' =>  new ReceiveOrderDetailResource($this->whenLoaded('receiveOrderDetail')),
-            'stock_product_unit' =>  new ResourcesStockProductUnitResource($this->whenLoaded('stockProductUnit')->load(['productUnit', 'warehouse'])),
+            'receive_order_detail' => new ReceiveOrderDetailResource($this->whenLoaded('receiveOrderDetail')),
+            'stock_product_unit' => new ResourcesStockProductUnitResource(
+                $this->whenLoaded('stockProductUnit')->load(['productUnit', 'warehouse'])
+            ),
         ];
 
-        $salesOrder = null;
-        if (
-            $this->relationLoaded('salesOrderItem')
-            && $this->salesOrderItem->relationLoaded('salesOrderDetail')
-            && $this->salesOrderItem->salesOrderDetail->relationLoaded('salesOrder')
-        ) {
-            $salesOrder = $this->salesOrderItem->salesOrderDetail->salesOrder->setAppends([]);
+        // ==============================================
+        // Cek salesOrderItem → salesOrderDetail → salesOrder
+        // ==============================================
 
-            $data['sales_order'] = $salesOrder;
+        if ($this->relationLoaded('salesOrderItem')) {
 
-            // Check nested eager load deliveryOrder
-            if (
-                $this->salesOrderItem->salesOrderDetail->relationLoaded('deliveryOrderDetail') &&
-                $this->salesOrderItem->salesOrderDetail->deliveryOrderDetail->relationLoaded('deliveryOrder')
-            ) {
-                $data['delivery_order'] = $this->salesOrderItem
-                    ->salesOrderDetail
-                    ->deliveryOrderDetail
-                    ->deliveryOrder
-                    ->setAppends([]);
+            $salesOrderItem = $this->salesOrderItem;
+
+            // salesOrderDetail harus ada & harus loaded
+            if ($salesOrderItem?->relationLoaded('salesOrderDetail')) {
+
+                $salesOrderDetail = $salesOrderItem->salesOrderDetail;
+
+                // salesOrder harus loaded
+                if ($salesOrderDetail?->relationLoaded('salesOrder')) {
+
+                    // Sudah aman → tidak akan null
+                    $salesOrder = $salesOrderDetail->salesOrder->setAppends([]);
+                    $data['sales_order'] = $salesOrder;
+
+                    // ==============================================
+                    // Cek deliveryOrderDetail → deliveryOrder
+                    // ==============================================
+
+                    if (
+                        $salesOrderDetail->relationLoaded('deliveryOrderDetail') &&
+                        $salesOrderDetail->deliveryOrderDetail?->relationLoaded('deliveryOrder')
+                    ) {
+                        $data['delivery_order'] = $salesOrderDetail
+                            ->deliveryOrderDetail
+                            ->deliveryOrder
+                            ->setAppends([]);
+                    }
+                }
             }
 
+            // Ini bagian asli lu → tidak gue hapus
             unset($this->salesOrderItem);
         }
 
