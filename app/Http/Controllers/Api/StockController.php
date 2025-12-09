@@ -123,13 +123,34 @@ class StockController extends Controller
     public function show(string $id, Request $request)
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('stock_access'), 403);
+
+        $include = $request->query('include', '');
+        $includeChilds = str_contains($include, 'childs');
+        $includeReceiveOrder = str_contains($include, 'receiveOrder');
+        $includeSalesOrder = str_contains($include, 'salesOrder');
+        $includeSDeliveryOrder = str_contains($include, 'deliveryOrder');
+
         $stock = Stock::query()
-            ->when($request->query('include', 'childs') == 'childs', fn($q) => $q->with('childs', fn($q) => $q->select('id', 'parent_id')))
+            ->when($includeChilds, fn($q) => $q->with('childs', fn($q) => $q->select('id', 'parent_id')))
+            ->when($includeReceiveOrder, fn($q) => $q->with('receiveOrderDetail'))
+            ->when(
+                $includeSalesOrder,
+                fn($q) => $q->with('salesOrderItem', fn($q) => $q->with(
+                    'salesOrderDetail',
+                    fn($q) => $q->select('id', 'sales_order_id')->with('salesOrder', fn($q) => $q->select('id', 'invoice_no'))
+                        ->when(
+                            $includeSDeliveryOrder,
+                            fn($q) => $q->with(
+                                'deliveryOrderDetail',
+                                fn($q) => $q->select('id', 'delivery_order_id', 'sales_order_detail_id')->with('deliveryOrder', fn($q) => $q->select('id', 'invoice_no'))
+                            )
+                        )
+                ))
+            )
             ->findTenanted($id);
 
         return new StocksStockProductUnitResource($stock->load([
-            'stockProductUnit' => fn($q) => $q->tenanted()->withCount(['stocks' => fn($q) => $q->whereAvailableStock()->whereNull('description')]),
-            'receiveOrderDetail'
+            'stockProductUnit' => fn($q) => $q->tenanted()->withCount(['stocks' => fn($q) => $q->whereAvailableStock()->whereNull('description')])
         ]));
     }
 

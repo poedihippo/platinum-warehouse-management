@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 // use Spatie\MediaLibrary\InteractsWithMedia;
 
@@ -54,6 +55,12 @@ class Stock extends Model
     public function salesOrderItems(): HasMany
     {
         return $this->hasMany(SalesOrderItem::class);
+    }
+
+    // recently used in GET /stock/:id
+    public function salesOrderItem(): HasOne
+    {
+        return $this->hasOne(SalesOrderItem::class);
     }
 
     public function receiveOrder(): BelongsTo

@@ -6,7 +6,6 @@ use App\Enums\CompanyEnum;
 use App\Enums\SettingEnum;
 use App\Traits\FilterStartEndDate;
 use App\Traits\Tenanted;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
