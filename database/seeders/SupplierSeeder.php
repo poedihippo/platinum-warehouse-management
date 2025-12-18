@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Imports\SupplierSeederImport;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Supplier;
 use Maatwebsite\Excel\Facades\Excel;
 
 class SupplierSeeder extends Seeder

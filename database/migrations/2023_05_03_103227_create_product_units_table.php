@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('name', 100);
             $table->integer('price')->default(0);
             $table->smallInteger('refer_qty')->unsigned()->nullable();
-            $table->text('description');
+            // $table->text('description');
             $table->string('code', 50);
             $table->boolean('is_generate_qr')->default(1);
             // $table->boolean('is_auto_tempel')->default(1);

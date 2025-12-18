@@ -41,7 +41,7 @@ class ProductUnitUpdateRequest extends FormRequest
             'code' => 'required|unique:product_units,code,' . $this->product_unit?->id,
             'uom_id' => 'required|exists:uoms,id',
             'name' => 'required',
-            'description' => 'required',
+            // 'description' => 'required',
             'product_id' => 'required',
             'price' => 'required',
             // 'packaging_id' => 'nullable|exists:product_units,id',

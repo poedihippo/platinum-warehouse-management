@@ -20,7 +20,7 @@ class ProductUnitResource extends JsonResource
             'refer_qty' => $this->refer_qty,
             'name' => $this->name,
             'price' => $this->price,
-            'description' => $this->description,
+            // 'description' => $this->description,
             'code' => $this->code,
             'is_generate_qr' => $this->is_generate_qr,
             // 'is_auto_tempel' => $this->is_auto_tempel,

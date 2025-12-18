@@ -20,7 +20,7 @@ return new class extends Migration
             $table->foreignId('product_brand_id')->constrained();
             $table->string('company', 10)->default(CompanyEnum::PAS);
             $table->string('name', 100);
-            $table->text('description');
+            // $table->text('description');
             $table->timestamps();
             $table->softDeletes();
         });

@@ -15,7 +15,7 @@ class Product extends Model
         'product_brand_id',
         'company',
         'name',
-        'description',
+        // 'description',
     ];
 
     protected $casts = [

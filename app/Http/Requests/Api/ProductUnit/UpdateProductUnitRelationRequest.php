@@ -28,7 +28,7 @@ class UpdateProductUnitRelationRequest extends FormRequest
         return [
             'code' => ['sometimes', 'unique:product_units,code,' . $this->id],
             'name' => 'required',
-            'description' => 'required',
+            // 'description' => 'required',
             'price' => 'required',
             'refer_qty' => ['required', 'integer', 'min:1'],
             'related_product_units' => ['required', 'array'],

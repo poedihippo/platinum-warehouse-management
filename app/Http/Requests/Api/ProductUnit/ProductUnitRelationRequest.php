@@ -28,7 +28,7 @@ class ProductUnitRelationRequest extends FormRequest
         return [
             'code' => 'required|unique:product_units,code',
             'name' => 'required',
-            'description' => 'required',
+            // 'description' => 'required',
             'price' => 'required',
             'refer_qty' => ['required', 'integer', 'min:1'],
             'related_product_units' => ['required', 'array'],

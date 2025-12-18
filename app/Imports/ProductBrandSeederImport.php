@@ -19,7 +19,7 @@ class ProductBrandSeederImport implements ToModel
 
         return new ProductBrand([
             'name' => $productBrandName,
-            'description' => $productBrandName,
+            // 'description' => $productBrandName,
         ]);
     }
 }

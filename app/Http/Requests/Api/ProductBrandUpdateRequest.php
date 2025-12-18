@@ -15,7 +15,7 @@ class ProductBrandUpdateRequest extends FormRequest
     {
         return [
             'name' => 'required|unique:product_brands,id,' . $this->product_brand?->id,
-            'description' => 'required',
+            // 'description' => 'required',
         ];
     }
 }

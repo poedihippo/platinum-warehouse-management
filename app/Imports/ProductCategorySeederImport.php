@@ -19,7 +19,7 @@ class ProductCategorySeederImport implements ToModel
 
         return new ProductCategory([
             'name' => $productCategoryName,
-            'description' => $productCategoryName,
+            // 'description' => $productCategoryName,
         ]);
     }
 }

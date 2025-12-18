@@ -19,7 +19,7 @@ class ProductUnit extends Model
         'name',
         'price',
         'refer_qty',
-        'description',
+        // 'description',
         'code',
         'is_generate_qr',
         'is_ppn',

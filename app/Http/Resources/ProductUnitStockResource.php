@@ -17,7 +17,7 @@ class ProductUnitStockResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'description' => $this->description,
+            // 'description' => $this->description,
             'code' => $this->code,
             'qty' => $this->qty,
             'warehouse' => $this->warehouse,

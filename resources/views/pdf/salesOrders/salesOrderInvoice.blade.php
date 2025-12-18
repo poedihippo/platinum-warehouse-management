@@ -179,8 +179,8 @@
         <table>
             <thead>
                 <tr>
-                    <th class="align-center">Item</th>
-                    <th class="align-center">Item Description</th>
+                    <th class="align-center">Code</th>
+                    <th class="align-center">Name</th>
                     <th class="align-center">Qty</th>
                     <th class="align-center">Unit Price</th>
                     <th class="align-center">Total</th>

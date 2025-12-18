@@ -269,8 +269,8 @@
         <div class="mt-5">
             <table class="table-items-bordered @if($key != $lastOrderDetailsKey)border-bottom-none @endif" cellspacing="0">
                 <tr>
-                    <th class="border-bottom border-right">Item</th>
-                    <th class="border-bottom border-right">Item Description</th>
+                    <th class="border-bottom border-right">Code</th>
+                    <th class="border-bottom border-right">Name</th>
                     <th class="border-bottom border-right">Qty</th>
                     <th class="border-bottom border-right">Unit Price</th>
                     <th class="border-bottom border-right">Disc</th>

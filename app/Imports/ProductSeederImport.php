@@ -40,7 +40,7 @@ class ProductSeederImport implements ToModel, WithHeadingRow
                 'product_brand_id' => $prodcutbrand->id,
                 'company' => $company,
                 'name' => $productName,
-                'description' => $productName,
+                // 'description' => $productName,
             ]);
         }
     }

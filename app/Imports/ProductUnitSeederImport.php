@@ -42,7 +42,7 @@ class ProductUnitSeederImport implements ToModel, WithHeadingRow
                 'uom_id' => $uom->id,
                 'code' => $code,
                 'name' => $productUnitName,
-                'description' => $productUnitName,
+                // 'description' => $productUnitName,
                 'is_generate_qr' => 1,
                 'price' => $price,
             ]);

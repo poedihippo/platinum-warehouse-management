@@ -15,7 +15,7 @@ class ProductCategoryUpdateRequest extends FormRequest
     {
         return [
             'name' => 'required|unique:product_categories,id,' . $this->product_category?->id,
-            'description' => 'required',
+            // 'description' => 'required',
         ];
     }
 }
