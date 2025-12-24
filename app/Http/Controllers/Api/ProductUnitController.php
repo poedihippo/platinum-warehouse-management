@@ -13,6 +13,7 @@ use App\Http\Resources\ProductUnitResource;
 use App\Http\Resources\SalesOrderDetailResource;
 use App\Models\ProductUnit;
 use App\Models\SalesOrderDetail;
+use App\Models\Stock;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -201,5 +202,23 @@ class ProductUnitController extends Controller
     {
         \Maatwebsite\Excel\Facades\Excel::import(new \App\Imports\ProductUnitSeederImport, $request->file);
         return $this->createdResponse('Data imported successfully', 200);
+    }
+
+    public function showProductUnitByStock(string $stockId)
+    {
+        $stock = Stock::select('id', 'stock_product_unit_id')->find($stockId);
+        if (!$stock) return response()->json(['message' => 'Product tidak ditemukan.'], 400);
+
+        $productUnit = ProductUnit::select('id', 'product_id', 'uom_id', 'name', 'price', 'code')
+            ->with([
+                'uom' => fn($q) => $q->select('id', 'name'),
+                'product' => fn($q) => $q->select('id', 'name', 'product_category_id', 'product_brand_id')->with('productCategory', fn($q) => $q->select('id', 'name'))->with('productBrand', fn($q) => $q->select('id', 'name')),
+            ])
+            ->whereHas('stockProductUnit', fn($q) => $q->where('id', $stock->stock_product_unit_id))
+            ->first();
+
+        if (!$productUnit) return response()->json(['message' => 'Product tidak ditemukan.'], 400);
+
+        return new ProductUnitResource($productUnit);
     }
 }

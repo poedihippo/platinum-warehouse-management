@@ -51,6 +51,7 @@ Route::get('/', function () {
     // return view('welcome');
 });
 Route::get('invoices/{salesOrder}/print', [\App\Http\Controllers\Api\InvoiceController::class, 'print']);
+Route::get('product-units/{stock}', [\App\Http\Controllers\Api\ProductUnitController::class, 'showProductUnitByStock']);
 
 Route::get('test', function () {
     $from = [255, 0, 0];
