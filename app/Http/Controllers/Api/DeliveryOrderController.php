@@ -349,6 +349,10 @@ class DeliveryOrderController extends Controller
         // if (!$deliveryOrder->details->every(fn ($detail) => $detail->salesOrderDetail?->salesOrderItems?->count() >= $detail->salesOrderDetail?->qty))
         //     return response()->json(['message' => 'Semua data delivery order harus terpenuhi'], 400);
 
+        if ($request->is_done == $deliveryOrder->is_done) {
+            return response()->json(['message' => 'Tidak dapat update status yang sama.'], 400);
+        }
+
         DB::beginTransaction();
         try {
             $deliveryOrder->update([
@@ -362,6 +366,7 @@ class DeliveryOrderController extends Controller
                     $salesOrderDetail = $detail->salesOrderDetail->load([
                         'productUnit' => fn($q) => $q->select('id', 'refer_id', 'refer_qty')->with('relations', fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select('id', 'is_generate_qr')))
                     ]);
+
 
                     $stockProductUnit = StockProductUnit::tenanted()->where('warehouse_id', $salesOrderDetail?->warehouse_id)
                         ->when(
@@ -429,7 +434,62 @@ class DeliveryOrderController extends Controller
                         // }
                     }
                 });
+            } else {
+                $deliveryOrder->details?->each(function ($detail) use ($deliveryOrder) {
+                    // $salesOrderDetail = $detail->salesOrderDetail->load('packaging');
+                    $salesOrderDetail = $detail->salesOrderDetail->load([
+                        'productUnit' => fn($q) => $q->select('id', 'refer_id', 'refer_qty')->with('relations', fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select('id', 'is_generate_qr')))
+                    ]);
+
+                    $stockProductUnit = StockProductUnit::tenanted()->where('warehouse_id', $salesOrderDetail?->warehouse_id)
+                        ->when(
+                            $salesOrderDetail->productUnit->refer_id,
+                            fn($q) => $q->where('product_unit_id', $salesOrderDetail->productUnit->refer_id),
+                            fn($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id),
+                        )
+                        ->first(['id']);
+
+                    if ($stockProductUnit) {
+                        // create history
+                        $history = $salesOrderDetail->histories()->create([
+                            'user_id' => auth('sanctum')->id(),
+                            'stock_product_unit_id' => $stockProductUnit->id,
+                            'value' => $salesOrderDetail?->fulfilled_qty ?? 0,
+                            'is_increment' => 1,
+                            'description' => $deliveryOrder->invoice_no . ' - Unverified DO',
+                            'ip' => request()->ip(),
+                            'agent' => request()->header('user-agent'),
+                        ]);
+
+                        if ($salesOrderDetail->productUnit->refer_id && $salesOrderDetail->productUnit->relations->count()) {
+                            // record stock history for relations
+
+                            $multiply = floor($salesOrderDetail->qty / $salesOrderDetail->productUnit->refer_qty);
+                            foreach ($salesOrderDetail->productUnit->relations as $relation) {
+                                $stockProductUnit = StockProductUnit::where('product_unit_id', $relation->related_product_unit_id)->where('warehouse_id', $salesOrderDetail?->warehouse_id)->first();
+
+                                if ($stockProductUnit) {
+                                    $qty = $relation->qty * $multiply;
+                                    if (!$relation->relatedProductUnit->is_generate_qr) {
+                                        $stockProductUnit->increment('qty', $qty);
+                                    }
+
+                                    $stockProductUnit->histories()->create([
+                                        'user_id' => $history->user_id,
+                                        'stock_product_unit_id' => $stockProductUnit->id,
+                                        'value' => $qty,
+                                        'is_increment' => $history->is_increment,
+                                        'description' => $history->description,
+                                        'ip' => $history->ip,
+                                        'agent' => $history->agent,
+                                    ]);
+                                }
+                            }
+                        }
+                    }
+                });
             }
+
             DB::commit();
         } catch (Exception $e) {
             DB::rollBack();
