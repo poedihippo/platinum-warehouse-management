@@ -9,6 +9,7 @@ use App\Http\Requests\Api\ProductUnit\UpdateProductUnitRelationRequest;
 use App\Http\Requests\Api\ProductUnitChangeProductRequest;
 use App\Http\Requests\Api\ProductUnitStoreRequest;
 use App\Http\Requests\Api\ProductUnitUpdateRequest;
+use App\Http\Resources\DefaultResource;
 use App\Http\Resources\ProductUnitResource;
 use App\Http\Resources\SalesOrderDetailResource;
 use App\Models\ProductUnit;
@@ -206,7 +207,7 @@ class ProductUnitController extends Controller
 
     public function showProductUnitByStock(string $stockId)
     {
-        $stock = Stock::select('id', 'stock_product_unit_id')->find($stockId);
+        $stock = Stock::select('id', 'stock_product_unit_id','expired_date')->find($stockId);
         if (!$stock) return response()->json(['message' => 'Product tidak ditemukan.'], 400);
 
         $productUnit = ProductUnit::select('id', 'product_id', 'uom_id', 'name', 'price', 'code')
@@ -218,7 +219,8 @@ class ProductUnitController extends Controller
             ->first();
 
         if (!$productUnit) return response()->json(['message' => 'Product tidak ditemukan.'], 400);
+        $productUnit->expired_date = $stock->expired_date;
 
-        return new ProductUnitResource($productUnit);
+        return new DefaultResource($productUnit);
     }
 }
