@@ -24,6 +24,8 @@ return [
         'https://bejo.platinumadisentosa.com',
         'http://localhost:8000',
         'http://localhost:3000',
+        'http://127.0.0.1:8000',
+        'http://127.0.0.1:3000',
         'https://platinum-warehouse.vercel.app',
         'https://platinum-warehouse-beta.vercel.app'
     ],
