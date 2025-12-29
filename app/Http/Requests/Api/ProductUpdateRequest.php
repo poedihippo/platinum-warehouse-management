@@ -18,6 +18,7 @@ class ProductUpdateRequest extends FormRequest
         return [
             'company' => ['required', new EnumValue(CompanyEnum::class)],
             'name' => ['required', 'unique:products,name,' . $this->product->id],
+            'article_url' => 'nullable',
             // 'description' => 'required',
             'product_category_id' => ['required', 'exists:product_categories,id'],
             'product_brand_id' => ['required', 'exists:product_brands,id'],

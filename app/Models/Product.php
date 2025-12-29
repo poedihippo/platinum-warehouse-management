@@ -15,6 +15,7 @@ class Product extends Model
         'product_brand_id',
         'company',
         'name',
+        'article_url',
         // 'description',
     ];
 

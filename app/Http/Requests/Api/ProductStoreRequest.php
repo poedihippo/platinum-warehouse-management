@@ -18,6 +18,7 @@ class ProductStoreRequest extends FormRequest
         return [
             'company' => ['required', new EnumValue(CompanyEnum::class)],
             'name' => ['required', 'unique:products,name'],
+            'article_url' => 'nullable',
             // 'description' => 'required',
             'product_category_id' => ['required', 'exists:product_categories,id'],
             'product_brand_id' => ['required', 'exists:product_brands,id'],

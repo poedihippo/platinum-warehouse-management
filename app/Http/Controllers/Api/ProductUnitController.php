@@ -207,13 +207,13 @@ class ProductUnitController extends Controller
 
     public function showProductUnitByStock(string $stockId)
     {
-        $stock = Stock::select('id', 'stock_product_unit_id','expired_date')->find($stockId);
+        $stock = Stock::select('id', 'stock_product_unit_id', 'expired_date')->find($stockId);
         if (!$stock) return response()->json(['message' => 'Product tidak ditemukan.'], 400);
 
         $productUnit = ProductUnit::select('id', 'product_id', 'uom_id', 'name', 'price', 'code')
             ->with([
                 'uom' => fn($q) => $q->select('id', 'name'),
-                'product' => fn($q) => $q->select('id', 'name', 'product_category_id', 'product_brand_id')->with('productCategory', fn($q) => $q->select('id', 'name'))->with('productBrand', fn($q) => $q->select('id', 'name')),
+                'product' => fn($q) => $q->select('id', 'product_category_id', 'product_brand_id', 'name', 'article_url')->with('productCategory', fn($q) => $q->select('id', 'name'))->with('productBrand', fn($q) => $q->select('id', 'name')),
             ])
             ->whereHas('stockProductUnit', fn($q) => $q->where('id', $stock->stock_product_unit_id))
             ->first();
