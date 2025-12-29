@@ -28,6 +28,7 @@ class AdjustmentRequestStoreRequest extends FormRequest
         return [
             'stock_product_unit_id' => ['required', new TenantedRule(StockProductUnit::class)],
             'value' => 'required|integer|min:1',
+            'expired_date' => 'required|date',
             'is_increment' => 'nullable|boolean',
             // 'is_approved' => 'nullable|boolean',
             'description' => 'nullable',

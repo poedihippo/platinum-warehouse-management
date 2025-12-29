@@ -102,7 +102,8 @@ class AdjustmentRequestController extends Controller
                             $stockProductUnit->stocks()->create([
                                 'adjustment_request_id' => $adjustmentRequest->id,
                                 'is_stock' => $isStock,
-                                'description' => null
+                                'description' => null,
+                                'expired_date' => $adjustmentRequest->expired_date,
                             ]);
 
                             // $logo = public_path('images/logo-platinum.png');
