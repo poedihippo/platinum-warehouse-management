@@ -32,6 +32,7 @@ class ProductUnitResource extends JsonResource
             'uom' => new UomResource($this->uom),
             'product' => new ProductResource($this->product),
             'relations' => DefaultResource::collection($this->whenLoaded('relations')),
+            'refer' => new self($this->whenLoaded('refer')),
             // 'packaging' =>  new self($this->whenLoaded('packaging')),
         ];
     }
