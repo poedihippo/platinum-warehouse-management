@@ -51,7 +51,7 @@ class ProductUnitController extends Controller
             ])
             ->allowedIncludes([
                 AllowedInclude::callback('relations', fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select('id', 'name'))),
-                AllowedInclude::callback('refer', fn($q) => $q->select('id', 'name')),
+                AllowedInclude::callback('refer', fn($q) => $q->select('id', 'refer_id', 'name')),
             ])
             ->allowedSorts(['id', 'product_id', 'name', 'price', 'created_at'])
             ->paginate($this->per_page);
@@ -64,7 +64,7 @@ class ProductUnitController extends Controller
         $productUnit = ProductUnit::with([
             'uom',
             'product',
-            'refer' => fn($q) => $q->select('id', 'name'),
+            'refer' => fn($q) => $q->select('id', 'refer_id', 'name'),
             'relations' => fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select('id', 'name'))
         ])->has('product')->findOrFail($id);
         return new ProductUnitResource($productUnit);
