@@ -68,7 +68,7 @@ class DeliveryOrderDetailController extends Controller
     public function resetVerifiedStock(int $deliveryOrderId, int $deliveryOrderDetailId)
     {
         $deliveryOrder = DeliveryOrder::findTenanted($deliveryOrderId);
-        if($deliveryOrder->is_done) {
+        if ($deliveryOrder->is_done) {
             throw new BadRequestHttpException("Delivery Order must be not finished. Please set as In Progress first.");
         }
 
@@ -76,12 +76,11 @@ class DeliveryOrderDetailController extends Controller
 
         $salesOrderDetail = $deliveryOrderDetail->salesOrderDetail()->select('id', 'product_unit_id', 'fulfilled_qty')->with('productUnit', fn($q) => $q->select('id', 'name'))->firstOrFail();
 
-        DB::transaction(function () use ($deliveryOrder, $salesOrderDetail) {
+        DB::transaction(function () use ($salesOrderDetail) {
             // Revert fulfilled qty in sales order detail
             $salesOrderDetail->update(['fulfilled_qty' => 0]);
-
             // Delete stock verified
-            $salesOrderDetail->salesOrderItems()->delete();
+            $salesOrderDetail->salesOrderItems()->orderByDesc('parent_id')->delete();
         });
 
         return $this->updatedResponse($salesOrderDetail->productUnit->name . " on DO: " . $deliveryOrder->invoice_no . " reset successfully");
