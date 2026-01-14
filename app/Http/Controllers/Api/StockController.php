@@ -443,7 +443,14 @@ class StockController extends Controller
 
     public function verificationTempel(\App\Http\Requests\Api\VerificationTempelRequest $request)
     {
-        Stock::whereIn('id', $request->ids)->update(["is_tempel" => $request->is_tempel]);
+        DB::beginTransaction();
+        try {
+            Stock::whereIn('id', $request->ids)->orWhereIn('parent_id', $request->ids)->update(["is_tempel" => $request->is_tempel]);
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            throw $th;
+        }
 
         return $this->updatedResponse('Stock berhasil diupdate ' . ($request->is_tempel ? 'Terpasang' : 'Belum Terpasang'));
     }
