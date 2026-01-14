@@ -154,7 +154,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('stocks/details', [StockController::class, 'details']);
     Route::get('stocks/print-all', [StockController::class, 'printAll']);
-    // Route::put('stocks/verification-tempel', [StockController::class, 'verificationTempel']);
+    Route::put('stocks/verification-tempel', [StockController::class, 'verificationTempel']);
     Route::post('stocks/add-to-stock', [StockController::class, 'addToStock']);
     Route::post('stocks/set-to-printed', [StockController::class, 'setToPrinted']);
     Route::post('stocks/set-to-printing-queue', [StockController::class, 'setToPrintingQueue']);
