@@ -25,7 +25,7 @@ class DeliveryOrderDetailController extends Controller
         // abort_if(!auth('sanctum')->user()->tokenCan('delivery_order_access'), 403);
         $deliveryOrder = DeliveryOrder::findTenanted($deliveryOrderId, ['id']);
         // $deliveryOrderDetails = QueryBuilder::for(DeliveryOrderDetail::with(['salesOrderDetail' => fn($q) => $q->with('warehouse', 'salesOrder', 'packaging')])->where('delivery_order_id', $deliveryOrder->id))
-        $deliveryOrderDetails = QueryBuilder::for(DeliveryOrderDetail::with(['salesOrderDetail' => fn($q) => $q->with('warehouse', 'salesOrder')])->where('delivery_order_id', $deliveryOrder->id))
+        $deliveryOrderDetails = QueryBuilder::for(DeliveryOrderDetail::with(['salesOrderDetail' => fn($q) => $q->with(['warehouse', 'salesOrder', 'productUnit' => fn($q) => $q->withTrashed()])])->where('delivery_order_id', $deliveryOrder->id))
             ->allowedFilters([
                 AllowedFilter::exact('delivery_order_id'),
                 AllowedFilter::exact('sales_order_detail_id'),
@@ -45,7 +45,7 @@ class DeliveryOrderDetailController extends Controller
         $deliveryOrderDetail->load([
             'deliveryOrder',
             'salesOrderDetail' => function ($q) {
-                $q->with(['warehouse', 'salesOrder']);
+                $q->with(['warehouse', 'salesOrder', 'productUnit' => fn($q) => $q->withTrashed()]);
             }
         ]);
 
