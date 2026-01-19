@@ -164,6 +164,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('stocks/grouping-by-scan', [StockController::class, 'groupingByScan']);
     Route::post('stocks/{stock}/ungrouping', [StockController::class, 'ungrouping']);
     Route::post('stocks/{stock}/repack', [StockController::class, 'repack']);
+    Route::delete('stocks/bulk', [StockController::class, 'bulkDestroy']);
     Route::apiResource('stocks', StockController::class);
 
     Route::group(['prefix' => 'stock-opnames/{stockOpname}/details'], function () {

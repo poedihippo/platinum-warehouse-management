@@ -18,6 +18,7 @@ use App\Http\Resources\Stocks\StockProductUnitResource as StocksStockProductUnit
 use App\Imports\StockImport;
 use App\Models\AdjustmentRequest;
 use App\Models\ReceiveOrderDetail;
+use App\Models\SalesOrderItem;
 use App\Models\Stock;
 use App\Models\StockProductUnit;
 use Exception;
@@ -168,6 +169,20 @@ class StockController extends Controller
         if ($stock->salesOrderItems()->count() > 0) return response()->json(['message' => 'Tidak dapat menghapus stock. Stock sudah masuk di Sales Order'], 400);
 
         $stock->delete();
+        return $this->deletedResponse();
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        // abort_if(!auth('sanctum')->user()->tokenCan('stock_delete'), 403);
+
+        $ids = $request->ids ?? [];
+        if (SalesOrderItem::where('stock_id', $ids)->limit(1)->exists()) {
+            return response()->json(['message' => 'Tidak dapat menghapus stock. Terdapat stock sudah masuk di Delivery Order'], 400);
+        }
+
+        Stock::whereIn('id', $ids)->orWhereIn('parent_id', $ids)->delete();
+
         return $this->deletedResponse();
     }
 
