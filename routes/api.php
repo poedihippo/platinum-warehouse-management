@@ -160,6 +160,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('stocks/set-to-printing-queue', [StockController::class, 'setToPrintingQueue']);
     Route::post('stocks/print-verification', [StockController::class, 'printVerification']);
     Route::post('stocks/record', [StockController::class, 'record']);
+    Route::post('stocks/export-txt', [StockController::class, 'exportStocksTxt']);
     Route::post('stocks/grouping', [StockController::class, 'grouping']);
     Route::post('stocks/grouping-by-scan', [StockController::class, 'groupingByScan']);
     Route::post('stocks/{stock}/ungrouping', [StockController::class, 'ungrouping']);

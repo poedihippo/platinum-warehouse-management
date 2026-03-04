@@ -601,4 +601,27 @@ class StockController extends Controller
             'message' => count($request->ids) . ' stocks ' . ($request->is_add ? 'added' : 'removed') . ' successfully',
         ]);
     }
+
+    public function exportStocksTxt(Request $request)
+    {
+        // expects payload: { stock_ids: ["id1", "id2", ...] }
+        $request->validate([
+            'stock_ids' => 'required|array',
+            'stock_ids.*' => 'string',
+        ]);
+
+        // ensure every id on its own line
+        $content = implode("\n", $request->stock_ids);
+        // add trailing newline for good measure
+        if (strlen($content) > 0 && substr($content, -1) !== "\n") {
+            $content .= "\n";
+        }
+
+        $fileName = 'stocks-' . date('Y-m-d_His') . '.txt';
+
+        return response($content, 200, [
+            'Content-Type' => 'text/plain',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+        ]);
+    }
 }
