@@ -10,6 +10,7 @@ class SalesOrderItem extends Model
 {
     protected $guarded = [];
     protected $casts = [
+        'is_returned' => 'boolean',
         'is_parent' => 'boolean',
     ];
 

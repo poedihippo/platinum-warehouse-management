@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\Stock\AddToStockRequest;
 use App\Http\Requests\Api\Stock\GroupingByScanRequest;
 use App\Http\Requests\Api\Stock\GroupingRequest;
+use App\Http\Requests\Api\Stock\ReturnRequest;
 use App\Http\Requests\Api\Stock\SetToPrintingQueueRequest;
 use App\Http\Requests\Api\StockRecordRequest;
 use App\Http\Requests\Api\StockRepackRequest;
@@ -622,6 +623,21 @@ class StockController extends Controller
         return response($content, 200, [
             'Content-Type' => 'text/plain',
             'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+        ]);
+    }
+
+    public function return(ReturnRequest $request)
+    {
+        DB::transaction(function () use ($request) {
+            SalesOrderItem::whereIn('stock_id', $request->ids)->orWhereHas('stock', fn($q) => $q->whereIn('parent_id', $request->ids))->update(['is_returned' => true]);
+
+            if ($request->is_delete == true) {
+                Stock::whereIn('id', $request->ids)->orWhereIn('parent_id', $request->ids)->delete();
+            }
+        });
+
+        return response()->json([
+            'message' => count($request->ids) . ' stocks returned successfully',
         ]);
     }
 }
