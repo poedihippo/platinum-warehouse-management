@@ -58,12 +58,17 @@ class SalesOrderService
      *
      * @return void
      */
-    public static function countFulfilledQty(SalesOrderDetail $salesOrderDetail): void
+    public static function countFulfilledQty(SalesOrderDetail|int $salesOrderDetail): void
     {
+        if (!$salesOrderDetail instanceof SalesOrderDetail) {
+            $salesOrderDetail = SalesOrderDetail::find($salesOrderDetail);
+            if (!$salesOrderDetail) return;
+        }
+
         $salesOrderDetail->refresh();
 
         $salesOrderDetail->update([
-            'fulfilled_qty' => $salesOrderDetail->salesOrderItems()->where('is_parent', 0)->count()
+            'fulfilled_qty' => $salesOrderDetail->salesOrderItems()->where('is_parent', 0)->where('is_returned', 0)->count()
         ]);
     }
 
