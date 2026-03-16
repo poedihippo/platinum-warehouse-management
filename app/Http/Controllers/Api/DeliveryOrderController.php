@@ -244,9 +244,9 @@ class DeliveryOrderController extends Controller
 
         // 1. cek if exist $deliveryOrderDetail
         $salesOrderDetail = $deliveryOrderDetail->salesOrderDetail->load(['productUnit' => fn($q) => $q->select('id', 'refer_id')]);
-        if (!$salesOrderDetail) {
-            return response()->json(['message' => 'Sales order item Tidak ditemukan'], 404);
-        }
+        // if (!$salesOrderDetail) {
+        //     return response()->json(['message' => 'Sales order item Tidak ditemukan'], 404);
+        // }
 
         // 2. cek stock_id nya apakah sesuai dengan product unit dan warehouse dari SO detail
         $stock = Stock::where('id', $request->stock_id)
@@ -276,17 +276,18 @@ class DeliveryOrderController extends Controller
 
         // 4. cek apakah required qty dari SO Detail sudah terpenuhi
         // 5. jika stock_id yang di scan adalah grouping, hitung dulu jumlah childs nya lalu compare dengan required qty yang ada di step 4
-        $fulfilledQty = $salesOrderDetail->salesOrderItems()->where('is_parent', 0)->count() ?? 0;
+        $fulfilledQty = $salesOrderDetail->salesOrderItems()->where('is_parent', 0)->count();
         if ($fulfilledQty >= $salesOrderDetail->qty) {
             return response()->json(['message' => 'Qty sudah terpenuhi'], 400);
         }
 
         $stock->load(['childs' => fn($q) => $q->select('id', 'parent_id')]);
         $stockChilds = $stock->childs;
-        $totalChilds = $stockChilds->count() ?? 0;
+        $totalChilds = $stockChilds->count();
         if ($totalChilds > 0) {
-
-            $stockIds = $salesOrderDetail->salesOrderItems->filter(fn($salesOrderItem) => $stockChilds->contains($salesOrderItem->stock_id))?->pluck('stock_id');
+            $stockIds = $salesOrderDetail->salesOrderItems()
+                ->whereIn('stock_id', $stockChilds->pluck('id'))
+                ->pluck('stock_id');
             if ($stockIds->count() > 0) {
                 // 1. kalo parent yang di scan child nya sudah ada
                 $totalStockScanned = $fulfilledQty + $totalChilds - $stockIds->count();
@@ -312,7 +313,7 @@ class DeliveryOrderController extends Controller
                 //     'is_parent' => true,
                 // ]);
 
-                SalesOrderItem::whereIn('stock_id', $stockIds)->delete();
+                SalesOrderItem::where('sales_order_detail_id', $salesOrderDetail->id)->whereIn('stock_id', $stockIds)->delete();
                 foreach ($stock->childs as $child) {
                     $dataStocks[] = ['stock_id' => $child->id, 'sales_order_detail_id' => $salesOrderDetail->id, 'is_returned' => false];
                 }
