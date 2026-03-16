@@ -269,7 +269,7 @@ class DeliveryOrderController extends Controller
 
         // 3. cek apakah stock sudah pernah di scan
         // $cek = $salesOrderDetail->salesOrderItems()->where('stock_id', $stock?->id)->exists();
-        $cek = SalesOrderItem::where('stock_id', $stock?->id)->where('is_returned', false)->exists();
+        $cek = SalesOrderItem::where('stock_id', $stock?->id)->whereNotReturned()->exists();
         if ($cek) {
             return response()->json(['message' => 'Product sudah pernah di verifikasi'], 400);
         }
@@ -304,11 +304,13 @@ class DeliveryOrderController extends Controller
             // 6. insert stock_id ke sales_order_items. jika stock grouping, insert childs nya
             DB::beginTransaction();
             try {
-                $salesOrderItem = $salesOrderDetail->salesOrderItems()->create([
-                    'is_returned' => false,
-                    'stock_id' => $stock->id,
-                    'is_parent' => true,
-                ]);
+                // upsert if exist and is_returned true
+                $salesOrderItem = $salesOrderDetail->salesOrderItems()->updateOrCreate(['stock_id' => $stock->id], ['is_returned' => false, 'is_parent' => true]);
+                // $salesOrderItem = $salesOrderDetail->salesOrderItems()->create([
+                //     'is_returned' => false,
+                //     'stock_id' => $stock->id,
+                //     'is_parent' => true,
+                // ]);
 
                 SalesOrderItem::whereIn('stock_id', $stockIds)->delete();
                 foreach ($stock->childs as $child) {
@@ -327,10 +329,7 @@ class DeliveryOrderController extends Controller
             // 6. insert stock_id ke sales_order_items. jika stock grouping, insert childs nya
             DB::beginTransaction();
             try {
-                $salesOrderItem = $salesOrderDetail->salesOrderItems()->create([
-                    'is_returned' => false,
-                    'stock_id' => $stock->id,
-                ]);
+                $salesOrderItem = $salesOrderDetail->salesOrderItems()->updateOrCreate(['stock_id' => $stock->id], ['is_returned' => false]);
 
                 SalesOrderService::countFulfilledQty($salesOrderDetail);
                 DB::commit();
@@ -529,7 +528,7 @@ class DeliveryOrderController extends Controller
 
         // get distinct by sales_order_detail_id
         $salesOrderDetailIds = SalesOrderItem::whereIn('stock_id', $request->ids)
-            ->where('is_returned', false)
+            ->whereNotReturned()
             ->distinct()
             ->pluck('sales_order_detail_id')
             ->toArray();

@@ -80,7 +80,7 @@ class DeliveryOrderDetailController extends Controller
             // Revert fulfilled qty in sales order detail
             $salesOrderDetail->update(['fulfilled_qty' => 0]);
             // Delete stock verified
-            $salesOrderDetail->salesOrderItems()->orderByDesc('parent_id')->delete();
+            $salesOrderDetail->salesOrderItems()->whereNotReturned()->orderByDesc('parent_id')->delete();
         });
 
         return $this->updatedResponse($salesOrderDetail->productUnit->name . " on DO: " . $deliveryOrder->invoice_no . " reset successfully");
