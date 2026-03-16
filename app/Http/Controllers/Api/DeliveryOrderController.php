@@ -305,13 +305,14 @@ class DeliveryOrderController extends Controller
             DB::beginTransaction();
             try {
                 $salesOrderItem = $salesOrderDetail->salesOrderItems()->create([
+                    'is_returned' => false,
                     'stock_id' => $stock->id,
                     'is_parent' => true,
                 ]);
 
                 SalesOrderItem::whereIn('stock_id', $stockIds)->delete();
                 foreach ($stock->childs as $child) {
-                    $dataStocks[] = ['stock_id' => $child->id, 'sales_order_detail_id' => $salesOrderDetail->id];
+                    $dataStocks[] = ['stock_id' => $child->id, 'sales_order_detail_id' => $salesOrderDetail->id, 'is_returned' => false];
                 }
 
                 $salesOrderItem->childs()->createMany($dataStocks);
@@ -327,6 +328,7 @@ class DeliveryOrderController extends Controller
             DB::beginTransaction();
             try {
                 $salesOrderItem = $salesOrderDetail->salesOrderItems()->create([
+                    'is_returned' => false,
                     'stock_id' => $stock->id,
                 ]);
 
