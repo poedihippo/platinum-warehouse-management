@@ -237,7 +237,7 @@ class DeliveryOrderController extends Controller
         ]);
     }
 
-    public function verification(int $id, DeliveryOrderDetail $deliveryOrderDetail, SalesOrderItemStoreRequest $request)
+    public function verification(SalesOrderItemStoreRequest $request, int $id, DeliveryOrderDetail $deliveryOrderDetail)
     {
         $deliveryOrder = DeliveryOrder::findTenanted($id, ['id', 'is_done']);
         if ($deliveryOrder->is_done) return response()->json(['message' => 'Delivery Order sudah diselesaikan. Batalkan untuk dapat scan lagi'], 404);
@@ -269,7 +269,7 @@ class DeliveryOrderController extends Controller
 
         // 3. cek apakah stock sudah pernah di scan
         // $cek = $salesOrderDetail->salesOrderItems()->where('stock_id', $stock?->id)->exists();
-        $cek = SalesOrderItem::where('stock_id', $stock?->id)->exists();
+        $cek = SalesOrderItem::where('stock_id', $stock?->id)->where('is_returned', false)->exists();
         if ($cek) {
             return response()->json(['message' => 'Product sudah pernah di verifikasi'], 400);
         }
