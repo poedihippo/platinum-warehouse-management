@@ -59,8 +59,7 @@ class ConvertToSO
                 ->get(['id'])->map(fn ($stock) => ['stock_id' => $stock->id]);
 
             if ($stocks->count() < $salesOrderDetail->qty) throw new \Exception(sprintf('Stok %s tidak tersedia', $salesOrderDetail->productUnit->name), \Illuminate\Http\Response::HTTP_UNPROCESSABLE_ENTITY);
-            // dump($stocks);
-            // dd($salesOrderDetail);
+         
             $salesOrderDetail->salesOrderItems()->createMany($stocks);
 
             SalesOrderService::countFulfilledQty($salesOrderDetail);

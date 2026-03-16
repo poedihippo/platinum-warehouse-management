@@ -29,13 +29,11 @@ class SalesOrderItemController extends Controller
     {
         $stock = Stock::findOrFail($request->stock_id);
 
-        $cek = $salesOrderDetail->salesOrderItems()->where('stock_id', $stock->id)->exists();
+        $cek = $salesOrderDetail->salesOrderItems()->whereNotReturned()->where('stock_id', $stock->id)->exists();
 
         if ($cek) return response()->json(['message' => 'Product sudah di scan'], 400);
 
-        $salesOrderItem = $salesOrderDetail->salesOrderItems()->create([
-            'stock_id' => $stock->id
-        ]);
+        $salesOrderItem = $salesOrderDetail->salesOrderItems()->updateOrCreate(['stock_id' => $stock->id], ['is_returned' => false]);
 
         return new SalesOrderItemResource($salesOrderItem);
     }

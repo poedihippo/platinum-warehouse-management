@@ -166,7 +166,7 @@ class StockController extends Controller
         // abort_if(!auth('sanctum')->user()->tokenCan('stock_delete'), 403);
 
         if ($stock->childs()->count() > 0) return response()->json(['message' => 'Tidak dapat menghapus stock parent'], 400);
-        if ($stock->salesOrderItems()->count() > 0) return response()->json(['message' => 'Tidak dapat menghapus stock. Stock sudah masuk di Sales Order'], 400);
+        if ($stock->salesOrderItems()->whereNotReturned()->count() > 0) return response()->json(['message' => 'Tidak dapat menghapus stock. Stock sudah masuk di Sales Order'], 400);
 
         $stock->delete();
         return $this->deletedResponse();
@@ -177,7 +177,7 @@ class StockController extends Controller
         // abort_if(!auth('sanctum')->user()->tokenCan('stock_delete'), 403);
 
         $ids = $request->ids ?? [];
-        if (SalesOrderItem::where('stock_id', $ids)->limit(1)->exists()) {
+        if (SalesOrderItem::whereIn('stock_id', $ids)->whereNotReturned()->limit(1)->exists()) {
             return response()->json(['message' => 'Tidak dapat menghapus stock. Terdapat stock sudah masuk di Delivery Order'], 400);
         }
 
@@ -474,6 +474,8 @@ class StockController extends Controller
     {
         $stock = Stock::findTenanted($id, ['id', 'parent_id', 'stock_product_unit_id']);
         if ($stock->childs?->count() > 0) return response()->json(['message' => 'Tidak dapat me-repack stock parent'], 400);
+
+        $stock->load(['salesOrderItems' => fn($q) => $q->whereNotReturned()->select('id', 'stock_id')]);
         if ($stock->salesOrderItems?->count() > 0) return response()->json(['message' => 'Tidak dapat me-repack stock. Stock sudah masuk di Sales Order'], 400);
 
         $qty = $request->qty;
