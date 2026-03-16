@@ -141,6 +141,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('{deliveryOrderDetail}', [DeliveryOrderDetailController::class, 'destroy']);
     });
 
+    Route::post('delivery-orders/{deliveryOrder}/return', [DeliveryOrderController::class, 'return']);
     Route::post('delivery-orders/{deliveryOrder}/attach', [DeliveryOrderController::class, 'attach']);
     Route::apiResource('delivery-orders', DeliveryOrderController::class);
     // Route::post('delivery-orders/{deliveryOrder}/verification/{salesOrderDetail}', [DeliveryOrderController::class, 'verification']);
@@ -155,7 +156,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('stocks/details', [StockController::class, 'details']);
     Route::get('stocks/print-all', [StockController::class, 'printAll']);
     Route::put('stocks/verification-tempel', [StockController::class, 'verificationTempel']);
-    Route::post('stocks/return', [StockController::class, 'return']);
     Route::post('stocks/add-to-stock', [StockController::class, 'addToStock']);
     Route::post('stocks/set-to-printed', [StockController::class, 'setToPrinted']);
     Route::post('stocks/set-to-printing-queue', [StockController::class, 'setToPrintingQueue']);

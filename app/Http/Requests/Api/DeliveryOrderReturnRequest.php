@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Requests\Api\Stock;
+namespace App\Http\Requests\Api;
 
 use App\Traits\Requests\RequestToBoolean;
 use Illuminate\Foundation\Http\FormRequest;
 
-class ReturnRequest extends FormRequest
+class DeliveryOrderReturnRequest extends FormRequest
 {
     use RequestToBoolean;
 

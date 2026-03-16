@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\DeliveryOrderAttachRequest;
+use App\Http\Requests\Api\DeliveryOrderReturnRequest;
 use App\Http\Resources\DeliveryOrderResource;
 use App\Http\Requests\Api\DeliveryOrderStoreRequest;
 use App\Http\Requests\Api\DeliveryOrderUpdateRequest;
 use App\Http\Requests\Api\SalesOrderItemStoreRequest;
 use App\Http\Resources\SalesOrderItemResource;
+use App\Models\AdjustmentRequest;
 use App\Models\DeliveryOrder;
 use App\Models\DeliveryOrderDetail;
 use App\Models\SalesOrderItem;
@@ -22,6 +24,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class DeliveryOrderController extends Controller
 {
@@ -514,5 +517,96 @@ class DeliveryOrderController extends Controller
         }
 
         return response()->json(['message' => $count . ' Sales order berahsil ditambahkan ke delivery order']);
+    }
+
+    public function return(DeliveryOrderReturnRequest $request, $id)
+    {
+        $userId = auth()->id();
+        $ip = request()->ip();
+        $userAgent = request()->header('User-Agent');
+
+        // get distinct by sales_order_detail_id
+        $salesOrderDetailIds = SalesOrderItem::whereIn('stock_id', $request->ids)
+            ->where('is_returned', false)
+            ->distinct()
+            ->pluck('sales_order_detail_id')
+            ->toArray();
+
+        if (count($salesOrderDetailIds) == 0) {
+            return new BadRequestHttpException("Stock not found");
+        }
+
+        $deliveryOrderDetails = DeliveryOrderDetail::whereIn('sales_order_detail_id', $salesOrderDetailIds)->distinct()->pluck('delivery_order_id')->toArray();
+
+        if (count($deliveryOrderDetails) > 1 || $deliveryOrderDetails[0] != $id) {
+            return new BadRequestHttpException("Can not return stock from different delivery order");
+        }
+
+        $invoiceNo = DeliveryOrder::select('invoice_no')->findOrFail($id)->invoice_no;
+
+        DB::transaction(function () use ($request, $invoiceNo, $salesOrderDetailIds, $userId, $ip, $userAgent) {
+            SalesOrderItem::whereIn('stock_id', $request->ids)->orWhereHas('stock', fn($q) => $q->whereIn('parent_id', $request->ids))->update(['is_returned' => true]);
+
+            foreach ($salesOrderDetailIds as $id) {
+                SalesOrderService::countFulfilledQty($id);
+            }
+
+            if ($request->is_delete == true) {
+                Stock::whereIn('id', $request->ids)->orWhereIn('parent_id', $request->ids)->delete();
+            } else {
+                // determine how many items are actually returned grouped by product unit
+                $stockCounts = Stock::whereIn('id', $request->ids)
+                    ->orWhereIn('parent_id', $request->ids)
+                    ->where(
+                        fn($q) => $q->whereNotNull('parent_id')
+                            ->orWhere(fn($q) => $q->whereNull('parent_id')->doesntHave('childs'))
+                    )
+                    ->select('stock_product_unit_id', DB::raw('count(*) as qty'))
+                    ->groupBy('stock_product_unit_id')
+                    ->get();
+
+                foreach ($stockCounts as $stockCount) {
+                    $stockProductUnitId = $stockCount->stock_product_unit_id;
+                    $qty = $stockCount->qty - 1;
+
+                    $stockProductUnit = StockProductUnit::where('id', $stockProductUnitId)->with('productUnit', fn($q) => $q->select('id', 'name', 'is_generate_qr'))->first();
+
+                    // create adjustment request that stock is back to inventory
+                    $adjustmentRequest = AdjustmentRequest::create([
+                        'user_id' => $userId,
+                        'approved_by' => $userId,
+                        'stock_product_unit_id' => $stockProductUnitId,
+                        'value' => $qty,
+                        'is_increment' => 1,
+                        'is_approved' => 1,
+                        'description' => sprintf(
+                            "Return from DO %s - %s",
+                            $invoiceNo,
+                            $stockProductUnit->productUnit?->name ?? '',
+                        ),
+                    ]);
+
+                    // store history identical to other adjustment flows
+                    $adjustmentRequest->histories()->create([
+                        'user_id' => $userId,
+                        'stock_product_unit_id' => $stockProductUnitId,
+                        'value' => $qty,
+                        'is_increment' => 1,
+                        'description' => $adjustmentRequest->description,
+                        'ip' => $ip,
+                        'agent' => $userAgent,
+                    ]);
+
+                    // update the stock_product_unit quantity if not using QR generation
+                    if (!$stockProductUnit->productUnit->is_generate_qr) {
+                        $stockProductUnit->increment('qty', $qty);
+                    }
+                }
+            }
+        });
+
+        return response()->json([
+            'message' => count($request->ids) . ' stocks returned ' . ($request->is_delete ? 'and deleted' : '') . ' successfully',
+        ]);
     }
 }
