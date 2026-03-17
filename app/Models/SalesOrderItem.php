@@ -46,12 +46,12 @@ class SalesOrderItem extends Model
         return $this->belongsTo(SalesOrderDetail::class);
     }
 
-    public function whereReturned($q)
+    public function scopeWhereReturned($q)
     {
         $q->where('is_returned', true);
     }
 
-    public function whereNotReturned($q)
+    public function scopeWhereNotReturned($q)
     {
         $q->where('is_returned', false);
     }
