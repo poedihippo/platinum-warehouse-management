@@ -141,6 +141,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('{deliveryOrderDetail}', [DeliveryOrderDetailController::class, 'destroy']);
     });
 
+    Route::get('delivery-orders/get-by-so-detail/{id}', [DeliveryOrderController::class, 'getDoBySoDetail']);
     Route::post('delivery-orders/{deliveryOrder}/return', [DeliveryOrderController::class, 'return']);
     Route::post('delivery-orders/{deliveryOrder}/attach', [DeliveryOrderController::class, 'attach']);
     Route::apiResource('delivery-orders', DeliveryOrderController::class);

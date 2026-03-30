@@ -9,6 +9,7 @@ use App\Http\Resources\DeliveryOrderResource;
 use App\Http\Requests\Api\DeliveryOrderStoreRequest;
 use App\Http\Requests\Api\DeliveryOrderUpdateRequest;
 use App\Http\Requests\Api\SalesOrderItemStoreRequest;
+use App\Http\Resources\DefaultResource;
 use App\Http\Resources\SalesOrderItemResource;
 use App\Models\AdjustmentRequest;
 use App\Models\DeliveryOrder;
@@ -75,6 +76,13 @@ class DeliveryOrderController extends Controller
         ]);
 
         return new DeliveryOrderResource($deliveryOrder);
+    }
+
+    public function getDoBySoDetail(int $id)
+    {
+        $data = DeliveryOrderDetail::where('sales_order_detail_id', $id)->firstOrFail('delivery_order_id');
+
+        return $this->show($data->delivery_order_id);
     }
 
     public function store(DeliveryOrderStoreRequest $request)
