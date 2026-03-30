@@ -83,6 +83,11 @@ class SalesOrderDetail extends Model
         return $this->morphMany(StockHistory::class, 'model');
     }
 
+    public function approvedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
     public function scopeHasDeliveryOrder(Builder $query, bool $value = true)
     {
         if ($value) return $query->has('deliveryOrderDetail');

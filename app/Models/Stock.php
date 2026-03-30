@@ -88,7 +88,7 @@ class Stock extends Model
 
     public function scopeWhereAvailableStock(Builder $query)
     {
-        return $query->whereDoesntHave('salesOrderItems', fn($q) => $q->whereNotReturned());
+        $query->whereDoesntHave('salesOrderItems', fn($q) => $q->whereNotReturned());
     }
 
     public function scopeStartDate(Builder $query, $value = null)

@@ -22,7 +22,10 @@ class StockHistoryController extends Controller
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('stock_history_access'), 403);
 
-        $stockHistories = QueryBuilder::for(StockHistory::tenanted()->with(['stockHistoryable', 'user' => fn ($q) => $q->select('id', 'name')]))
+        $stockHistories = QueryBuilder::for(StockHistory::tenanted()->with([
+            'stockHistoryable' => fn($q) => $q->with('approvedBy', fn($q) => $q->select('id', 'name')),
+            'user' => fn($q) => $q->select('id', 'name')
+        ]))
             ->allowedFilters([
                 AllowedFilter::exact('stock_product_unit_id'),
                 AllowedFilter::exact('user_id'),
