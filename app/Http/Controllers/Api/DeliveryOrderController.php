@@ -82,7 +82,7 @@ class DeliveryOrderController extends Controller
     {
         $data = DeliveryOrderDetail::where('sales_order_detail_id', $id)->firstOrFail('delivery_order_id');
 
-        return $this->show($data->delivery_order_id);
+        return new DefaultResource($data);
     }
 
     public function store(DeliveryOrderStoreRequest $request)
