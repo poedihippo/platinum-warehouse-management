@@ -30,6 +30,12 @@ class StockHistoryController extends Controller
                 AllowedFilter::exact('stock_product_unit_id'),
                 AllowedFilter::exact('user_id'),
                 'description',
+                AllowedFilter::callback('start_date', function($query, $value) {
+                    $query->where('created_at', '>=', $value);
+                }),
+                AllowedFilter::callback('end_date', function($query, $value) {
+                    $query->where('created_at', '<=', $value);
+                }),
             ])
             ->allowedSorts(['id', 'user_id', 'description', 'created_at'])
             ->paginate($this->per_page);
