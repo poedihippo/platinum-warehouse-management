@@ -91,7 +91,7 @@ class SalesOrderController extends Controller
                 'warehouse' => fn($q) => $q->select('id', 'code'),
             ]);
 
-        $query = ProductUnit::select('id', 'refer_id', 'uom_id', 'product_id', 'name', 'price', 'is_ppn')
+        $query = ProductUnit::select('id', 'refer_id', 'uom_id', 'product_id', 'name', 'price', 'is_ppn', 'code')
             ->with([
                 'refer' => fn($q) => $q->select('id', 'name')->with('stockProductUnit', $fn),
                 'uom' => fn($q) => $q->select('id', 'name'),
