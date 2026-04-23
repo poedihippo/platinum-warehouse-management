@@ -237,10 +237,10 @@ class SalesOrderService
         $salesOrder->load([
             'reseller',
             'details' => fn($q) => $q->with('productUnit', fn($q) => $q
-                ->select('id', 'code', 'name', 'uom_id', 'refer_id')
+                ->select('id', 'uom_id', 'refer_id', 'code', 'nam',)
                 ->with([
                     'uom:id,name',
-                    'refer' => fn($q) => $q->select('id', 'code', 'name', 'uom_id', 'refer_id')->with('uom:id,name'),
+                    'refer' => fn($q) => $q->select('id', 'uom_id', 'refer_id', 'code', 'name')->with('uom:id,name'),
                 ]))
         ]);
 

@@ -237,7 +237,18 @@ class DeliveryOrderController extends Controller
 
         // $deliveryOrder->load(['reseller', 'details' => fn ($q) => $q->with('salesOrderDetail.productUnit.uom')]);
 
-        $deliveryOrder = DeliveryOrder::with(['reseller', 'details' => fn($q) => $q->with('salesOrderDetail.productUnit.uom')])->findTenanted($id);
+        $deliveryOrder = DeliveryOrder::with([
+            'reseller',
+            'details' => fn($q) => $q->with('salesOrderDetail', fn($q) => $q->with(
+                'productUnit',
+                fn($q) => $q->select('id', 'uom_id', 'refer_id', 'code', 'name', 'price')
+                    ->with([
+                        'uom:id,name',
+                        'refer' => fn($q) => $q->select('id', 'uom_id', 'refer_id', 'code', 'name', 'price')->with('uom:id,name'),
+                    ])
+            ))
+        ])->findTenanted($id);
+
         return response(view('xml.deliveryOrders.deliveryOrder')->with(compact('deliveryOrder')), 200, [
             'Content-Type' => 'application/xml',
             // use your required mime type

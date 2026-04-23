@@ -6,11 +6,17 @@
                 $keyId = 0;
             @endphp
             @foreach ($deliveryOrder->details ?? [] as $detail)
+                @php
+                    $productUnit = $detail->salesOrderDetail?->productUnit;
+                    if($productUnit->refer) {
+                        $productUnit = $productUnit->refer;
+                    }
+                @endphp
                 <ITEMLINE operation="Add">
                     <KeyID>{{ $keyId++ }}</KeyID>
-                    <ITEMNO>{{ $detail->salesOrderDetail?->productUnit?->code }}</ITEMNO>
+                    <ITEMNO>{{ $productUnit?->code }}</ITEMNO>
                     <QUANTITY>{{ $detail->salesOrderDetail?->qty ?? 0 }}</QUANTITY>
-                    <ITEMUNIT>{{ $detail->salesOrderDetail?->productUnit?->uom?->name }}</ITEMUNIT>
+                    <ITEMUNIT>{{ $productUnit?->uom?->name }}</ITEMUNIT>
                     <UNITRATIO>1</UNITRATIO>
                     <ITEMRESERVED1 />
                     <ITEMRESERVED2 />
@@ -22,8 +28,8 @@
                     <ITEMRESERVED8 />
                     <ITEMRESERVED9 />
                     <ITEMRESERVED10 />
-                    <ITEMOVDESC>{{ $detail->salesOrderDetail?->productUnit->name }}</ITEMOVDESC>
-                    <UNITPRICE>{{ $detail->salesOrderDetail?->productUnit->price }}</UNITPRICE>
+                    <ITEMOVDESC>{{ $productUnit->name }}</ITEMOVDESC>
+                    <UNITPRICE>{{ $productUnit->price }}</UNITPRICE>
                     <ITEMDISCPC />
                     @if ($detail->salesOrderDetail->tax > 0)
                         <TAXCODES>T</TAXCODES>
