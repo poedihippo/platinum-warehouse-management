@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <NMEXML EximID="120" BranchCode="780239574" ACCOUNTANTCOPYID="">
     <TRANSACTIONS OnError="CONTINUE">
         <DELIVERYORDER operation="Add" REQUESTID="1">
@@ -8,7 +9,7 @@
             @foreach ($deliveryOrder->details ?? [] as $detail)
                 @php
                     $productUnit = $detail->salesOrderDetail?->productUnit;
-                    if($productUnit->refer) {
+                    if($productUnit && $productUnit->refer) {
                         $productUnit = $productUnit->refer;
                     }
                 @endphp
@@ -28,10 +29,10 @@
                     <ITEMRESERVED8 />
                     <ITEMRESERVED9 />
                     <ITEMRESERVED10 />
-                    <ITEMOVDESC>{{ $productUnit->name }}</ITEMOVDESC>
-                    <UNITPRICE>{{ $productUnit->price }}</UNITPRICE>
+                    <ITEMOVDESC>{{ $productUnit?->name }}</ITEMOVDESC>
+                    <UNITPRICE>{{ $productUnit?->price }}</UNITPRICE>
                     <ITEMDISCPC />
-                    @if ($detail->salesOrderDetail->tax > 0)
+                    @if ($detail->salesOrderDetail && $detail->salesOrderDetail->tax > 0)
                         <TAXCODES>T</TAXCODES>
                     @else
                         <TAXCODES />
