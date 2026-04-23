@@ -12,9 +12,9 @@
                     @for ($i = 0; $i < 2; $i++)
                         <ITEMLINE operation="Add">
                             <KeyID>{{ $keyId++ }}</KeyID>
-                            <ITEMNO>{{ $detail->productUnit?->code . ($i == 0 ? '*' : '') }}</ITEMNO>
+                            <ITEMNO>{{ $detail->productUnit->code . ($i == 0 ? '*' : '') }}</ITEMNO>
                             <QUANTITY>{{ $detail->qty }}</QUANTITY>
-                            <ITEMUNIT>{{ $detail->productUnit?->uom?->name }}</ITEMUNIT>
+                            <ITEMUNIT>{{ $detail->productUnit->uom?->name }}</ITEMUNIT>
                             <UNITRATIO>1</UNITRATIO>
                             <ITEMRESERVED1 />
                             <ITEMRESERVED2 />
@@ -67,11 +67,17 @@
                         <QTYSHIPPED>0</QTYSHIPPED>
                     </ITEMLINE>
                 @else
+                    @php
+                        $productUnit = $detail->productUnit;
+                        if($productUnit->refer) {
+                            $productUnit = $productUnit->refer;
+                        }
+                    @endphp
                     <ITEMLINE operation="Add">
                         <KeyID>{{ $keyId++ }}</KeyID>
-                        <ITEMNO>{{ $detail->productUnit?->code }}</ITEMNO>
+                        <ITEMNO>{{ $productUnit->code }}</ITEMNO>
                         <QUANTITY>{{ $detail->qty }}</QUANTITY>
-                        <ITEMUNIT>{{ $detail->productUnit?->uom?->name }}</ITEMUNIT>
+                        <ITEMUNIT>{{ $productUnit->uom?->name }}</ITEMUNIT>
                         <UNITRATIO>1</UNITRATIO>
                         <ITEMRESERVED1 />
                         <ITEMRESERVED2 />
@@ -83,7 +89,7 @@
                         <ITEMRESERVED8 />
                         <ITEMRESERVED9 />
                         <ITEMRESERVED10 />
-                        <ITEMOVDESC>{{ $detail->productUnit->name }}</ITEMOVDESC>
+                        <ITEMOVDESC>{{ $productUnit->name }}</ITEMOVDESC>
                         <UNITPRICE>{{ $detail->unit_price }}</UNITPRICE>
                         <DISCPC />
                         @if ($detail->tax > 0)

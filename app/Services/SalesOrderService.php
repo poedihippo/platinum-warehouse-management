@@ -234,7 +234,16 @@ class SalesOrderService
     public static function exportXml(int $id, ?callable $query = null)
     {
         $salesOrder = SalesOrder::when($query, $query)->findTenanted($id);
-        $salesOrder->load(['reseller', 'details' => fn($q) => $q->with('productUnit')]);
+        $salesOrder->load([
+            'reseller',
+            'details' => fn($q) => $q->with('productUnit', fn($q) => $q
+                ->select('id', 'code', 'name', 'uom_id', 'refer_id')
+                ->with([
+                    'uom:id,name',
+                    'refer' => fn($q) => $q->select('id', 'code', 'name', 'uom_id', 'refer_id')->with('uom:id,name'),
+                ]))
+        ]);
+
         // $salesOrder->load(['reseller', 'details' => fn($q) => $q->with('packaging', 'productUnit')]);
         return response(view('xml.salesOrders.salesOrder')->with(compact('salesOrder')), 200, [
             'Content-Type' => 'application/xml',
