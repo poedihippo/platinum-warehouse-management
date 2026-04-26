@@ -29,6 +29,8 @@ return [
         'https://platinum-warehouse.vercel.app',
         'https://platinum-warehouse-beta.vercel.app',
         'https://bejo-platinum-product-verify.vercel.app',
+        'https://platinum-verify-frontend.vercel.app',
+        'https://verify.platinumadisentosa.com',
         env('CORS_VERIFY_ORIGIN_1'),
         env('CORS_VERIFY_ORIGIN_2'),
     ])),
