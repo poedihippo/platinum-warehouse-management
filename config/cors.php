@@ -20,7 +20,7 @@ return [
     'allowed_methods' => ['*'],
 
     // 'allowed_origins' => ['*'],
-    'allowed_origins' => [
+    'allowed_origins' => array_values(array_filter([
         'https://bejo.platinumadisentosa.com',
         'http://localhost:8000',
         'http://localhost:3000',
@@ -29,7 +29,9 @@ return [
         'https://platinum-warehouse.vercel.app',
         'https://platinum-warehouse-beta.vercel.app',
         'https://bejo-platinum-product-verify.vercel.app',
-    ],
+        env('CORS_VERIFY_ORIGIN_1'),
+        env('CORS_VERIFY_ORIGIN_2'),
+    ])),
 
     'allowed_origins_patterns' => [],
 

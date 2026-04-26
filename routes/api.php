@@ -37,6 +37,7 @@ use App\Http\Controllers\Api\VoucherController;
 use App\Http\Controllers\Api\VoucherGenerateBatchController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\OrderDetailController;
+use App\Http\Controllers\Api\Public\StockVerificationController;
 use App\Http\Controllers\Api\TemporaryStockController;
 
 /*
@@ -56,6 +57,11 @@ Route::get('stocks/export', [StockController::class, 'export']);
 Route::post('stocks/import', [StockController::class, 'import']);
 Route::post('auth/token', [AuthController::class, 'token'])->middleware('throttle:30,1');
 Route::post('auth/register', [AuthController::class, 'register']);
+
+// Public QR / serial lookup for the customer-facing scan page.
+// No auth. Tight rate limit. See BACKEND_AUDIT.md "Public Verification Endpoint".
+Route::get('public/stocks/{ulid}', [StockVerificationController::class, 'show'])
+    ->middleware('throttle:30,1');
 
 /* Media Social Login */
 Route::get('/auth/{provider}', [SocialiteController::class, 'redirectToProvider']);
