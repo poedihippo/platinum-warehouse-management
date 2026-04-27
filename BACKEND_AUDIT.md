@@ -510,6 +510,8 @@ Accept: application/json
   "data": {
     "serial_number": "01HF6Y9R2X9Q7K5W3V1A8C0M2D",
     "product_name": "Champion Dog Food 5kg",
+    "brand_id": 4,
+    "brand_name": "Mizuho",
     "expired_date": "2026-12-31"
   }
 }
@@ -517,6 +519,8 @@ Accept: application/json
 
 - `expired_date` is a `YYYY-MM-DD` string when set, JSON `null` otherwise (~23 % of stocks have no expiry — the frontend must handle null).
 - Date only — no time component, no timezone.
+- `brand_id` is the integer `product_brands.id`. The frontend uses it to look up a logo file by filename; `brand_name` is the human-readable text fallback. `products.product_brand_id` is `NOT NULL` in the schema, so brand is guaranteed for any successfully verified stock.
+- `product_brands` has a `deleted_at` column even though `App\Models\ProductBrand` does not use the `SoftDeletes` trait. The controller filters `whereNull('deleted_at')` on the brand eager-load and returns a 404 if the brand cannot be resolved — so a soft-deleted brand looks identical to a missing stock.
 - The resource (`StockVerificationResource`) is an explicit allowlist; new fields cannot leak in by accident.
 
 ### Response — not found / invalid (404)
@@ -536,7 +540,7 @@ The endpoint deliberately returns the **same 404 body** for:
 1. ULID format invalid (e.g. `abc`, SQL injection probe, lowercase `i`/`l`/`o`/`u`)
 2. ULID well-formed but no matching row in `stocks`
 3. Stock row exists but is soft-deleted (`deleted_at IS NOT NULL`)
-4. Stock row exists but its `stock_product_unit → product_unit → product` chain is broken (missing parent row)
+4. Stock row exists but its `stock_product_unit → product_unit → product → product_brand` chain is broken (missing parent row, soft-deleted product/product_unit/stock_product_unit, or soft-deleted brand)
 
 Differentiating these cases helps attackers confirm "this serial format is valid" or "this serial used to exist," which makes catalog scraping easier. Future contributors: **do not** add detail-leaking error messages here. If you need richer errors for the admin UI, build a separate authenticated endpoint.
 
@@ -548,13 +552,14 @@ Differentiating these cases helps attackers confirm "this serial format is valid
 
 `tests/Feature/Api/Public/StockVerificationTest.php` covers:
 
-1. Valid ULID with `expired_date` set → 200 with formatted date
-2. Valid ULID with `expired_date = null` → 200 with JSON `null` (asserted as present-but-null)
+1. Valid ULID with `expired_date` set → 200 with formatted date and brand
+2. Valid ULID with `expired_date = null` → 200 with JSON `null` (asserted as present-but-null) and brand
 3. Valid-shape ULID not in DB → 404
 4. Invalid ULID shapes (too short, non-Crockford chars, SQL injection, UUID) → 404
-5. Whitelist assertion: response contains only `serial_number`, `product_name`, `expired_date` — no price, no warehouse, no internal FKs
+5. Whitelist assertion: response contains only `serial_number`, `product_name`, `brand_id`, `brand_name`, `expired_date` — no price, no warehouse, no internal FKs
 6. Soft-deleted stock → 404 (same shape as missing)
-7. Rate limit triggers on the 31st request within a minute
+7. Soft-deleted brand → 404 (same shape as missing)
+8. Rate limit triggers on the 31st request within a minute
 
 The test suite uses `RefreshDatabase` and seven minimal new factories (`Product`, `ProductBrand`, `ProductCategory`, `ProductUnit`, `StockProductUnit`, `Stock`, `Uom`, `Warehouse`). Side-effecting model `booted` hooks (Warehouse and ProductUnit auto-create cross-product `stock_product_units`) are bypassed in test setup with `Model::withoutEvents`.
 

@@ -20,12 +20,18 @@ class StockVerificationController extends Controller
         $stock = Stock::with([
             'stockProductUnit:id,product_unit_id',
             'stockProductUnit.productUnit:id,product_id',
-            'stockProductUnit.productUnit.product:id,name',
+            'stockProductUnit.productUnit.product:id,name,product_brand_id',
+            // ProductBrand model does not use the SoftDeletes trait, but the
+            // table has a deleted_at column — filter manually.
+            'stockProductUnit.productUnit.product.productBrand' => function ($query) {
+                $query->select('id', 'name')->whereNull('deleted_at');
+            },
         ])
             ->select(['id', 'stock_product_unit_id', 'expired_date'])
             ->find($ulid);
 
-        if (!$stock || !$stock->stockProductUnit?->productUnit?->product) {
+        $product = $stock?->stockProductUnit?->productUnit?->product;
+        if (!$stock || !$product || !$product->productBrand) {
             return $this->notFound();
         }
 

@@ -15,6 +15,7 @@ use Database\Factories\WarehouseFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class StockVerificationTest extends TestCase
@@ -23,6 +24,7 @@ class StockVerificationTest extends TestCase
 
     private Stock $stockWithExpiry;
     private Stock $stockWithoutExpiry;
+    private int $brandId;
 
     protected function setUp(): void
     {
@@ -36,9 +38,12 @@ class StockVerificationTest extends TestCase
         // that auto-create stock_product_units rows for every existing peer.
         // Bypass them so the test owns the exact rows.
         Model::withoutEvents(function () {
+            $brand = ProductBrandFactory::new()->create(['name' => 'Mizuho']);
+            $this->brandId = $brand->id;
+
             $product = ProductFactory::new()->create([
                 'product_category_id' => ProductCategoryFactory::new()->create()->id,
-                'product_brand_id'    => ProductBrandFactory::new()->create()->id,
+                'product_brand_id'    => $brand->id,
                 'company'             => CompanyEnum::PAS,
                 'name'                => 'Champion Dog Food 5kg',
             ]);
@@ -79,6 +84,8 @@ class StockVerificationTest extends TestCase
                 'data' => [
                     'serial_number' => $this->stockWithExpiry->id,
                     'product_name'  => 'Champion Dog Food 5kg',
+                    'brand_id'      => $this->brandId,
+                    'brand_name'    => 'Mizuho',
                     'expired_date'  => '2026-12-31',
                 ],
             ]);
@@ -93,6 +100,8 @@ class StockVerificationTest extends TestCase
         $payload = $response->json();
         $this->assertTrue($payload['verified']);
         $this->assertSame('Champion Dog Food 5kg', $payload['data']['product_name']);
+        $this->assertSame($this->brandId, $payload['data']['brand_id']);
+        $this->assertSame('Mizuho', $payload['data']['brand_name']);
 
         // expired_date must be present in the JSON and explicitly null — not absent, not "".
         $this->assertArrayHasKey('expired_date', $payload['data']);
@@ -149,7 +158,7 @@ class StockVerificationTest extends TestCase
             array_keys($response->json())
         );
         $this->assertSame(
-            ['serial_number', 'product_name', 'expired_date'],
+            ['serial_number', 'product_name', 'brand_id', 'brand_name', 'expired_date'],
             array_keys($response->json('data'))
         );
 
@@ -177,6 +186,23 @@ class StockVerificationTest extends TestCase
         $this->stockWithExpiry->delete();
 
         $response = $this->getJson($this->url($deletedId));
+
+        $response->assertStatus(404)
+            ->assertExactJson([
+                'verified' => false,
+                'message'  => 'Product not found',
+            ]);
+    }
+
+    public function test_soft_deleted_brand_returns_same_404_shape_as_missing(): void
+    {
+        // ProductBrand has a deleted_at column but the model does not use the
+        // SoftDeletes trait, so soft-delete via raw update.
+        DB::table('product_brands')->where('id', $this->brandId)->update([
+            'deleted_at' => now(),
+        ]);
+
+        $response = $this->getJson($this->url($this->stockWithExpiry->id));
 
         $response->assertStatus(404)
             ->assertExactJson([
