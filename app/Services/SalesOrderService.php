@@ -233,14 +233,17 @@ class SalesOrderService
 
     public static function exportXml(int $id, ?callable $query = null)
     {
-        $salesOrder = SalesOrder::when($query, $query)->findTenanted($id);
+        $productUnitColumns = ['id', 'uom_id', 'refer_id', 'code', 'name'];
+        $uomColumns = 'uom:id,name';
+        $salesOrder = SalesOrder::when($query, $query, null)->findTenanted($id);
         $salesOrder->load([
             'reseller',
             'details' => fn($q) => $q->with('productUnit', fn($q) => $q
-                ->select('id', 'uom_id', 'refer_id', 'code', 'name')
+                ->select($productUnitColumns)
                 ->with([
-                    'uom:id,name',
-                    'refer' => fn($q) => $q->select('id', 'uom_id', 'refer_id', 'code', 'name')->with('uom:id,name'),
+                    $uomColumns,
+                    'refer' => fn($q) => $q->select($productUnitColumns)->with($uomColumns),
+                    'relations' => fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select($productUnitColumns)->with($uomColumns)),
                 ]))
         ]);
 

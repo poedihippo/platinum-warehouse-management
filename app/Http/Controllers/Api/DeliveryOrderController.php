@@ -237,14 +237,17 @@ class DeliveryOrderController extends Controller
 
         // $deliveryOrder->load(['reseller', 'details' => fn ($q) => $q->with('salesOrderDetail.productUnit.uom')]);
 
+        $productUnitColumns = ['id', 'uom_id', 'refer_id', 'code', 'name', 'price'];
+        $uomColumns = 'uom:id,name';
         $deliveryOrder = DeliveryOrder::with([
             'reseller',
             'details' => fn($q) => $q->with('salesOrderDetail', fn($q) => $q->with(
                 'productUnit',
-                fn($q) => $q->select('id', 'uom_id', 'refer_id', 'code', 'name', 'price')
+                fn($q) => $q->select($productUnitColumns)
                     ->with([
-                        'uom:id,name',
-                        'refer' => fn($q) => $q->select('id', 'uom_id', 'refer_id', 'code', 'name', 'price')->with('uom:id,name'),
+                        $uomColumns,
+                        'refer' => fn($q) => $q->select($productUnitColumns)->with($uomColumns),
+                        'relations' => fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select($productUnitColumns)->with($uomColumns)),
                     ])
             ))
         ])->findTenanted($id);

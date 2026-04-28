@@ -69,9 +69,12 @@
                     </ITEMLINE>
                 @else
                     @php
+                        $hasRelation = false;
                         $productUnit = $detail->productUnit;
                         if($productUnit->refer) {
+                            $relations = $productUnit->relations;
                             $productUnit = $productUnit->refer;
+                            $hasRelation = true;
                         }
                     @endphp
                     <ITEMLINE operation="Add">
@@ -101,6 +104,33 @@
                         <GROUPSEQ />
                         <QTYSHIPPED>0</QTYSHIPPED>
                     </ITEMLINE>
+                    @if($hasRelation)
+                        @foreach ($relations ?? [] as $relation)
+                            <ITEMLINE operation="Add">
+                                <KeyID>{{ $keyId++ }}</KeyID>
+                                <ITEMNO>{{ $relation->relatedProductUnit->code }}</ITEMNO>
+                                <QUANTITY>{{ $detail->qty * $relation->qty }}</QUANTITY>
+                                <ITEMUNIT>{{ $relation->relatedProductUnit->uom?->name }}</ITEMUNIT>
+                                <UNITRATIO>1</UNITRATIO>
+                                <ITEMRESERVED1 />
+                                <ITEMRESERVED2 />
+                                <ITEMRESERVED3 />
+                                <ITEMRESERVED4 />
+                                <ITEMRESERVED5 />
+                                <ITEMRESERVED6 />
+                                <ITEMRESERVED7 />
+                                <ITEMRESERVED8 />
+                                <ITEMRESERVED9 />
+                                <ITEMRESERVED10 />
+                                <ITEMOVDESC>{{ $relation->relatedProductUnit->name }}</ITEMOVDESC>
+                                <UNITPRICE>0</UNITPRICE>
+                                <DISCPC />
+                                <TAXCODES />
+                                <GROUPSEQ />
+                                <QTYSHIPPED>0</QTYSHIPPED>
+                            </ITEMLINE>
+                        @endforeach
+                    @endif
                 @endif
                 @php
                     $GROUPSEQ++;

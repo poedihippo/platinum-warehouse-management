@@ -8,15 +8,22 @@
             @endphp
             @foreach ($deliveryOrder->details ?? [] as $detail)
                 @php
+                    $hasRelation = false;
                     $productUnit = $detail->salesOrderDetail?->productUnit;
                     if($productUnit && $productUnit->refer) {
+                        $relations = $productUnit->relations;
                         $productUnit = $productUnit->refer;
+                        $hasRelation = true;
                     }
+
+                    $warehouseCode = $detail->salesOrderDetail?->warehouse?->code;
+                    $SONumber = $detail->salesOrderDetail?->salesOrder?->invoice_no;
+                    $SODetailQty = $detail->salesOrderDetail?->qty ?? 0;
                 @endphp
                 <ITEMLINE operation="Add">
                     <KeyID>{{ $keyId++ }}</KeyID>
                     <ITEMNO>{{ $productUnit?->code }}</ITEMNO>
-                    <QUANTITY>{{ $detail->salesOrderDetail?->qty ?? 0 }}</QUANTITY>
+                    <QUANTITY>{{ $SODetailQty }}</QUANTITY>
                     <ITEMUNIT>{{ $productUnit?->uom?->name }}</ITEMUNIT>
                     <UNITRATIO>1</UNITRATIO>
                     <ITEMRESERVED1 />
@@ -40,12 +47,45 @@
                     <GROUPSEQ />
                     <SOSEQ>0</SOSEQ>
                     <BRUTOUNITPRICE>0</BRUTOUNITPRICE>
-                    <WAREHOUSEID>{{ $detail->salesOrderDetail?->warehouse?->code }}</WAREHOUSEID>
+                    <WAREHOUSEID>{{ $warehouseCode }}</WAREHOUSEID>
                     <QTYCONTROL>0</QTYCONTROL>
                     <DOSEQ />
-                    <SOID>{{ $detail->salesOrderDetail?->salesOrder?->invoice_no }}</SOID>
+                    <SOID>{{ $SONumber }}</SOID>
                     <DOID />
                 </ITEMLINE>
+                 @if($hasRelation)
+                    @foreach ($relations ?? [] as $relation)
+                    <ITEMLINE operation="Add">
+                        <KeyID>{{ $keyId++ }}</KeyID>
+                        <ITEMNO>{{ $relation->relatedProductUnit?->code }}</ITEMNO>
+                        <QUANTITY>{{ $SODetailQty * $relation->qty }}</QUANTITY>
+                        <ITEMUNIT>{{ $relation->relatedProductUnit?->uom?->name }}</ITEMUNIT>
+                        <UNITRATIO>1</UNITRATIO>
+                        <ITEMRESERVED1 />
+                        <ITEMRESERVED2 />
+                        <ITEMRESERVED3 />
+                        <ITEMRESERVED4 />
+                        <ITEMRESERVED5 />
+                        <ITEMRESERVED6 />
+                        <ITEMRESERVED7 />
+                        <ITEMRESERVED8 />
+                        <ITEMRESERVED9 />
+                        <ITEMRESERVED10 />
+                        <ITEMOVDESC>{{ $relation->relatedProductUnit?->name }}</ITEMOVDESC>
+                        <UNITPRICE>{{ $relation->relatedProductUnit?->price }}</UNITPRICE>
+                        <ITEMDISCPC />
+                        <TAXCODES />
+                        <GROUPSEQ />
+                        <SOSEQ>0</SOSEQ>
+                        <BRUTOUNITPRICE>0</BRUTOUNITPRICE>
+                        <WAREHOUSEID>{{ $warehouseCode }}</WAREHOUSEID>
+                        <QTYCONTROL>0</QTYCONTROL>
+                        <DOSEQ />
+                        <SOID>{{ $SONumber }}</SOID>
+                        <DOID />
+                    </ITEMLINE>
+                    @endforeach
+                @endif
             @endforeach
             <INVOICENO>{{ $deliveryOrder->invoice_no }}</INVOICENO>
             <INVOICEDATE>{{ date('Y-m-d', strtotime($deliveryOrder->created_at)) }}</INVOICEDATE>
