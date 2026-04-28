@@ -45,13 +45,13 @@ class StockVerificationTest extends TestCase
                 'product_category_id' => ProductCategoryFactory::new()->create()->id,
                 'product_brand_id'    => $brand->id,
                 'company'             => CompanyEnum::PAS,
-                'name'                => 'Champion Dog Food 5kg',
+                'name'                => 'Mizuho',
             ]);
 
             $productUnit = ProductUnitFactory::new()->create([
                 'product_id' => $product->id,
                 'uom_id'     => UomFactory::new()->create()->id,
-                'name'       => 'Champion Dog Food 5kg PCS',
+                'name'       => 'Mizuho Wheatgerm',
             ]);
 
             $warehouse = WarehouseFactory::new()->create();
@@ -83,7 +83,7 @@ class StockVerificationTest extends TestCase
                 'verified' => true,
                 'data' => [
                     'serial_number' => $this->stockWithExpiry->id,
-                    'product_name'  => 'Champion Dog Food 5kg',
+                    'product_name'  => 'Mizuho Wheatgerm',
                     'brand_id'      => $this->brandId,
                     'brand_name'    => 'Mizuho',
                     'expired_date'  => '2026-12-31',
@@ -99,7 +99,7 @@ class StockVerificationTest extends TestCase
 
         $payload = $response->json();
         $this->assertTrue($payload['verified']);
-        $this->assertSame('Champion Dog Food 5kg', $payload['data']['product_name']);
+        $this->assertSame('Mizuho Wheatgerm', $payload['data']['product_name']);
         $this->assertSame($this->brandId, $payload['data']['brand_id']);
         $this->assertSame('Mizuho', $payload['data']['brand_name']);
 

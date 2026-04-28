@@ -459,10 +459,14 @@ stocks.stock_product_unit_id
   → stock_product_units.id
 stock_product_units.product_unit_id
   → product_units.id
+product_units.name  ← exposed publicly as `product_name`
 product_units.product_id
   → products.id
-products.name  ← exposed publicly as `product_name`
+products.product_brand_id
+  → product_brands.name  ← exposed publicly as `brand_name`
 ```
+
+> The customer-facing product name comes from `product_units.name`, NOT `products.name`. `products.name` is the category/line name (e.g. "CZ Aqua"), `product_units.name` is the specific variant (e.g. "CZ Power Breed"). The QR identifies a specific variant, so we always return the variant name. `products` is still joined — but only to resolve `product_brand_id`.
 
 `stocks.id` is a 26-char ULID (Crockford base32). The frontend's `^[0-9A-HJKMNP-TV-Z]{26}$` (case-insensitive) regex is the right shape.
 `stocks.deleted_at` exists; soft deletes are real. A scan for a soft-deleted row must return the same 404 shape as a not-found row.

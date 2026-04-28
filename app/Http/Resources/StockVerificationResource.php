@@ -16,7 +16,7 @@ class StockVerificationResource extends JsonResource
 
         return [
             'serial_number' => $this->id,
-            'product_name'  => $this->stockProductUnit?->productUnit?->product?->name,
+            'product_name'  => $this->stockProductUnit?->productUnit?->name,
             'brand_id'      => $brand?->id,
             'brand_name'    => $brand?->name,
             'expired_date'  => $this->expired_date
