@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\CompanyEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\DeliveryOrderAttachRequest;
 use App\Http\Requests\Api\DeliveryOrderReturnRequest;
@@ -221,12 +222,19 @@ class DeliveryOrderController extends Controller
 
     public function print(int $id)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('delivery_order_print'), 403);
-
-        // $deliveryOrder->load(['reseller', 'details' => fn ($q) => $q->with('salesOrderDetail.productUnit.uom')]);
         $deliveryOrder = DeliveryOrder::with(['reseller', 'details' => fn($q) => $q->with('salesOrderDetail.productUnit.uom')])->findTenanted($id);
         $deliveryOrderDetailsChunk = $deliveryOrder->details?->chunk(23) ?? collect([]);
-        $pdf = Pdf::setPaper('a4', 'portrait')->loadView('pdf.deliveryOrders.deliveryOrder', ['deliveryOrder' => $deliveryOrder, 'deliveryOrderDetailsChunk' => $deliveryOrderDetailsChunk]);
+
+        $chunkSize = 23;
+        $view = 'pdf.deliveryOrders.deliveryOrder';
+        if ($deliveryOrder->company->is(CompanyEnum::PA)) {
+            $chunkSize = 10;
+            $view = 'pdf.deliveryOrders.deliveryOrderPA';
+        }
+
+        $deliveryOrderDetailsChunk = $deliveryOrder->details?->chunk($chunkSize) ?? collect([]);
+
+        $pdf = Pdf::setPaper('a4', 'portrait')->loadView($view, ['deliveryOrder' => $deliveryOrder, 'deliveryOrderDetailsChunk' => $deliveryOrderDetailsChunk]);
 
         return $pdf->download('delivery-order-' . $deliveryOrder->code . '.pdf');
     }
