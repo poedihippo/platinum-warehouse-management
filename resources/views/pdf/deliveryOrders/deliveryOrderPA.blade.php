@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,7 +23,7 @@
 
         .table-container {
             /* margin-left: -15px; */
-            margin-top: 30px;
+            margin-top: 35px;
             width: 100%;
             height: 210px;
         }
@@ -37,12 +36,23 @@
             text-align: center !important;
         }
 
+        .ml-30 {
+            margin-left: 30px;
+        }
+
+        .ml-40 {
+            margin-left: 40px;
+        }
+
+        .ml--20 {
+            margin-left: -20px;
+        }
+
         .page-break {
             page-break-after: always;
         }
     </style>
 </head>
-
 <body>
     @php
         $totalQty = 0;
@@ -59,14 +69,21 @@
             <div class="container">
                 <table class="delivery-info">
                     <tr>
-                        <td style="width: 70%; vertical-align: top;">{{ $deliveryOrder->reseller?->name ?? '' }}</td>
+                        <td style="width: 50%; vertical-align: top;">
+                            <div class="ml--20">
+                                <p style="margin-top: 0;">{{ $deliveryOrder->reseller?->name ?? '' }}</p>
+                                <p>{{ $deliveryOrder->reseller?->address }}</p>
+                            </div>
+                        </td>
                         <td>
-                            <table>
+                            <table style="margin-left: 140px; margin-top: -10px;">
                                 <tr>
-                                    <td>{{ $deliveryOrder->invoice_no }}</td>
+                                    <td>
+                                        <span class="ml-30">{{ $deliveryOrder->invoice_no }}</span>
+                                    </td>
                                 </tr>
                                 <tr>
-                                    <td><p style="margin-top: 20px">{{ date('d M Y', strtotime($deliveryOrder->transaction_date)) }}</p></td>
+                                    <td><p class="ml-30" style="margin-top: 30px">{{ date('d M Y', strtotime($deliveryOrder->transaction_date)) }}</p></td>
                                 </tr>
                             </table>
                         </td>
@@ -78,17 +95,24 @@
                             $totalQty += $detail->salesOrderDetail?->qty ?? 0;
                         @endphp
                         <tr>
-                            <td style="width: 75%;">{{ $detail->salesOrderDetail?->productUnit?->code ?? '-' }} | {{ $detail->salesOrderDetail?->productUnit?->name ?? '-' }}</td>
-                            <td class="text-center" style="width: 25%; padding-left: 10px;">
-                            {{ $detail->salesOrderDetail?->qty ?? 0 }} &nbsp; {{ $detail->salesOrderDetail?->productUnit?->uom?->name ?? '' }}</td>
+                            <td style="width: 80%;">
+                                <span class="ml--20">{{ $detail->salesOrderDetail?->productUnit?->code ?? '-' }} | {{ $detail->salesOrderDetail?->productUnit?->name ?? '-' }}</span>
+                            </td>
+                            <td class="text-center" style="width: 20%; padding-left: 10px;">
+                                <span class="ml-40">{{ $detail->salesOrderDetail?->qty ?? 0 }} &nbsp; {{ $detail->salesOrderDetail?->productUnit?->uom?->name ?? '' }}</span>
+                            </td>
                         </tr>
                     @empty
                     @endforelse
                 </table>
-                <table style="width: 100%; margin-top: 30px;">
+                <table style="width: 100%; margin-top: 50px;">
                     <tr>
-                        <td style="width: 75%;">{{ $deliveryOrder->description }}</td>
-                        <td class="text-center" style="width: 25%; padding-left: 10px;">{{ $totalQty }}</td>
+                        <td style="width: 75%;">
+                            <span class="ml--20">{{ $deliveryOrder->description }}</span>
+                        </td>
+                        <td class="text-center" style="width: 25%; padding-left: 10px;">
+                            <span class="ml-40">{{ $totalQty }}</span>
+                        </td>
                     </tr>
                 </table>
             </div>
@@ -98,16 +122,23 @@
         @endforeach
     @else
         <div class="container">
-            <table class="delivery-info">
+           <table class="delivery-info">
                 <tr>
-                    <td style="width: 70%; vertical-align: top;">{{ $deliveryOrder->reseller?->name ?? '' }}</td>
+                    <td style="width: 50%; vertical-align: top;">
+                        <div class="ml--20">
+                            <p style="margin-top: 0;">{{ $deliveryOrder->reseller?->name ?? '' }}</p>
+                            <p>{{ $deliveryOrder->reseller?->address }}</p>
+                        </div>
+                    </td>
                     <td>
-                        <table>
+                        <table style="margin-left: 140px; margin-top: -10px;">
                             <tr>
-                                <td>{{ $deliveryOrder->invoice_no }}</td>
+                                <td>
+                                    <span class="ml-30">{{ $deliveryOrder->invoice_no }}</span>
+                                </td>
                             </tr>
                             <tr>
-                                <td><p style="margin-top: 20px">{{ date('d M Y', strtotime($deliveryOrder->transaction_date)) }}</p></td>
+                                <td><p class="ml-30" style="margin-top: 30px">{{ date('d M Y', strtotime($deliveryOrder->transaction_date)) }}</p></td>
                             </tr>
                         </table>
                     </td>
@@ -119,21 +150,27 @@
                         $totalQty += $detail->salesOrderDetail?->qty ?? 0;
                     @endphp
                       <tr>
-                            <td style="width: 75%;">{{ $detail->salesOrderDetail?->productUnit?->code ?? '-' }} | {{ $detail->salesOrderDetail?->productUnit?->name ?? '-' }}</td>
-                            <td class="text-center" style="width: 25%; padding-left: 10px;">
-                            {{ $detail->salesOrderDetail?->qty ?? 0 }} &nbsp; {{ $detail->salesOrderDetail?->productUnit?->uom?->name ?? '' }}</td>
-                        </tr>
+                        <td style="width: 80%;">
+                            <span class="ml--20">{{ $detail->salesOrderDetail?->productUnit?->code ?? '-' }} | {{ $detail->salesOrderDetail?->productUnit?->name ?? '-' }}</span>
+                        </td>
+                        <td class="text-center" style="width: 20%; padding-left: 10px;">
+                            <span class="ml-40">{{ $detail->salesOrderDetail?->qty ?? 0 }} &nbsp; {{ $detail->salesOrderDetail?->productUnit?->uom?->name ?? '' }}</span>
+                        </td>
+                    </tr>
                 @empty
                 @endforelse
             </table>
-             <table style="width: 100%; margin-top: 30px;">
+            <table style="width: 100%; margin-top: 50px;">
                 <tr>
-                    <td style="width: 75%;">{{ $deliveryOrder->description }}</td>
-                    <td class="text-center" style="width: 25%; padding-left: 10px;">{{ $totalQty }}</td>
+                    <td style="width: 75%;">
+                        <span class="ml--20">{{ $deliveryOrder->description }}</span>
+                    </td>
+                    <td class="text-center" style="width: 25%; padding-left: 10px;">
+                        <span class="ml-40">{{ $totalQty }}</span>
+                    </td>
                 </tr>
             </table>
         </div>
     @endif
 </body>
-
 </html>

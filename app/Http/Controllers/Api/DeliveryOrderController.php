@@ -222,7 +222,10 @@ class DeliveryOrderController extends Controller
 
     public function print(int $id)
     {
-        $deliveryOrder = DeliveryOrder::with(['reseller', 'details' => fn($q) => $q->with('salesOrderDetail.productUnit.uom')])->findTenanted($id);
+        $deliveryOrder = DeliveryOrder::with([
+            'reseller' => fn($q) => $q->select('id', 'name', 'address'),
+            'details' => fn($q) => $q->with('salesOrderDetail.productUnit.uom')
+        ])->findTenanted($id);
         $deliveryOrderDetailsChunk = $deliveryOrder->details?->chunk(23) ?? collect([]);
 
         $chunkSize = 23;
