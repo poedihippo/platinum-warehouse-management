@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -104,7 +103,7 @@
                                 <td style="padding-bottom: 3px">{{ $deliveryOrder->invoice_no }}</td>
                             </tr>
                             <tr>
-                                <td>{{ date('d M Y', strtotime($deliveryOrder->transaction_date)) }}</td>
+                                <td>{{ date('d F Y', strtotime($deliveryOrder->transaction_date)) }}</td>
                             </tr>
                         </table>
                     </td>
@@ -130,5 +129,4 @@
         </div>
     @endif
 </body>
-
 </html>

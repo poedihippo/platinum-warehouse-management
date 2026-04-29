@@ -83,7 +83,7 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td><p class="ml-30" style="margin-top: 30px">{{ date('d M Y', strtotime($deliveryOrder->transaction_date)) }}</p></td>
+                                    <td><p class="ml-30" style="margin-top: 30px">{{ date('d F Y', strtotime($deliveryOrder->transaction_date)) }}</p></td>
                                 </tr>
                             </table>
                         </td>
@@ -138,7 +138,7 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td><p class="ml-30" style="margin-top: 30px">{{ date('d M Y', strtotime($deliveryOrder->transaction_date)) }}</p></td>
+                                <td><p class="ml-30" style="margin-top: 30px">{{ date('d F Y', strtotime($deliveryOrder->transaction_date)) }}</p></td>
                             </tr>
                         </table>
                     </td>
