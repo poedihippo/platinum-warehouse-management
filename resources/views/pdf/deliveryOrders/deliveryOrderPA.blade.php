@@ -72,7 +72,7 @@
                         <td style="width: 50%; vertical-align: top;">
                             <div class="ml--20">
                                 <p style="margin-top: 0;">{{ $deliveryOrder->reseller?->name ?? '' }}</p>
-                                <p>{{ $deliveryOrder->reseller?->address }}</p>
+                                <p style="margin-top: -8px;">{{ $deliveryOrder->reseller?->address }}</p>
                             </div>
                         </td>
                         <td>
@@ -127,7 +127,7 @@
                     <td style="width: 50%; vertical-align: top;">
                         <div class="ml--20">
                             <p style="margin-top: 0;">{{ $deliveryOrder->reseller?->name ?? '' }}</p>
-                            <p>{{ $deliveryOrder->reseller?->address }}</p>
+                            <p style="margin-top: -8px;">{{ $deliveryOrder->reseller?->address }}</p>
                         </div>
                     </td>
                     <td>
