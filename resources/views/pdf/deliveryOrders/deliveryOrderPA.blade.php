@@ -14,7 +14,7 @@
         }
 
         .container {
-            margin-top: 80px;
+            margin-top: 85px;
         }
 
         .delivery-info {
@@ -23,7 +23,7 @@
 
         .table-container {
             /* margin-left: -15px; */
-            margin-top: 35px;
+            margin-top: 20px;
             width: 100%;
             height: 210px;
         }
@@ -44,8 +44,8 @@
             margin-left: 40px;
         }
 
-        .ml--20 {
-            margin-left: -20px;
+        .ml--25 {
+            margin-left: -25px;
         }
 
         .page-break {
@@ -70,13 +70,13 @@
                 <table class="delivery-info">
                     <tr>
                         <td style="width: 50%; vertical-align: top;">
-                            <div class="ml--20">
+                            <div class="ml--25">
                                 <p style="margin-top: 0;">{{ $deliveryOrder->reseller?->name ?? '' }}</p>
                                 <p style="margin-top: -8px;">{{ $deliveryOrder->reseller?->address }}</p>
                             </div>
                         </td>
                         <td>
-                            <table style="margin-left: 140px; margin-top: -10px;">
+                            <table style="margin-left: 140px; margin-top: 5px;">
                                 <tr>
                                     <td>
                                         <span class="ml-30">{{ $deliveryOrder->invoice_no }}</span>
@@ -96,7 +96,7 @@
                         @endphp
                         <tr>
                             <td style="width: 80%;">
-                                <span class="ml--20">{{ $detail->salesOrderDetail?->productUnit?->code ?? '-' }} | {{ $detail->salesOrderDetail?->productUnit?->name ?? '-' }}</span>
+                                <span class="ml--25">{{ $detail->salesOrderDetail?->productUnit?->code ?? '-' }} | {{ $detail->salesOrderDetail?->productUnit?->name ?? '-' }}</span>
                             </td>
                             <td class="text-center" style="width: 20%; padding-left: 10px;">
                                 <span class="ml-40">{{ $detail->salesOrderDetail?->qty ?? 0 }} &nbsp; {{ $detail->salesOrderDetail?->productUnit?->uom?->name ?? '' }}</span>
@@ -108,7 +108,7 @@
                 <table style="width: 100%; margin-top: 50px;">
                     <tr>
                         <td style="width: 75%;">
-                            <span class="ml--20">{{ $deliveryOrder->description }}</span>
+                            <span class="ml--25">{{ $deliveryOrder->description }}</span>
                         </td>
                         <td class="text-center" style="width: 25%; padding-left: 10px;">
                             <span class="ml-40">{{ $totalQty }}</span>
@@ -125,13 +125,13 @@
            <table class="delivery-info">
                 <tr>
                     <td style="width: 50%; vertical-align: top;">
-                        <div class="ml--20">
+                        <div class="ml--25">
                             <p style="margin-top: 0;">{{ $deliveryOrder->reseller?->name ?? '' }}</p>
                             <p style="margin-top: -8px;">{{ $deliveryOrder->reseller?->address }}</p>
                         </div>
                     </td>
                     <td>
-                        <table style="margin-left: 140px; margin-top: -10px;">
+                        <table style="margin-left: 140px; margin-top: 5px;">
                             <tr>
                                 <td>
                                     <span class="ml-30">{{ $deliveryOrder->invoice_no }}</span>
@@ -151,7 +151,7 @@
                     @endphp
                       <tr>
                         <td style="width: 80%;">
-                            <span class="ml--20">{{ $detail->salesOrderDetail?->productUnit?->code ?? '-' }} | {{ $detail->salesOrderDetail?->productUnit?->name ?? '-' }}</span>
+                            <span class="ml--25">{{ $detail->salesOrderDetail?->productUnit?->code ?? '-' }} | {{ $detail->salesOrderDetail?->productUnit?->name ?? '-' }}</span>
                         </td>
                         <td class="text-center" style="width: 20%; padding-left: 10px;">
                             <span class="ml-40">{{ $detail->salesOrderDetail?->qty ?? 0 }} &nbsp; {{ $detail->salesOrderDetail?->productUnit?->uom?->name ?? '' }}</span>
@@ -163,7 +163,7 @@
             <table style="width: 100%; margin-top: 50px;">
                 <tr>
                     <td style="width: 75%;">
-                        <span class="ml--20">{{ $deliveryOrder->description }}</span>
+                        <span class="ml--25">{{ $deliveryOrder->description }}</span>
                     </td>
                     <td class="text-center" style="width: 25%; padding-left: 10px;">
                         <span class="ml-40">{{ $totalQty }}</span>
