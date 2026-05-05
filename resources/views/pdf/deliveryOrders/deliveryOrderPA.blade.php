@@ -6,9 +6,10 @@
     <title>Delivery Order {{ $deliveryOrder->invoice_no }}</title>
     <style>
         body {
+            font-family: Arial, sans-serif;
             position: relative;
             font-weight: bold;
-            font-size: 15px;
+            font-size: 14.5px;
             margin: 0 !important;
             padding: 0 !important;
         }

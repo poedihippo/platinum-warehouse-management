@@ -237,7 +237,9 @@ class DeliveryOrderController extends Controller
 
         $deliveryOrderDetailsChunk = $deliveryOrder->details?->chunk($chunkSize) ?? collect([]);
 
-        $pdf = Pdf::setPaper('a4', 'portrait')->loadView($view, ['deliveryOrder' => $deliveryOrder, 'deliveryOrderDetailsChunk' => $deliveryOrderDetailsChunk]);
+        $pdf = Pdf::setPaper('a4', 'portrait')
+            ->setOption('defaultFont', 'Arial')
+            ->loadView($view, ['deliveryOrder' => $deliveryOrder, 'deliveryOrderDetailsChunk' => $deliveryOrderDetailsChunk]);
 
         return $pdf->download('delivery-order-' . $deliveryOrder->code . '.pdf');
     }
