@@ -18,15 +18,30 @@
             margin-top: 85px;
         }
 
-        .delivery-info {
+        .header {
             width: 100%;
+        }
+        
+        .delivery-info-left {
+           width: 50%;
+           vertical-align: top;
+        }
+       
+        .delivery-info-right {
+            margin-left: 140px;
+            margin-top: 3px;
         }
 
         .table-container {
             /* margin-left: -15px; */
-            margin-top: 20px;
+            margin-top: 21px;
             width: 100%;
             height: 210px;
+        }
+
+        .footer {
+            width: 100%;
+            margin-top: 51px;
         }
 
         .note {
@@ -68,16 +83,16 @@
                 $countLoop++;
             @endphp
             <div class="container">
-                <table class="delivery-info">
+                <table class="header">
                     <tr>
-                        <td style="width: 50%; vertical-align: top;">
+                        <td class="delivery-info-left">
                             <div class="ml--25">
                                 <p style="margin-top: 0;">{{ $deliveryOrder->reseller?->name ?? '' }}</p>
                                 <p style="margin-top: -8px;">{{ $deliveryOrder->reseller?->address }}</p>
                             </div>
                         </td>
                         <td>
-                            <table style="margin-left: 140px; margin-top: 5px;">
+                            <table class="delivery-info-right">
                                 <tr>
                                     <td>
                                         <span class="ml-30">{{ $deliveryOrder->invoice_no }}</span>
@@ -106,7 +121,7 @@
                     @empty
                     @endforelse
                 </table>
-                <table style="width: 100%; margin-top: 50px;">
+                <table class="footer">
                     <tr>
                         <td style="width: 75%;">
                             <span class="ml--25">{{ $deliveryOrder->description }}</span>
@@ -123,16 +138,16 @@
         @endforeach
     @else
         <div class="container">
-           <table class="delivery-info">
+           <table class="header">
                 <tr>
-                    <td style="width: 50%; vertical-align: top;">
+                    <td class="delivery-info-left">
                         <div class="ml--25">
                             <p style="margin-top: 0;">{{ $deliveryOrder->reseller?->name ?? '' }}</p>
                             <p style="margin-top: -8px;">{{ $deliveryOrder->reseller?->address }}</p>
                         </div>
                     </td>
                     <td>
-                        <table style="margin-left: 140px; margin-top: 5px;">
+                        <table class="delivery-info-right">
                             <tr>
                                 <td>
                                     <span class="ml-30">{{ $deliveryOrder->invoice_no }}</span>
@@ -161,7 +176,7 @@
                 @empty
                 @endforelse
             </table>
-            <table style="width: 100%; margin-top: 50px;">
+            <table class="footer">
                 <tr>
                     <td style="width: 75%;">
                         <span class="ml--25">{{ $deliveryOrder->description }}</span>

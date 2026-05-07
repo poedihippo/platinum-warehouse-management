@@ -205,10 +205,10 @@ class SalesOrderService
     public static function print(int|string $id, string $type = 'print', ?callable $query = null)
     {
         if ($type == 'print') {
-            $salesOrder = SalesOrder::when($query, $query)->findTenanted($id);
+            $salesOrder = SalesOrder::when($query, $query, $query)->findTenanted($id);
             $view = 'pdf.salesOrders.salesOrder';
         } else {
-            $salesOrder = SalesOrder::when($query, $query)->find($id);
+            $salesOrder = SalesOrder::when($query, $query, $query)->find($id);
             if (!$salesOrder) return redirect()->away('https://platinumadisentosa.com');
             $view = 'pdf.salesOrders.salesOrderInvoice';
         }
