@@ -15,7 +15,7 @@
         }
 
         .container {
-            margin-top: 130px;
+            margin-top: 145px;
         }
 
         .delivery-info {
@@ -23,9 +23,14 @@
             width: 100%;
         }
 
+        .header-left {
+            width: 47%;
+            vertical-align: top;
+        }
+
         .table-container {
             margin-left: -15px;
-            margin-top: 40px;
+            margin-top: 28px;
             width: 100%;
         }
 
@@ -40,6 +45,10 @@
 
         .page-break {
             page-break-after: always;
+        }
+
+        .pb-3 {
+            padding-bottom: 3px;
         }
     </style>
 </head>
@@ -57,11 +66,11 @@
             <div class="container">
                 <table class="delivery-info">
                     <tr>
-                        <td style="width: 47%; vertical-align: top;">{{ $deliveryOrder->reseller?->name ?? '' }}</td>
+                        <td class="header-left">{{ $deliveryOrder->reseller?->name ?? '' }}</td>
                         <td>
                             <table>
                                 <tr>
-                                    <td style="padding-bottom: 3px">{{ $deliveryOrder->invoice_no }}</td>
+                                    <td class="pb-3">{{ $deliveryOrder->invoice_no }}</td>
                                 </tr>
                                 <tr>
                                     <td>{{ date('d M Y', strtotime($deliveryOrder->transaction_date)) }}</td>
@@ -97,11 +106,11 @@
         <div class="container">
             <table class="delivery-info">
                 <tr>
-                    <td style="width: 47%; vertical-align: top;">{{ $deliveryOrder->reseller?->name ?? '' }}</td>
+                    <td class="header-left">{{ $deliveryOrder->reseller?->name ?? '' }}</td>
                     <td>
                         <table>
                             <tr>
-                                <td style="padding-bottom: 3px">{{ $deliveryOrder->invoice_no }}</td>
+                                <td class="pb-3">{{ $deliveryOrder->invoice_no }}</td>
                             </tr>
                             <tr>
                                 <td>{{ date('d F Y', strtotime($deliveryOrder->transaction_date)) }}</td>
