@@ -216,6 +216,7 @@ class StockController extends Controller
         DB::transaction(function () use ($request, $stockProductUnit, $description) {
             $expiredDate = $request->expired_date ? date('Y-m-d', strtotime($request->expired_date)) : null;
             $groupStock = Stock::create([
+                'batch_number' => $request->batch_number ?? null,
                 'stock_product_unit_id' => $stockProductUnit->id,
                 'description' => $description,
                 'expired_date' => $expiredDate,
@@ -223,6 +224,7 @@ class StockController extends Controller
 
             $data = [
                 'parent_id' => $groupStock->id,
+                'batch_number' => $groupStock->batch_number,
                 'is_stock' => 1
             ];
 
@@ -298,6 +300,7 @@ class StockController extends Controller
             // $totalGroupStock++;
             $lastOrderNumberGroup++;
             $groupStock = Stock::create([
+                'batch_number' => $request->batch_number ?? null,
                 'stock_product_unit_id' => $stockProductUnit->id,
                 // 'product_unit_id' => $productUnit->id,
                 // 'warehouse_id' => $warehouseId,
@@ -334,6 +337,7 @@ class StockController extends Controller
 
             $data = [
                 'parent_id' => $groupStock->id,
+                'batch_number' => $groupStock->batch_number,
                 'is_stock' => 1,
             ];
 

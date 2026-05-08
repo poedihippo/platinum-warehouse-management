@@ -17,6 +17,7 @@ class GroupingByScanRequest extends FormRequest
     {
         return [
             'name' => 'nullable|string|unique:stocks,description',
+            'batch_number' => 'nullable|string',
             'stock_product_unit_id' => 'required|exists:stock_product_units,id',
             'expired_date' => 'nullable|date',
             'ids' => 'required|array',
