@@ -15,7 +15,11 @@
         }
 
         .container {
-            margin-top: 145px;
+            margin-top: 135px;
+        }
+
+        .container-odd {
+            margin-top: 193px;
         }
 
         .delivery-info {
@@ -30,13 +34,13 @@
 
         .table-container {
             margin-left: -15px;
-            margin-top: 28px;
+            margin-top: 30px;
             width: 100%;
         }
 
         .note {
             position: absolute;
-            bottom: -47;
+            bottom: -50;
         }
 
         .text-center {
@@ -60,10 +64,11 @@
             $countLoop = 1;
         @endphp
         @foreach ($deliveryOrderDetailsChunk as $deliveryOrderDetails)
-            @php
-                $countLoop++;
-            @endphp
+            @if ($countLoop == 1)
             <div class="container">
+            @else
+            <div class="container-odd">
+            @endif
                 <table class="delivery-info">
                     <tr>
                         <td class="header-left">{{ $deliveryOrder->reseller?->name ?? '' }}</td>
@@ -98,6 +103,9 @@
                 </table>
                 <p class="note">{{ $deliveryOrder->description }}</p>
             </div>
+            @php
+                $countLoop++;
+            @endphp
             @if ($totalChunk >= $countLoop)
                 <div class="page-break"></div>
             @endif

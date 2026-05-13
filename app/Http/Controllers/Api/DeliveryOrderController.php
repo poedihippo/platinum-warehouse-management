@@ -226,9 +226,8 @@ class DeliveryOrderController extends Controller
             'reseller' => fn($q) => $q->select('id', 'name', 'address'),
             'details' => fn($q) => $q->with('salesOrderDetail.productUnit.uom')
         ])->findTenanted($id);
-        $deliveryOrderDetailsChunk = $deliveryOrder->details?->chunk(23) ?? collect([]);
 
-        $chunkSize = 23;
+        $chunkSize = 22;
         $view = 'pdf.deliveryOrders.deliveryOrder';
         if ($deliveryOrder->company->is(CompanyEnum::PA)) {
             $chunkSize = 10;
