@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php -l routes/web.php)",
+      "Bash(php -l routes/api.php)",
+      "Bash(php -l app/Http/Controllers/Api/TestController.php)",
+      "PowerShell(Get-Command *)",
+      "PowerShell(Test-Path *)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'security: remove /migrate, /migrate-fresh, /clear-config, /api/phpinfo routes *)",
+      "Bash(git push *)"
+    ]
+  }
+}

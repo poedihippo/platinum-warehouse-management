@@ -51,7 +51,6 @@ use App\Http\Controllers\Api\TemporaryStockController;
 |
 */
 
-Route::get('phpinfo', [TestController::class, 'phpinfo']);
 Route::get('test', [TestController::class, 'index']);
 Route::get('stocks/export', [StockController::class, 'export']);
 Route::post('stocks/import', [StockController::class, 'import']);
