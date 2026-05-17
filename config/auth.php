@@ -40,6 +40,14 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        // Loyalty customer guard. Sanctum-driven, backed by a separate
+        // user provider so loyalty tokens never collide with warehouse
+        // admin auth. Gate customer routes with middleware 'auth:loyalty'.
+        'loyalty' => [
+            'driver' => 'sanctum',
+            'provider' => 'loyalty_users',
+        ],
     ],
 
     /*
@@ -63,6 +71,11 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
+        ],
+
+        'loyalty_users' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Loyalty\LoyaltyUser::class,
         ],
 
         // 'users' => [
@@ -89,6 +102,19 @@ return [
     'passwords' => [
         'users' => [
             'provider' => 'users',
+            'table' => 'password_resets',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+
+        // Separate password-reset broker for loyalty customers.
+        // Reuses the existing `password_resets` table (per spec §3 Section
+        // 3). NOTE: the table is keyed by email only, so if the same email
+        // exists in both `users` and `loyalty_users`, a reset request for
+        // one overwrites the other's token row. Acceptable for v1 (audience
+        // overlap is near-zero); flagged in LOYALTY_BACKEND docs.
+        'loyalty_users' => [
+            'provider' => 'loyalty_users',
             'table' => 'password_resets',
             'expire' => 60,
             'throttle' => 60,

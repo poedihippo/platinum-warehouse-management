@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Events\Loyalty\LoyaltyUserRegistered;
+use App\Listeners\Loyalty\SendLoyaltyVerificationEmail;
 use App\Events\ProductUnits\ProductUnitCreated;
 use App\Events\Stocks\StockOpnameCreated;
 use App\Events\Stocks\StockOpnameDetailCreated;
@@ -26,6 +28,10 @@ class EventServiceProvider extends ServiceProvider
     protected $listen = [
         Registered::class => [
             SendEmailVerificationNotification::class,
+        ],
+
+        LoyaltyUserRegistered::class => [
+            SendLoyaltyVerificationEmail::class,
         ],
 
         VerifiedROEvent::class => [

@@ -48,5 +48,14 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(200)->by($request->user()?->id ?: $request->ip());
         });
+
+        // Loyalty claim submissions: 5 per day per authenticated loyalty
+        // user (fraud rule, spec §9.1). Falls back to IP if somehow
+        // unauthenticated (the route is auth:loyalty-gated anyway).
+        RateLimiter::for('loyalty-claims', function (Request $request) {
+            return Limit::perDay(5)->by(
+                'loyalty-claims:' . ($request->user()?->getKey() ?: $request->ip())
+            );
+        });
     }
 }

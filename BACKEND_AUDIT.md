@@ -580,4 +580,203 @@ The test suite uses `RefreshDatabase` and seven minimal new factories (`Product`
 3. Verify with: `curl https://api-host/api/public/stocks/01kq217ybqkyx86092nkyf45p6` (use a known-good production serial).
 4. Point `cek.platinumadisentosa.com` DNS at the scan-page front-end once the endpoint is confirmed reachable.
 
+---
+
+## Loyalty Program (Phase 1) — Backend Foundation
+
+Phase 1 of the loyalty program per `LOYALTY_SPEC.md`. Backend only — no
+UI. Ship criterion: the submit-claim → admin-approve → customer-sees-points
+flow works via curl. Anonymous QR verification is untouched.
+
+### What Phase 1 added
+
+- **8 migrations** (`database/migrations/2026_05_17_0000XX_*`):
+  `loyalty_users`, `product_units.points_per_unit` (guarded with
+  `Schema::hasColumn`), `claims`, `claim_photos`, `claim_line_items`,
+  `points_transactions`, `prizes`, `redemptions`.
+- **7 models** in `App\Models\Loyalty\` (ULID PKs via `HasUlids`).
+- Customer auth (register, email verify, login, logout, password reset,
+  me), claim submission, customer claim/points queries, and the admin
+  claim-review flow (queue, detail, line-items, approve, reject).
+- 5 Mailables in `App\Mail\Loyalty\` with Indonesian blade views under
+  `resources/views/emails/loyalty/`.
+- 5 factories in `Database\Factories\Loyalty\`, 4 feature tests in
+  `tests/Feature/Loyalty/`.
+
+### Auth guard `loyalty` (how it differs from existing auth)
+
+- New guard `loyalty` (driver `sanctum`, provider `loyalty_users`) and
+  provider `loyalty_users` (model `App\Models\Loyalty\LoyaltyUser`) in
+  `config/auth.php`. Existing `web`/`users` config is unchanged.
+- Customer routes are gated with `auth:loyalty`. This is the existing
+  `auth` middleware alias **parameterized** with the new guard — no new
+  Kernel alias was needed (the spec's "create middleware alias
+  `auth:loyalty`" is satisfied by guard parameterization in Laravel).
+- Login issues a Sanctum token scoped to ability `loyalty`. Admin
+  endpoints continue to use the existing `auth:sanctum` (the `users`
+  table). Loyalty and admin tokens live in the same
+  `personal_access_tokens` table but are polymorphically separated by
+  `tokenable_type`; the `loyalty` guard only resolves
+  `LoyaltyUser` tokenables.
+- `loyalty_users` is **not** soft-deleted: account closure is a hard
+  delete (spec §5.1). See Risks below for the FK tension this creates.
+
+### File storage path conventions
+
+Uploads go through the **default** filesystem disk (`Storage` facade),
+so they follow `FILESYSTEM_DISK` (S3 in production per `.env.example`,
+which matches spec §11's S3 recommendation; local in tests):
+
+```
+loyalty/claims/{claimUlid}/invoice.{ext}
+loyalty/claims/{claimUlid}/product_{position}.{ext}
+```
+
+The claim ULID keys the directory, so uniqueness needs no counter. On
+DB failure after upload, the claim directory is deleted (best-effort
+rollback; `Storage` is not transactional).
+
+### Mail driver
+
+Mailables are sent **synchronously** via the `Mail` facade (not queued,
+to keep Phase 1 deterministic and avoid serialization edge cases). With
+`MAIL_MAILER=log` they are written to `storage/logs/laravel.log`.
+
+> **ACTION REQUIRED (Forge env):** set `MAIL_MAILER=log` in the
+> production `.env`. No mail provider signup is needed for Phase 1.
+
+### Endpoint reference (all under `/api`)
+
+Customer (`auth:loyalty`, except the public auth endpoints):
+
+```
+POST   /api/loyalty/auth/register
+GET    /api/loyalty/auth/verify-email/{id}/{hash}   (signed, 24h)
+POST   /api/loyalty/auth/login
+POST   /api/loyalty/auth/logout                     (auth:loyalty)
+POST   /api/loyalty/auth/password-reset/request
+POST   /api/loyalty/auth/password-reset/confirm
+GET    /api/loyalty/me                              (auth:loyalty)
+POST   /api/loyalty/claims                          (auth:loyalty, throttle:loyalty-claims = 5/day/user)
+GET    /api/loyalty/claims                          (auth:loyalty)
+GET    /api/loyalty/claims/{claim}                  (auth:loyalty)
+GET    /api/loyalty/points/balance                  (auth:loyalty)
+GET    /api/loyalty/points/transactions             (auth:loyalty)
+```
+
+Admin (`auth:sanctum` — existing bejo admin auth):
+
+```
+GET    /api/admin/loyalty/claims?status=pending
+GET    /api/admin/loyalty/claims/{claim}
+POST   /api/admin/loyalty/claims/{claim}/line-items          {product_unit_id, quantity}
+DELETE /api/admin/loyalty/claims/{claim}/line-items/{lineItem}
+POST   /api/admin/loyalty/claims/{claim}/approve
+POST   /api/admin/loyalty/claims/{claim}/reject              {reason}
+```
+
+### Smoke test (curl) — run after Forge deploy
+
+```bash
+BASE=https://api-host
+
+# 1. Register (then read the verification URL from storage/logs/laravel.log)
+curl -s -X POST $BASE/api/loyalty/auth/register \
+  -H 'Accept: application/json' \
+  -d 'name=Budi&email=budi@example.com&password=secret123&password_confirmation=secret123'
+
+# 2. Open the signed verify URL from the log, then login
+curl -s -X POST $BASE/api/loyalty/auth/login \
+  -H 'Accept: application/json' \
+  -d 'email=budi@example.com&password=secret123'
+# -> copy "token"
+
+TOKEN=...   # from step 2
+
+# 3. Submit a claim (multipart)
+curl -s -X POST $BASE/api/loyalty/claims \
+  -H "Authorization: Bearer $TOKEN" -H 'Accept: application/json' \
+  -F 'invoice_number=INV-2026-04-1234' \
+  -F 'invoice_photo=@/path/invoice.jpg' \
+  -F 'product_photos[]=@/path/p1.jpg'
+
+# 4. As admin (existing bejo admin token), add a line item + approve
+ADMIN=...   # existing admin Sanctum token
+CLAIM=...   # claim id from step 3
+curl -s -X POST $BASE/api/admin/loyalty/claims/$CLAIM/line-items \
+  -H "Authorization: Bearer $ADMIN" -H 'Accept: application/json' \
+  -d 'product_unit_id=359&quantity=1'
+curl -s -X POST $BASE/api/admin/loyalty/claims/$CLAIM/approve \
+  -H "Authorization: Bearer $ADMIN" -H 'Accept: application/json'
+
+# 5. Verify ledger row + balance
+curl -s $BASE/api/loyalty/points/balance -H "Authorization: Bearer $TOKEN"
+# Check storage/logs/laravel.log for the approval email.
+```
+
+(`product_unit_id=359` is a real Mizuho Wheatgerm unit per the Step-0
+audit sample; first set its `points_per_unit > 0` in bejo, otherwise
+the add-line-item call returns 422 by design.)
+
+### Deviations from spec (intentional)
+
+1. **Email-verify route shape.** Spec §7.1 shows
+   `/api/loyalty/auth/verify-email/{token}`. Implemented as
+   `/verify-email/{id}/{hash}` protected by Laravel's `signed`
+   middleware (24h temporary signed URL) — the standard, tamper-proof
+   Laravel pattern. The full signed URL is what the email contains, so
+   the path shape is invisible to users.
+2. **`image` validation rule not used** for uploads. The spec requires
+   HEIC, but the `image` rule uses `getimagesize()` which rejects HEIC.
+   Validation is `file` + `mimes:jpg,jpeg,png,heic` + `max:5120`
+   instead.
+3. **Mailables not queued.** Spec §10 suggests Mailable + Redis queue.
+   Sent synchronously in Phase 1 for determinism; queueing is a
+   one-line `ShouldQueue` change later.
+4. **`points_transactions` / `claim_photos` have `created_at` only.**
+   Models set `const UPDATED_AT = null` so Eloquent manages the single
+   timestamp (per spec §5.6 / §5.4).
+5. **Redemption endpoints not built** (explicitly out of Phase 1 scope).
+   The `redemptions`/`prizes` tables and models exist so the schema is
+   complete and the points-balance spend math is testable.
+
+### Risks / open issues
+
+- **Hard-delete vs. audit trail FK tension.** `loyalty_users` is
+  hard-deleted on account closure (spec §5.1), but `claims`,
+  `points_transactions`, and `redemptions` FK to it with
+  `restrictOnDelete` (spec: never cascade-wipe the audit trail).
+  Consequence: deleting a `loyalty_user` who has any claim/transaction
+  will be **blocked by the DB**. This is the spec's two requirements in
+  direct conflict; flagged for a product decision (e.g. anonymize
+  instead of delete, or soft-archive). Not resolved in Phase 1.
+- **Shared `password_resets` table.** The `loyalty_users` password
+  broker reuses the existing `password_resets` table (per the task
+  instruction). The table is keyed by email only, so if the same email
+  exists in both `users` and `loyalty_users`, a reset request for one
+  overwrites the other's token row. Audience overlap is near-zero
+  (warehouse staff vs. consumers); acceptable for v1, noted here.
+- **`php -l` / test suite not run locally.** PHP is not installed on
+  the dev machine that produced this change, and local DB credentials
+  are not configured. Migrations, controllers, and the 4 feature tests
+  were written and reviewed by inspection but **not executed**. Run
+  `php artisan test --filter=Loyalty` on staging/prod before relying on
+  them.
+- **Storage is not transactional.** A crash between file upload and the
+  DB transaction can leave orphan files under `loyalty/claims/{ulid}/`.
+  Best-effort cleanup is in place; a periodic orphan sweep is a Phase-2
+  nicety.
+- **Signed-URL host.** The verification link is built from the app URL
+  generator. Ensure `APP_URL` in the Forge `.env` is the public API
+  host, or the emailed verification links will point at the wrong host.
+
+### Forge deploy notes
+
+- Set `MAIL_MAILER=log` and confirm `APP_URL` is the public API host.
+- Migrations are additive and safe; the `points_per_unit` migration is
+  a guarded no-op if the column ever pre-exists. Run
+  `php artisan migrate --force` (do NOT rely on any HTTP migrate route —
+  those were removed).
+- After deploy, run the curl smoke test above.
+
 

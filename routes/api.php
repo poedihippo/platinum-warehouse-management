@@ -39,6 +39,15 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\OrderDetailController;
 use App\Http\Controllers\Api\Public\StockVerificationController;
 use App\Http\Controllers\Api\TemporaryStockController;
+use App\Http\Controllers\Api\Loyalty\Auth\RegisterController as LoyaltyRegisterController;
+use App\Http\Controllers\Api\Loyalty\Auth\VerifyEmailController as LoyaltyVerifyEmailController;
+use App\Http\Controllers\Api\Loyalty\Auth\LoginController as LoyaltyLoginController;
+use App\Http\Controllers\Api\Loyalty\Auth\LogoutController as LoyaltyLogoutController;
+use App\Http\Controllers\Api\Loyalty\Auth\PasswordResetController as LoyaltyPasswordResetController;
+use App\Http\Controllers\Api\Loyalty\Auth\MeController as LoyaltyMeController;
+use App\Http\Controllers\Api\Loyalty\ClaimController as LoyaltyClaimController;
+use App\Http\Controllers\Api\Loyalty\PointsController as LoyaltyPointsController;
+use App\Http\Controllers\Api\Admin\Loyalty\ClaimReviewController as AdminClaimReviewController;
 
 /*
 |--------------------------------------------------------------------------
@@ -65,6 +74,54 @@ Route::get('public/stocks/{ulid}', [StockVerificationController::class, 'show'])
 /* Media Social Login */
 Route::get('/auth/{provider}', [SocialiteController::class, 'redirectToProvider']);
 Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProvideCallback']);
+
+/*
+|--------------------------------------------------------------------------
+| Loyalty program — customer-facing
+|--------------------------------------------------------------------------
+| Separate Sanctum guard ('loyalty'). See LOYALTY_SPEC.md and the
+| "Loyalty Program (Phase 1)" section of BACKEND_AUDIT.md.
+*/
+Route::prefix('loyalty')->group(function () {
+    Route::prefix('auth')->group(function () {
+        Route::post('register', LoyaltyRegisterController::class);
+        // {id}/{hash} + 'signed' middleware (24h temporary signed URL).
+        Route::get('verify-email/{id}/{hash}', LoyaltyVerifyEmailController::class)
+            ->middleware('signed')
+            ->name('loyalty.verification.verify');
+        Route::post('login', LoyaltyLoginController::class);
+        Route::post('password-reset/request', [LoyaltyPasswordResetController::class, 'request']);
+        Route::post('password-reset/confirm', [LoyaltyPasswordResetController::class, 'confirm']);
+        Route::post('logout', LoyaltyLogoutController::class)->middleware('auth:loyalty');
+    });
+
+    Route::middleware('auth:loyalty')->group(function () {
+        Route::get('me', LoyaltyMeController::class);
+
+        // Claim submission is additionally rate-limited to 5/day/user.
+        Route::post('claims', [LoyaltyClaimController::class, 'store'])
+            ->middleware('throttle:loyalty-claims');
+        Route::get('claims', [LoyaltyClaimController::class, 'index']);
+        Route::get('claims/{claim}', [LoyaltyClaimController::class, 'show']);
+
+        Route::get('points/balance', [LoyaltyPointsController::class, 'balance']);
+        Route::get('points/transactions', [LoyaltyPointsController::class, 'transactions']);
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| Loyalty program — admin (bejo CMS), existing auth:sanctum guard
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth:sanctum')->prefix('admin/loyalty')->group(function () {
+    Route::get('claims', [AdminClaimReviewController::class, 'index']);
+    Route::get('claims/{claim}', [AdminClaimReviewController::class, 'show']);
+    Route::post('claims/{claim}/line-items', [AdminClaimReviewController::class, 'addLineItem']);
+    Route::delete('claims/{claim}/line-items/{lineItem}', [AdminClaimReviewController::class, 'removeLineItem']);
+    Route::post('claims/{claim}/approve', [AdminClaimReviewController::class, 'approve']);
+    Route::post('claims/{claim}/reject', [AdminClaimReviewController::class, 'reject']);
+});
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('roles', RoleController::class);
