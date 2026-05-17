@@ -14,7 +14,7 @@ class PasswordResetMail extends Mailable
 
     public function __construct(
         public string $email,
-        public string $token,
+        public string $resetUrl,
     ) {
     }
 

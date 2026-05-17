@@ -7,6 +7,7 @@ use App\Http\Requests\Api\Loyalty\LoyaltyPasswordResetConfirmRequest;
 use App\Http\Requests\Api\Loyalty\LoyaltyPasswordResetRequest;
 use App\Mail\Loyalty\PasswordResetMail;
 use App\Models\Loyalty\LoyaltyUser;
+use App\Support\Loyalty\LoyaltySignedUrl;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
@@ -26,7 +27,8 @@ class PasswordResetController extends Controller
 
         if ($user) {
             $token = Password::broker(self::BROKER)->createToken($user);
-            Mail::to($user->email)->send(new PasswordResetMail($user->email, $token));
+            $resetUrl = LoyaltySignedUrl::passwordReset($token, $user->email);
+            Mail::to($user->email)->send(new PasswordResetMail($user->email, $resetUrl));
         }
 
         return response()->json([

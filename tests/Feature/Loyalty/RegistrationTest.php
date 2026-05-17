@@ -4,9 +4,9 @@ namespace Tests\Feature\Loyalty;
 
 use App\Mail\Loyalty\VerifyEmailMail;
 use App\Models\Loyalty\LoyaltyUser;
+use App\Support\Loyalty\LoyaltySignedUrl;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
 class RegistrationTest extends TestCase
@@ -32,14 +32,18 @@ class RegistrationTest extends TestCase
         $this->assertNull($user->email_verified_at);
         Mail::assertSent(VerifyEmailMail::class);
 
-        // 2. Verify email via the signed URL the listener would build
-        $verifyUrl = URL::temporarySignedRoute(
-            'loyalty.verification.verify',
+        // 2. Verify email. The listener mints a FRONTEND-host signed URL;
+        // the frontend forwards id/hash/expires/signature to the API
+        // route. Replay that by reusing the query the helper produces.
+        $frontendUrl = LoyaltySignedUrl::verifyEmail(
+            (string) $user->getKey(),
+            sha1($user->email),
             now()->addHours(24),
-            ['id' => $user->getKey(), 'hash' => sha1($user->email)]
         );
+        $query = parse_url($frontendUrl, PHP_URL_QUERY);
+        $apiUrl = "/api/loyalty/auth/verify-email/{$user->getKey()}/" . sha1($user->email) . "?{$query}";
 
-        $this->getJson($verifyUrl)->assertOk();
+        $this->getJson($apiUrl)->assertOk();
         $this->assertNotNull($user->fresh()->email_verified_at);
 
         // 3. Login

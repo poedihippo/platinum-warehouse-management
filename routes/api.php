@@ -85,9 +85,13 @@ Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProv
 Route::prefix('loyalty')->group(function () {
     Route::prefix('auth')->group(function () {
         Route::post('register', LoyaltyRegisterController::class);
-        // {id}/{hash} + 'signed' middleware (24h temporary signed URL).
+        // {id}/{hash} + 'loyalty.signed' middleware. The 24h signed link
+        // is minted against the FRONTEND host (verify.platinumadisentosa.com)
+        // and the frontend calls back here, so the built-in 'signed'
+        // middleware (which signs against the API host) can't be used.
+        // See App\Http\Middleware\ValidateLoyaltySignature.
         Route::get('verify-email/{id}/{hash}', LoyaltyVerifyEmailController::class)
-            ->middleware('signed')
+            ->middleware('loyalty.signed')
             ->name('loyalty.verification.verify');
         Route::post('login', LoyaltyLoginController::class);
         Route::post('password-reset/request', [LoyaltyPasswordResetController::class, 'request']);
