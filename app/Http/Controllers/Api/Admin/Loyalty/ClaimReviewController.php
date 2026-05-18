@@ -25,7 +25,6 @@ class ClaimReviewController extends Controller
     public function index(Request $request)
     {
         $query = Claim::with($this->customerEagerLoad())
-            ->with(['photos', 'lineItems'])
             ->withCount(['photos', 'lineItems']);
 
         if ($request->filled('status') && $request->input('status') !== 'all') {
