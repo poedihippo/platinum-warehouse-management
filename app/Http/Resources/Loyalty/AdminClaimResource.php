@@ -35,8 +35,18 @@ class AdminClaimResource extends JsonResource
                     'name' => $customer->name,
                     'email' => $customer->email,
                     'phone' => $customer->phone,
+                    'member_since' => $customer->created_at?->toIso8601String(),
+                    'total_points_earned' => (int) ($customer->total_points_earned ?? 0),
+                    // The current claim always belongs to this customer, so
+                    // (their total claims - 1) == claims excluding this one.
+                    'previous_claims_count' => max(0, (int) ($customer->claims_count ?? 0) - 1),
                 ]
             ),
+
+            // Present on the queue (list) where relations are counted,
+            // omitted on detail where the full arrays are returned instead.
+            'photos_count' => $this->whenCounted('photos'),
+            'line_items_count' => $this->whenCounted('lineItems'),
 
             'invoice_photo_url' => $this->invoice_photo_path
                 ? self::signedUrl($this->invoice_photo_path)

@@ -19,19 +19,48 @@ use Illuminate\Support\Facades\Mail;
 class ClaimReviewController extends Controller
 {
     /**
-     * GET /api/admin/loyalty/claims?status=pending
-     * Queue ordered oldest-first, 20/page.
+     * GET /api/admin/loyalty/claims?status=pending&sort=submitted_at_desc
+     * Queue 15/page. status omitted or 'all' = no status filter.
      */
     public function index(Request $request)
     {
-        $query = Claim::with('loyaltyUser')
-            ->orderBy('submitted_at');
+        $query = Claim::with($this->customerEagerLoad())
+            ->with(['photos', 'lineItems'])
+            ->withCount(['photos', 'lineItems']);
 
-        if ($request->filled('status')) {
+        if ($request->filled('status') && $request->input('status') !== 'all') {
             $query->where('status', $request->input('status'));
         }
 
-        return AdminClaimResource::collection($query->paginate(20));
+        match ($request->input('sort')) {
+            'submitted_at_asc' => $query->orderBy('submitted_at', 'asc'),
+            'invoice_number_asc' => $query->orderBy('invoice_number', 'asc'),
+            'invoice_number_desc' => $query->orderBy('invoice_number', 'desc'),
+            default => $query->orderBy('submitted_at', 'desc'),
+        };
+
+        $perPage = (int) $request->input('per_page', 15);
+        $perPage = $perPage > 0 && $perPage <= 100 ? $perPage : 15;
+
+        return AdminClaimResource::collection($query->paginate($perPage));
+    }
+
+    /**
+     * Eager-load the customer with the aggregates the bejo CustomerCard
+     * needs, computed in-query to avoid N+1 across the paginated queue:
+     *   - claims_count          -> previous_claims_count (count - 1)
+     *   - total_points_earned   -> sum of 'earn' ledger rows
+     */
+    private function customerEagerLoad(): array
+    {
+        return [
+            'loyaltyUser' => fn ($q) => $q
+                ->withCount('claims')
+                ->withSum([
+                    'pointsTransactions as total_points_earned' => fn ($t) => $t
+                        ->where('direction', PointsTransaction::DIRECTION_EARN),
+                ], 'amount'),
+        ];
     }
 
     /**
@@ -40,11 +69,10 @@ class ClaimReviewController extends Controller
      */
     public function show(string $claim)
     {
-        $model = Claim::with([
-            'loyaltyUser',
+        $model = Claim::with(array_merge($this->customerEagerLoad(), [
             'photos',
             'lineItems.productUnit',
-        ])->find($claim);
+        ]))->find($claim);
 
         if (!$model) {
             return response()->json(['message' => 'Klaim tidak ditemukan.'], 404);
@@ -200,7 +228,7 @@ class ClaimReviewController extends Controller
         ));
 
         return new AdminClaimResource(
-            $claimModel->load(['loyaltyUser', 'photos', 'lineItems.productUnit'])
+            $claimModel->load(array_merge($this->customerEagerLoad(), ['photos', 'lineItems.productUnit']))
         );
     }
 
@@ -237,7 +265,7 @@ class ClaimReviewController extends Controller
         ));
 
         return new AdminClaimResource(
-            $model->load(['loyaltyUser', 'photos', 'lineItems.productUnit'])
+            $model->load(array_merge($this->customerEagerLoad(), ['photos', 'lineItems.productUnit']))
         );
     }
 
