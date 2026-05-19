@@ -14,6 +14,8 @@ class GroupingRequest extends FormRequest
     public function rules()
     {
         return [
+            'batch_number' => 'nullable|string',
+            'batch_number_jp' => 'nullable|string',
             'expired_date' => 'nullable|date',
             'total_group' => 'required|integer|gt:0',
             'qty' => 'required|integer|gt:0',
