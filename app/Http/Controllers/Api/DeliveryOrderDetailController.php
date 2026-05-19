@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\DeliveryOrderDetailResource;
 use App\Models\DeliveryOrder;
 use App\Models\DeliveryOrderDetail;
+use App\Models\SalesOrderItem;
 use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -25,13 +26,20 @@ class DeliveryOrderDetailController extends Controller
         // abort_if(!auth('sanctum')->user()->tokenCan('delivery_order_access'), 403);
         $deliveryOrder = DeliveryOrder::findTenanted($deliveryOrderId, ['id']);
         // $deliveryOrderDetails = QueryBuilder::for(DeliveryOrderDetail::with(['salesOrderDetail' => fn($q) => $q->with('warehouse', 'salesOrder', 'packaging')])->where('delivery_order_id', $deliveryOrder->id))
-        $deliveryOrderDetails = QueryBuilder::for(DeliveryOrderDetail::with(['salesOrderDetail' => fn($q) => $q->with(['warehouse', 'salesOrder', 'productUnit' => fn($q) => $q->withTrashed()])])->where('delivery_order_id', $deliveryOrder->id))
-            ->allowedFilters([
-                AllowedFilter::exact('delivery_order_id'),
-                AllowedFilter::exact('sales_order_detail_id'),
+        $deliveryOrderDetails = QueryBuilder::for(DeliveryOrderDetail::with([
+            'salesOrderDetail' => fn($q) => $q->with([
+                // 'warehouse',
+                'salesOrder',
+                'productUnit' => fn($q) => $q->withTrashed()->select('id', 'name'),
+                'salesOrderItems' => fn($q) => $q->select(SalesOrderItem::SELECT_COLUMNS),
             ])
-            ->allowedSorts(['id', 'delivery_order_id', 'sales_order_detail_id', 'created_at'])
-            ->paginate($this->per_page);
+        ])->where('delivery_order_id', $deliveryOrder->id))
+        ->allowedFilters([
+            AllowedFilter::exact('delivery_order_id'),
+            AllowedFilter::exact('sales_order_detail_id'),
+        ])
+        ->allowedSorts(['id', 'delivery_order_id', 'sales_order_detail_id', 'created_at'])
+        ->paginate($this->per_page);
 
         return DeliveryOrderDetailResource::collection($deliveryOrderDetails);
     }
