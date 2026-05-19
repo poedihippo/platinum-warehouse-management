@@ -30,7 +30,13 @@ class DeliveryOrderDetailController extends Controller
             'salesOrderDetail' => fn($q) => $q->with([
                 // 'warehouse',
                 'salesOrder',
-                'productUnit' => fn($q) => $q->withTrashed()->select('id', 'name'),
+                'productUnit' => fn($q) => $q->withTrashed()->select('id', 'name')->with([
+                    'uom' => fn($q) => $q->select('id', 'name'),
+                    'product' => fn($q) => $q->select('id')->with([
+                        'productCategory' => fn($q) => $q->select('id', 'name'),
+                        'productBrand' => fn($q) => $q->select('id', 'name')
+                    ])
+                ]),
                 'salesOrderItems' => fn($q) => $q->select(SalesOrderItem::SELECT_COLUMNS),
             ])
         ])->where('delivery_order_id', $deliveryOrder->id))
