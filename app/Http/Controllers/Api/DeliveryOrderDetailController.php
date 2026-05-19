@@ -32,7 +32,7 @@ class DeliveryOrderDetailController extends Controller
                 'salesOrder',
                 'productUnit' => fn($q) => $q->withTrashed()->select('id', 'name', 'product_id', 'uom_id')->with([
                     'uom' => fn($q) => $q->select('id', 'name'),
-                    'product' => fn($q) => $q->select('id')->with([
+                    'product' => fn($q) => $q->select('id', 'product_category_id', 'product_brand_id')->with([
                         'productCategory' => fn($q) => $q->select('id', 'name'),
                         'productBrand' => fn($q) => $q->select('id', 'name')
                     ])
