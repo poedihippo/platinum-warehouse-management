@@ -48,6 +48,7 @@ use App\Http\Controllers\Api\Loyalty\Auth\MeController as LoyaltyMeController;
 use App\Http\Controllers\Api\Loyalty\ClaimController as LoyaltyClaimController;
 use App\Http\Controllers\Api\Loyalty\PointsController as LoyaltyPointsController;
 use App\Http\Controllers\Api\Admin\Loyalty\ClaimReviewController as AdminClaimReviewController;
+use App\Http\Controllers\Api\Admin\ProductUnitPointsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -160,6 +161,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('product-units/sample-import', [ProductUnitController::class, 'sampleImport']);
     Route::post('product-units/import', [ProductUnitController::class, 'import']);
     Route::apiResource('product-units', ProductUnitController::class);
+    Route::patch('admin/product-units/{productUnit}/points', [ProductUnitPointsController::class, 'update']);
     Route::apiResource('product-unit-blacklists', ProductUnitBlacklistController::class)->only(['index', 'store', 'destroy']);
 
     Route::apiResource('uoms', UomController::class);
