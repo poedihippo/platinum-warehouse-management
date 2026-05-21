@@ -63,7 +63,7 @@ return [
         ],
 
         'brevo' => [
-            'transport' => 'brevo+api',
+            'transport' => 'brevo',
         ],
 
         'log' => [
