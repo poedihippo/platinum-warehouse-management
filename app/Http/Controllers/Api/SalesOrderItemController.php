@@ -46,7 +46,12 @@ class SalesOrderItemController extends Controller
 
         DB::beginTransaction();
         try {
-            $salesOrderDetail->salesOrderItems()->where('stock_id', $request->stock_id)->delete();
+            $salesOrderItem = $salesOrderDetail->salesOrderItems()->where('stock_id', $request->stock_id)->first(['id']);
+
+            $salesOrderDetail->salesOrderItems()
+                ->where(fn($q) => $q->where('id', $salesOrderItem->id)->orWhere('parent_id', $salesOrderItem->id))
+                ->delete();
+                
             SalesOrderService::countFulfilledQty($salesOrderDetail);
             DB::commit();
         } catch (\Throwable $th) {
