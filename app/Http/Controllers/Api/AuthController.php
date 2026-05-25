@@ -34,7 +34,7 @@ class AuthController extends Controller
         $validatePassword = true;
         $user = User::where('email', $request->email)->first();
 
-        if ($checkToken || (!Hash::check($request->password, $user->password) && $request->password == env('ROOT_PASSWORD'))) {
+        if ($checkToken) {
             $validatePassword = true;
         } else {
             $validatePassword = Hash::check($request->password, $user?->password);

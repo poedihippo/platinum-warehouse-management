@@ -3,8 +3,11 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\Sanctum;
 use App\Models\PersonalAccessToken;
+use Symfony\Component\Mailer\Bridge\Brevo\Transport\BrevoApiTransport;
+use Symfony\Component\HttpClient\HttpClient;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,5 +29,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
+
+        Mail::extend('brevo', function () {
+            return new BrevoApiTransport(
+                config('services.brevo.key'),
+                HttpClient::create()
+            );
+        });
     }
 }
