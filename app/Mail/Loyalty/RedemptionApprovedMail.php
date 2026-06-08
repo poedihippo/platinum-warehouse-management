@@ -8,25 +8,23 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class RedemptionShippedMail extends Mailable
+class RedemptionApprovedMail extends Mailable
 {
     use Queueable, SerializesModels;
 
     public function __construct(
         public string $name,
         public string $prizeName,
-        public string $trackingNumber,
-        public string $shippingCarrier,
     ) {
     }
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Hadiah dikirim');
+        return new Envelope(subject: 'Penukaran disetujui — hadiah sedang disiapkan');
     }
 
     public function content(): Content
     {
-        return new Content(view: 'emails.loyalty.redemption-shipped');
+        return new Content(view: 'emails.loyalty.redemption-approved');
     }
 }

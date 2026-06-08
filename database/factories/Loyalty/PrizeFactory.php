@@ -17,10 +17,20 @@ class PrizeFactory extends Factory
         return [
             'name' => fake()->words(3, true),
             'description' => fake()->sentence(),
-            'photo_path' => 'loyalty/prizes/test.jpg',
-            'point_cost' => fake()->numberBetween(100, 2000),
+            'photo_path' => 'loyalty/prizes/test/main.jpg',
+            'points_cost' => fake()->numberBetween(100, 2000),
             'stock' => fake()->numberBetween(1, 50),
             'is_active' => true,
         ];
+    }
+
+    public function inactive(): static
+    {
+        return $this->state(fn () => ['is_active' => false]);
+    }
+
+    public function outOfStock(): static
+    {
+        return $this->state(fn () => ['stock' => 0]);
     }
 }
