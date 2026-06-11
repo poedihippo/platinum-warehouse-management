@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Delivery Order {{ $deliveryOrder->invoice_no }}</title>
     <style>
+        @page {
+            margin-top: 180px;
+        }
+
         body {
             font-family: Arial, sans-serif;
             font-weight: bold;
@@ -15,7 +19,6 @@
 
         .container,
         .container-odd {
-            padding-top: 135px;
             page-break-inside: avoid;
         }
 
