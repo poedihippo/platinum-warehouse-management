@@ -69,8 +69,8 @@
             @endif
                 <table class="delivery-info">
                     <tr>
-                        <td class="header-left">{{ $deliveryOrder->reseller?->name ?? '' }}</td>
-                        <td>
+                        <td class="header-left" style="padding-left: 11px;">{{ $deliveryOrder->reseller?->name ?? '' }}</td>
+                        <td style="padding-left: 11px;">
                             <table>
                                 <tr>
                                     <td class="pb-3">{{ $deliveryOrder->invoice_no }}</td>
