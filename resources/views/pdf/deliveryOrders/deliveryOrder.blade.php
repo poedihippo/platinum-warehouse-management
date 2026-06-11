@@ -90,8 +90,7 @@
                 <table class="table-container">
                     @forelse ($deliveryOrderDetails as $detail)
                         <tr>
-                            <td style="width: 60.7px; padding-left: 38px;">{{ $detail->salesOrderDetail?->productUnit?->code ?? '-' }}
-                            </td>
+                            <td style="width: 60.7px; padding-left: 38px;"></td>
                             <td style="width: 377.5px; padding-left: 10px;">
                                 {{ $detail->salesOrderDetail?->productUnit?->name ?? '-' }}
                             </td>
@@ -129,7 +128,7 @@
             <table class="table-container">
                 @forelse ($deliveryOrder->details as $detail)
                     <tr>
-                        <td style="width: 90.7px">{{ $detail->salesOrderDetail?->productUnit?->code ?? '-' }}</td>
+                        <td style="width: 90.7px"></td>
                         <td style="width: 385.5px; padding-left: 10px;">
                             {{ $detail->salesOrderDetail?->productUnit?->name ?? '-' }}
                         </td>
