@@ -171,6 +171,7 @@ class SalesOrderService
                 AllowedFilter::exact('company'),
                 AllowedFilter::scope('has_sales_order', 'hasSalesOrder'),
                 AllowedFilter::scope('has_delivery_order', 'detailsHasDO'),
+                AllowedFilter::scope('has_related_so', 'hasSalesOrderItem'),
                 AllowedFilter::scope('start_date'),
                 AllowedFilter::scope('end_date'),
                 AllowedFilter::callback('search', function ($q, $value) {

@@ -37,11 +37,6 @@ class SalesOrderItem extends Model
         return $this->belongsTo(Stock::class);
     }
 
-    public function salesOrder(): BelongsTo
-    {
-        return $this->belongsTo(SalesOrder::class);
-    }
-
     public function salesOrderDetail(): BelongsTo
     {
         return $this->belongsTo(SalesOrderDetail::class);

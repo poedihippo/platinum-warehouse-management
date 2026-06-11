@@ -250,4 +250,17 @@ class SalesOrder extends Model
         $query->when($value === true, fn($q) => $q->whereNotNull('warehouse_id')->whereNotNull('invoice_no')->where('invoice_no', '!=', ''));
         // $query->when($value === true, fn ($q) => $q->whereNotNull('warehouse_id')->where(fn ($q) => $q->whereNotNull('invoice_no')->orWhere('invoice_no', '')));
     }
+
+    public function scopeHasSalesOrderItem(Builder $query, ?bool $value = null): void
+    {
+        $query
+            ->when(
+                $value === true,
+                fn($q) => $q->whereHas('details.salesOrderItems')
+            )
+            ->when(
+                $value === false,
+                fn($q) => $q->whereDoesntHave('details.salesOrderItems')
+            );
+    }
 }
