@@ -3,10 +3,11 @@
 <body style="font-family: Arial, sans-serif; color: #222;">
     <p>Halo {{ $name }},</p>
 
-    <p>Hadiah Anda <strong>{{ $prizeName }}</strong> telah dikirim.</p>
+    <p>Penukaran Anda untuk hadiah <strong>{{ $prizeName }}</strong> telah
+       <strong>disetujui</strong>.</p>
 
-    <p>Kurir: <strong>{{ $shippingCarrier }}</strong><br>
-       Nomor resi: <strong>{{ $trackingNumber }}</strong></p>
+    <p>Hadiah Anda sedang disiapkan untuk pengiriman. Kami akan mengirimkan
+       informasi resi setelah hadiah dikirim.</p>
 
     <p>Terima kasih telah berpartisipasi dalam program loyalitas
        Platinum Adi Sentosa.</p>

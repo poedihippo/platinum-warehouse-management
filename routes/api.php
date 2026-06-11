@@ -47,7 +47,11 @@ use App\Http\Controllers\Api\Loyalty\Auth\PasswordResetController as LoyaltyPass
 use App\Http\Controllers\Api\Loyalty\Auth\MeController as LoyaltyMeController;
 use App\Http\Controllers\Api\Loyalty\ClaimController as LoyaltyClaimController;
 use App\Http\Controllers\Api\Loyalty\PointsController as LoyaltyPointsController;
+use App\Http\Controllers\Api\Loyalty\PrizeController as LoyaltyPrizeController;
+use App\Http\Controllers\Api\Loyalty\RedemptionController as LoyaltyRedemptionController;
 use App\Http\Controllers\Api\Admin\Loyalty\ClaimReviewController as AdminClaimReviewController;
+use App\Http\Controllers\Api\Admin\Loyalty\PrizeManagementController as AdminPrizeManagementController;
+use App\Http\Controllers\Api\Admin\Loyalty\RedemptionReviewController as AdminRedemptionReviewController;
 use App\Http\Controllers\Api\Admin\ProductUnitPointsController;
 
 /*
@@ -111,6 +115,14 @@ Route::prefix('loyalty')->group(function () {
 
         Route::get('points/balance', [LoyaltyPointsController::class, 'balance']);
         Route::get('points/transactions', [LoyaltyPointsController::class, 'transactions']);
+
+        // Prizes (catalog browse) + redemptions (Phase 4).
+        Route::get('prizes', [LoyaltyPrizeController::class, 'index']);
+        Route::get('prizes/{prize}', [LoyaltyPrizeController::class, 'show']);
+
+        Route::post('redemptions', [LoyaltyRedemptionController::class, 'store']);
+        Route::get('redemptions', [LoyaltyRedemptionController::class, 'index']);
+        Route::get('redemptions/{redemption}', [LoyaltyRedemptionController::class, 'show']);
     });
 });
 
@@ -126,6 +138,20 @@ Route::middleware('auth:sanctum')->prefix('admin/loyalty')->group(function () {
     Route::delete('claims/{claim}/line-items/{lineItem}', [AdminClaimReviewController::class, 'removeLineItem']);
     Route::post('claims/{claim}/approve', [AdminClaimReviewController::class, 'approve']);
     Route::post('claims/{claim}/reject', [AdminClaimReviewController::class, 'reject']);
+
+    // Prize catalog management (permission: 'manage prizes', checked in-controller).
+    Route::get('prizes', [AdminPrizeManagementController::class, 'index']);
+    Route::post('prizes', [AdminPrizeManagementController::class, 'store']);
+    Route::patch('prizes/{prize}', [AdminPrizeManagementController::class, 'update']);
+    Route::patch('prizes/{prize}/toggle-active', [AdminPrizeManagementController::class, 'toggleActive']);
+
+    // Redemption queue + fulfilment (permission: 'review redemptions', checked in-controller).
+    Route::get('redemptions', [AdminRedemptionReviewController::class, 'index']);
+    Route::get('redemptions/{redemption}', [AdminRedemptionReviewController::class, 'show']);
+    Route::post('redemptions/{redemption}/approve', [AdminRedemptionReviewController::class, 'approve']);
+    Route::post('redemptions/{redemption}/reject', [AdminRedemptionReviewController::class, 'reject']);
+    Route::post('redemptions/{redemption}/ship', [AdminRedemptionReviewController::class, 'ship']);
+    Route::post('redemptions/{redemption}/deliver', [AdminRedemptionReviewController::class, 'deliver']);
 });
 
 Route::middleware('auth:sanctum')->group(function () {

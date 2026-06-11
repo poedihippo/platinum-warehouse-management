@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Delivery Order {{ $deliveryOrder->invoice_no }}</title>
     <style>
+        @page {
+            margin-top: 85px;
+        }
+
         body {
             font-family: Arial, sans-serif;
             position: relative;
@@ -15,7 +19,7 @@
         }
 
         .container {
-            margin-top: 85px;
+            page-break-inside: avoid;
         }
 
         .header {
@@ -74,15 +78,8 @@
         $totalQty = 0;
     @endphp
     @if ($deliveryOrderDetailsChunk->count() > 0)
-        @php
-            $totalChunk = $deliveryOrderDetailsChunk->count();
-            $countLoop = 1;
-        @endphp
         @foreach ($deliveryOrderDetailsChunk as $deliveryOrderDetails)
-            @php
-                $countLoop++;
-            @endphp
-            <div class="container">
+            <div class="container @unless ($loop->last) page-break @endunless">
                 <table class="header">
                     <tr>
                         <td class="delivery-info-left">
@@ -132,9 +129,6 @@
                     </tr>
                 </table>
             </div>
-            @if ($totalChunk >= $countLoop)
-                <div class="page-break"></div>
-            @endif
         @endforeach
     @else
         <div class="container">

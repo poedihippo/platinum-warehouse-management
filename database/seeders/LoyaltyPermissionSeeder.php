@@ -18,5 +18,17 @@ class LoyaltyPermissionSeeder extends Seeder
             'name' => 'manage loyalty points',
             'guard_name' => 'web',
         ]);
+
+        // Phase 4 — prize catalog CRUD and redemption queue access.
+        // Not assigned to any role here; granted manually after deploy.
+        Permission::firstOrCreate([
+            'name' => 'manage prizes',
+            'guard_name' => 'web',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'review redemptions',
+            'guard_name' => 'web',
+        ]);
     }
 }
