@@ -7,7 +7,7 @@
     <style>
         @page {
             margin-top: 182px;
-            margin-bottom: 80px;
+            margin-bottom: 76px;
         }
 
         body {
@@ -41,7 +41,7 @@
 
         .note {
             position: fixed;
-            bottom: 76px;
+            bottom: 0;
             left: 95px;
             right: 30px;
         }
@@ -91,7 +91,7 @@
                     @forelse ($deliveryOrderDetails as $detail)
                         <tr>
                             <td style="width: 60.7px; padding-left: 38px;"></td>
-                            <td style="width: 377.5px; padding-left: 10px;">
+                            <td style="width: 373.5px; padding-left: 14px;">
                                 {{ $detail->salesOrderDetail?->productUnit?->name ?? '-' }}
                             </td>
                             <td class="text-center" style="width: 68px; padding-left: 10px;">
