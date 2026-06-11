@@ -14,13 +14,9 @@
             padding: 0 !important;
         }
 
-        .container {
-            margin-top: 135px;
-            page-break-inside: avoid;
-        }
-
+        .container,
         .container-odd {
-            margin-top: 193px;
+            padding-top: 135px;
             page-break-inside: avoid;
         }
 
