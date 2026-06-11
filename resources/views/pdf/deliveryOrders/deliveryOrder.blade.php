@@ -6,7 +6,7 @@
     <title>Delivery Order {{ $deliveryOrder->invoice_no }}</title>
     <style>
         @page {
-            margin-top: 180px;
+            margin-top: 220px;
         }
 
         body {
