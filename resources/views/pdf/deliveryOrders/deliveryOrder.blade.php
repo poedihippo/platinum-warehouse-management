@@ -43,6 +43,7 @@
             position: fixed;
             bottom: 76px;
             left: 95px;
+            right: 30px;
         }
 
         .text-center {
@@ -60,6 +61,7 @@
 </head>
 
 <body>
+    <p class="note">{{ $deliveryOrder->description }}</p>
     @if ($deliveryOrderDetailsChunk->count() > 0)
         @php
             $countLoop = 1;
@@ -88,9 +90,9 @@
                 <table class="table-container">
                     @forelse ($deliveryOrderDetails as $detail)
                         <tr>
-                            <td style="width: 90.7px; padding-left: 38px;">{{ $detail->salesOrderDetail?->productUnit?->code ?? '-' }}
+                            <td style="width: 60.7px; padding-left: 38px;">{{ $detail->salesOrderDetail?->productUnit?->code ?? '-' }}
                             </td>
-                            <td style="width: 347.5px; padding-left: 10px;">
+                            <td style="width: 377.5px; padding-left: 10px;">
                                 {{ $detail->salesOrderDetail?->productUnit?->name ?? '-' }}
                             </td>
                             <td class="text-center" style="width: 68px; padding-left: 10px;">
@@ -107,7 +109,6 @@
                 $countLoop++;
             @endphp
         @endforeach
-        <p class="note">{{ $deliveryOrder->description }}</p>
     @else
         <div class="container">
             <table class="delivery-info">
