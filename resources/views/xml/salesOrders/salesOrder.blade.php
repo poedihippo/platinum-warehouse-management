@@ -82,7 +82,7 @@
                     @endphp
                     <ITEMLINE operation="Add">
                         <KeyID>{{ $keyId++ }}</KeyID>
-                        <ITEMNO>{{ $productUnit->code }}{{ $hasRelation ? '*' : '' }}</ITEMNO>
+                        <ITEMNO>{{ $hasRelation ? rtrim($productUnit->code, '*') . '*' : $productUnit->code }}</ITEMNO>
                         <QUANTITY>{{ $detail->qty }}</QUANTITY>
                         <ITEMUNIT>{{ $productUnit->uom?->name }}</ITEMUNIT>
                         <UNITRATIO>1</UNITRATIO>
@@ -96,7 +96,7 @@
                         <ITEMRESERVED8 />
                         <ITEMRESERVED9 />
                         <ITEMRESERVED10 />
-                        <ITEMOVDESC>{{ $productUnit->name }}{{ $hasRelation ? '*' : '' }}</ITEMOVDESC>
+                        <ITEMOVDESC>{{ $hasRelation ? rtrim($productUnit->name, '*') . '*' : $productUnit->name }}</ITEMOVDESC>
                         <UNITPRICE>{{ $detail->unit_price }}</UNITPRICE>
                         <DISCPC />
                         @if ($detail->tax > 0)
