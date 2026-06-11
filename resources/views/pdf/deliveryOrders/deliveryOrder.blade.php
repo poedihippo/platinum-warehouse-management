@@ -7,6 +7,7 @@
     <style>
         @page {
             margin-top: 182px;
+            margin-bottom: 80px;
         }
 
         body {
@@ -39,7 +40,9 @@
         }
 
         .note {
-            margin-top: 30px;
+            position: fixed;
+            bottom: 76px;
+            left: 95px;
         }
 
         .text-center {
@@ -85,9 +88,9 @@
                 <table class="table-container">
                     @forelse ($deliveryOrderDetails as $detail)
                         <tr>
-                            <td style="width: 90.7px">{{ $detail->salesOrderDetail?->productUnit?->code ?? '-' }}
+                            <td style="width: 90.7px; padding-left: 38px;">{{ $detail->salesOrderDetail?->productUnit?->code ?? '-' }}
                             </td>
-                            <td style="width: 385.5px; padding-left: 10px;">
+                            <td style="width: 347.5px; padding-left: 10px;">
                                 {{ $detail->salesOrderDetail?->productUnit?->name ?? '-' }}
                             </td>
                             <td class="text-center" style="width: 68px; padding-left: 10px;">
@@ -99,12 +102,12 @@
                     @empty
                     @endforelse
                 </table>
-                <p class="note">{{ $deliveryOrder->description }}</p>
             </div>
             @php
                 $countLoop++;
             @endphp
         @endforeach
+        <p class="note">{{ $deliveryOrder->description }}</p>
     @else
         <div class="container">
             <table class="delivery-info">
