@@ -11,7 +11,6 @@
 
         body {
             font-family: Arial, sans-serif;
-            position: relative;
             font-weight: bold;
             font-size: 18px;
             margin: 0 !important;
@@ -40,8 +39,7 @@
         }
 
         .note {
-            position: absolute;
-            bottom: -50;
+            margin-top: 30px;
         }
 
         .text-center {
