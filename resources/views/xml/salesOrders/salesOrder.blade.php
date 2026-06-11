@@ -71,15 +71,18 @@
                     @php
                         $hasRelation = false;
                         $productUnit = $detail->productUnit;
+                        $baseUnit = null;
+                        $relations = collect();
                         if($productUnit->refer) {
                             $relations = $productUnit->relations;
-                            $productUnit = $productUnit->refer;
+                            $baseUnit = $productUnit->refer;
                             $hasRelation = true;
                         }
+                        $mainKeyId = $keyId;
                     @endphp
                     <ITEMLINE operation="Add">
                         <KeyID>{{ $keyId++ }}</KeyID>
-                        <ITEMNO>{{ $productUnit->code }}</ITEMNO>
+                        <ITEMNO>{{ $productUnit->code }}{{ $hasRelation ? '*' : '' }}</ITEMNO>
                         <QUANTITY>{{ $detail->qty }}</QUANTITY>
                         <ITEMUNIT>{{ $productUnit->uom?->name }}</ITEMUNIT>
                         <UNITRATIO>1</UNITRATIO>
@@ -93,7 +96,7 @@
                         <ITEMRESERVED8 />
                         <ITEMRESERVED9 />
                         <ITEMRESERVED10 />
-                        <ITEMOVDESC>{{ $productUnit->name }}</ITEMOVDESC>
+                        <ITEMOVDESC>{{ $productUnit->name }}{{ $hasRelation ? '*' : '' }}</ITEMOVDESC>
                         <UNITPRICE>{{ $detail->unit_price }}</UNITPRICE>
                         <DISCPC />
                         @if ($detail->tax > 0)
@@ -102,7 +105,7 @@
                             <TAXCODES />
                         @endif
                         <GROUPSEQ />
-                        <QTYSHIPPED>0</QTYSHIPPED>
+                        <QTYSHIPPED>{{ $detail->qty }}</QTYSHIPPED>
                     </ITEMLINE>
                     @if($hasRelation)
                         @foreach ($relations ?? [] as $relation)
@@ -122,14 +125,37 @@
                                 <ITEMRESERVED8 />
                                 <ITEMRESERVED9 />
                                 <ITEMRESERVED10 />
-                                <ITEMOVDESC>{{ $relation->relatedProductUnit->name }}</ITEMOVDESC>
+                                <ITEMOVDESC>--{{ $relation->relatedProductUnit->name }}</ITEMOVDESC>
                                 <UNITPRICE>0</UNITPRICE>
                                 <DISCPC />
                                 <TAXCODES />
-                                <GROUPSEQ />
-                                <QTYSHIPPED>0</QTYSHIPPED>
+                                <GROUPSEQ>{{ $mainKeyId }}</GROUPSEQ>
+                                <QTYSHIPPED>{{ $detail->qty * $relation->qty }}</QTYSHIPPED>
                             </ITEMLINE>
                         @endforeach
+                        <ITEMLINE operation="Add">
+                            <KeyID>{{ $keyId++ }}</KeyID>
+                            <ITEMNO>{{ $baseUnit->code }}</ITEMNO>
+                            <QUANTITY>{{ $detail->qty }}</QUANTITY>
+                            <ITEMUNIT>{{ $baseUnit->uom?->name }}</ITEMUNIT>
+                            <UNITRATIO>1</UNITRATIO>
+                            <ITEMRESERVED1 />
+                            <ITEMRESERVED2 />
+                            <ITEMRESERVED3 />
+                            <ITEMRESERVED4 />
+                            <ITEMRESERVED5 />
+                            <ITEMRESERVED6 />
+                            <ITEMRESERVED7 />
+                            <ITEMRESERVED8 />
+                            <ITEMRESERVED9 />
+                            <ITEMRESERVED10 />
+                            <ITEMOVDESC>--{{ $baseUnit->name }}</ITEMOVDESC>
+                            <UNITPRICE>0</UNITPRICE>
+                            <DISCPC />
+                            <TAXCODES />
+                            <GROUPSEQ>{{ $mainKeyId }}</GROUPSEQ>
+                            <QTYSHIPPED>{{ $detail->qty }}</QTYSHIPPED>
+                        </ITEMLINE>
                     @endif
                 @endif
                 @php
