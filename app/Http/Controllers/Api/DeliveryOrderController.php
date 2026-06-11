@@ -227,10 +227,10 @@ class DeliveryOrderController extends Controller
             'details' => fn($q) => $q->with('salesOrderDetail.productUnit.uom')
         ])->findTenanted($id);
 
-        $chunkSize = 22;
+        $chunkSize = 20;
         $view = 'pdf.deliveryOrders.deliveryOrder';
         if ($deliveryOrder->company->is(CompanyEnum::PA)) {
-            $chunkSize = 10;
+            $chunkSize = 9;
             $view = 'pdf.deliveryOrders.deliveryOrderPA';
         }
 
