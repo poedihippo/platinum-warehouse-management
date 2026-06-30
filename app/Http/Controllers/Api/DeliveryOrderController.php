@@ -15,6 +15,7 @@ use App\Http\Resources\SalesOrderItemResource;
 use App\Models\AdjustmentRequest;
 use App\Models\DeliveryOrder;
 use App\Models\DeliveryOrderDetail;
+use App\Models\SalesOrderDetail;
 use App\Models\SalesOrderItem;
 use App\Models\Stock;
 use App\Models\StockProductUnit;
@@ -539,20 +540,72 @@ class DeliveryOrderController extends Controller
         return response()->json(['message' => $message])->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
+    // public function attach(int $id, DeliveryOrderAttachRequest $request)
+    // {
+    //     $count = 0;
+    //     $deliveryOrder = DeliveryOrder::findTenanted($id, ['id']);
+    //     foreach ($request->sales_order_detail_ids ?? [] as $id) {
+    //         if ($deliveryOrder->details()->where('sales_order_detail_id', $id)->doesntExist()) {
+    //             $deliveryOrder->details()->create([
+    //                 'sales_order_detail_id' => $id
+    //             ]);
+    //             $count++;
+    //         }
+    //     }
+
+    //     return response()->json(['message' => $count . ' Sales order berahsil ditambahkan ke delivery order']);
+    // }
+
     public function attach(int $id, DeliveryOrderAttachRequest $request)
     {
-        $count = 0;
         $deliveryOrder = DeliveryOrder::findTenanted($id, ['id']);
-        foreach ($request->sales_order_detail_ids ?? [] as $id) {
-            if ($deliveryOrder->details()->where('sales_order_detail_id', $id)->doesntExist()) {
+        $count = 0;
+        $errors = [];
+
+        foreach ($request->details as $item) {
+            $salesOrderDetail = SalesOrderDetail::find($item['sales_order_detail_id']);
+
+            // Hitung qty yang sudah di-assign ke DO lain (selain DO ini)
+            $alreadyScheduled = DeliveryOrderDetail::where('sales_order_detail_id', $salesOrderDetail->id)
+                ->where('delivery_order_id', '!=', $deliveryOrder->id)
+                ->sum('qty');
+
+            $remaining = $salesOrderDetail->qty - $alreadyScheduled;
+
+            if ($item['qty'] > $remaining) {
+                $errors[] = [
+                    'sales_order_detail_id' => $salesOrderDetail->id,
+                    'message' => "Qty melebihi sisa yang tersedia. Sisa: {$remaining}, diminta: {$item['qty']}",
+                ];
+                continue;
+            }
+
+            // Jika SO detail ini sudah ada di DO ini, update qty-nya
+            $existing = $deliveryOrder->details()
+                ->where('sales_order_detail_id', $salesOrderDetail->id)
+                ->first();
+
+            if ($existing) {
+                $existing->update(['qty' => $item['qty']]);
+            } else {
                 $deliveryOrder->details()->create([
-                    'sales_order_detail_id' => $id
+                    'sales_order_detail_id' => $salesOrderDetail->id,
+                    'qty'                   => $item['qty'],
                 ]);
                 $count++;
             }
         }
 
-        return response()->json(['message' => $count . ' Sales order berahsil ditambahkan ke delivery order']);
+        if (!empty($errors)) {
+            return response()->json([
+                'message' => 'Beberapa item gagal ditambahkan.',
+                'errors'  => $errors,
+            ], 422);
+        }
+
+        return response()->json([
+            'message' => $count . ' Sales order berhasil ditambahkan ke delivery order',
+        ]);
     }
 
     public function return(DeliveryOrderReturnRequest $request, $id)

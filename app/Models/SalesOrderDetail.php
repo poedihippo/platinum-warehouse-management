@@ -78,6 +78,21 @@ class SalesOrderDetail extends Model
         return $this->hasOne(DeliveryOrderDetail::class);
     }
 
+    public function deliveryOrderDetails(): HasMany
+    {
+        return $this->hasMany(DeliveryOrderDetail::class);
+    }
+
+    public function getScheduledQtyAttribute(): int
+    {
+        return $this->deliveryOrderDetails()->sum('qty');
+    }
+
+    public function getRemainingQtyAttribute(): int
+    {
+        return $this->qty - $this->deliveryOrderDetails()->sum('qty');
+    }
+
     public function histories(): MorphMany
     {
         return $this->morphMany(StockHistory::class, 'model');
@@ -90,7 +105,7 @@ class SalesOrderDetail extends Model
 
     public function scopeHasDeliveryOrder(Builder $query, bool $value = true)
     {
-        if ($value) return $query->has('deliveryOrderDetail');
-        return $query->doesntHave('deliveryOrderDetail');
+        if ($value) return $query->has('deliveryOrderDetails');
+        return $query->doesntHave('deliveryOrderDetails');
     }
 }
