@@ -8,6 +8,7 @@ use App\Http\Requests\Api\Stock\AddToStockRequest;
 use App\Http\Requests\Api\Stock\GroupingByScanRequest;
 use App\Http\Requests\Api\Stock\GroupingRequest;
 use App\Http\Requests\Api\Stock\SetToPrintingQueueRequest;
+use App\Http\Requests\Api\Stock\UpdateStockRequest;
 use App\Http\Requests\Api\StockRecordRequest;
 use App\Http\Requests\Api\StockRepackRequest;
 use App\Http\Requests\Api\Stock\VerifyRequest;
@@ -155,10 +156,10 @@ class StockController extends Controller
         ]));
     }
 
-    public function store(Request $request)
+    public function update(UpdateStockRequest $request, Stock $stock)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('stock_create'), 403);
-        return response()->json($request->all());
+        $stock->update($request->validated());
+        return response()->json(['message' => 'Data updated successfully']);
     }
 
     public function destroy(Stock $stock)
