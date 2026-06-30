@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\DeliveryOrderDetailUpdateRequest;
 use App\Http\Resources\DeliveryOrderDetailResource;
 use App\Models\DeliveryOrder;
 use App\Models\DeliveryOrderDetail;
@@ -66,10 +67,38 @@ class DeliveryOrderDetailController extends Controller
         return new DeliveryOrderDetailResource($deliveryOrderDetail);
     }
 
+    public function update(int $deliveryOrderId, int $deliveryOrderDetailId, DeliveryOrderDetailUpdateRequest $request)
+    {
+        $deliveryOrder = DeliveryOrder::findTenanted($deliveryOrderId, ['id', 'is_done', 'invoice_no']);
+
+        if ($deliveryOrder->is_done) {
+            throw new BadRequestHttpException("Delivery Order must be not finished. Please set as In Progress first.");
+        }
+
+        $deliveryOrderDetail = $deliveryOrder->details()->where('id', $deliveryOrderDetailId)->firstOrFail();
+
+        $deliveryOrderDetail->update([
+            'qty' => $request->qty,
+        ]);
+
+        $deliveryOrderDetail->load([
+            'deliveryOrder',
+            'salesOrderDetail' => function ($q) {
+                $q->with(['warehouse', 'salesOrder', 'productUnit' => fn($q) => $q->withTrashed()]);
+            }
+        ]);
+
+        return new DeliveryOrderDetailResource($deliveryOrderDetail);
+    }
+
     public function destroy(int $deliveryOrderId, int $deliveryOrderDetailId)
     {
         $deliveryOrder = DeliveryOrder::findTenanted($deliveryOrderId, ['id']);
         abort_if(!auth('sanctum')->user()->tokenCan('delivery_order_delete'), 403);
+
+        if ($deliveryOrder->is_done) {
+            throw new BadRequestHttpException("Delivery Order must be not finished. Please set as In Progress first.");
+        }
 
         $deliveryOrder->details()->where('id', $deliveryOrderDetailId)->delete();
 
