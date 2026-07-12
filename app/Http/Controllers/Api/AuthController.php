@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\PersonalAccessToken;
 use App\Models\ProductUnit;
 use App\Models\StockProductUnit;
 use App\Models\User;
@@ -13,6 +12,18 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    /**
+     * Spatie role names that are loyalty-only. A user whose roles are a
+     * non-empty subset of this list — and nothing else — gets a
+     * loyalty-scoped token instead of a full-access one.
+     */
+    private const LOYALTY_ONLY_ROLES = [
+        'loyalty manager',
+        'loyalty reviewer',
+        'loyalty prize manager',
+        'loyalty fulfillment',
+    ];
+
     public function __construct()
     {
         parent::__construct();
@@ -21,44 +32,44 @@ class AuthController extends Controller
     /**
      * Get Token.
      *
-     * Get an user token for authentication.
+     * Get a user token for authentication. Always mints a fresh token —
+     * never reuses or reads back an existing one.
      */
     public function token(Request $request)
     {
         $this->validate($request, [
             'email' => 'required|email',
             'password' => 'required',
+            'device_name' => 'nullable|string|max:255',
         ]);
 
-        $checkToken = PersonalAccessToken::where('plain_text_token', request()->bearerToken())->first();
-        $validatePassword = true;
         $user = User::where('email', $request->email)->first();
 
-        if ($checkToken) {
-            $validatePassword = true;
-        } else {
-            $validatePassword = Hash::check($request->password, $user?->password);
-        }
-
-        if (!$user || !$validatePassword) {
+        if (!$user || !Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
 
-        // $permissions = ["*"];
-        // if (!$user->hasRole('admin')) {
-        //     $roles = $user->roles;
-        //     if ($roles->count() > 0) {
-        //         $permissions = $roles[0]->permissions->pluck('name')->toArray() ?? [];
-        //     } else {
-        //         return response()->json(['message' => 'User has no role'], 401);
-        //     }
-        // }
+        $deviceName = $request->input('device_name') ?: 'default';
+        $token = $user->createToken($deviceName, $this->tokenAbilitiesFor($user))->plainTextToken;
 
-        // return $user->createToken('default')->plainTextToken;
-        $token = $user->tokens()->latest()->first()->plain_text_token ?? $user->createToken('default')->plainTextToken;
         return response()->json(['data' => ['token' => $token]]);
+    }
+
+    /**
+     * ['loyalty'] if every role the user holds is in LOYALTY_ONLY_ROLES
+     * (and they hold at least one); ['*'] for everyone else — any
+     * warehouse role, role 'admin', or no role at all.
+     */
+    private function tokenAbilitiesFor(User $user): array
+    {
+        $roleNames = $user->roles->pluck('name');
+
+        $isLoyaltyOnly = $roleNames->isNotEmpty()
+            && $roleNames->diff(self::LOYALTY_ONLY_ROLES)->isEmpty();
+
+        return $isLoyaltyOnly ? ['loyalty'] : ['*'];
     }
 
     /**

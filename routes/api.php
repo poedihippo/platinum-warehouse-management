@@ -68,11 +68,13 @@ use App\Http\Controllers\Api\Admin\ProductUnitPointsController;
 */
 
 Route::get('test', [TestController::class, 'index']);
-Route::get('stocks/export', [StockController::class, 'export']);
-Route::post('stocks/import', [StockController::class, 'import']);
 Route::post('auth/token', [AuthController::class, 'token'])->middleware('throttle:30,1');
 Route::post('auth/register', [AuthController::class, 'register']);
 Route::post('auth/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+
+// Identity read shared by both bejo and verify — excluded from the
+// 'ability:warehouse' check applied to the group below.
+Route::get('users/me', [UserController::class, 'me'])->middleware('auth:sanctum');
 
 // Public QR / serial lookup for the customer-facing scan page.
 // No auth. Tight rate limit. See BACKEND_AUDIT.md "Public Verification Endpoint".
@@ -166,7 +168,11 @@ Route::middleware('auth:sanctum')->prefix('admin/loyalty')->group(function () {
     Route::post('redemptions/{redemption}/deliver', [AdminRedemptionReviewController::class, 'deliver']);
 });
 
-Route::middleware('auth:sanctum')->group(function () {
+// Everything below requires the 'warehouse' token ability (see
+// AuthController::token) in addition to auth:sanctum — a loyalty-only
+// token (abilities ['loyalty']) is rejected with 403 here, regardless of
+// whether the individual route below also has its own permission check.
+Route::middleware(['auth:sanctum', 'ability:warehouse'])->group(function () {
     Route::apiResource('roles', RoleController::class);
     Route::get('permissions/all', [PermissionController::class, 'all']);
     Route::apiResource('permissions', PermissionController::class);
@@ -180,7 +186,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::put('users/{user}/restore', [UserController::class, 'restore']);
     Route::delete('users/{user}/force-delete', [UserController::class, 'forceDelete']);
-    Route::get('users/me', [UserController::class, 'me']);
     Route::apiResource('users', UserController::class);
 
     Route::apiResource('warehouses', WarehouseController::class);
@@ -260,6 +265,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::put('adjustment-requests/{adjustmentRequest}/approve', [AdjustmentRequestController::class, 'approve']);
     Route::apiResource('adjustment-requests', AdjustmentRequestController::class);
+
+    // Moved off the public route list — see SECURITY_FINDINGS.md.
+    Route::get('stocks/export', [StockController::class, 'export']);
+    Route::post('stocks/import', [StockController::class, 'import']);
 
     Route::get('stocks/details', [StockController::class, 'details']);
     Route::get('stocks/print-all', [StockController::class, 'printAll']);

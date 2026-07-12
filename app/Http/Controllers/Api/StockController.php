@@ -38,11 +38,17 @@ class StockController extends Controller
         parent::__construct();
         // $this->middleware('permission:stock_access', ['only' => ['index', 'show', 'details']]);
         $this->middleware('permission:stock_read', ['only' => ['index', 'show', 'details']]);
-        $this->middleware('permission:stock_create', ['only' => 'store']);
+        // 'stock_create' is also used for 'import' — importing stock is a
+        // bulk-create. No 'stock_import' permission exists in the seeded
+        // taxonomy; flagged in the report rather than inventing one.
+        $this->middleware('permission:stock_create', ['only' => ['store', 'import']]);
         $this->middleware('permission:stock_edit', ['only' => 'update']);
         $this->middleware('permission:stock_delete', ['only' => 'destroy']);
         $this->middleware('permission:stock_grouping', ['only' => ['grouping', 'ungrouping']]);
         $this->middleware('permission:stock_print', ['only' => 'printAll']);
+        // 'stock_export' already existed in PermissionsHelper::adminPermissions()
+        // (seeded by PermissionSeeder) but was never wired to a middleware.
+        $this->middleware('permission:stock_export', ['only' => 'export']);
     }
 
     public function index()
