@@ -35,7 +35,7 @@ class SocialiteController extends Controller
         // login user
         auth('sanctum')->login($authUser, true);
 
-        $token = $authUser->tokens()->latest()->first()->plain_text_token ?? $authUser->createToken('default')->plainTextToken;
+        $token = $authUser->createToken('default', $authUser->tokenAbilities())->plainTextToken;
 
         // setelah login redirect ke dashboard
         return response()->json([

@@ -12,18 +12,6 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    /**
-     * Spatie role names that are loyalty-only. A user whose roles are a
-     * non-empty subset of this list — and nothing else — gets a
-     * loyalty-scoped token instead of a full-access one.
-     */
-    private const LOYALTY_ONLY_ROLES = [
-        'loyalty manager',
-        'loyalty reviewer',
-        'loyalty prize manager',
-        'loyalty fulfillment',
-    ];
-
     public function __construct()
     {
         parent::__construct();
@@ -52,24 +40,9 @@ class AuthController extends Controller
         }
 
         $deviceName = $request->input('device_name') ?: 'default';
-        $token = $user->createToken($deviceName, $this->tokenAbilitiesFor($user))->plainTextToken;
+        $token = $user->createToken($deviceName, $user->tokenAbilities())->plainTextToken;
 
         return response()->json(['data' => ['token' => $token]]);
-    }
-
-    /**
-     * ['loyalty'] if every role the user holds is in LOYALTY_ONLY_ROLES
-     * (and they hold at least one); ['*'] for everyone else — any
-     * warehouse role, role 'admin', or no role at all.
-     */
-    private function tokenAbilitiesFor(User $user): array
-    {
-        $roleNames = $user->roles->pluck('name');
-
-        $isLoyaltyOnly = $roleNames->isNotEmpty()
-            && $roleNames->diff(self::LOYALTY_ONLY_ROLES)->isEmpty();
-
-        return $isLoyaltyOnly ? ['loyalty'] : ['*'];
     }
 
     /**

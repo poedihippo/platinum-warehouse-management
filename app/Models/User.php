@@ -21,6 +21,19 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes, HasRoles;
 
     /**
+     * Spatie role names that are loyalty-only. A user whose roles are a
+     * non-empty subset of this list — and nothing else — gets a
+     * loyalty-scoped token instead of a full-access one. Shared by every
+     * token-minting entry point (AuthController, SocialiteController, ...).
+     */
+    public const LOYALTY_ONLY_ROLES = [
+        'loyalty manager',
+        'loyalty reviewer',
+        'loyalty prize manager',
+        'loyalty fulfillment',
+    ];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
@@ -83,6 +96,21 @@ class User extends Authenticatable
         ]);
 
         return new \Laravel\Sanctum\NewAccessToken($token, $token->getKey() . '|' . $plainTextToken);
+    }
+
+    /**
+     * ['loyalty'] if every role this user holds is in LOYALTY_ONLY_ROLES
+     * (and they hold at least one); ['*'] for everyone else — any
+     * warehouse role, role 'admin', or no role at all.
+     */
+    public function tokenAbilities(): array
+    {
+        $roleNames = $this->roles->pluck('name');
+
+        $isLoyaltyOnly = $roleNames->isNotEmpty()
+            && $roleNames->diff(self::LOYALTY_ONLY_ROLES)->isEmpty();
+
+        return $isLoyaltyOnly ? ['loyalty'] : ['*'];
     }
 
     protected function password(): Attribute
