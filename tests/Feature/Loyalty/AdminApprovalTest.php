@@ -6,6 +6,7 @@ use App\Mail\Loyalty\ClaimApprovedMail;
 use App\Models\Loyalty\Claim;
 use App\Models\Loyalty\LoyaltyUser;
 use App\Models\Loyalty\PointsTransaction;
+use App\Models\Permission;
 use App\Models\ProductUnit;
 use App\Models\User;
 use Database\Factories\ProductUnitFactory;
@@ -34,7 +35,10 @@ class AdminApprovalTest extends TestCase
 
     private function actingAsAdmin(): User
     {
+        Permission::firstOrCreate(['name' => 'review claims', 'guard_name' => 'web']);
+
         $admin = User::factory()->create(['type' => 'admin']);
+        $admin->givePermissionTo('review claims');
         Sanctum::actingAs($admin);
 
         return $admin;

@@ -50,6 +50,7 @@ use App\Http\Controllers\Api\Loyalty\PointsController as LoyaltyPointsController
 use App\Http\Controllers\Api\Loyalty\PrizeController as LoyaltyPrizeController;
 use App\Http\Controllers\Api\Loyalty\RedemptionController as LoyaltyRedemptionController;
 use App\Http\Controllers\Api\Admin\Loyalty\ClaimReviewController as AdminClaimReviewController;
+use App\Http\Controllers\Api\Admin\Loyalty\MeController as AdminLoyaltyMeController;
 use App\Http\Controllers\Api\Admin\Loyalty\PrizeManagementController as AdminPrizeManagementController;
 use App\Http\Controllers\Api\Admin\Loyalty\ProductUnitSearchController as AdminProductUnitSearchController;
 use App\Http\Controllers\Api\Admin\Loyalty\RedemptionReviewController as AdminRedemptionReviewController;
@@ -71,6 +72,7 @@ Route::get('stocks/export', [StockController::class, 'export']);
 Route::post('stocks/import', [StockController::class, 'import']);
 Route::post('auth/token', [AuthController::class, 'token'])->middleware('throttle:30,1');
 Route::post('auth/register', [AuthController::class, 'register']);
+Route::post('auth/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 // Public QR / serial lookup for the customer-facing scan page.
 // No auth. Tight rate limit. See BACKEND_AUDIT.md "Public Verification Endpoint".
@@ -133,6 +135,11 @@ Route::prefix('loyalty')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth:sanctum')->prefix('admin/loyalty')->group(function () {
+    // Real loyalty permissions for the current admin, as a flat array
+    // (see App\Http\Controllers\Api\Admin\Loyalty\MeController).
+    Route::get('me', AdminLoyaltyMeController::class);
+
+    // Claims queue (permission: 'review claims', checked in-controller).
     Route::get('claims', [AdminClaimReviewController::class, 'index']);
     Route::get('claims/{claim}', [AdminClaimReviewController::class, 'show']);
     Route::post('claims/{claim}/line-items', [AdminClaimReviewController::class, 'addLineItem']);
@@ -140,8 +147,8 @@ Route::middleware('auth:sanctum')->prefix('admin/loyalty')->group(function () {
     Route::post('claims/{claim}/approve', [AdminClaimReviewController::class, 'approve']);
     Route::post('claims/{claim}/reject', [AdminClaimReviewController::class, 'reject']);
 
-    // Product-unit autocomplete for claim line-item entry (same gating as
-    // the claims routes above — auth:sanctum only, no extra permission).
+    // Product-unit autocomplete for claim line-item entry (permission:
+    // 'review claims', checked in-controller — same as the claims routes).
     Route::get('product-units', [AdminProductUnitSearchController::class, 'index']);
 
     // Prize catalog management (permission: 'manage prizes', checked in-controller).

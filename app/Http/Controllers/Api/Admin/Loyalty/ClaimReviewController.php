@@ -18,12 +18,18 @@ use Illuminate\Support\Facades\Mail;
 
 class ClaimReviewController extends Controller
 {
+    private const PERMISSION = 'review claims';
+
     /**
      * GET /api/admin/loyalty/claims?status=pending&sort=submitted_at_desc
      * Queue 15/page. status omitted or 'all' = no status filter.
      */
     public function index(Request $request)
     {
+        if ($denied = $this->denyUnlessAuthorized($request)) {
+            return $denied;
+        }
+
         $query = Claim::with($this->customerEagerLoad())
             ->withCount(['photos', 'lineItems']);
 
@@ -66,8 +72,12 @@ class ClaimReviewController extends Controller
      * GET /api/admin/loyalty/claims/{claim}
      * Full detail + cross-user duplicate invoice warnings (§9.1).
      */
-    public function show(string $claim)
+    public function show(Request $request, string $claim)
     {
+        if ($denied = $this->denyUnlessAuthorized($request)) {
+            return $denied;
+        }
+
         $model = Claim::with(array_merge($this->customerEagerLoad(), [
             'photos',
             'lineItems.productUnit',
@@ -97,6 +107,10 @@ class ClaimReviewController extends Controller
      */
     public function addLineItem(AddLineItemRequest $request, string $claim)
     {
+        if ($denied = $this->denyUnlessAuthorized($request)) {
+            return $denied;
+        }
+
         $model = $this->findOrFail($claim);
         if ($response = $this->ensurePending($model)) {
             return $response;
@@ -130,8 +144,12 @@ class ClaimReviewController extends Controller
     /**
      * DELETE /api/admin/loyalty/claims/{claim}/line-items/{lineItem}
      */
-    public function removeLineItem(string $claim, string $lineItem)
+    public function removeLineItem(Request $request, string $claim, string $lineItem)
     {
+        if ($denied = $this->denyUnlessAuthorized($request)) {
+            return $denied;
+        }
+
         $model = $this->findOrFail($claim);
         if ($response = $this->ensurePending($model)) {
             return $response;
@@ -156,6 +174,10 @@ class ClaimReviewController extends Controller
      */
     public function approve(Request $request, string $claim)
     {
+        if ($denied = $this->denyUnlessAuthorized($request)) {
+            return $denied;
+        }
+
         $model = $this->findOrFail($claim);
         if ($response = $this->ensurePending($model, 409)) {
             return $response;
@@ -237,6 +259,10 @@ class ClaimReviewController extends Controller
      */
     public function reject(RejectClaimRequest $request, string $claim)
     {
+        if ($denied = $this->denyUnlessAuthorized($request)) {
+            return $denied;
+        }
+
         $model = $this->findOrFail($claim);
         if ($response = $this->ensurePending($model, 409)) {
             return $response;
@@ -292,5 +318,20 @@ class ClaimReviewController extends Controller
                 : 'Klaim tidak lagi berstatus pending.',
             'status' => $claim->status,
         ], $code);
+    }
+
+    /**
+     * Returns a 403 JSON response when the admin lacks the claims-review
+     * permission, else null. Mirrors PrizeManagementController.
+     */
+    private function denyUnlessAuthorized(Request $request)
+    {
+        if ($request->user()?->can(self::PERMISSION)) {
+            return null;
+        }
+
+        return response()->json([
+            'message' => 'Anda tidak memiliki izin untuk meninjau klaim.',
+        ], 403);
     }
 }

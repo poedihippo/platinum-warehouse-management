@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Permission;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Role;
 
 class LoyaltyPermissionSeeder extends Seeder
 {
@@ -30,5 +31,19 @@ class LoyaltyPermissionSeeder extends Seeder
             'name' => 'review redemptions',
             'guard_name' => 'web',
         ]);
+
+        // Gates the claims queue (ClaimReviewController + the
+        // product-unit search it uses for line-item entry). No existing
+        // UserSeeder role is loyalty-aware, so this is assigned only to
+        // role 'admin' here — everyone else needs a manual grant.
+        $reviewClaims = Permission::firstOrCreate([
+            'name' => 'review claims',
+            'guard_name' => 'web',
+        ]);
+
+        $adminRole = Role::where('name', 'admin')->first();
+        if ($adminRole && !$adminRole->hasPermissionTo($reviewClaims)) {
+            $adminRole->givePermissionTo($reviewClaims);
+        }
     }
 }

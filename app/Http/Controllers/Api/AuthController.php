@@ -62,6 +62,20 @@ class AuthController extends Controller
     }
 
     /**
+     * Logout.
+     *
+     * Revoke the token used for this request. Mirrors
+     * Api\Loyalty\Auth\LogoutController's shape (top-level 'message', no
+     * 'data' wrapper).
+     */
+    public function logout(Request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json(['message' => 'Berhasil keluar.']);
+    }
+
+    /**
      * Register user.
      *
      * Manual user register
