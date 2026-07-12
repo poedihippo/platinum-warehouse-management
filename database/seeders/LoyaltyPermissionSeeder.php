@@ -45,5 +45,21 @@ class LoyaltyPermissionSeeder extends Seeder
         if ($adminRole && !$adminRole->hasPermissionTo($reviewClaims)) {
             $adminRole->givePermissionTo($reviewClaims);
         }
+
+        // Loyalty-only roles for verify's marketing/CS staff — same 'users'
+        // table as bejo's warehouse admins, but scoped to loyalty
+        // permissions only. syncPermissions() is idempotent: re-running
+        // this seeder always leaves each role with exactly this list.
+        Role::firstOrCreate(['name' => 'loyalty manager', 'guard_name' => 'web'])
+            ->syncPermissions(['review claims', 'manage prizes', 'review redemptions', 'manage loyalty points']);
+
+        Role::firstOrCreate(['name' => 'loyalty reviewer', 'guard_name' => 'web'])
+            ->syncPermissions(['review claims']);
+
+        Role::firstOrCreate(['name' => 'loyalty prize manager', 'guard_name' => 'web'])
+            ->syncPermissions(['manage prizes']);
+
+        Role::firstOrCreate(['name' => 'loyalty fulfillment', 'guard_name' => 'web'])
+            ->syncPermissions(['review redemptions']);
     }
 }
