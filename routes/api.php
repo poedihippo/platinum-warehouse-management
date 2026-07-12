@@ -51,6 +51,7 @@ use App\Http\Controllers\Api\Loyalty\PrizeController as LoyaltyPrizeController;
 use App\Http\Controllers\Api\Loyalty\RedemptionController as LoyaltyRedemptionController;
 use App\Http\Controllers\Api\Admin\Loyalty\ClaimReviewController as AdminClaimReviewController;
 use App\Http\Controllers\Api\Admin\Loyalty\PrizeManagementController as AdminPrizeManagementController;
+use App\Http\Controllers\Api\Admin\Loyalty\ProductUnitSearchController as AdminProductUnitSearchController;
 use App\Http\Controllers\Api\Admin\Loyalty\RedemptionReviewController as AdminRedemptionReviewController;
 use App\Http\Controllers\Api\Admin\ProductUnitPointsController;
 
@@ -138,6 +139,10 @@ Route::middleware('auth:sanctum')->prefix('admin/loyalty')->group(function () {
     Route::delete('claims/{claim}/line-items/{lineItem}', [AdminClaimReviewController::class, 'removeLineItem']);
     Route::post('claims/{claim}/approve', [AdminClaimReviewController::class, 'approve']);
     Route::post('claims/{claim}/reject', [AdminClaimReviewController::class, 'reject']);
+
+    // Product-unit autocomplete for claim line-item entry (same gating as
+    // the claims routes above — auth:sanctum only, no extra permission).
+    Route::get('product-units', [AdminProductUnitSearchController::class, 'index']);
 
     // Prize catalog management (permission: 'manage prizes', checked in-controller).
     Route::get('prizes', [AdminPrizeManagementController::class, 'index']);
