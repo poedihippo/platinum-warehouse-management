@@ -82,8 +82,8 @@ Route::get('public/stocks/{ulid}', [StockVerificationController::class, 'show'])
     ->middleware('throttle:30,1');
 
 /* Media Social Login */
-Route::get('/auth/{provider}', [SocialiteController::class, 'redirectToProvider']);
-Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProvideCallback']);
+// Route::get('/auth/{provider}', [SocialiteController::class, 'redirectToProvider']);
+// Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProvideCallback']);
 
 /*
 |--------------------------------------------------------------------------
