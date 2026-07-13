@@ -166,6 +166,12 @@ Route::middleware('auth:sanctum')->prefix('admin/loyalty')->group(function () {
     Route::post('redemptions/{redemption}/reject', [AdminRedemptionReviewController::class, 'reject']);
     Route::post('redemptions/{redemption}/ship', [AdminRedemptionReviewController::class, 'ship']);
     Route::post('redemptions/{redemption}/deliver', [AdminRedemptionReviewController::class, 'deliver']);
+
+    // Points management (permission: 'manage loyalty points', checked
+    // in-controller — same controller as PATCH admin/product-units/{id}/points).
+    Route::get('points', [ProductUnitPointsController::class, 'index']);
+    Route::get('points/eligible', [ProductUnitPointsController::class, 'eligible']);
+    Route::patch('points/{productUnit}', [ProductUnitPointsController::class, 'updateLoyaltyPoints']);
 });
 
 // Everything below requires the 'warehouse' token ability (see

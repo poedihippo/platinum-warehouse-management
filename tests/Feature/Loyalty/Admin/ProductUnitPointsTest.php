@@ -49,6 +49,8 @@ class ProductUnitPointsTest extends TestCase
     {
         $this->actingAsAdmin(withPermission: true);
         $unit = $this->makeProductUnit();
+        $unit->loyalty_eligible = true; // not fillable; set directly
+        $unit->save();
 
         $this->patchJson("/api/admin/product-units/{$unit->id}/points", [
             'points_per_unit' => 100,
