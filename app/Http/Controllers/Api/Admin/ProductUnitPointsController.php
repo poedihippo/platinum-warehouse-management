@@ -17,8 +17,11 @@ class ProductUnitPointsController extends Controller
     /**
      * GET /api/admin/loyalty/points
      *
-     * Units currently in the loyalty points program. Query: q (searches
-     * name/code), per_page, page. Default sort: product name asc.
+     * The whole curated whitelist, edited in place from one table: every
+     * loyalty_eligible unit (most start at 0) plus any stray unit that
+     * already has points_per_unit > 0 despite not being eligible, so an
+     * admin can see and zero it out. Query: q (searches name/code),
+     * per_page, page. Sort: points > 0 first, then product name asc.
      */
     public function index(Request $request)
     {
@@ -27,43 +30,21 @@ class ProductUnitPointsController extends Controller
         }
 
         $query = ProductUnit::with(['product:id,name', 'uom:id,name'])
-            ->where('points_per_unit', '>', 0)
+            ->where(function ($q) {
+                $q->where('loyalty_eligible', true)
+                    ->orWhere('points_per_unit', '>', 0);
+            })
+            ->orderByRaw('points_per_unit > 0 DESC')
             ->orderBy(Product::select('name')->whereColumn('products.id', 'product_units.product_id'));
 
         if ($request->filled('q')) {
             $query->search($request->input('q'));
         }
 
-        $perPage = (int) $request->input('per_page', 15);
-        $perPage = $perPage > 0 && $perPage <= 100 ? $perPage : 15;
+        $perPage = (int) $request->input('per_page', 200);
+        $perPage = $perPage > 0 && $perPage <= 250 ? $perPage : 200;
 
         return AdminProductUnitPointsResource::collection($query->paginate($perPage));
-    }
-
-    /**
-     * GET /api/admin/loyalty/points/eligible?q=...
-     *
-     * Typeahead for the "add product" flow: units curated as
-     * loyalty_eligible that aren't in the program yet (points_per_unit
-     * still 0). Capped at 20, not paginated.
-     */
-    public function eligible(Request $request)
-    {
-        if ($denied = $this->denyUnlessAuthorized($request)) {
-            return $denied;
-        }
-
-        $query = ProductUnit::with(['product:id,name', 'uom:id,name'])
-            ->where('loyalty_eligible', true)
-            ->where('points_per_unit', 0);
-
-        if ($request->filled('q')) {
-            $query->search($request->input('q'));
-        }
-
-        $units = $query->orderBy('name')->limit(20)->get();
-
-        return AdminProductUnitPointsResource::collection($units);
     }
 
     /**
