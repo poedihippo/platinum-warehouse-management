@@ -14,7 +14,7 @@ class UploadBrandLogoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'logo' => ['nullable', 'image', 'max:5120'],
+            'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:5120'],
         ];
     }
 
@@ -22,6 +22,7 @@ class UploadBrandLogoRequest extends FormRequest
     {
         return [
             'logo.image' => 'File harus berupa gambar.',
+            'logo.mimes' => 'Format gambar harus PNG, JPG, atau WebP.',
             'logo.max' => 'Ukuran gambar maksimal 5MB.',
         ];
     }
