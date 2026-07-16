@@ -49,6 +49,7 @@ use App\Http\Controllers\Api\Loyalty\ClaimController as LoyaltyClaimController;
 use App\Http\Controllers\Api\Loyalty\PointsController as LoyaltyPointsController;
 use App\Http\Controllers\Api\Loyalty\PrizeController as LoyaltyPrizeController;
 use App\Http\Controllers\Api\Loyalty\RedemptionController as LoyaltyRedemptionController;
+use App\Http\Controllers\Api\Admin\Loyalty\BrandManagementController as AdminBrandManagementController;
 use App\Http\Controllers\Api\Admin\Loyalty\ClaimReviewController as AdminClaimReviewController;
 use App\Http\Controllers\Api\Admin\Loyalty\MeController as AdminLoyaltyMeController;
 use App\Http\Controllers\Api\Admin\Loyalty\PrizeManagementController as AdminPrizeManagementController;
@@ -171,6 +172,12 @@ Route::middleware('auth:sanctum')->prefix('admin/loyalty')->group(function () {
     // in-controller — same controller as PATCH admin/product-units/{id}/points).
     Route::get('points', [ProductUnitPointsController::class, 'index']);
     Route::patch('points/{productUnit}', [ProductUnitPointsController::class, 'updateLoyaltyPoints']);
+
+    // Brand logo management (permission: 'manage brands', checked in-controller).
+    // POST (not PATCH) for the upload route — a dedicated file-only endpoint
+    // sidesteps multipart method-spoofing entirely.
+    Route::get('brands', [AdminBrandManagementController::class, 'index']);
+    Route::post('brands/{productBrand}/logo', [AdminBrandManagementController::class, 'uploadLogo']);
 });
 
 // Everything below requires the 'warehouse' token ability (see

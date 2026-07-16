@@ -32,6 +32,14 @@ class LoyaltyPermissionSeeder extends Seeder
             'guard_name' => 'web',
         ]);
 
+        // Verify-panel brand logo management (BrandManagementController).
+        // Deliberately not 'manage prizes' — brands aren't prizes, and
+        // overloading that permission would be a smell.
+        Permission::firstOrCreate([
+            'name' => 'manage brands',
+            'guard_name' => 'web',
+        ]);
+
         // Gates the claims queue (ClaimReviewController + the
         // product-unit search it uses for line-item entry). No existing
         // UserSeeder role is loyalty-aware, so this is assigned only to
@@ -51,7 +59,7 @@ class LoyaltyPermissionSeeder extends Seeder
         // permissions only. syncPermissions() is idempotent: re-running
         // this seeder always leaves each role with exactly this list.
         Role::firstOrCreate(['name' => 'loyalty manager', 'guard_name' => 'web'])
-            ->syncPermissions(['review claims', 'manage prizes', 'review redemptions', 'manage loyalty points']);
+            ->syncPermissions(['review claims', 'manage prizes', 'review redemptions', 'manage loyalty points', 'manage brands']);
 
         Role::firstOrCreate(['name' => 'loyalty reviewer', 'guard_name' => 'web'])
             ->syncPermissions(['review claims']);
