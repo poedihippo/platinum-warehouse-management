@@ -21,10 +21,11 @@ class StockVerificationController extends Controller
             'stockProductUnit:id,product_unit_id',
             'stockProductUnit.productUnit:id,product_id,name',
             'stockProductUnit.productUnit.product:id,product_brand_id',
-            // ProductBrand model does not use the SoftDeletes trait, but the
-            // table has a deleted_at column — filter manually.
+            // ProductBrand now uses the SoftDeletes trait (its own global
+            // scope already excludes trashed rows); this manual filter is
+            // redundant but harmless, kept for explicitness.
             'stockProductUnit.productUnit.product.productBrand' => function ($query) {
-                $query->select('id', 'name')->whereNull('deleted_at');
+                $query->select('id', 'name', 'logo_path')->whereNull('deleted_at');
             },
         ])
             ->select(['id', 'stock_product_unit_id', 'expired_date'])

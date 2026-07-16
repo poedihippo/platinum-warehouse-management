@@ -14,6 +14,8 @@ class ProductBrandResource extends JsonResource
      */
     public function toArray($request)
     {
-        return parent::toArray($request);
+        return array_merge(parent::toArray($request), [
+            'logo_url' => $this->logo_url,
+        ]);
     }
 }

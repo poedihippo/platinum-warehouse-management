@@ -19,6 +19,7 @@ class StockVerificationResource extends JsonResource
             'product_name'  => $this->stockProductUnit?->productUnit?->name,
             'brand_id'      => $brand?->id,
             'brand_name'    => $brand?->name,
+            'logo_url'      => $brand?->logo_url,
             'expired_date'  => $this->expired_date
                 ? Carbon::parse($this->expired_date)->format('Y-m-d')
                 : null,
