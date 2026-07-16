@@ -12,12 +12,20 @@ class MeController extends Controller
      * $user->can() rather than $user->getAllPermissions() so the
      * Gate::before role-'admin' bypass (AuthServiceProvider) is reflected
      * even when the role holds no explicit permission rows.
+     *
+     * Hand-maintained — there's no group/tag column on the Permission
+     * model to derive "loyalty permissions" from at runtime, and the
+     * canonical list in LoyaltyPermissionSeeder is a seeder, not a
+     * queryable source. Every new loyalty permission must be added here
+     * too, or /me silently omits it and the verify frontend has nothing
+     * to gate on (this has happened twice now — see 'manage brands').
      */
     private const KNOWN_PERMISSIONS = [
         'manage prizes',
         'review redemptions',
         'manage loyalty points',
         'review claims',
+        'manage brands',
     ];
 
     /**
