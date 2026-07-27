@@ -19,6 +19,7 @@ class PrizeResource extends JsonResource
             'points_cost' => (int) $this->points_cost,
             'stock' => (int) $this->stock,
             'photo_url' => $this->photo_url,
+            'product_url' => $this->product_url,
             'is_active' => (bool) $this->is_active,
         ];
     }

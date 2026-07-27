@@ -20,6 +20,7 @@ class StorePrizeRequest extends FormRequest
             'stock' => ['required', 'integer', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
             'photo' => ['nullable', 'image', 'max:5120'],
+            'product_url' => ['nullable', 'url', 'max:2048'],
         ];
     }
 

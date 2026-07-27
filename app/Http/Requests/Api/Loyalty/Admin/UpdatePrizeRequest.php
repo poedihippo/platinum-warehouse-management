@@ -20,6 +20,7 @@ class UpdatePrizeRequest extends FormRequest
             'stock' => ['sometimes', 'required', 'integer', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
             'photo' => ['sometimes', 'nullable', 'image', 'max:5120'],
+            'product_url' => ['sometimes', 'nullable', 'url', 'max:2048'],
         ];
     }
 
