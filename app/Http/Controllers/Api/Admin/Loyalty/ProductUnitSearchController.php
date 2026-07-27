@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Admin\Loyalty;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Loyalty\AdminProductUnitSearchResource;
 use App\Models\ProductUnit;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
 class ProductUnitSearchController extends Controller
@@ -29,12 +30,44 @@ class ProductUnitSearchController extends Controller
             ->where('points_per_unit', '>', 0);
 
         if ($request->filled('q')) {
-            $query->search($request->input('q'));
+            $this->applyTokenSearch($query, $request->input('q'));
         }
 
         $units = $query->orderBy('name')->limit(20)->get();
 
         return AdminProductUnitSearchResource::collection($units);
+    }
+
+    /**
+     * Matches the way admins actually read a product: the UI shows
+     * "{product.name} - {unit.name}", a string that exists in no single
+     * column, so a plain LIKE on the unit alone misses it.
+     *
+     * Every whitespace-separated token must match somewhere in
+     * (product.name OR unit.name OR unit.code) — an AND of ORs. That makes
+     * "CZ Aqua - CZ Bacta Extrem", "Bacta Extrem" and "CZM014" all land on
+     * the same row without special-casing the joined display string.
+     *
+     * Not ProductUnit::scopeSearch, which the points screen also uses.
+     */
+    private function applyTokenSearch(Builder $query, string $term): void
+    {
+        $tokens = preg_split('/\s+/', $term, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        foreach ($tokens as $token) {
+            // The separator in "CZ Aqua - CZ Bacta Extrem" is its own token
+            // and matches nothing, which would AND the whole result to empty.
+            if (!preg_match('/[\p{L}\p{N}]/u', $token)) {
+                continue;
+            }
+
+            $like = '%' . $token . '%';
+
+            $query->where(fn (Builder $q) => $q
+                ->where('product_units.name', 'like', $like)
+                ->orWhere('product_units.code', 'like', $like)
+                ->orWhereHas('product', fn (Builder $p) => $p->where('name', 'like', $like)));
+        }
     }
 
     /**
