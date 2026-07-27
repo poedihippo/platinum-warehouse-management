@@ -20,6 +20,7 @@ class AdminPrizeResource extends JsonResource
             'points_cost' => (int) $this->points_cost,
             'stock' => (int) $this->stock,
             'photo_url' => $this->photo_url,
+            'product_url' => $this->product_url,
             'is_active' => (bool) $this->is_active,
             'redemptions_count' => $this->whenCounted('redemptions'),
             'created_at' => $this->created_at?->toIso8601String(),

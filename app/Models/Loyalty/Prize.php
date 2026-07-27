@@ -23,6 +23,7 @@ class Prize extends Model
         'points_cost',
         'stock',
         'photo_path',
+        'product_url',
         'is_active',
     ];
 

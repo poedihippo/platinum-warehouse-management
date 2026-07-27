@@ -41,18 +41,15 @@ class PrizeShowTest extends TestCase
 
     public function test_admin_can_load_a_single_prize_for_editing(): void
     {
-        $prize = Prize::factory()->create();
-        // product_url isn't in Prize::$fillable yet, so set it directly
-        // rather than via mass assignment (a separately-tracked gap).
-        $prize->product_url = 'https://example.com/tote-bag';
-        $prize->save();
+        $prize = Prize::factory()->create(['product_url' => 'https://example.com/tote-bag']);
 
         $this->actingAsAdmin(true);
 
         $this->getJson("/api/admin/loyalty/prizes/{$prize->id}")
             ->assertOk()
             ->assertJsonPath('data.id', $prize->id)
-            ->assertJsonPath('data.product_url', 'https://example.com/tote-bag');
+            ->assertJsonPath('data.product_url', 'https://example.com/tote-bag')
+            ->assertJsonPath('data.redemptions_count', 0);
     }
 
     public function test_requires_manage_prizes_permission(): void

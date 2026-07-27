@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\Loyalty\Admin\StorePrizeRequest;
 use App\Http\Requests\Api\Loyalty\Admin\UpdatePrizeRequest;
 use App\Http\Resources\Loyalty\AdminPrizeResource;
-use App\Http\Resources\Loyalty\PrizeResource;
 use App\Models\Loyalty\Prize;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -53,7 +52,7 @@ class PrizeManagementController extends Controller
             return response()->json(['message' => 'Hadiah tidak ditemukan.'], 404);
         }
 
-        return new PrizeResource($model);
+        return new AdminPrizeResource($model->loadCount('redemptions'));
     }
 
     /**
@@ -82,6 +81,7 @@ class PrizeManagementController extends Controller
             'stock' => (int) $request->input('stock'),
             'is_active' => $request->boolean('is_active', true),
             'photo_path' => $photoPath,
+            'product_url' => $request->input('product_url'),
         ]);
         $prize->id = $prizeId;
         $prize->save();
@@ -105,7 +105,7 @@ class PrizeManagementController extends Controller
             return response()->json(['message' => 'Hadiah tidak ditemukan.'], 404);
         }
 
-        $data = $request->only(['name', 'description', 'points_cost', 'stock', 'is_active']);
+        $data = $request->only(['name', 'description', 'points_cost', 'stock', 'is_active', 'product_url']);
 
         if ($request->hasFile('photo')) {
             // Replace the existing photo on S3 (delete old, upload new).
