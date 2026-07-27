@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\Loyalty\Admin\StorePrizeRequest;
 use App\Http\Requests\Api\Loyalty\Admin\UpdatePrizeRequest;
 use App\Http\Resources\Loyalty\AdminPrizeResource;
+use App\Http\Resources\Loyalty\PrizeResource;
 use App\Models\Loyalty\Prize;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -36,6 +37,23 @@ class PrizeManagementController extends Controller
         $perPage = $perPage > 0 && $perPage <= 100 ? $perPage : 15;
 
         return AdminPrizeResource::collection($query->paginate($perPage));
+    }
+
+    /**
+     * GET /api/admin/loyalty/prizes/{prize}
+     */
+    public function show(Request $request, string $prize)
+    {
+        if ($denied = $this->denyUnlessAuthorized($request)) {
+            return $denied;
+        }
+
+        $model = Prize::find($prize);
+        if (!$model) {
+            return response()->json(['message' => 'Hadiah tidak ditemukan.'], 404);
+        }
+
+        return new PrizeResource($model);
     }
 
     /**

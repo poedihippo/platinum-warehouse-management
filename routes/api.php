@@ -157,6 +157,7 @@ Route::middleware('auth:sanctum')->prefix('admin/loyalty')->group(function () {
 
     // Prize catalog management (permission: 'manage prizes', checked in-controller).
     Route::get('prizes', [AdminPrizeManagementController::class, 'index']);
+    Route::get('prizes/{prize}', [AdminPrizeManagementController::class, 'show']);
     Route::post('prizes', [AdminPrizeManagementController::class, 'store']);
     Route::patch('prizes/{prize}', [AdminPrizeManagementController::class, 'update']);
     Route::patch('prizes/{prize}/toggle-active', [AdminPrizeManagementController::class, 'toggleActive']);
