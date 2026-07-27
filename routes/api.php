@@ -129,6 +129,7 @@ Route::prefix('loyalty')->group(function () {
         Route::post('redemptions', [LoyaltyRedemptionController::class, 'store']);
         Route::get('redemptions', [LoyaltyRedemptionController::class, 'index']);
         Route::get('redemptions/{redemption}', [LoyaltyRedemptionController::class, 'show']);
+        Route::post('redemptions/{redemption}/deliver', [LoyaltyRedemptionController::class, 'deliver']);
     });
 });
 

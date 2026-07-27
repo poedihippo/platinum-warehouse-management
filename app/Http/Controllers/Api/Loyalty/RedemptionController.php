@@ -131,6 +131,39 @@ class RedemptionController extends Controller
     }
 
     /**
+     * POST /api/loyalty/redemptions/{redemption}/deliver — customer
+     * confirms their own redemption arrived. shipped -> delivered,
+     * terminal, no undo. Same 404/403 ownership shape as show(); 409 if
+     * not shipped (mirrors the admin deliver() conflict response).
+     */
+    public function deliver(Request $request, string $redemption)
+    {
+        $model = Redemption::find($redemption);
+
+        if (!$model) {
+            return response()->json(['message' => 'Penukaran tidak ditemukan.'], 404);
+        }
+
+        if ($model->loyalty_user_id !== $request->user()->getKey()) {
+            return response()->json(['message' => 'Anda tidak memiliki akses ke penukaran ini.'], 403);
+        }
+
+        if (!$model->canBeDelivered()) {
+            return response()->json([
+                'message' => 'Penukaran ini belum berstatus dikirim, tidak dapat dikonfirmasi diterima.',
+                'status' => $model->status,
+            ], 409);
+        }
+
+        $model->update([
+            'status' => Redemption::STATUS_DELIVERED,
+            'delivered_at' => now(),
+        ]);
+
+        return new RedemptionResource($model->load('prize'));
+    }
+
+    /**
      * Spendable balance = earned - spent, derived from the ledger
      * (spec §5.9). Mirrors PointsController::balance().
      */

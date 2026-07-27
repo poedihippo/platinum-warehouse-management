@@ -241,4 +241,74 @@ class RedemptionFlowTest extends TestCase
         $this->postJson("/api/admin/loyalty/redemptions/{$redemption->id}/approve")
             ->assertStatus(403);
     }
+
+    // 11.
+    public function test_customer_can_confirm_delivery_of_own_shipped_redemption(): void
+    {
+        $user = $this->actingAsLoyalty();
+        $redemption = Redemption::factory()->shipped()->create([
+            'loyalty_user_id' => $user->getKey(),
+        ]);
+
+        $this->postJson("/api/loyalty/redemptions/{$redemption->id}/deliver")
+            ->assertOk()
+            ->assertJsonPath('data.status', Redemption::STATUS_DELIVERED);
+
+        $this->assertDatabaseHas('redemptions', [
+            'id' => $redemption->id,
+            'status' => Redemption::STATUS_DELIVERED,
+        ]);
+        Mail::assertNothingSent();
+    }
+
+    // 12.
+    public function test_customer_cannot_confirm_delivery_of_another_customers_redemption(): void
+    {
+        $owner = LoyaltyUser::factory()->create();
+        $redemption = Redemption::factory()->shipped()->create([
+            'loyalty_user_id' => $owner->getKey(),
+        ]);
+
+        $this->actingAsLoyalty(); // a different customer
+
+        $this->postJson("/api/loyalty/redemptions/{$redemption->id}/deliver")
+            ->assertStatus(403);
+
+        $this->assertDatabaseHas('redemptions', [
+            'id' => $redemption->id,
+            'status' => Redemption::STATUS_SHIPPED,
+        ]);
+    }
+
+    // 13.
+    public function test_customer_cannot_confirm_delivery_of_a_non_shipped_redemption(): void
+    {
+        $user = $this->actingAsLoyalty();
+        $redemption = Redemption::factory()->create([
+            'loyalty_user_id' => $user->getKey(),
+            'status' => Redemption::STATUS_PENDING,
+        ]);
+
+        $this->postJson("/api/loyalty/redemptions/{$redemption->id}/deliver")
+            ->assertStatus(409);
+
+        $this->assertDatabaseHas('redemptions', [
+            'id' => $redemption->id,
+            'status' => Redemption::STATUS_PENDING,
+        ]);
+    }
+
+    // 14.
+    public function test_customer_cannot_confirm_delivery_of_an_already_delivered_redemption(): void
+    {
+        $user = $this->actingAsLoyalty();
+        $redemption = Redemption::factory()->shipped()->create([
+            'loyalty_user_id' => $user->getKey(),
+            'status' => Redemption::STATUS_DELIVERED,
+            'delivered_at' => now(),
+        ]);
+
+        $this->postJson("/api/loyalty/redemptions/{$redemption->id}/deliver")
+            ->assertStatus(409);
+    }
 }
