@@ -107,13 +107,9 @@ class SalesOrderDetail extends Model
     public function scopeHasDeliveryOrder(Builder $query, bool $value = true)
     {
         if ($value) {
-            return $query->whereHas('deliveryOrderDetails', function ($q) {
-                $q->whereColumn(
-                    DB::raw('(SELECT SUM(qty) FROM delivery_order_details WHERE delivery_order_details.sales_order_detail_id = sales_order_details.id)'),
-                    '>=',
-                    'sales_order_details.qty'
-                );
-            });
+            return $query->whereRaw(
+                '(SELECT COALESCE(SUM(qty), 0) FROM delivery_order_details WHERE delivery_order_details.sales_order_detail_id = sales_order_details.id) >= sales_order_details.qty'
+            );
         }
 
         return $query->where(function ($q) {
