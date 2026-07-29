@@ -266,8 +266,19 @@ class SalesOrder extends Model
             )
             ->when(
                 $value === false,
-                fn($q) => $q->whereDoesntHave('details.salesOrderItems')
+                fn($q) => $q->where(function ($q) {
+                    $q->whereDoesntHave('details.salesOrderItems')
+                        ->orWhereHas('details', function ($q) {
+                            $q->whereRaw(
+                                '(SELECT COALESCE(SUM(qty), 0) FROM delivery_order_details WHERE delivery_order_details.sales_order_detail_id = sales_order_details.id) < sales_order_details.qty'
+                            );
+                        });
+                })
             );
+            // ->when(
+            //     $value === false,
+            //     fn($q) => $q->whereDoesntHave('details.salesOrderItems')
+            // );
     }
 
     public function scopeHasRemainingDo(Builder $query, bool $value = true)

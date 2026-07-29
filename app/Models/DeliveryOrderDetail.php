@@ -7,7 +7,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DeliveryOrderDetail extends Model
 {
-    protected $guarded = [];
+    protected $fillable = [
+        'delivery_order_id',
+        'sales_order_detail_id',
+        'qty',
+    ];
 
     public function deliveryOrder(): BelongsTo
     {
