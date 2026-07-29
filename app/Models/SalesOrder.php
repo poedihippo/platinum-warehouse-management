@@ -269,4 +269,23 @@ class SalesOrder extends Model
                 fn($q) => $q->whereDoesntHave('details.salesOrderItems')
             );
     }
+
+    public function scopeHasRemainingDo(Builder $query, bool $value = true)
+    {
+        if ($value) {
+            // SO yang MASIH ADA sisa qty belum di-DO
+            return $query->whereHas('details', function ($q) {
+                $q->whereRaw(
+                    '(SELECT COALESCE(SUM(qty), 0) FROM delivery_order_details WHERE delivery_order_details.sales_order_detail_id = sales_order_details.id) < sales_order_details.qty'
+                );
+            });
+        }
+
+        // SO yang semua detail-nya sudah fully di-DO
+        return $query->whereDoesntHave('details', function ($q) {
+            $q->whereRaw(
+                '(SELECT COALESCE(SUM(qty), 0) FROM delivery_order_details WHERE delivery_order_details.sales_order_detail_id = sales_order_details.id) < sales_order_details.qty'
+            );
+        });
+    }
 }

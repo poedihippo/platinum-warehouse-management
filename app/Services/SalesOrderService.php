@@ -174,6 +174,7 @@ class SalesOrderService
                 AllowedFilter::scope('has_related_so', 'hasSalesOrderItem'),
                 AllowedFilter::scope('start_date'),
                 AllowedFilter::scope('end_date'),
+                AllowedFilter::scope('has_remaining_do', 'hasRemainingDo'),
                 AllowedFilter::callback('search', function ($q, $value) {
                     $q->where('invoice_no', 'like', '%' . $value . '%')
                         ->orWhereHas('user', fn($q) => $q->where('name', 'like', '%' . $value . '%'))
