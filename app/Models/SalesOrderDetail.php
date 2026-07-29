@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Facades\DB;
 
 class SalesOrderDetail extends Model
 {
@@ -73,10 +74,10 @@ class SalesOrderDetail extends Model
     //     return $this->hasMany(DeliveryOrderDetail::class);
     // }
 
-    public function deliveryOrderDetail(): HasOne
-    {
-        return $this->hasOne(DeliveryOrderDetail::class);
-    }
+    // public function deliveryOrderDetail(): HasOne
+    // {
+    //     return $this->hasOne(DeliveryOrderDetail::class);
+    // }
 
     public function deliveryOrderDetails(): HasMany
     {
@@ -105,7 +106,21 @@ class SalesOrderDetail extends Model
 
     public function scopeHasDeliveryOrder(Builder $query, bool $value = true)
     {
-        if ($value) return $query->has('deliveryOrderDetails');
-        return $query->doesntHave('deliveryOrderDetails');
+        if ($value) {
+            return $query->whereHas('deliveryOrderDetails', function ($q) {
+                $q->whereColumn(
+                    DB::raw('(SELECT SUM(qty) FROM delivery_order_details WHERE delivery_order_details.sales_order_detail_id = sales_order_details.id)'),
+                    '>=',
+                    'sales_order_details.qty'
+                );
+            });
+        }
+
+        return $query->where(function ($q) {
+            $q->doesntHave('deliveryOrderDetails')
+                ->orWhereRaw(
+                    '(SELECT COALESCE(SUM(qty), 0) FROM delivery_order_details WHERE delivery_order_details.sales_order_detail_id = sales_order_details.id) < sales_order_details.qty'
+                );
+        });
     }
 }
