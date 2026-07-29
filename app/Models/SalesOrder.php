@@ -108,7 +108,13 @@ class SalesOrder extends Model
     protected function hasDeliveryOrder(): Attribute
     {
         return Attribute::make(
-            get: fn() => $this->details()->has('deliveryOrderDetail')->exists(),
+            get: fn() => $this->details()->whereHas('deliveryOrderDetails', function ($q) {
+                $q->whereColumn(
+                    \Illuminate\Support\Facades\DB::raw('(SELECT COALESCE(SUM(qty), 0) FROM delivery_order_details WHERE delivery_order_details.sales_order_detail_id = sales_order_details.id)'),
+                    '>=',
+                    'sales_order_details.qty'
+                );
+            })->exists(),
         );
     }
 
