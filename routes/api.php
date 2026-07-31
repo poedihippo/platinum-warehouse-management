@@ -47,6 +47,7 @@ use App\Http\Controllers\Api\Loyalty\Auth\PasswordResetController as LoyaltyPass
 use App\Http\Controllers\Api\Loyalty\Auth\MeController as LoyaltyMeController;
 use App\Http\Controllers\Api\Loyalty\ClaimController as LoyaltyClaimController;
 use App\Http\Controllers\Api\Loyalty\PointsController as LoyaltyPointsController;
+use App\Http\Controllers\Api\Loyalty\PrizeCategoryController as LoyaltyPrizeCategoryController;
 use App\Http\Controllers\Api\Loyalty\PrizeController as LoyaltyPrizeController;
 use App\Http\Controllers\Api\Loyalty\ProfileController as LoyaltyProfileController;
 use App\Http\Controllers\Api\Loyalty\RedemptionController as LoyaltyRedemptionController;
@@ -131,6 +132,7 @@ Route::prefix('loyalty')->group(function () {
         // Prizes (catalog browse) + redemptions (Phase 4).
         Route::get('prizes', [LoyaltyPrizeController::class, 'index']);
         Route::get('prizes/{prize}', [LoyaltyPrizeController::class, 'show']);
+        Route::get('prize-categories', [LoyaltyPrizeCategoryController::class, 'index']);
 
         Route::post('redemptions', [LoyaltyRedemptionController::class, 'store']);
         Route::get('redemptions', [LoyaltyRedemptionController::class, 'index']);

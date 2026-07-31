@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\Admin\Loyalty;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\Loyalty\Admin\StorePrizeCategoryRequest;
 use App\Http\Requests\Api\Loyalty\Admin\UpdatePrizeCategoryRequest;
-use App\Http\Resources\Loyalty\PrizeCategoryResource;
+use App\Http\Resources\Loyalty\AdminPrizeCategoryResource;
 use App\Models\Loyalty\PrizeCategory;
 use Illuminate\Http\Request;
 
@@ -25,7 +25,7 @@ class PrizeCategoryManagementController extends Controller
 
         $categories = PrizeCategory::withCount('prizes')->orderBy('name')->get();
 
-        return PrizeCategoryResource::collection($categories);
+        return AdminPrizeCategoryResource::collection($categories);
     }
 
     /**
@@ -39,7 +39,7 @@ class PrizeCategoryManagementController extends Controller
 
         $category = PrizeCategory::create($request->validated());
 
-        return (new PrizeCategoryResource($category->loadCount('prizes')))
+        return (new AdminPrizeCategoryResource($category->loadCount('prizes')))
             ->response()
             ->setStatusCode(201);
     }
@@ -60,7 +60,7 @@ class PrizeCategoryManagementController extends Controller
 
         $model->update($request->validated());
 
-        return new PrizeCategoryResource($model->loadCount('prizes'));
+        return new AdminPrizeCategoryResource($model->loadCount('prizes'));
     }
 
     /**
