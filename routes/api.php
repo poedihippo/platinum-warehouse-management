@@ -48,6 +48,7 @@ use App\Http\Controllers\Api\Loyalty\Auth\MeController as LoyaltyMeController;
 use App\Http\Controllers\Api\Loyalty\ClaimController as LoyaltyClaimController;
 use App\Http\Controllers\Api\Loyalty\PointsController as LoyaltyPointsController;
 use App\Http\Controllers\Api\Loyalty\PrizeController as LoyaltyPrizeController;
+use App\Http\Controllers\Api\Loyalty\ProfileController as LoyaltyProfileController;
 use App\Http\Controllers\Api\Loyalty\RedemptionController as LoyaltyRedemptionController;
 use App\Http\Controllers\Api\Admin\Loyalty\BrandManagementController as AdminBrandManagementController;
 use App\Http\Controllers\Api\Admin\Loyalty\ClaimReviewController as AdminClaimReviewController;
@@ -112,6 +113,9 @@ Route::prefix('loyalty')->group(function () {
 
     Route::middleware('auth:loyalty')->group(function () {
         Route::get('me', LoyaltyMeController::class);
+
+        Route::get('profile', [LoyaltyProfileController::class, 'index']);
+        Route::patch('profile', [LoyaltyProfileController::class, 'update']);
 
         // Claim submission is additionally rate-limited to 5/day/user.
         Route::post('claims', [LoyaltyClaimController::class, 'store'])

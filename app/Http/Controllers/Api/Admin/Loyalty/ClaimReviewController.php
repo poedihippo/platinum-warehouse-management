@@ -21,7 +21,7 @@ class ClaimReviewController extends Controller
     private const PERMISSION = 'review claims';
 
     /**
-     * GET /api/admin/loyalty/claims?status=pending&sort=submitted_at_desc
+     * GET /api/admin/loyalty/claims?status=pending&sort=submitted_at_desc&q=
      * Queue 15/page. status omitted or 'all' = no status filter.
      */
     public function index(Request $request)
@@ -35,6 +35,16 @@ class ClaimReviewController extends Controller
 
         if ($request->filled('status') && $request->input('status') !== 'all') {
             $query->where('status', $request->input('status'));
+        }
+
+        if ($request->filled('q')) {
+            $value = $request->input('q');
+            $query->where(function ($sub) use ($value) {
+                $sub->where('invoice_number', 'like', "%$value%")
+                    ->orWhereHas('loyaltyUser', function ($q) use ($value) {
+                        $q->where('name', 'like', "%$value%")->orWhere('email', 'like', "%$value%");
+                    });
+            });
         }
 
         match ($request->input('sort')) {

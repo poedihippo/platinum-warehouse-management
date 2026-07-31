@@ -22,7 +22,7 @@ class RedemptionReviewController extends Controller
     private const PERMISSION = 'review redemptions';
 
     /**
-     * GET /api/admin/loyalty/redemptions?status=pending&sort=submitted_at_desc
+     * GET /api/admin/loyalty/redemptions?status=pending&sort=submitted_at_desc&q=
      */
     public function index(Request $request)
     {
@@ -39,8 +39,20 @@ class RedemptionReviewController extends Controller
             $query->where('status', $request->input('status'));
         }
 
+        if ($request->filled('q')) {
+            $value = $request->input('q');
+            $query->where(function ($sub) use ($value) {
+                $sub->whereHas('loyaltyUser', function ($q) use ($value) {
+                    $q->where('name', 'like', "%$value%")->orWhere('email', 'like', "%$value%");
+                })->orWhereHas('prize', function ($q) use ($value) {
+                    $q->where('name', 'like', "%$value%");
+                });
+            });
+        }
+
         match ($request->input('sort')) {
             'submitted_at_asc' => $query->orderBy('submitted_at', 'asc'),
+            'submitted_at_desc' => $query->orderBy('submitted_at', 'desc'),
             default => $query->orderBy('submitted_at', 'desc'),
         };
 

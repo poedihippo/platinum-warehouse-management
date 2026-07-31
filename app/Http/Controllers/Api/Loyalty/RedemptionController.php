@@ -74,6 +74,13 @@ class RedemptionController extends Controller
                 'submitted_at' => now(),
             ]);
 
+            // Save as the customer's default address for next time. The
+            // redemption's own recipient_address above is an immutable
+            // snapshot and is never touched by this.
+            if ($request->filled('recipient_address')) {
+                $user->update(['address' => $request->input('recipient_address')]);
+            }
+
             PointsTransaction::create([
                 'loyalty_user_id' => $user->getKey(),
                 'direction' => PointsTransaction::DIRECTION_SPEND,
@@ -108,7 +115,10 @@ class RedemptionController extends Controller
             $query->where('status', $request->input('status'));
         }
 
-        return RedemptionResource::collection($query->paginate(15));
+        $perPage = (int) $request->input('per_page', 15);
+        $perPage = $perPage > 0 && $perPage <= 100 ? $perPage : 15;
+
+        return RedemptionResource::collection($query->paginate($perPage));
     }
 
     /**

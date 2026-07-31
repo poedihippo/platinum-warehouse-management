@@ -17,8 +17,8 @@ class PrizeManagementController extends Controller
     private const PERMISSION = 'manage prizes';
 
     /**
-     * GET /api/admin/loyalty/prizes
-     * Includes inactive prizes by default. Newest first.
+     * GET /api/admin/loyalty/prizes?q=&sort=name_asc
+     * Includes inactive prizes by default. Newest first unless sorted.
      */
     public function index(Request $request)
     {
@@ -26,11 +26,24 @@ class PrizeManagementController extends Controller
             return $denied;
         }
 
-        $query = Prize::withCount('redemptions')->orderByDesc('created_at');
+        $query = Prize::withCount('redemptions');
 
         if ($request->filled('is_active')) {
             $query->where('is_active', $request->boolean('is_active'));
         }
+
+        if ($request->filled('q')) {
+            $value = $request->input('q');
+            $query->where(fn ($q) => $q->where('name', 'like', "%$value%"));
+        }
+
+        match ($request->input('sort')) {
+            'name_asc' => $query->orderBy('name'),
+            'name_desc' => $query->orderByDesc('name'),
+            'points_asc' => $query->orderBy('points_cost'),
+            'points_desc' => $query->orderByDesc('points_cost'),
+            default => $query->orderByDesc('created_at'),
+        };
 
         $perPage = (int) $request->input('per_page', 15);
         $perPage = $perPage > 0 && $perPage <= 100 ? $perPage : 15;

@@ -26,6 +26,7 @@ class LoyaltyUser extends Authenticatable
         'name',
         'password',
         'phone',
+        'address',
     ];
 
     protected $hidden = [

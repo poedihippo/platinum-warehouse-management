@@ -107,9 +107,17 @@ class ClaimController extends Controller
      */
     public function index(Request $request)
     {
-        $claims = Claim::where('loyalty_user_id', $request->user()->getKey())
-            ->orderByDesc('submitted_at')
-            ->paginate(15);
+        $query = Claim::where('loyalty_user_id', $request->user()->getKey())
+            ->orderByDesc('submitted_at');
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        $perPage = (int) $request->input('per_page', 15);
+        $perPage = $perPage > 0 && $perPage <= 100 ? $perPage : 15;
+
+        $claims = $query->paginate($perPage);
 
         return ClaimResource::collection($claims);
     }

@@ -20,6 +20,11 @@ class PrizeController extends Controller
     {
         $query = Prize::active();
 
+        if ($request->filled('q')) {
+            $value = $request->input('q');
+            $query->where(fn ($q) => $q->where('name', 'like', "%$value%"));
+        }
+
         match ($request->input('sort')) {
             'points_desc' => $query->orderByDesc('points_cost'),
             'name_asc' => $query->orderBy('name'),
