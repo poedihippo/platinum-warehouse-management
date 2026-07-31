@@ -40,6 +40,13 @@ class LoyaltyPermissionSeeder extends Seeder
             'guard_name' => 'web',
         ]);
 
+        // Customer list/points-adjustment/deactivation (CustomerManagementController).
+        // Granted to all loyalty roles — every loyalty admin can view/manage customers.
+        Permission::firstOrCreate([
+            'name' => 'manage customers',
+            'guard_name' => 'web',
+        ]);
+
         // Gates the claims queue (ClaimReviewController + the
         // product-unit search it uses for line-item entry). No existing
         // UserSeeder role is loyalty-aware, so this is assigned only to
@@ -59,15 +66,15 @@ class LoyaltyPermissionSeeder extends Seeder
         // permissions only. syncPermissions() is idempotent: re-running
         // this seeder always leaves each role with exactly this list.
         Role::firstOrCreate(['name' => 'loyalty manager', 'guard_name' => 'web'])
-            ->syncPermissions(['review claims', 'manage prizes', 'review redemptions', 'manage loyalty points', 'manage brands']);
+            ->syncPermissions(['review claims', 'manage prizes', 'review redemptions', 'manage loyalty points', 'manage brands', 'manage customers']);
 
         Role::firstOrCreate(['name' => 'loyalty reviewer', 'guard_name' => 'web'])
-            ->syncPermissions(['review claims']);
+            ->syncPermissions(['review claims', 'manage customers']);
 
         Role::firstOrCreate(['name' => 'loyalty prize manager', 'guard_name' => 'web'])
-            ->syncPermissions(['manage prizes']);
+            ->syncPermissions(['manage prizes', 'manage customers']);
 
         Role::firstOrCreate(['name' => 'loyalty fulfillment', 'guard_name' => 'web'])
-            ->syncPermissions(['review redemptions']);
+            ->syncPermissions(['review redemptions', 'manage customers']);
     }
 }

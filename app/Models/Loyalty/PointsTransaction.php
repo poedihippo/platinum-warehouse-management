@@ -28,6 +28,7 @@ class PointsTransaction extends Model
 
     public const SOURCE_CLAIM = 'claim';
     public const SOURCE_REDEMPTION = 'redemption';
+    public const SOURCE_MANUAL_ADJUSTMENT = 'manual_adjustment';
 
     protected $guarded = [];
 

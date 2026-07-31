@@ -52,6 +52,7 @@ use App\Http\Controllers\Api\Loyalty\ProfileController as LoyaltyProfileControll
 use App\Http\Controllers\Api\Loyalty\RedemptionController as LoyaltyRedemptionController;
 use App\Http\Controllers\Api\Admin\Loyalty\BrandManagementController as AdminBrandManagementController;
 use App\Http\Controllers\Api\Admin\Loyalty\ClaimReviewController as AdminClaimReviewController;
+use App\Http\Controllers\Api\Admin\Loyalty\CustomerManagementController as AdminCustomerManagementController;
 use App\Http\Controllers\Api\Admin\Loyalty\MeController as AdminLoyaltyMeController;
 use App\Http\Controllers\Api\Admin\Loyalty\PrizeManagementController as AdminPrizeManagementController;
 use App\Http\Controllers\Api\Admin\Loyalty\ProductUnitSearchController as AdminProductUnitSearchController;
@@ -111,7 +112,7 @@ Route::prefix('loyalty')->group(function () {
         Route::post('logout', LoyaltyLogoutController::class)->middleware('auth:loyalty');
     });
 
-    Route::middleware('auth:loyalty')->group(function () {
+    Route::middleware(['auth:loyalty', 'loyalty.active'])->group(function () {
         Route::get('me', LoyaltyMeController::class);
 
         Route::get('profile', [LoyaltyProfileController::class, 'index']);
@@ -184,6 +185,13 @@ Route::middleware('auth:sanctum')->prefix('admin/loyalty')->group(function () {
     // sidesteps multipart method-spoofing entirely.
     Route::get('brands', [AdminBrandManagementController::class, 'index']);
     Route::post('brands/{productBrand}/logo', [AdminBrandManagementController::class, 'uploadLogo']);
+
+    // Customer list, manual points adjustment, deactivation (permission:
+    // 'manage customers', checked in-controller).
+    Route::get('customers', [AdminCustomerManagementController::class, 'index']);
+    Route::get('customers/{loyaltyUser}', [AdminCustomerManagementController::class, 'show']);
+    Route::post('customers/{loyaltyUser}/adjust-points', [AdminCustomerManagementController::class, 'adjustPoints']);
+    Route::patch('customers/{loyaltyUser}/toggle-active', [AdminCustomerManagementController::class, 'toggleActive']);
 });
 
 // Everything below requires the 'warehouse' token ability (see

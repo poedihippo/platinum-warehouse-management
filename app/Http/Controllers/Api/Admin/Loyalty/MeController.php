@@ -26,6 +26,7 @@ class MeController extends Controller
         'manage loyalty points',
         'review claims',
         'manage brands',
+        'manage customers',
     ];
 
     /**

@@ -18,6 +18,10 @@ class LoginController extends Controller
             return response()->json(['message' => 'Email atau kata sandi salah.'], 422);
         }
 
+        if (!$user->is_active) {
+            return response()->json(['message' => 'Akun dinonaktifkan.'], 403);
+        }
+
         // Token is scoped to the 'loyalty' ability so it can never act
         // on warehouse/admin endpoints even if presented there.
         $token = $user->createToken('loyalty', ['loyalty'])->plainTextToken;

@@ -27,6 +27,7 @@ class LoyaltyUser extends Authenticatable
         'password',
         'phone',
         'address',
+        'is_active',
     ];
 
     protected $hidden = [
@@ -36,6 +37,7 @@ class LoyaltyUser extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'is_active' => 'boolean',
     ];
 
     /**
