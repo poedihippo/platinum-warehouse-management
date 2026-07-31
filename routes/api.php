@@ -54,6 +54,7 @@ use App\Http\Controllers\Api\Admin\Loyalty\BrandManagementController as AdminBra
 use App\Http\Controllers\Api\Admin\Loyalty\ClaimReviewController as AdminClaimReviewController;
 use App\Http\Controllers\Api\Admin\Loyalty\CustomerManagementController as AdminCustomerManagementController;
 use App\Http\Controllers\Api\Admin\Loyalty\MeController as AdminLoyaltyMeController;
+use App\Http\Controllers\Api\Admin\Loyalty\PrizeCategoryManagementController as AdminPrizeCategoryManagementController;
 use App\Http\Controllers\Api\Admin\Loyalty\PrizeManagementController as AdminPrizeManagementController;
 use App\Http\Controllers\Api\Admin\Loyalty\ProductUnitSearchController as AdminProductUnitSearchController;
 use App\Http\Controllers\Api\Admin\Loyalty\RedemptionReviewController as AdminRedemptionReviewController;
@@ -166,6 +167,12 @@ Route::middleware('auth:sanctum')->prefix('admin/loyalty')->group(function () {
     Route::post('prizes', [AdminPrizeManagementController::class, 'store']);
     Route::patch('prizes/{prize}', [AdminPrizeManagementController::class, 'update']);
     Route::patch('prizes/{prize}/toggle-active', [AdminPrizeManagementController::class, 'toggleActive']);
+
+    // Prize category management (permission: 'manage prizes', checked in-controller).
+    Route::get('prize-categories', [AdminPrizeCategoryManagementController::class, 'index']);
+    Route::post('prize-categories', [AdminPrizeCategoryManagementController::class, 'store']);
+    Route::patch('prize-categories/{prizeCategory}', [AdminPrizeCategoryManagementController::class, 'update']);
+    Route::delete('prize-categories/{prizeCategory}', [AdminPrizeCategoryManagementController::class, 'destroy']);
 
     // Redemption queue + fulfilment (permission: 'review redemptions', checked in-controller).
     Route::get('redemptions', [AdminRedemptionReviewController::class, 'index']);

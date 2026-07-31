@@ -21,6 +21,12 @@ class PrizeResource extends JsonResource
             'photo_url' => $this->photo_url,
             'product_url' => $this->product_url,
             'is_active' => (bool) $this->is_active,
+            // Null when the prize has no category, or when its category is
+            // inactive/deleted — inactive/deleted categories are invisible
+            // to customers, so those prizes read as uncategorized here.
+            'category' => $this->category && $this->category->is_active
+                ? ['id' => $this->category->id, 'name' => $this->category->name]
+                : null,
         ];
     }
 }

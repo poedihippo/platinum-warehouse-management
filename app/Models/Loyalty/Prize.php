@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
@@ -25,6 +26,7 @@ class Prize extends Model
         'photo_path',
         'product_url',
         'is_active',
+        'prize_category_id',
     ];
 
     protected $casts = [
@@ -51,5 +53,10 @@ class Prize extends Model
     public function redemptions(): HasMany
     {
         return $this->hasMany(Redemption::class);
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(PrizeCategory::class, 'prize_category_id');
     }
 }

@@ -22,6 +22,13 @@ class AdminPrizeResource extends JsonResource
             'photo_url' => $this->photo_url,
             'product_url' => $this->product_url,
             'is_active' => (bool) $this->is_active,
+            // Unlike the customer-facing PrizeResource, this shows the raw
+            // category (even inactive) so admins can see and reassign it.
+            // Still null when the category was soft-deleted, since the
+            // belongsTo relation excludes trashed rows by default.
+            'category' => $this->category
+                ? ['id' => $this->category->id, 'name' => $this->category->name, 'is_active' => (bool) $this->category->is_active]
+                : null,
             'redemptions_count' => $this->whenCounted('redemptions'),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),

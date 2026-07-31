@@ -26,7 +26,7 @@ class PrizeManagementController extends Controller
             return $denied;
         }
 
-        $query = Prize::withCount('redemptions');
+        $query = Prize::with('category')->withCount('redemptions');
 
         if ($request->filled('is_active')) {
             $query->where('is_active', $request->boolean('is_active'));
@@ -65,7 +65,7 @@ class PrizeManagementController extends Controller
             return response()->json(['message' => 'Hadiah tidak ditemukan.'], 404);
         }
 
-        return new AdminPrizeResource($model->loadCount('redemptions'));
+        return new AdminPrizeResource($model->load('category')->loadCount('redemptions'));
     }
 
     /**
@@ -95,11 +95,12 @@ class PrizeManagementController extends Controller
             'is_active' => $request->boolean('is_active', true),
             'photo_path' => $photoPath,
             'product_url' => $request->input('product_url'),
+            'prize_category_id' => $request->input('prize_category_id'),
         ]);
         $prize->id = $prizeId;
         $prize->save();
 
-        return (new AdminPrizeResource($prize->loadCount('redemptions')))
+        return (new AdminPrizeResource($prize->load('category')->loadCount('redemptions')))
             ->response()
             ->setStatusCode(201);
     }
@@ -118,7 +119,7 @@ class PrizeManagementController extends Controller
             return response()->json(['message' => 'Hadiah tidak ditemukan.'], 404);
         }
 
-        $data = $request->only(['name', 'description', 'points_cost', 'stock', 'is_active', 'product_url']);
+        $data = $request->only(['name', 'description', 'points_cost', 'stock', 'is_active', 'product_url', 'prize_category_id']);
 
         if ($request->hasFile('photo')) {
             // Replace the existing photo on S3 (delete old, upload new).
@@ -130,7 +131,7 @@ class PrizeManagementController extends Controller
 
         $model->update($data);
 
-        return new AdminPrizeResource($model->loadCount('redemptions'));
+        return new AdminPrizeResource($model->load('category')->loadCount('redemptions'));
     }
 
     /**
@@ -149,7 +150,7 @@ class PrizeManagementController extends Controller
 
         $model->update(['is_active' => !$model->is_active]);
 
-        return new AdminPrizeResource($model->loadCount('redemptions'));
+        return new AdminPrizeResource($model->load('category')->loadCount('redemptions'));
     }
 
     private function storePhoto(UploadedFile $file, string $prizeId): string

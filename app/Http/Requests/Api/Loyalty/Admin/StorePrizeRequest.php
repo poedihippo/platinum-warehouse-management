@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api\Loyalty\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StorePrizeRequest extends FormRequest
 {
@@ -21,6 +22,7 @@ class StorePrizeRequest extends FormRequest
             'is_active' => ['sometimes', 'boolean'],
             'photo' => ['nullable', 'image', 'max:5120'],
             'product_url' => ['nullable', 'url', 'max:2048'],
+            'prize_category_id' => ['nullable', Rule::exists('prize_categories', 'id')->whereNull('deleted_at')],
         ];
     }
 

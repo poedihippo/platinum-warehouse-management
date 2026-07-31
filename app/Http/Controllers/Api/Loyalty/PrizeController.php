@@ -18,11 +18,30 @@ class PrizeController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Prize::active();
+        $query = Prize::active()->with('category');
 
         if ($request->filled('q')) {
             $value = $request->input('q');
             $query->where(fn ($q) => $q->where('name', 'like', "%$value%"));
+        }
+
+        // prize_category_id=<id> narrows to that category (only matches when
+        // the category is active/not deleted, same visibility rule as
+        // PrizeResource). prize_category_id=none narrows to prizes with no
+        // category, or whose category is inactive/deleted (customer-visible
+        // "uncategorized" bucket).
+        if ($request->filled('prize_category_id')) {
+            $value = $request->input('prize_category_id');
+
+            if ($value === 'none') {
+                $query->where(function ($q) {
+                    $q->whereNull('prize_category_id')
+                        ->orWhereDoesntHave('category', fn ($c) => $c->active());
+                });
+            } else {
+                $query->where('prize_category_id', $value)
+                    ->whereHas('category', fn ($c) => $c->active());
+            }
         }
 
         match ($request->input('sort')) {
@@ -50,7 +69,7 @@ class PrizeController extends Controller
      */
     public function show(string $prize)
     {
-        $model = Prize::active()->find($prize);
+        $model = Prize::active()->with('category')->find($prize);
 
         if (!$model) {
             return response()->json(['message' => 'Hadiah tidak ditemukan.'], 404);
