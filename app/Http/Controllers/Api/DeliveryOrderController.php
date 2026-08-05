@@ -108,11 +108,13 @@ class DeliveryOrderController extends Controller
         $deliveryOrder = DeliveryOrder::findTenanted($id);
         DB::beginTransaction();
         try {
-            $deliveryOrder->details->each(fn($d) => $d->salesOrderDetail->update(['fulfilled_qty' => 0]));
+            $deliveryOrderDetails = $deliveryOrder->details;
 
             DB::statement('SET FOREIGN_KEY_CHECKS=0');
-            SalesOrderItem::whereIn('sales_order_detail_id', $deliveryOrder->details->pluck('sales_order_detail_id'))->delete();
+            SalesOrderItem::whereIn('delivery_order_detail_id', $deliveryOrderDetails->pluck('id'))->delete();
             DB::statement('SET FOREIGN_KEY_CHECKS=1');
+
+            $deliveryOrderDetails->each(fn($d) => SalesOrderService::countFulfilledQty($d->sales_order_detail_id));
 
             // $deliveryOrder->salesOrder?->details->each(function ($detail) use ($deliveryOrder) {
             //     $stockProductUnit = StockProductUnit::tenanted()->where('warehouse_id', $deliveryOrder->salesOrder?->warehouse_id)
@@ -309,10 +311,10 @@ class DeliveryOrderController extends Controller
             return response()->json(['message' => 'Product sudah pernah di verifikasi'], 400);
         }
 
-        // 4. cek apakah required qty dari SO Detail sudah terpenuhi
+        // 4. cek apakah required qty dari DO Detail sudah terpenuhi
         // 5. jika stock_id yang di scan adalah grouping, hitung dulu jumlah childs nya lalu compare dengan required qty yang ada di step 4
-        $fulfilledQty = $salesOrderDetail->salesOrderItems()->where('is_parent', 0)->count();
-        if ($fulfilledQty >= $salesOrderDetail->qty) {
+        $fulfilledQty = $salesOrderDetail->salesOrderItems()->where('delivery_order_detail_id', $deliveryOrderDetail->id)->where('is_parent', 0)->count();
+        if ($fulfilledQty >= $deliveryOrderDetail->qty) {
             return response()->json(['message' => 'Qty sudah terpenuhi'], 400);
         }
 
@@ -321,6 +323,7 @@ class DeliveryOrderController extends Controller
         $totalChilds = $stockChilds->count();
         if ($totalChilds > 0) {
             $stockIds = $salesOrderDetail->salesOrderItems()
+                ->where('delivery_order_detail_id', $deliveryOrderDetail->id)
                 ->whereIn('stock_id', $stockChilds->pluck('id'))
                 ->pluck('stock_id');
             if ($stockIds->count() > 0) {
@@ -331,8 +334,8 @@ class DeliveryOrderController extends Controller
                 $totalStockScanned = $fulfilledQty + $totalChilds;
             }
 
-            if ($totalStockScanned > $salesOrderDetail->qty) {
-                return response()->json(['message' => sprintf('Jumlah barang yang di scan (%d) melebihi qty. Tersisa %d lagi', $totalChilds - $stockIds->count(), $salesOrderDetail->qty - $fulfilledQty)], 400);
+            if ($totalStockScanned > $deliveryOrderDetail->qty) {
+                return response()->json(['message' => sprintf('Jumlah barang yang di scan (%d) melebihi qty. Tersisa %d lagi', $totalChilds - $stockIds->count(), $deliveryOrderDetail->qty - $fulfilledQty)], 400);
             }
 
             $dataStocks = []; // data stock to be insert into salesOrderItems
@@ -341,16 +344,16 @@ class DeliveryOrderController extends Controller
             DB::beginTransaction();
             try {
                 // upsert if exist and is_returned true
-                $salesOrderItem = $salesOrderDetail->salesOrderItems()->updateOrCreate(['stock_id' => $stock->id], ['is_returned' => false, 'is_parent' => true]);
+                $salesOrderItem = $salesOrderDetail->salesOrderItems()->updateOrCreate(['stock_id' => $stock->id, 'delivery_order_detail_id' => $deliveryOrderDetail->id], ['is_returned' => false, 'is_parent' => true]);
                 // $salesOrderItem = $salesOrderDetail->salesOrderItems()->create([
                 //     'is_returned' => false,
                 //     'stock_id' => $stock->id,
                 //     'is_parent' => true,
                 // ]);
 
-                SalesOrderItem::where('sales_order_detail_id', $salesOrderDetail->id)->whereIn('stock_id', $stockIds)->delete();
+                SalesOrderItem::where('sales_order_detail_id', $salesOrderDetail->id)->where('delivery_order_detail_id', $deliveryOrderDetail->id)->whereIn('stock_id', $stockIds)->delete();
                 foreach ($stock->childs as $child) {
-                    $dataStocks[] = ['stock_id' => $child->id, 'sales_order_detail_id' => $salesOrderDetail->id, 'is_returned' => false];
+                    $dataStocks[] = ['stock_id' => $child->id, 'sales_order_detail_id' => $salesOrderDetail->id, 'delivery_order_detail_id' => $deliveryOrderDetail->id, 'is_returned' => false];
                 }
 
                 $salesOrderItem->childs()->createMany($dataStocks);
@@ -365,7 +368,7 @@ class DeliveryOrderController extends Controller
             // 6. insert stock_id ke sales_order_items. jika stock grouping, insert childs nya
             DB::beginTransaction();
             try {
-                $salesOrderItem = $salesOrderDetail->salesOrderItems()->updateOrCreate(['stock_id' => $stock->id], ['is_returned' => false]);
+                $salesOrderItem = $salesOrderDetail->salesOrderItems()->updateOrCreate(['stock_id' => $stock->id, 'delivery_order_detail_id' => $deliveryOrderDetail->id], ['is_returned' => false]);
 
                 SalesOrderService::countFulfilledQty($salesOrderDetail);
                 DB::commit();

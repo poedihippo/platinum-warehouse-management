@@ -19,6 +19,7 @@ class DeliveryOrderDetailResource extends JsonResource
             [
                 'sales_order_detail' => new SalesOrderDetailResource($this->whenLoaded('salesOrderDetail')),
                 'delivery_order' => new DeliveryOrderResource($this->whenLoaded('deliveryOrder')),
+                'sales_order_items' => SalesOrderItemResource::collection($this->whenLoaded('salesOrderItems')),
             ]
         );
     }

@@ -8,6 +8,7 @@ use App\Http\Resources\DeliveryOrderDetailResource;
 use App\Models\DeliveryOrder;
 use App\Models\DeliveryOrderDetail;
 use App\Models\SalesOrderItem;
+use App\Services\SalesOrderService;
 use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -28,6 +29,7 @@ class DeliveryOrderDetailController extends Controller
         $deliveryOrder = DeliveryOrder::findTenanted($deliveryOrderId, ['id']);
         // $deliveryOrderDetails = QueryBuilder::for(DeliveryOrderDetail::with(['salesOrderDetail' => fn($q) => $q->with('warehouse', 'salesOrder', 'packaging')])->where('delivery_order_id', $deliveryOrder->id))
         $deliveryOrderDetails = QueryBuilder::for(DeliveryOrderDetail::with([
+            'salesOrderItems' => fn($q) => $q->select(SalesOrderItem::SELECT_COLUMNS),
             'salesOrderDetail' => fn($q) => $q->with([
                 // 'warehouse',
                 'salesOrder',
@@ -38,7 +40,6 @@ class DeliveryOrderDetailController extends Controller
                         'productBrand' => fn($q) => $q->select('id', 'name')
                     ])
                 ]),
-                'salesOrderItems' => fn($q) => $q->select(SalesOrderItem::SELECT_COLUMNS),
             ])
         ])->where('delivery_order_id', $deliveryOrder->id))
         ->allowedFilters([
@@ -59,6 +60,7 @@ class DeliveryOrderDetailController extends Controller
 
         $deliveryOrderDetail->load([
             'deliveryOrder',
+            'salesOrderItems' => fn($q) => $q->select(SalesOrderItem::SELECT_COLUMNS),
             'salesOrderDetail' => function ($q) {
                 $q->with(['warehouse', 'salesOrder', 'productUnit' => fn($q) => $q->withTrashed()]);
             }
@@ -83,6 +85,7 @@ class DeliveryOrderDetailController extends Controller
 
         $deliveryOrderDetail->load([
             'deliveryOrder',
+            'salesOrderItems' => fn($q) => $q->select(SalesOrderItem::SELECT_COLUMNS),
             'salesOrderDetail' => function ($q) {
                 $q->with(['warehouse', 'salesOrder', 'productUnit' => fn($q) => $q->withTrashed()]);
             }
@@ -119,11 +122,15 @@ class DeliveryOrderDetailController extends Controller
 
         $salesOrderDetail = $deliveryOrderDetail->salesOrderDetail()->select('id', 'product_unit_id', 'fulfilled_qty')->with('productUnit', fn($q) => $q->select('id', 'name'))->firstOrFail();
 
-        DB::transaction(function () use ($salesOrderDetail) {
-            // Revert fulfilled qty in sales order detail
-            $salesOrderDetail->update(['fulfilled_qty' => 0]);
+        DB::transaction(function () use ($salesOrderDetail, $deliveryOrderDetail) {
             // Delete stock verified
-            $salesOrderDetail->salesOrderItems()->whereNotReturned()->orderByDesc('parent_id')->delete();
+            $salesOrderDetail->salesOrderItems()
+                ->where('delivery_order_detail_id', $deliveryOrderDetail->id)
+                ->whereNotReturned()
+                ->orderByDesc('parent_id')
+                ->delete();
+            // Recalculate fulfilled qty in sales order detail
+            SalesOrderService::countFulfilledQty($salesOrderDetail);
         });
 
         return $this->updatedResponse($salesOrderDetail->productUnit->name . " on DO: " . $deliveryOrder->invoice_no . " reset successfully");

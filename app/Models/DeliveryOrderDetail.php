@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DeliveryOrderDetail extends Model
 {
@@ -21,5 +22,10 @@ class DeliveryOrderDetail extends Model
     public function salesOrderDetail(): BelongsTo
     {
         return $this->belongsTo(SalesOrderDetail::class);
+    }
+
+    public function salesOrderItems(): HasMany
+    {
+        return $this->hasMany(SalesOrderItem::class, 'delivery_order_detail_id');
     }
 }
