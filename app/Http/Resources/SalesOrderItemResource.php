@@ -15,12 +15,12 @@ class SalesOrderItemResource extends JsonResource
      */
     public function toArray($request)
     {
-        return [
-            'id' => $this->id,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-            'stock' => new BaseStockResource($this->stock),
-            'sales_order_detail' => new SalesOrderDetailResource($this->salesOrderDetail),
-        ];
+        return array_merge(
+            parent::toArray($request),
+            [
+                'stock' => new BaseStockResource($this->stock),
+                'sales_order_detail' => new SalesOrderDetailResource($this->salesOrderDetail),
+            ]
+        );
     }
 }
