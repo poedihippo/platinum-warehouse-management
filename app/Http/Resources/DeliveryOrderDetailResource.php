@@ -19,7 +19,7 @@ class DeliveryOrderDetailResource extends JsonResource
                     fn() => $this->salesOrderItems
                         ->where('is_parent', false)
                         ->where('is_returned', false)
-                        ->sum('verified_stock')
+                        ->count()
                 ),
             ]
         );
