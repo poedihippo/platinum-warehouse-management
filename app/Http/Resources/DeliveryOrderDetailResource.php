@@ -6,12 +6,6 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class DeliveryOrderDetailResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
-     */
     public function toArray($request)
     {
         return array_merge(
@@ -20,6 +14,13 @@ class DeliveryOrderDetailResource extends JsonResource
                 'sales_order_detail' => new SalesOrderDetailResource($this->whenLoaded('salesOrderDetail')),
                 'delivery_order' => new DeliveryOrderResource($this->whenLoaded('deliveryOrder')),
                 'sales_order_items' => SalesOrderItemResource::collection($this->whenLoaded('salesOrderItems')),
+                'total_verified_stock' => $this->when(
+                    $this->relationLoaded('salesOrderItems'),
+                    fn() => $this->salesOrderItems
+                        ->where('is_parent', false)
+                        ->where('is_returned', false)
+                        ->sum('verified_stock')
+                ),
             ]
         );
     }
