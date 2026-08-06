@@ -164,7 +164,7 @@ class StockController extends Controller
 
     public function update(UpdateStockRequest $request, Stock $stock)
     {
-        $stock->update($request->validated());
+        Stock::where('parent_id', $stock->id)->orWhere('id', $stock->id)->update($request->validated());
         return response()->json(['message' => 'Data updated successfully']);
     }
 
