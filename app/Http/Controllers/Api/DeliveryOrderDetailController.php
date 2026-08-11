@@ -94,7 +94,10 @@ class DeliveryOrderDetailController extends Controller
             SalesOrderItem::query()
                 ->where('delivery_order_detail_id', $deliveryOrderDetailId)
                 ->select(SalesOrderItem::SELECT_COLUMNS)
-                ->with(['stock', 'salesOrderDetail'])
+                // ->with([
+                //     'stock' => fn($q) => $q->select('id'),
+                //     'salesOrderDetail'
+                // ])
         )
             ->allowedFilters([
                 AllowedFilter::exact('is_returned'),
