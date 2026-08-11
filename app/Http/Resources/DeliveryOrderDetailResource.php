@@ -15,8 +15,8 @@ class DeliveryOrderDetailResource extends JsonResource
                 'delivery_order' => new DeliveryOrderResource($this->whenLoaded('deliveryOrder')),
                 'sales_order_items' => SalesOrderItemResource::collection($this->whenLoaded('salesOrderItems')),
                 'total_verified_stock' => $this->when(
-                    $this->relationLoaded('salesOrderItems'),
-                    fn() => $this->salesOrderItems
+                    isset($this->total_verified_stock) || $this->relationLoaded('salesOrderItems'),
+                    fn() => $this->total_verified_stock ?? $this->salesOrderItems
                         ->where('is_parent', false)
                         ->where('is_returned', false)
                         ->count()

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\DeliveryOrderDetailUpdateRequest;
 use App\Http\Resources\DeliveryOrderDetailResource;
+use App\Http\Resources\SalesOrderItemResource;
 use App\Models\DeliveryOrder;
 use App\Models\DeliveryOrderDetail;
 use App\Models\SalesOrderItem;
@@ -29,8 +30,10 @@ class DeliveryOrderDetailController extends Controller
         $deliveryOrder = DeliveryOrder::findTenanted($deliveryOrderId, ['id']);
         $deliveryOrderDetails = QueryBuilder::for(
             DeliveryOrderDetail::select('id', 'delivery_order_id', 'sales_order_detail_id', 'qty')
+                ->withCount(['salesOrderItems as total_verified_stock' => function ($query) {
+                    $query->where('is_parent', false)->where('is_returned', false);
+                }])
                 ->with([
-                    'salesOrderItems' => fn($q) => $q->select(SalesOrderItem::SELECT_COLUMNS),
                     'salesOrderDetail' => fn($q) => $q->select('id', 'sales_order_id', 'product_unit_id', 'fulfilled_qty', 'total_price')
                         ->with([
                             'salesOrder' => fn($q) => $q->select('id', 'invoice_no', 'reseller_id')
@@ -63,15 +66,37 @@ class DeliveryOrderDetailController extends Controller
         $deliveryOrder = DeliveryOrder::findTenanted($deliveryOrderId);
         $deliveryOrderDetail = $deliveryOrder->details()->where('id', $deliveryOrderDetailId)->firstOrFail();
 
+        $deliveryOrderDetail->loadCount(['salesOrderItems as total_verified_stock' => function ($query) {
+            $query->where('is_parent', false)->where('is_returned', false);
+        }]);
+
         $deliveryOrderDetail->load([
             'deliveryOrder',
-            'salesOrderItems' => fn($q) => $q->select(SalesOrderItem::SELECT_COLUMNS),
             'salesOrderDetail' => function ($q) {
                 $q->with(['warehouse', 'salesOrder', 'productUnit' => fn($q) => $q->withTrashed()]);
             }
         ]);
 
         return new DeliveryOrderDetailResource($deliveryOrderDetail);
+    }
+
+    public function items(int $deliveryOrderId, int $deliveryOrderDetailId)
+    {
+        $deliveryOrder = DeliveryOrder::findTenanted($deliveryOrderId, ['id']);
+        $deliveryOrderDetail = $deliveryOrder->details()->where('id', $deliveryOrderDetailId)->firstOrFail();
+
+        $items = QueryBuilder::for(
+            $deliveryOrderDetail->salesOrderItems()
+                ->select(SalesOrderItem::SELECT_COLUMNS)
+                ->with(['stock', 'salesOrderDetail'])
+        )
+            ->allowedFilters([
+                AllowedFilter::exact('is_returned'),
+                AllowedFilter::exact('is_parent'),
+            ])
+            ->paginate($this->per_page);
+
+        return SalesOrderItemResource::collection($items);
     }
 
     public function update(int $deliveryOrderId, int $deliveryOrderDetailId, DeliveryOrderDetailUpdateRequest $request)
@@ -88,9 +113,12 @@ class DeliveryOrderDetailController extends Controller
             'qty' => $request->qty,
         ]);
 
+        $deliveryOrderDetail->loadCount(['salesOrderItems as total_verified_stock' => function ($query) {
+            $query->where('is_parent', false)->where('is_returned', false);
+        }]);
+
         $deliveryOrderDetail->load([
             'deliveryOrder',
-            'salesOrderItems' => fn($q) => $q->select(SalesOrderItem::SELECT_COLUMNS),
             'salesOrderDetail' => function ($q) {
                 $q->with(['warehouse', 'salesOrder', 'productUnit' => fn($q) => $q->withTrashed()]);
             }
