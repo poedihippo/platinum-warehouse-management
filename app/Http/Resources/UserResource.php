@@ -16,7 +16,9 @@ class UserResource extends JsonResource
     public function toArray($request)
     {
         $data = parent::toArray($request);
-        $data['type'] = $this->type->description;
+        if ($this->type) {
+            $data['type'] = $this->type->description;
+        }
         $data['roles'] = RoleResource::collection($this->whenLoaded('roles'));
 
         if ($request->getRequestUri() === '/api/users/me') {
