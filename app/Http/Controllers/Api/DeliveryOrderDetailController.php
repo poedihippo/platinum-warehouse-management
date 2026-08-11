@@ -28,7 +28,7 @@ class DeliveryOrderDetailController extends Controller
         // abort_if(!auth('sanctum')->user()->tokenCan('delivery_order_access'), 403);
         $deliveryOrder = DeliveryOrder::findTenanted($deliveryOrderId, ['id']);
         $deliveryOrderDetails = QueryBuilder::for(
-            DeliveryOrderDetail::select('id', 'delivery_order_id', 'qty')
+            DeliveryOrderDetail::select('id', 'delivery_order_id', 'sales_order_detail_id', 'qty')
                 ->with([
                     'salesOrderItems' => fn($q) => $q->select(SalesOrderItem::SELECT_COLUMNS),
                     'salesOrderDetail' => fn($q) => $q->select('id', 'fulfilled_qty', 'total_price')
