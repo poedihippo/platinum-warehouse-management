@@ -82,11 +82,17 @@ class DeliveryOrderDetailController extends Controller
 
     public function items(int $deliveryOrderId, int $deliveryOrderDetailId)
     {
-        $deliveryOrder = DeliveryOrder::findTenanted($deliveryOrderId, ['id']);
-        $deliveryOrderDetail = $deliveryOrder->details()->where('id', $deliveryOrderDetailId)->firstOrFail();
+        // $deliveryOrder = DeliveryOrder::findTenanted($deliveryOrderId, ['id']);
+        // $deliveryOrderDetail = $deliveryOrder->details()->where('id', $deliveryOrderDetailId)->firstOrFail();
 
+        // $items = QueryBuilder::for(
+        //     $deliveryOrderDetail->salesOrderItems()
+        //         ->select(SalesOrderItem::SELECT_COLUMNS)
+        //         ->with(['stock', 'salesOrderDetail'])
+        // )
         $items = QueryBuilder::for(
-            $deliveryOrderDetail->salesOrderItems()
+            SalesOrderItem::query()
+                ->where('delivery_order_detail_id', $deliveryOrderDetailId)
                 ->select(SalesOrderItem::SELECT_COLUMNS)
                 ->with(['stock', 'salesOrderDetail'])
         )
