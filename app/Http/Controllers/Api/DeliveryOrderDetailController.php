@@ -27,27 +27,34 @@ class DeliveryOrderDetailController extends Controller
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('delivery_order_access'), 403);
         $deliveryOrder = DeliveryOrder::findTenanted($deliveryOrderId, ['id']);
-        // $deliveryOrderDetails = QueryBuilder::for(DeliveryOrderDetail::with(['salesOrderDetail' => fn($q) => $q->with('warehouse', 'salesOrder', 'packaging')])->where('delivery_order_id', $deliveryOrder->id))
-        $deliveryOrderDetails = QueryBuilder::for(DeliveryOrderDetail::with([
-            'salesOrderItems' => fn($q) => $q->select(SalesOrderItem::SELECT_COLUMNS),
-            'salesOrderDetail' => fn($q) => $q->with([
-                // 'warehouse',
-                'salesOrder',
-                'productUnit' => fn($q) => $q->withTrashed()->select('id', 'name', 'product_id', 'uom_id')->with([
-                    'uom' => fn($q) => $q->select('id', 'name'),
-                    'product' => fn($q) => $q->select('id', 'product_category_id', 'product_brand_id')->with([
-                        'productCategory' => fn($q) => $q->select('id', 'name'),
-                        'productBrand' => fn($q) => $q->select('id', 'name')
-                    ])
-                ]),
+        $deliveryOrderDetails = QueryBuilder::for(
+            DeliveryOrderDetail::select('id', 'delivery_order_id', 'qty', 'is_done')
+                ->with([
+                    'salesOrderItems' => fn($q) => $q->select(SalesOrderItem::SELECT_COLUMNS),
+                    'salesOrderDetail' => fn($q) => $q->select('id', 'fulfilled_qty', 'total_price')
+                        ->with([
+                            // 'warehouse',
+                            'salesOrder' => fn($q) => $q->withTrashed()
+                                ->select('id', 'invoice_no', 'resseler_id')
+                                ->with('reseller', fn($q) => $q->select('id', 'name', 'phone', 'address')),
+                            'productUnit' => fn($q) => $q->withTrashed()
+                                ->select('id', 'name', 'product_id', 'uom_id')
+                                ->with([
+                                    'uom' => fn($q) => $q->select('id', 'name'),
+                                    'product' => fn($q) => $q->select('id', 'product_category_id', 'product_brand_id')->with([
+                                        'productCategory' => fn($q) => $q->select('id', 'name'),
+                                        'productBrand' => fn($q) => $q->select('id', 'name')
+                                    ])
+                                ]),
+                        ])
+                ])->where('delivery_order_id', $deliveryOrder->id)
+        )
+            ->allowedFilters([
+                AllowedFilter::exact('delivery_order_id'),
+                AllowedFilter::exact('sales_order_detail_id'),
             ])
-        ])->where('delivery_order_id', $deliveryOrder->id))
-        ->allowedFilters([
-            AllowedFilter::exact('delivery_order_id'),
-            AllowedFilter::exact('sales_order_detail_id'),
-        ])
-        ->allowedSorts(['id', 'delivery_order_id', 'sales_order_detail_id', 'created_at'])
-        ->paginate($this->per_page);
+            ->allowedSorts(['id', 'delivery_order_id', 'sales_order_detail_id', 'created_at'])
+            ->paginate($this->per_page);
 
         return DeliveryOrderDetailResource::collection($deliveryOrderDetails);
     }
