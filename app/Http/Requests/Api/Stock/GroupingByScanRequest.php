@@ -8,20 +8,15 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class GroupingByScanRequest extends FormRequest
 {
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, mixed>
-     */
     public function rules()
     {
         return [
-            'name' => 'nullable|string|unique:stocks,description',
-            'batch_number' => 'nullable|string',
-            'batch_number_jp' => 'nullable|string',
-            'stock_product_unit_id' => 'required|exists:stock_product_units,id',
-            'expired_date' => 'nullable|date',
-            'ids' => 'required|array',
+            'name' => ['nullable', 'string', 'unique:stocks,description'],
+            'batch_number' => ['nullable', 'string'],
+            'batch_number_jp' => ['nullable', 'string'],
+            'stock_product_unit_id' => ['required', 'exists:stock_product_units,id'],
+            'expired_date' => ['nullable', 'date'],
+            'ids' => ['required', 'array'],
             'ids.*' => ['required', function ($attribute, string $value, Closure $fail) {
                 $stock = Stock::select('id', 'stock_product_unit_id', 'parent_id')->where('id', $value)->first();
                 if (!$stock) {

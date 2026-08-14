@@ -241,7 +241,7 @@ class StockController extends Controller
                 $data['expired_date'] = $expiredDate;
             }
 
-            Stock::whereIn('id', $request->ids)->update($data);
+            Stock::whereIn('id', $request->ids)->where('stock_product_unit_id', $stockProductUnit->id)->whereNull('parent_id')->update($data);
         });
 
         return response()->json(['message' => 'Group stock berhasil dibuat'], 201);
