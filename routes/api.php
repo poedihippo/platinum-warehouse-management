@@ -155,6 +155,7 @@ Route::middleware('auth:sanctum')->prefix('admin/loyalty')->group(function () {
     Route::get('claims', [AdminClaimReviewController::class, 'index']);
     Route::get('claims/{claim}', [AdminClaimReviewController::class, 'show']);
     Route::post('claims/{claim}/line-items', [AdminClaimReviewController::class, 'addLineItem']);
+    Route::patch('claims/{claim}/line-items/{lineItem}', [AdminClaimReviewController::class, 'updateLineItem']);
     Route::delete('claims/{claim}/line-items/{lineItem}', [AdminClaimReviewController::class, 'removeLineItem']);
     Route::post('claims/{claim}/approve', [AdminClaimReviewController::class, 'approve']);
     Route::post('claims/{claim}/reject', [AdminClaimReviewController::class, 'reject']);

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Admin\Loyalty;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\Loyalty\Admin\AddLineItemRequest;
 use App\Http\Requests\Api\Loyalty\Admin\RejectClaimRequest;
+use App\Http\Requests\Api\Loyalty\Admin\UpdateLineItemRequest;
 use App\Http\Resources\Loyalty\AdminClaimResource;
 use App\Mail\Loyalty\ClaimApprovedMail;
 use App\Mail\Loyalty\ClaimRejectedMail;
@@ -149,6 +150,50 @@ class ClaimReviewController extends Controller
                 'quantity' => (int) $lineItem->quantity,
             ],
         ], 201);
+    }
+
+    /**
+     * PATCH /api/admin/loyalty/claims/{claim}/line-items/{lineItem}
+     *
+     * Recomputes points_awarded = quantity * points_per_unit, mirroring
+     * the calculation approve() uses. This is a pre-approval preview
+     * value only — approve() unconditionally recomputes every line
+     * item's points_awarded again from live points_per_unit, so this
+     * update never has to touch claim.total_points itself.
+     */
+    public function updateLineItem(UpdateLineItemRequest $request, string $claim, string $lineItem)
+    {
+        if ($denied = $this->denyUnlessAuthorized($request)) {
+            return $denied;
+        }
+
+        $model = $this->findOrFail($claim);
+        if ($response = $this->ensurePending($model)) {
+            return $response;
+        }
+
+        $item = $model->lineItems()->where('id', $lineItem)->first();
+        if (!$item) {
+            return response()->json(['message' => 'Line item tidak ditemukan.'], 404);
+        }
+
+        $quantity = (int) $request->input('quantity');
+        $pointsPerUnit = (int) ($item->productUnit?->points_per_unit ?? 0);
+
+        $item->update([
+            'quantity' => $quantity,
+            'points_awarded' => $quantity * $pointsPerUnit,
+        ]);
+
+        return response()->json([
+            'message' => 'Line item diperbarui.',
+            'data' => [
+                'id' => $item->id,
+                'product_unit_id' => $item->product_unit_id,
+                'quantity' => (int) $item->quantity,
+                'points_awarded' => (int) $item->points_awarded,
+            ],
+        ]);
     }
 
     /**
