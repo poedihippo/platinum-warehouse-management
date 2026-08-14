@@ -21,7 +21,7 @@ class LoyaltyClaimStoreRequest extends FormRequest
     {
         return [
             'invoice_number' => ['required', 'string', 'max:100'],
-            'invoice_photo' => ['required', 'file', 'mimes:jpg,jpeg,png,heic', 'max:5120'],
+            'invoice_photo' => ['required', 'file', 'mimes:jpg,jpeg,png,heic,pdf', 'max:5120'],
             'product_photos' => ['required', 'array', 'min:1', 'max:6'],
             'product_photos.*' => ['required', 'file', 'mimes:jpg,jpeg,png,heic', 'max:5120'],
         ];
@@ -33,7 +33,7 @@ class LoyaltyClaimStoreRequest extends FormRequest
             'invoice_number.required' => 'Nomor invoice wajib diisi.',
             'invoice_number.max' => 'Nomor invoice maksimal 100 karakter.',
             'invoice_photo.required' => 'Foto invoice wajib diunggah.',
-            'invoice_photo.mimes' => 'Foto invoice harus berformat JPG, PNG, atau HEIC.',
+            'invoice_photo.mimes' => 'Foto invoice harus berformat JPG, PNG, HEIC, atau PDF.',
             'invoice_photo.max' => 'Ukuran foto invoice maksimal 5 MB.',
             'product_photos.required' => 'Minimal satu foto produk wajib diunggah.',
             'product_photos.min' => 'Minimal satu foto produk wajib diunggah.',
