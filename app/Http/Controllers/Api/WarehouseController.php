@@ -33,7 +33,7 @@ class WarehouseController extends Controller
         return WarehouseResource::collection($warehouses);
     }
 
-    public function show(string $id)
+    public function show($id)
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('warehouse_access'), 403);
         $warehouse = Warehouse::findTenanted($id);
@@ -47,7 +47,7 @@ class WarehouseController extends Controller
         return new WarehouseResource($warehouse);
     }
 
-    public function update(string $id, WarehouseUpdateRequest $request)
+    public function update($id, WarehouseUpdateRequest $request)
     {
         $warehouse = Warehouse::findTenanted($id);
         $warehouse->update($request->validated());
@@ -55,7 +55,7 @@ class WarehouseController extends Controller
         return (new WarehouseResource($warehouse))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
-    public function destroy(string $id)
+    public function destroy($id)
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('warehouse_delete'), 403);
         $warehouse = Warehouse::findTenanted($id);

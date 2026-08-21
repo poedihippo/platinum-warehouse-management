@@ -14,9 +14,9 @@ class WarehouseUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'code' => 'required|unique:warehouses,code,' . $this->warehouse->id,
-            'name' => 'required|string',
-            'company_name' => 'required|string',
+            'code' => ['required', 'unique:warehouses,code,' . $this->warehouse],
+            'name' => ['required', 'string'],
+            'company_name' => ['required', 'string'],
         ];
     }
 }
