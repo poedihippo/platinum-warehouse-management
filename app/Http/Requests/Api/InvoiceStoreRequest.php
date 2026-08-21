@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Enums\CompanyEnum;
 use App\Enums\SalesOrderType;
 use App\Models\Voucher;
 use App\Rules\TenantedRule;
@@ -45,6 +46,7 @@ class InvoiceStoreRequest extends FormRequest
     public function rules()
     {
         return [
+            'company' => ['required', new EnumValue(CompanyEnum::class)],
             'expected_price' => 'nullable|integer',
             'is_additional_discount_percentage' => 'required|boolean',
             'type' => ['required', new EnumValue(SalesOrderType::class)],

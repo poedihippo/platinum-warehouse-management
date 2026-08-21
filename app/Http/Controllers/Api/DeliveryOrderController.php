@@ -61,7 +61,7 @@ class DeliveryOrderController extends Controller
         return DeliveryOrderResource::collection($deliveryOrders);
     }
 
-    public function show(int $id)
+    public function show($id)
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('delivery_order_access'), 403);
 
@@ -80,7 +80,7 @@ class DeliveryOrderController extends Controller
         return new DeliveryOrderResource($deliveryOrder);
     }
 
-    public function getDoBySoDetail(int $id)
+    public function getDoBySoDetail($id)
     {
         $data = DeliveryOrderDetail::where('sales_order_detail_id', $id)->firstOrFail('delivery_order_id');
 
@@ -94,7 +94,7 @@ class DeliveryOrderController extends Controller
         return response()->json(['data' => $deliveryOrder], 201);
     }
 
-    public function update(int $id, DeliveryOrderUpdateRequest $request)
+    public function update($id, DeliveryOrderUpdateRequest $request)
     {
         $deliveryOrder = DeliveryOrder::findTenanted($id);
         $deliveryOrder->update($request->validated());
@@ -102,7 +102,7 @@ class DeliveryOrderController extends Controller
         return response()->json(['data' => $deliveryOrder], 200);
     }
 
-    public function destroy(int $id)
+    public function destroy($id)
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('delivery_order_delete'), 403);
         $deliveryOrder = DeliveryOrder::findTenanted($id);
@@ -223,7 +223,7 @@ class DeliveryOrderController extends Controller
         return $this->deletedResponse();
     }
 
-    public function print(int $id)
+    public function print($id)
     {
         $deliveryOrder = DeliveryOrder::with([
             'reseller' => fn($q) => $q->select('id', 'name', 'address'),
@@ -246,7 +246,7 @@ class DeliveryOrderController extends Controller
         return $pdf->download('delivery-order-' . $deliveryOrder->code . '.pdf');
     }
 
-    public function exportXml(int $id)
+    public function exportXml($id)
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('sales_order_export_xml'), 403);
 
@@ -381,7 +381,7 @@ class DeliveryOrderController extends Controller
         return new SalesOrderItemResource($salesOrderItem);
     }
 
-    public function done(int $id, Request $request)
+    public function done($id, Request $request)
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('delivery_order_done'), 403);
         $request->validate(['is_done' => 'required|boolean']);
@@ -543,7 +543,7 @@ class DeliveryOrderController extends Controller
         return response()->json(['message' => $message])->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
-    // public function attach(int $id, DeliveryOrderAttachRequest $request)
+    // public function attach($id, DeliveryOrderAttachRequest $request)
     // {
     //     $count = 0;
     //     $deliveryOrder = DeliveryOrder::findTenanted($id, ['id']);
@@ -559,7 +559,7 @@ class DeliveryOrderController extends Controller
     //     return response()->json(['message' => $count . ' Sales order berahsil ditambahkan ke delivery order']);
     // }
 
-    public function attach(int $id, DeliveryOrderAttachRequest $request)
+    public function attach($id, DeliveryOrderAttachRequest $request)
     {
         $deliveryOrder = DeliveryOrder::findTenanted($id, ['id']);
         $count = 0;

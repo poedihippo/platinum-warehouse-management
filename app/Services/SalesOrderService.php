@@ -191,7 +191,7 @@ class SalesOrderService
         return SalesOrderResource::collection($salesOrders);
     }
 
-    public static function show(int $id, ?callable $query = null)
+    public static function show($id, ?callable $query = null)
     {
         $salesOrder = SalesOrder::when($query, $query)->findTenanted($id);
         return $salesOrder->load([
@@ -233,7 +233,7 @@ class SalesOrderService
         return $pdf->download('sales-order-' . $salesOrder->invoice_no . '.pdf');
     }
 
-    public static function exportXml(int $id, ?callable $query = null)
+    public static function exportXml($id, ?callable $query = null)
     {
         $productUnitColumns = ['id', 'uom_id', 'refer_id', 'code', 'name'];
         $uomColumns = 'uom:id,name';

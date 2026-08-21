@@ -59,7 +59,7 @@ class ProductUnitController extends Controller
         return ProductUnitResource::collection($productUnits);
     }
 
-    public function show(int $id)
+    public function show($id)
     {
         $productUnit = ProductUnit::with([
             'uom',

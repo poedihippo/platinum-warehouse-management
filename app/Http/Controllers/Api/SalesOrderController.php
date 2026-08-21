@@ -33,7 +33,7 @@ class SalesOrderController extends Controller
         return SalesOrderService::index($this->per_page);
     }
 
-    public function show(int $id)
+    public function show($id)
     {
         $salesOrder = SalesOrderService::show($id);
         return new SalesOrderResource($salesOrder);
@@ -45,7 +45,7 @@ class SalesOrderController extends Controller
         return new SalesOrderResource($salesOrder);
     }
 
-    public function update(int $id, SalesOrderUpdateRequest $request)
+    public function update($id, SalesOrderUpdateRequest $request)
     {
         $salesOrder = SalesOrder::findTenanted($id);
         if (!$salesOrder->details?->every(fn($salesOrderDetail) => !$salesOrderDetail->deliveryOrderDetail))
@@ -56,7 +56,7 @@ class SalesOrderController extends Controller
         return (new SalesOrderResource($salesOrder))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
-    public function destroy(int $id)
+    public function destroy($id)
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('sales_order_delete'), 403);
         $salesOrder = SalesOrder::findTenanted($id);
@@ -66,13 +66,13 @@ class SalesOrderController extends Controller
         return $this->deletedResponse();
     }
 
-    public function print(int $id)
+    public function print($id)
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('sales_order_print'), 403);
         return SalesOrderService::print($id);
     }
 
-    public function exportXml(int $id)
+    public function exportXml($id)
     {
         return SalesOrderService::exportXml($id);
     }
@@ -81,7 +81,6 @@ class SalesOrderController extends Controller
     {
         // $userDiscounts = UserDiscount::select('product_brand_id', 'value', 'is_percentage')->where('user_id', $request->customer_id)->get();
 
-        // dd(request()->all());
         $warehouseId = request()->filter['warehouse_id'] ?? null;
 
         $fn = fn($q) => $q->select('id', 'warehouse_id', 'product_unit_id')->has('productUnit')->has('warehouse')
@@ -122,69 +121,6 @@ class SalesOrderController extends Controller
                 return $productUnit;
             });
         return response()->json($stockProductUnits);
-
-        // $query = StockProductUnit::select('id', 'warehouse_id', 'product_unit_id')->has('productUnit')->has('warehouse')
-        //     ->withCount(['stocks' => fn($q) => $q->whereAvailableStock()->whereNull('description')])
-        //     ->with([
-        //         'warehouse' => fn($q) => $q->select('id', 'code'),
-        //         'productUnit' => function ($q) {
-        //             // $q->select('id', 'uom_id', 'product_id', 'packaging_id', 'name', 'price', 'is_ppn')
-        //             $q->select('id', 'uom_id', 'product_id', 'name', 'price', 'is_ppn')
-        //                 ->with([
-        //                     'uom' => fn($q) => $q->select('id', 'name'),
-        //                     'product' => fn($q) => $q->select('id', 'name', 'product_brand_id'),
-        //                 ]);
-        //         },
-        //     ]);
-        // // ->having('stocks_count', '>', 0);
-
-        // $stockProductUnits = QueryBuilder::for($query)
-        //     ->allowedFilters([
-        //         AllowedFilter::exact('warehouse_id'),
-        //         AllowedFilter::scope('product_unit'),
-        //         AllowedFilter::scope('company', 'whereCompany'),
-        //     ])
-        //     ->paginate($this->per_page)
-        //     ->through(function ($stockProductUnit) {
-        //         $productUnit = $stockProductUnit->productUnit;
-        //         $productUnit->name = $productUnit->name . ' - ' . ($stockProductUnit->warehouse?->code ?? '');
-        //         $productUnit->price_discount = $productUnit->price;
-        //         $productUnit->discount = 0;
-        //         $productUnit->is_percentage = 1;
-
-        //         return $stockProductUnit;
-        //     });
-
-        // $stockProductUnits->each(function ($stockProductUnit) {
-        //     $productUnit = $stockProductUnit->productUnit;
-        //     $productUnit->name = $productUnit->name . ' - ' . $stockProductUnit->warehouse?->code ?? '';
-        //     $productUnit->price_discount = $productUnit->price;
-        //     $productUnit->discount = 0;
-        //     $productUnit->is_percentage = 1;
-
-        //     // $productBrandId = $productUnit?->product?->product_brand_id ?? null;
-        //     // if ($userDiscounts->contains('product_brand_id', $productBrandId)) {
-        //     //     $discount = $userDiscounts->firstWhere('product_brand_id', $productBrandId);
-        //     //     if ($discount->is_percentage) {
-        //     //         $totalDiscount = $productUnit->price * $discount->value;
-        //     //         $totalDiscount = $totalDiscount <= 0 ? 0 : ($totalDiscount / 100);
-        //     //         $totalPrice = $productUnit->price - $totalDiscount;
-        //     //     } else {
-        //     //         $totalPrice = $productUnit->price - $discount->value;
-        //     //     }
-
-        //     //     $productUnit->price_discount = $totalPrice <= 0 ? 0 : $totalPrice;
-        //     //     $productUnit->discount = $discount->value;
-        //     //     $productUnit->is_percentage = $discount->is_percentage;
-        //     // }
-
-        //     unset($stockProductUnit->warehouse_id);
-        //     unset($stockProductUnit->product_unit_id);
-
-        //     unset($productUnit->product);
-        //     unset($productUnit->uom_id);
-        //     unset($productUnit->product_id);
-        // });
     }
 
     public function productUnits()
@@ -222,37 +158,6 @@ class SalesOrderController extends Controller
 
                 return $stockProductUnit;
             });
-
-        // $stockProductUnits->each(function ($stockProductUnit) {
-        //     $productUnit = $stockProductUnit->productUnit;
-        //     $productUnit->name = $productUnit->name . ' - ' . $stockProductUnit->warehouse?->code ?? '';
-        //     $productUnit->price_discount = $productUnit->price;
-        //     $productUnit->discount = 0;
-        //     $productUnit->is_percentage = 1;
-
-        //     // $productBrandId = $productUnit?->product?->product_brand_id ?? null;
-        //     // if ($userDiscounts->contains('product_brand_id', $productBrandId)) {
-        //     //     $discount = $userDiscounts->firstWhere('product_brand_id', $productBrandId);
-        //     //     if ($discount->is_percentage) {
-        //     //         $totalDiscount = $productUnit->price * $discount->value;
-        //     //         $totalDiscount = $totalDiscount <= 0 ? 0 : ($totalDiscount / 100);
-        //     //         $totalPrice = $productUnit->price - $totalDiscount;
-        //     //     } else {
-        //     //         $totalPrice = $productUnit->price - $discount->value;
-        //     //     }
-
-        //     //     $productUnit->price_discount = $totalPrice <= 0 ? 0 : $totalPrice;
-        //     //     $productUnit->discount = $discount->value;
-        //     //     $productUnit->is_percentage = $discount->is_percentage;
-        //     // }
-
-        //     unset($stockProductUnit->warehouse_id);
-        //     unset($stockProductUnit->product_unit_id);
-
-        //     unset($productUnit->product);
-        //     unset($productUnit->uom_id);
-        //     unset($productUnit->product_id);
-        // });
 
         return response()->json($stockProductUnits);
     }

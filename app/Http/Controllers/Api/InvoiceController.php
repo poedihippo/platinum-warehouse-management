@@ -43,7 +43,7 @@ class InvoiceController extends Controller
         return SalesOrderService::index($this->per_page, fn ($q) => $q->where('is_invoice', true));
     }
 
-    public function show(int $id)
+    public function show($id)
     {
         $salesOrder = SalesOrderService::show($id, fn ($q) => $q->where('is_invoice', true));
         $salesOrder->id_hash = Crypt::encryptString($salesOrder->id);
@@ -88,7 +88,7 @@ class InvoiceController extends Controller
         return new SalesOrderResource($salesOrder);
     }
 
-    public function update(int $id, InvoiceUpdateRequest $request)
+    public function update($id, InvoiceUpdateRequest $request)
     {
         $salesOrder = SalesOrder::whereInvoice()->findTenanted($id);
         if ($salesOrder->payment_status == 'paid') return response()->json(['message' => "Invoice sudah lunas tidak dapat diupdate"], 400);
@@ -146,7 +146,7 @@ class InvoiceController extends Controller
         return (new SalesOrderResource($salesOrder))->response()->setStatusCode(\Illuminate\Http\Response::HTTP_ACCEPTED);
     }
 
-    public function destroy(int $id)
+    public function destroy($id)
     {
         $salesOrder = SalesOrder::where('is_invoice', true)->findTenanted($id);
         if ($salesOrder->deliveryOrder?->is_done) return response()->json(['message' => "Can't update SO if DO is already done"], 400);
@@ -193,7 +193,7 @@ class InvoiceController extends Controller
         return SalesOrderService::print($id, 'print-invoice', fn ($q) => $q->where('is_invoice', true));
     }
 
-    public function exportXml(int $id)
+    public function exportXml($id)
     {
         return SalesOrderService::exportXml($id, fn ($q) => $q->where('is_invoice', true));
     }

@@ -84,7 +84,7 @@ class VoucherController extends Controller
         return $this->deletedResponse();
     }
 
-    public function forceDelete(int $id)
+    public function forceDelete($id)
     {
         if ($voucher->is_used) {
             return $this->errorResponse(message: 'Cannot delete used voucher. Voucher already used!', code: \Illuminate\Http\Response::HTTP_UNPROCESSABLE_ENTITY);
@@ -96,7 +96,7 @@ class VoucherController extends Controller
         return $this->deletedResponse();
     }
 
-    public function restore(int $id)
+    public function restore($id)
     {
         $voucher = Voucher::withTrashed()->findOrFail($id);
         $voucher->restore();

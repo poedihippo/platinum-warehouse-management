@@ -39,7 +39,7 @@ class StockOpnameController extends Controller
         return StockOpnameResource::collection($stockOpnames);
     }
 
-    public function show(int $id)
+    public function show($id)
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('stock_opname_access'), 403);
         $stockOpname = StockOpname::findTenanted($id);
@@ -53,7 +53,7 @@ class StockOpnameController extends Controller
         return new StockOpnameResource($stockOpname);
     }
 
-    public function destroy(int $id)
+    public function destroy($id)
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('stock_opname_delete'), 403);
         $stockOpname = StockOpname::findTenanted($id);
@@ -61,7 +61,7 @@ class StockOpnameController extends Controller
         return $this->deletedResponse();
     }
 
-    public function done(int $id, Request $request)
+    public function done($id, Request $request)
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('stock_opname_done'), 403);
 
@@ -79,7 +79,7 @@ class StockOpnameController extends Controller
         return response()->json(['message' => $message])->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
-    public function setDone(int $id, Request $request)
+    public function setDone($id, Request $request)
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('stock_opname_done'), 403);
 

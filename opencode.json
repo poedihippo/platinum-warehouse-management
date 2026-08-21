@@ -1,0 +1,58 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  "instructions": ["AGENTS.md", "PRD.md"],
+
+  "mcp": {
+    "mysql": {
+      "type": "local",
+      "command": ["npx", "-y", "@benborla29/mcp-server-mysql"],
+      "enabled": true,
+      "environment": {
+        "MYSQL_HOST": "127.0.0.1",
+        "MYSQL_PORT": "3306",
+        "MYSQL_USER": "{env:DB_USERNAME}",
+        "MYSQL_PASS": "{env:DB_PASSWORD}",
+        "MYSQL_DB": "{env:DB_DATABASE}",
+        "ALLOW_INSERT_OPERATION": "false",
+        "ALLOW_UPDATE_OPERATION": "false",
+        "ALLOW_DELETE_OPERATION": "false"
+      }
+    },
+    "context7": {
+      "type": "local",
+      "command": ["npx", "-y", "@upstash/context7-mcp"],
+      "enabled": true
+    }
+  },
+
+  "lsp": {
+    "php": {
+      "command": ["/home/nikko/.config/composer/vendor/bin/phpactor", "language-server"],
+      "extensions": [".php"]
+    }
+  },
+
+  "formatter": {
+    "php": {
+      "command": ["./vendor/bin/pint", "--fix"],
+      "extensions": [".php"]
+    }
+  },
+
+  "skills": {
+    "paths": [".opencode/skills"]
+  },
+
+  "permission": {
+    "bash": {
+      "php *": "allow",
+      "./vendor/bin/pint *": "allow",
+      "composer *": "ask",
+      "php artisan *": "ask",
+      "npm *": "ask",
+      "git *": "ask",
+      "*": "ask"
+    }
+  }
+}

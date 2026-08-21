@@ -74,7 +74,7 @@ class VoucherGenerateBatchController extends Controller
         return $this->deletedResponse();
     }
 
-    // public function forceDelete(int $id)
+    // public function forceDelete($id)
     // {
     //     $voucherGenerateBatch = VoucherGenerateBatch::withTrashed()->findOrFail($id);
     //     $voucherGenerateBatch->forceDelete();
@@ -82,7 +82,7 @@ class VoucherGenerateBatchController extends Controller
     //     return $this->deletedResponse();
     // }
 
-    // public function restore(int $id)
+    // public function restore($id)
     // {
     //     $voucherGenerateBatch = VoucherGenerateBatch::withTrashed()->findOrFail($id);
     //     $voucherGenerateBatch->restore();

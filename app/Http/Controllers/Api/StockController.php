@@ -485,7 +485,7 @@ class StockController extends Controller
         return $this->updatedResponse('Stock berhasil diupdate ' . ($request->is_tempel ? 'Terpasang' : 'Belum Terpasang'));
     }
 
-    public function repack(int $id, StockRepackRequest $request)
+    public function repack($id, StockRepackRequest $request)
     {
         $stock = Stock::findTenanted($id, ['id', 'parent_id', 'stock_product_unit_id']);
         if ($stock->childs?->count() > 0) return response()->json(['message' => 'Tidak dapat me-repack stock parent'], 400);

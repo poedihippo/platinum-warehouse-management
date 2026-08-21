@@ -48,7 +48,7 @@ class ReceiveOrderController extends Controller
         return ReceiveOrderResource::collection($receiveOrders);
     }
 
-    public function show(int $id)
+    public function show($id)
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('receive_order_access'), 403);
         $receiveOrder = ReceiveOrder::findTenanted($id);
@@ -126,7 +126,7 @@ class ReceiveOrderController extends Controller
         return new ReceiveOrderResource($receiveOrder);
     }
 
-    public function update(int $id, ReceiveOrderUpdateRequest $request)
+    public function update($id, ReceiveOrderUpdateRequest $request)
     {
         $receiveOrder = ReceiveOrder::findTenanted($id);
         dump($request->all());
@@ -136,7 +136,7 @@ class ReceiveOrderController extends Controller
         return (new ReceiveOrderResource($receiveOrder))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
-    public function destroy(int $id)
+    public function destroy($id)
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('receive_order_delete'), 403);
 
@@ -149,7 +149,7 @@ class ReceiveOrderController extends Controller
         return $this->deletedResponse();
     }
 
-    public function done(int $id, \Illuminate\Http\Request $request)
+    public function done($id, \Illuminate\Http\Request $request)
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('receive_order_done'), 403);
         $receiveOrder = ReceiveOrder::findTenanted($id);

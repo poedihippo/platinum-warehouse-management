@@ -45,7 +45,7 @@ class PaymentController extends Controller
         return DefaultResource::collection($payments);
     }
 
-    public function show(int $id)
+    public function show($id)
     {
         $payment = Payment::findTenanted($id);
         return new DefaultResource($payment->load(['salesOrder', 'user' => fn ($q) => $q->select('id', 'name')]));
@@ -77,7 +77,7 @@ class PaymentController extends Controller
         return new DefaultResource($payment);
     }
 
-    public function update(int $id, StoreRequest $request)
+    public function update($id, StoreRequest $request)
     {
         $payment = Payment::findTenanted($id);
         DB::beginTransaction();
@@ -104,14 +104,14 @@ class PaymentController extends Controller
         return (new DefaultResource($payment))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
-    public function destroy(int $id)
+    public function destroy($id)
     {
         $payment = Payment::findTenanted($id);
         $payment->delete();
         return $this->deletedResponse();
     }
 
-    public function forceDelete(int $id)
+    public function forceDelete($id)
     {
         $payment = Payment::withTrashed()->findTenanted($id);
         $payment->forceDelete();
@@ -119,7 +119,7 @@ class PaymentController extends Controller
         return $this->deletedResponse();
     }
 
-    public function restore(int $id)
+    public function restore($id)
     {
         $payment = Payment::withTrashed()->findTenanted($id);
         $payment->restore();

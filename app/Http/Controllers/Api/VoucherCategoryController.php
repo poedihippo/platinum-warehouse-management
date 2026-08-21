@@ -57,7 +57,7 @@ class VoucherCategoryController extends Controller
         return $this->deletedResponse();
     }
 
-    public function forceDelete(int $id)
+    public function forceDelete($id)
     {
         $voucherCategory = VoucherCategory::withTrashed()->findOrFail($id);
         $voucherCategory->forceDelete();
@@ -65,7 +65,7 @@ class VoucherCategoryController extends Controller
         return $this->deletedResponse();
     }
 
-    public function restore(int $id)
+    public function restore($id)
     {
         $voucherCategory = VoucherCategory::withTrashed()->findOrFail($id);
         $voucherCategory->restore();
