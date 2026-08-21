@@ -91,7 +91,7 @@ class SalesOrderController extends Controller
             ]);
 
         $query = ProductUnit::select('id', 'refer_id', 'uom_id', 'product_id', 'name', 'price', 'is_ppn', 'code')
-            ->where('is_generate_qr', false)
+            ->where('is_generate_qr', true)
             ->with([
                 'refer' => fn($q) => $q->select('id', 'name')->with('stockProductUnit', $fn),
                 'uom' => fn($q) => $q->select('id', 'name'),
