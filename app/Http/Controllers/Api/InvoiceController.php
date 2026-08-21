@@ -40,12 +40,12 @@ class InvoiceController extends Controller
 
     public function index()
     {
-        return SalesOrderService::index($this->per_page, fn ($q) => $q->where('is_invoice', true));
+        return SalesOrderService::index($this->per_page, fn($q) => $q->where('is_invoice', true));
     }
 
     public function show($id)
     {
-        $salesOrder = SalesOrderService::show($id, fn ($q) => $q->where('is_invoice', true));
+        $salesOrder = SalesOrderService::show($id, fn($q) => $q->where('is_invoice', true));
         $salesOrder->id_hash = Crypt::encryptString($salesOrder->id);
         $salesOrder->whatsapp_url = empty($salesOrder->invoice_no) ? '' : SalesOrderService::getWhatsappUrl($salesOrder, $salesOrder->id_hash);
 
@@ -56,7 +56,9 @@ class InvoiceController extends Controller
     {
         foreach ($request->items ?? [] as $item) {
             $stocks = \App\Models\Stock::whereAvailableStock()
-                ->whereHas('stockProductUnit', fn ($q) => $q->where('product_unit_id', $item['product_unit_id'])->where('warehouse_id', $item['warehouse_id']))
+                ->whereIsStock()
+                ->whereNull('description')
+                ->whereHas('stockProductUnit', fn($q) => $q->where('product_unit_id', $item['product_unit_id'])->where('warehouse_id', $item['warehouse_id']))
                 ->limit($item['qty'])
                 ->get(['id']);
 
@@ -123,7 +125,7 @@ class InvoiceController extends Controller
 
         if ($salesOrder && !$isPreview === false) {
             // delete old history
-            $oldSalesOrderDetails->each(fn ($salesOrderDetail) => $salesOrderDetail->histories()->delete());
+            $oldSalesOrderDetails->each(fn($salesOrderDetail) => $salesOrderDetail->histories()->delete());
 
             // create history
             $salesOrder->details->each(function ($salesOrderDetail) use ($salesOrder) {
@@ -190,12 +192,12 @@ class InvoiceController extends Controller
             $id = Crypt::decryptString($id);
         } catch (\Throwable $th) {
         }
-        return SalesOrderService::print($id, 'print-invoice', fn ($q) => $q->where('is_invoice', true));
+        return SalesOrderService::print($id, 'print-invoice', fn($q) => $q->where('is_invoice', true));
     }
 
     public function exportXml($id)
     {
-        return SalesOrderService::exportXml($id, fn ($q) => $q->where('is_invoice', true));
+        return SalesOrderService::exportXml($id, fn($q) => $q->where('is_invoice', true));
     }
 
     public function getInvoiceNo(\Illuminate\Http\Request $request)
@@ -211,7 +213,7 @@ class InvoiceController extends Controller
 
     public function bill(string $id)
     {
-        return SalesOrderService::print($id, 'print-invoice', fn ($q) => $q->where('is_invoice', true));
+        return SalesOrderService::print($id, 'print-invoice', fn($q) => $q->where('is_invoice', true));
     }
 
     public function export()

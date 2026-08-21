@@ -85,7 +85,7 @@ class SalesOrderController extends Controller
 
         $fn = fn($q) => $q->select('id', 'warehouse_id', 'product_unit_id')->has('productUnit')->has('warehouse')
             ->when($warehouseId, fn($q) =>  $q->where('warehouse_id', $warehouseId))
-            ->withCount(['stocks' => fn($q) => $q->whereAvailableStock()->whereNull('description')])
+            ->withCount(['stocks' => fn($q) => $q->whereAvailableStock()->whereIsStock()->whereNull('description')])
             ->with([
                 'warehouse' => fn($q) => $q->select('id', 'code'),
             ]);
