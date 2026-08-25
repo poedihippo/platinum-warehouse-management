@@ -26,18 +26,22 @@ class Order extends Model
         'raw_source' => 'array',
         'records' => 'array',
         'price' => 'integer',
-        'type' => SalesOrderType::class
+        'type' => SalesOrderType::class,
     ];
 
     protected static function booted()
     {
         static::saving(function ($model) {
-            if (empty($model->type)) $model->type = SalesOrderType::PICKUP;
+            if (empty($model->type)) {
+                $model->type = SalesOrderType::PICKUP;
+            }
         });
 
         static::creating(function ($model) {
             $model->user_id = auth('sanctum')->id();
-            if (empty($model->description)) $model->description = "#Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih";
+            if (empty($model->description)) {
+                $model->description = '#Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih';
+            }
         });
     }
 

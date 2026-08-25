@@ -8,12 +8,12 @@ use App\Http\Requests\Api\ReceiveOrderDetailUpdateRequest;
 use App\Http\Resources\ReceiveOrderDetailResource;
 use App\Models\ReceiveOrder;
 use App\Models\ReceiveOrderDetail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
-use Illuminate\Database\Eloquent\Builder;
 
 class ReceiveOrderDetailController extends Controller
 {
@@ -90,16 +90,20 @@ class ReceiveOrderDetailController extends Controller
         // abort_if(!auth('sanctum')->user()->tokenCan('receive_order_verify_access'), 403);
 
         $receiveOrder = ReceiveOrder::findTenanted($receiveOrderId, ['id']);
-        if ($receiveOrder->is_done) return response()->json(['message' => "Delivery order sudah diverifikasi. Tidak dapat mengubah detail"], 400);
+        if ($receiveOrder->is_done) {
+            return response()->json(['message' => 'Delivery order sudah diverifikasi. Tidak dapat mengubah detail'], 400);
+        }
 
         $receiveOrderDetail = $receiveOrder->details()->where('id', $receiveOrderDetailId)->firstOrFail();
 
         $request->validate([
-            'is_verified' => 'required|boolean'
+            'is_verified' => 'required|boolean',
         ]);
 
         $receiveOrderDetail->is_verified = boolval($request->is_verified);
-        if ($receiveOrderDetail->isDirty('is_verified') === false) return response()->json(['message' => 'Tidak dapat memperbarui dengan status yang sama'], 400);
+        if ($receiveOrderDetail->isDirty('is_verified') === false) {
+            return response()->json(['message' => 'Tidak dapat memperbarui dengan status yang sama'], 400);
+        }
         $receiveOrderDetail->save();
 
         return (new ReceiveOrderDetailResource($receiveOrderDetail))->response()->setStatusCode(Response::HTTP_ACCEPTED);
@@ -110,7 +114,9 @@ class ReceiveOrderDetailController extends Controller
         // abort_if(!auth('sanctum')->user()->tokenCan('receive_order_delete'), 403);
 
         $receiveOrder = ReceiveOrder::findTenanted($receiveOrderId, ['id']);
-        if ($receiveOrderDetail->is_verified === true) return response()->json(['message' => 'Data harus tidak diverifikasi']);
+        if ($receiveOrderDetail->is_verified === true) {
+            return response()->json(['message' => 'Data harus tidak diverifikasi']);
+        }
 
         DB::beginTransaction();
         try {
@@ -118,6 +124,7 @@ class ReceiveOrderDetailController extends Controller
             DB::commit();
         } catch (\Throwable $th) {
             DB::rollBack();
+
             return response()->json($th, 500);
         }
 

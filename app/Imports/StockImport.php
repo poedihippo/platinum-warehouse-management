@@ -15,9 +15,8 @@ class StockImport implements ToModel, WithHeadingRow
     public function __construct(public int $warehouse_id)
     {
     }
+
     /**
-     * @param array $row
-     *
      * @return \Illuminate\Database\Eloquent\Model|null
      */
     public function model(array $row)
@@ -32,7 +31,7 @@ class StockImport implements ToModel, WithHeadingRow
                 ->first();
 
             if ($stockProductUnit && $qty > 0) {
-                if($productUnit->is_generate_qr){
+                if ($productUnit->is_generate_qr) {
                     GenerateStockQrcode::dispatch($stockProductUnit, $qty, $folder);
                 } else {
                     $stockProductUnit->increment('qty', $qty);

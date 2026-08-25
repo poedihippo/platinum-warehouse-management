@@ -16,7 +16,7 @@ class AdminProductUnitSearchResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => trim(($this->product?->name ? $this->product->name . ' - ' : '') . $this->name),
+            'name' => trim(($this->product?->name ? $this->product->name.' - ' : '').$this->name),
             'code' => $this->code,
             'points_per_unit' => (int) $this->points_per_unit,
         ];

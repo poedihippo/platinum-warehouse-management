@@ -40,7 +40,7 @@ class ProductUnitBlacklistController extends Controller
 
         $request->validate([
             'product_unit_ids' => 'required|array',
-            'product_unit_id.*' => 'exists:product_units,id'
+            'product_unit_id.*' => 'exists:product_units,id',
         ]);
 
         $dataInserted = 0;
@@ -51,14 +51,15 @@ class ProductUnitBlacklistController extends Controller
             }
         }
 
-        return response()->json(['message' => $dataInserted . ' inserted successfully']);
+        return response()->json(['message' => $dataInserted.' inserted successfully']);
     }
 
     public function destroy($productUnitId)
     {
-        abort_if(!auth('sanctum')->user()->tokenCan('product_unit_blacklist_delete'), 403);
+        abort_if(! auth('sanctum')->user()->tokenCan('product_unit_blacklist_delete'), 403);
 
         ProductUnitBlacklist::where('product_unit_id', $productUnitId)->delete();
+
         return $this->deletedResponse();
     }
 }

@@ -42,7 +42,7 @@ class BrandLogoUploadTest extends TestCase
 
     private function makeBrand(): ProductBrand
     {
-        return ProductBrand::create(['name' => 'Test Brand ' . uniqid()]);
+        return ProductBrand::create(['name' => 'Test Brand '.uniqid()]);
     }
 
     public function test_user_with_permission_can_upload_png_logo(): void

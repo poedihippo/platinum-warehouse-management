@@ -35,6 +35,7 @@ class PermissionsHelper
                 $data[] = $persmission;
             }
         }
+
         return $data;
     }
 
@@ -166,6 +167,7 @@ class PermissionsHelper
                 'stock_grouping',
                 'stock_print',
                 'stock_export',
+                'stock_transfer',
             ],
 
             'stock_opname_access' => [
@@ -233,7 +235,7 @@ class PermissionsHelper
                 $hsp = Permission::firstOrCreate([
                     'name' => $key,
                     'guard_name' => $guard,
-                    'parent_id' => $headSubPermissions->id
+                    'parent_id' => $headSubPermissions->id,
                 ]);
 
                 self::generateChilds($hsp, $permission);
@@ -241,11 +243,10 @@ class PermissionsHelper
                 $hsp = Permission::firstOrCreate([
                     'name' => $permission,
                     'guard_name' => $guard,
-                    'parent_id' => $headSubPermissions->id
+                    'parent_id' => $headSubPermissions->id,
                 ]);
             }
 
-            return;
         });
     }
 

@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Enums\SettingEnum;
 use App\Models\Setting;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class SettingSeeder extends Seeder
@@ -18,32 +17,32 @@ class SettingSeeder extends Seeder
     {
         Setting::create([
             'key' => SettingEnum::SO_NUMBER,
-            'value' => sprintf('PAS/SO/%s/%s/01', date('m'), date('y'))
+            'value' => sprintf('PAS/SO/%s/%s/01', date('m'), date('y')),
         ]);
 
         Setting::create([
             'key' => SettingEnum::DO_NUMBER,
-            'value' => sprintf('PAS/DO/%s/%s/01', date('m'), date('y'))
+            'value' => sprintf('PAS/DO/%s/%s/01', date('m'), date('y')),
         ]);
 
         Setting::create([
             'key' => SettingEnum::TAX_VALUE,
-            'value' => 11
+            'value' => 11,
         ]);
 
         Setting::create([
             'key' => SettingEnum::BANK_NAME,
-            'value' => 'BCA'
+            'value' => 'BCA',
         ]);
 
         Setting::create([
             'key' => SettingEnum::BANK_HOLDER,
-            'value' => 'PT. Platinum Adi Sentosa'
+            'value' => 'PT. Platinum Adi Sentosa',
         ]);
 
         Setting::create([
             'key' => SettingEnum::BANK_ACCOUNT,
-            'value' => '2883123808'
+            'value' => '2883123808',
         ]);
     }
 }

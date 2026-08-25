@@ -13,14 +13,14 @@ class Warehouse extends Model
     protected $fillable = [
         'code',
         'name',
-        'company_name'
+        'company_name',
     ];
 
     protected static function booted()
     {
         static::created(function ($model) {
             ProductUnit::get(['id'])->each(fn ($productUnit) => $productUnit->stockProductUnits()->create([
-                'warehouse_id' => $model->id
+                'warehouse_id' => $model->id,
             ]));
         });
     }
@@ -29,14 +29,19 @@ class Warehouse extends Model
     {
         /** @var \App\Models\User $user */
         $user = auth('sanctum')->user();
-        if ($user->hasRole('admin')) return $query;
+        if ($user->hasRole('admin')) {
+            return $query;
+        }
+
         return $query->whereIn('id', $user->warehouses()->pluck('warehouse_id') ?? []);
     }
 
     public function scopeFindTenanted(Builder $query, int|string $id, array $columns = ['*'], bool $fail = true): self
     {
         $query->tenanted()->where('id', $id);
-        if ($fail) return $query->firstOrFail($columns);
+        if ($fail) {
+            return $query->firstOrFail($columns);
+        }
 
         return $query->first($columns);
     }

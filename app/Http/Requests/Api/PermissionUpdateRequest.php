@@ -14,7 +14,7 @@ class PermissionUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|unique:roles,name' . $this->permission?->id,
+            'name' => 'required|unique:roles,name'.$this->permission?->id,
             'parent_id' => 'nullable',
         ];
     }

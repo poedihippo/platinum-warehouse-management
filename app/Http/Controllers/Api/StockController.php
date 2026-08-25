@@ -9,9 +9,9 @@ use App\Http\Requests\Api\Stock\GroupingByScanRequest;
 use App\Http\Requests\Api\Stock\GroupingRequest;
 use App\Http\Requests\Api\Stock\SetToPrintingQueueRequest;
 use App\Http\Requests\Api\Stock\UpdateStockRequest;
+use App\Http\Requests\Api\Stock\VerifyRequest;
 use App\Http\Requests\Api\StockRecordRequest;
 use App\Http\Requests\Api\StockRepackRequest;
-use App\Http\Requests\Api\Stock\VerifyRequest;
 use App\Http\Resources\DefaultResource;
 use App\Http\Resources\StockProductUnitResource;
 use App\Http\Resources\Stocks\BaseStockResource;
@@ -31,7 +31,7 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class StockController extends Controller
 {
-    const FORMAT_GROUPING = "%s GR-%s%s";
+    const FORMAT_GROUPING = '%s GR-%s%s';
 
     public function __construct()
     {
@@ -59,10 +59,10 @@ class StockController extends Controller
             ->has('productUnit')
             ->has('warehouse')
             ->with([
-                'warehouse' => fn($q) => $q->select('warehouses.id', 'warehouses.name'),
-                'productUnit'
+                'warehouse' => fn ($q) => $q->select('warehouses.id', 'warehouses.name'),
+                'productUnit',
             ])
-            ->withCount(['stocks' => fn($q) => $q->whereAvailableStock()->whereIsStock()->whereNull('description')]))
+            ->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereIsStock()->whereNull('description')]))
             ->allowedFilters([
                 AllowedFilter::exact('id'),
                 AllowedFilter::exact('warehouse_id'),
@@ -90,14 +90,14 @@ class StockController extends Controller
 
         $filter = request()->filter;
 
-        if (isset($filter) && !empty($filter['parent_id'])) {
+        if (isset($filter) && ! empty($filter['parent_id'])) {
             $query = Stock::tenanted()->whereNotNull('parent_id');
         } else {
             // $query = Stock::tenanted()->whereNull('parent_id');
             $query = Stock::tenanted();
         }
 
-        if (isset($filter) && !empty($filter['is_show_group']) && $filter['is_show_group'] == 1) {
+        if (isset($filter) && ! empty($filter['is_show_group']) && $filter['is_show_group'] == 1) {
             $query->withCount('childs');
         } else {
             $query->isShowGroup(0);
@@ -117,7 +117,9 @@ class StockController extends Controller
                 AllowedFilter::scope('start_date'),
                 AllowedFilter::scope('end_date'),
                 AllowedFilter::callback('show_all', function (\Illuminate\Database\Eloquent\Builder $query, $value) {
-                    if (!$value == 0) $query->whereAvailableStock();
+                    if (! $value == 0) {
+                        $query->whereAvailableStock();
+                    }
                 }),
                 'in_printing_queue',
             ])
@@ -139,18 +141,18 @@ class StockController extends Controller
         $includeSDeliveryOrder = str_contains($include, 'deliveryOrder');
 
         $stock = Stock::query()
-            ->when($includeChilds, fn($q) => $q->with('childs', fn($q) => $q->select('id', 'parent_id')))
-            ->when($includeReceiveOrder, fn($q) => $q->with('receiveOrderDetail'))
+            ->when($includeChilds, fn ($q) => $q->with('childs', fn ($q) => $q->select('id', 'parent_id')))
+            ->when($includeReceiveOrder, fn ($q) => $q->with('receiveOrderDetail'))
             ->when(
                 $includeSalesOrder,
-                fn($q) => $q->with('salesOrderItem', fn($q) => $q->with(
+                fn ($q) => $q->with('salesOrderItem', fn ($q) => $q->with(
                     'salesOrderDetail',
-                    fn($q) => $q->select('id', 'sales_order_id')->with('salesOrder', fn($q) => $q->select('id', 'invoice_no'))
+                    fn ($q) => $q->select('id', 'sales_order_id')->with('salesOrder', fn ($q) => $q->select('id', 'invoice_no'))
                         ->when(
                             $includeSDeliveryOrder,
-                            fn($q) => $q->with(
+                            fn ($q) => $q->with(
                                 'deliveryOrderDetail',
-                                fn($q) => $q->select('id', 'delivery_order_id', 'sales_order_detail_id')->with('deliveryOrder', fn($q) => $q->select('id', 'invoice_no'))
+                                fn ($q) => $q->select('id', 'delivery_order_id', 'sales_order_detail_id')->with('deliveryOrder', fn ($q) => $q->select('id', 'invoice_no'))
                             )
                         )
                 ))
@@ -158,13 +160,14 @@ class StockController extends Controller
             ->findTenanted($id);
 
         return new StocksStockProductUnitResource($stock->load([
-            'stockProductUnit' => fn($q) => $q->tenanted()->withCount(['stocks' => fn($q) => $q->whereAvailableStock()->whereNull('description')])
+            'stockProductUnit' => fn ($q) => $q->tenanted()->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')]),
         ]));
     }
 
     public function update(UpdateStockRequest $request, Stock $stock)
     {
         Stock::where('parent_id', $stock->id)->orWhere('id', $stock->id)->update($request->validated());
+
         return response()->json(['message' => 'Data updated successfully']);
     }
 
@@ -172,10 +175,15 @@ class StockController extends Controller
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('stock_delete'), 403);
 
-        if ($stock->childs()->count() > 0) return response()->json(['message' => 'Tidak dapat menghapus stock parent'], 400);
-        if ($stock->salesOrderItems()->whereNotReturned()->count() > 0) return response()->json(['message' => 'Tidak dapat menghapus stock. Stock sudah masuk di Sales Order'], 400);
+        if ($stock->childs()->count() > 0) {
+            return response()->json(['message' => 'Tidak dapat menghapus stock parent'], 400);
+        }
+        if ($stock->salesOrderItems()->whereNotReturned()->count() > 0) {
+            return response()->json(['message' => 'Tidak dapat menghapus stock. Stock sudah masuk di Sales Order'], 400);
+        }
 
         $stock->delete();
+
         return $this->deletedResponse();
     }
 
@@ -206,10 +214,10 @@ class StockController extends Controller
 
         //cari nama grouping berdasarkan self::FORMAT_GROUPING
         $description = $request->name;
-        if (!$description) {
-            $lastGroupName = $stockProductUnit->stocks()->whereNull('parent_id')->has('childs')->whereMonth('stocks.created_at', date('m'))->whereYear('stocks.created_at', date('Y'))->orderByDesc('description')->first(['description'])?->description ?? "";
-            $lastOrderNumberGroup = explode(" ", $lastGroupName);
-            $lastOrderNumberGroup = $lastOrderNumberGroup[1] ?? "";
+        if (! $description) {
+            $lastGroupName = $stockProductUnit->stocks()->whereNull('parent_id')->has('childs')->whereMonth('stocks.created_at', date('m'))->whereYear('stocks.created_at', date('Y'))->orderByDesc('description')->first(['description'])?->description ?? '';
+            $lastOrderNumberGroup = explode(' ', $lastGroupName);
+            $lastOrderNumberGroup = $lastOrderNumberGroup[1] ?? '';
             if ($lastOrderNumberGroup) {
                 $lastOrderNumberGroup = (int) substr($lastOrderNumberGroup, -3);
             } else {
@@ -234,7 +242,7 @@ class StockController extends Controller
                 'parent_id' => $groupStock->id,
                 'batch_number' => $groupStock->batch_number,
                 'batch_number_jp' => $groupStock->batch_number_jp,
-                'is_stock' => 1
+                'is_stock' => 1,
             ];
 
             if ($request->expired_date) {
@@ -270,9 +278,9 @@ class StockController extends Controller
             $productUnit = $stockProductUnit->productUnit;
 
             //cari nama grouping berdasarkan self::FORMAT_GROUPING
-            $lastGroupName = $stockProductUnit->stocks()->whereNull('parent_id')->has('childs')->whereMonth('stocks.created_at', date('m'))->whereYear('stocks.created_at', date('Y'))->orderByDesc('description')->first(['description'])?->description ?? "";
-            $lastOrderNumberGroup = explode(" ", $lastGroupName);
-            $lastOrderNumberGroup = $lastOrderNumberGroup[1] ?? "";
+            $lastGroupName = $stockProductUnit->stocks()->whereNull('parent_id')->has('childs')->whereMonth('stocks.created_at', date('m'))->whereYear('stocks.created_at', date('Y'))->orderByDesc('description')->first(['description'])?->description ?? '';
+            $lastOrderNumberGroup = explode(' ', $lastGroupName);
+            $lastOrderNumberGroup = $lastOrderNumberGroup[1] ?? '';
             if ($lastOrderNumberGroup) {
                 $lastOrderNumberGroup = (int) substr($lastOrderNumberGroup, -3);
             } else {
@@ -366,7 +374,9 @@ class StockController extends Controller
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('stock_grouping'), 403);
         $stock = Stock::findTenanted($id);
-        if ($stock->childs->isEmpty()) return response()->json(['message' => 'Stock bukan grouping / tidak memiliki childs'], 400);
+        if ($stock->childs->isEmpty()) {
+            return response()->json(['message' => 'Stock bukan grouping / tidak memiliki childs'], 400);
+        }
 
         DB::beginTransaction();
         try {
@@ -375,6 +385,7 @@ class StockController extends Controller
             DB::commit();
         } catch (Exception $e) {
             DB::rollBack();
+
             return response()->json(['message' => $e->getMessage()], 400);
         }
 
@@ -451,6 +462,7 @@ class StockController extends Controller
                 DB::commit();
             } catch (Exception $e) {
                 DB::rollBack();
+
                 return response()->json(['message' => $e->getMessage()], 400);
             }
 
@@ -463,35 +475,39 @@ class StockController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'file' => 'required|mimes:xls,xlsx,csv'
+            'file' => 'required|mimes:xls,xlsx,csv',
         ]);
 
         // Excel::queueImport(new StockImport($request->warehouse_id ?? 1), $request->file);
         Excel::import(new StockImport($request->warehouse_id ?? 1), $request->file);
-        die('duarrr nmax');
+        exit('duarrr nmax');
     }
 
     public function verificationTempel(\App\Http\Requests\Api\VerificationTempelRequest $request)
     {
         DB::beginTransaction();
         try {
-            Stock::whereIn('id', $request->ids)->orWhereIn('parent_id', $request->ids)->update(["is_tempel" => $request->is_tempel]);
+            Stock::whereIn('id', $request->ids)->orWhereIn('parent_id', $request->ids)->update(['is_tempel' => $request->is_tempel]);
             DB::commit();
         } catch (\Throwable $th) {
             DB::rollBack();
             throw $th;
         }
 
-        return $this->updatedResponse('Stock berhasil diupdate ' . ($request->is_tempel ? 'Terpasang' : 'Belum Terpasang'));
+        return $this->updatedResponse('Stock berhasil diupdate '.($request->is_tempel ? 'Terpasang' : 'Belum Terpasang'));
     }
 
     public function repack($id, StockRepackRequest $request)
     {
         $stock = Stock::findTenanted($id, ['id', 'parent_id', 'stock_product_unit_id']);
-        if ($stock->childs?->count() > 0) return response()->json(['message' => 'Tidak dapat me-repack stock parent'], 400);
+        if ($stock->childs?->count() > 0) {
+            return response()->json(['message' => 'Tidak dapat me-repack stock parent'], 400);
+        }
 
-        $stock->load(['salesOrderItems' => fn($q) => $q->whereNotReturned()->select('id', 'stock_id')]);
-        if ($stock->salesOrderItems?->count() > 0) return response()->json(['message' => 'Tidak dapat me-repack stock. Stock sudah masuk di Sales Order'], 400);
+        $stock->load(['salesOrderItems' => fn ($q) => $q->whereNotReturned()->select('id', 'stock_id')]);
+        if ($stock->salesOrderItems?->count() > 0) {
+            return response()->json(['message' => 'Tidak dapat me-repack stock. Stock sudah masuk di Sales Order'], 400);
+        }
 
         $qty = $request->qty;
         $stockProductUnit = StockProductUnit::findOrFail($request->stock_product_unit_id);
@@ -509,7 +525,7 @@ class StockController extends Controller
                 'stock_product_unit_id' => $stock->stockProductUnit->id,
                 'value' => 1,
                 'is_increment' => 0,
-                'description' => sprintf("Delete stock untuk repack - %s ke %s(sebanyak %d)", $stock->stockProductUnit->productUnit->name ?? "", $stockProductUnit->productUnit->name ?? "", $qty),
+                'description' => sprintf('Delete stock untuk repack - %s ke %s(sebanyak %d)', $stock->stockProductUnit->productUnit->name ?? '', $stockProductUnit->productUnit->name ?? '', $qty),
                 'ip' => $userIp,
                 'agent' => $userAgent,
                 'created_at' => $createdAt,
@@ -524,7 +540,7 @@ class StockController extends Controller
                 'value' => $qty,
                 'is_increment' => 1,
                 'is_approved' => 1,
-                'description' => sprintf("Add stock from repack - %s(sebanyak %d)", $stock->stockProductUnit->productUnit?->name ?? "", $qty),
+                'description' => sprintf('Add stock from repack - %s(sebanyak %d)', $stock->stockProductUnit->productUnit?->name ?? '', $qty),
             ]);
 
             if ($stockProductUnit->productUnit->is_generate_qr) {
@@ -547,15 +563,16 @@ class StockController extends Controller
             DB::commit();
         } catch (Exception $e) {
             DB::rollBack();
-            return response()->json(["message" => $e->getMessage()], 500);
+
+            return response()->json(['message' => $e->getMessage()], 500);
         }
 
-        return response()->json(["message" => sprintf("Berhasil me-repack %s ke %s sebanyak %d", $stock->stockProductUnit->productUnit?->name ?? "", $stockProductUnit->productUnit?->name ?? "", $qty)]);
+        return response()->json(['message' => sprintf('Berhasil me-repack %s ke %s sebanyak %d', $stock->stockProductUnit->productUnit?->name ?? '', $stockProductUnit->productUnit?->name ?? '', $qty)]);
     }
 
     public function export()
     {
-        return Excel::download(new StockExport, 'stock-' . date('Y-m-d H:i') . '.xlsx');
+        return Excel::download(new StockExport, 'stock-'.date('Y-m-d H:i').'.xlsx');
     }
 
     public function setToPrinted(VerifyRequest $request)
@@ -566,7 +583,7 @@ class StockController extends Controller
         ]);
 
         return response()->json([
-            'message' => count($request->stocks) . ' stocks set to printed successfully',
+            'message' => count($request->stocks).' stocks set to printed successfully',
         ]);
     }
 
@@ -585,14 +602,14 @@ class StockController extends Controller
         Stock::whereIn('id', $request->stocks)->update($data);
 
         return response()->json([
-            'message' => count($request->stocks) . ' stocks added to printing queue',
+            'message' => count($request->stocks).' stocks added to printing queue',
         ]);
     }
 
     public function printVerification(VerifyRequest $request)
     {
         if ($request->is_preview) {
-            $stock = Stock::with(['stockProductUnit' => fn($q) => $q->select('id', 'product_unit_id')->with('productUnit', fn($q) => $q->select('id', 'name'))])
+            $stock = Stock::with(['stockProductUnit' => fn ($q) => $q->select('id', 'product_unit_id')->with('productUnit', fn ($q) => $q->select('id', 'name'))])
                 ->whereIn('id', $request->stocks)->whereNotNull('printed_at')->get(['id', 'printed_at', 'stock_product_unit_id']);
 
             return DefaultResource::collection($stock);
@@ -604,7 +621,7 @@ class StockController extends Controller
         ]);
 
         return response()->json([
-            'message' => count($request->stocks) . ' stocks scanned successfully',
+            'message' => count($request->stocks).' stocks scanned successfully',
         ]);
     }
 
@@ -615,7 +632,7 @@ class StockController extends Controller
         ]);
 
         return response()->json([
-            'message' => count($request->ids) . ' stocks ' . ($request->is_add ? 'added' : 'removed') . ' successfully',
+            'message' => count($request->ids).' stocks '.($request->is_add ? 'added' : 'removed').' successfully',
         ]);
     }
 
@@ -634,11 +651,11 @@ class StockController extends Controller
             $content .= "\n";
         }
 
-        $fileName = 'stocks-' . date('Y-m-d_His') . '.txt';
+        $fileName = 'stocks-'.date('Y-m-d_His').'.txt';
 
         return response($content, 200, [
             'Content-Type' => 'text/plain',
-            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
         ]);
     }
 }

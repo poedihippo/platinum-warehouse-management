@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasColumn('stocks', 'expired_date')) {
+        if (! Schema::hasColumn('stocks', 'expired_date')) {
             Schema::table('stocks', function (Blueprint $table) {
                 $table->date('expired_date')->nullable()->after('is_tempel');
             });

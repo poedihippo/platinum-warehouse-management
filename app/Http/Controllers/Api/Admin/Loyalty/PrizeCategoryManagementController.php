@@ -54,7 +54,7 @@ class PrizeCategoryManagementController extends Controller
         }
 
         $model = PrizeCategory::find($prizeCategory);
-        if (!$model) {
+        if (! $model) {
             return response()->json(['message' => 'Kategori hadiah tidak ditemukan.'], 404);
         }
 
@@ -76,7 +76,7 @@ class PrizeCategoryManagementController extends Controller
         }
 
         $model = PrizeCategory::find($prizeCategory);
-        if (!$model) {
+        if (! $model) {
             return response()->json(['message' => 'Kategori hadiah tidak ditemukan.'], 404);
         }
 

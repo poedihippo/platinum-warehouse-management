@@ -32,17 +32,17 @@ class VoucherExport implements FromCollection, WithHeadings
         return collect([
             self::HEADINGS,
             [
-                "CODE1",
-                "Description for voucher (optional)"
+                'CODE1',
+                'Description for voucher (optional)',
             ],
             [
-                "CODE2",
+                'CODE2',
             ],
             [
-                "CODE3",
+                'CODE3',
             ],
             [
-                "CODE4",
+                'CODE4',
             ],
         ]);
     }

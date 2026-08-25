@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Pipes\Order;
+
 use App\Models\SalesOrder;
 
 class CalculateAdditionalFees

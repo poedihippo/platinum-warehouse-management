@@ -24,11 +24,11 @@ class OrderDetailController extends Controller
         $order = Order::findTenanted($orderId, ['id']);
         $query = OrderDetail::where('sales_order_id', $order->id)->with([
             // 'packaging',
-            'warehouse' => fn($q) => $q->select('id', 'code', 'name')
+            'warehouse' => fn ($q) => $q->select('id', 'code', 'name'),
         ]);
         $orderDetails = QueryBuilder::for($query)
             ->allowedFilters([
-                AllowedFilter::scope('has_delivery_order')
+                AllowedFilter::scope('has_delivery_order'),
             ])->get();
 
         return OrderDetailResource::collection($orderDetails);
@@ -41,6 +41,6 @@ class OrderDetailController extends Controller
         $order = Order::findTenanted($orderId, ['id']);
         $orderDetail = $order->details()->where('id', $orderDetailId)->firstOrFail();
 
-        return new OrderDetailResource($orderDetail->load(['warehouse' => fn($q) => $q->select('id', 'code', 'name')]));
+        return new OrderDetailResource($orderDetail->load(['warehouse' => fn ($q) => $q->select('id', 'code', 'name')]));
     }
 }

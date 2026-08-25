@@ -14,7 +14,7 @@ class ReceiveOrderUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|unique:uoms,name,' . $this->uom?->id,
+            'name' => 'required|unique:uoms,name,'.$this->uom?->id,
         ];
     }
 }

@@ -26,7 +26,7 @@ class FillOrderAttributes
         $salesOrder->shipment_estimation_datetime = isset($rawSoruce['shipment_estimation_datetime']) ? $rawSoruce['shipment_estimation_datetime'] : now();
         $salesOrder->shipment_fee = $rawSoruce['shipment_fee'];
         $salesOrder->additional_discount = $rawSoruce['additional_discount'] ?? 0;
-        $salesOrder->description = $rawSoruce['description'] ?? "#Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih";
+        $salesOrder->description = $rawSoruce['description'] ?? '#Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih';
         $salesOrder->type = $rawSoruce['type'] ?? null;
 
         return $next($salesOrder);

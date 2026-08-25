@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Uom;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class UomSeeder extends Seeder
@@ -28,6 +27,6 @@ class UomSeeder extends Seeder
             'sak',
             'set',
             'sachet',
-        ])->each(fn($uom) => Uom::create(['name' => trim($uom)]));
+        ])->each(fn ($uom) => Uom::create(['name' => trim($uom)]));
     }
 }

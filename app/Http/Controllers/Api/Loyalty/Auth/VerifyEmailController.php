@@ -17,7 +17,7 @@ class VerifyEmailController extends Controller
     {
         $user = LoyaltyUser::find($id);
 
-        if (!$user || !hash_equals(sha1($user->email), (string) $hash)) {
+        if (! $user || ! hash_equals(sha1($user->email), (string) $hash)) {
             return response()->json(['message' => 'Tautan verifikasi tidak valid.'], 403);
         }
 

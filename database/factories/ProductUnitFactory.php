@@ -15,14 +15,14 @@ class ProductUnitFactory extends Factory
     public function definition(): array
     {
         return [
-            'product_id'      => ProductFactory::new(),
-            'uom_id'          => UomFactory::new(),
-            'name'            => fake()->words(2, true),
-            'price'           => fake()->numberBetween(1000, 500000),
-            'refer_qty'       => null,
-            'code'            => strtoupper(fake()->unique()->bothify('PU-####')),
-            'is_generate_qr'  => true,
-            'is_ppn'          => false,
+            'product_id' => ProductFactory::new(),
+            'uom_id' => UomFactory::new(),
+            'name' => fake()->words(2, true),
+            'price' => fake()->numberBetween(1000, 500000),
+            'refer_qty' => null,
+            'code' => strtoupper(fake()->unique()->bothify('PU-####')),
+            'is_generate_qr' => true,
+            'is_ppn' => false,
         ];
     }
 }

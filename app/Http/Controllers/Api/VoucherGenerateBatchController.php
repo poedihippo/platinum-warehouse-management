@@ -48,13 +48,14 @@ class VoucherGenerateBatchController extends Controller
             for ($i = 0; $i < $request->value; $i++) {
                 $voucherGenerateBatch->vouchers()->create([
                     'voucher_category_id' => $request->voucher_category_id,
-                    'code' => $voucherGenerateBatch->id . '-' . $i
+                    'code' => $voucherGenerateBatch->id.'-'.$i,
                 ]);
             }
 
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
+
             return $this->errorResponse($e->getMessage());
         }
 
@@ -71,6 +72,7 @@ class VoucherGenerateBatchController extends Controller
     public function destroy(VoucherGenerateBatch $generateBatch)
     {
         $generateBatch->delete();
+
         return $this->deletedResponse();
     }
 

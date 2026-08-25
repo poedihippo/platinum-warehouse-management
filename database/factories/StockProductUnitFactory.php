@@ -16,8 +16,8 @@ class StockProductUnitFactory extends Factory
     {
         return [
             'product_unit_id' => ProductUnitFactory::new(),
-            'warehouse_id'    => WarehouseFactory::new(),
-            'qty'             => 0,
+            'warehouse_id' => WarehouseFactory::new(),
+            'qty' => 0,
         ];
     }
 }

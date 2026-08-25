@@ -94,7 +94,7 @@ class ClaimReviewController extends Controller
             'lineItems.productUnit',
         ]))->find($claim);
 
-        if (!$model) {
+        if (! $model) {
             return response()->json(['message' => 'Klaim tidak ditemukan.'], 404);
         }
 
@@ -128,7 +128,7 @@ class ClaimReviewController extends Controller
         }
 
         $productUnit = ProductUnit::find($request->input('product_unit_id'));
-        if (!$productUnit || (int) $productUnit->points_per_unit <= 0) {
+        if (! $productUnit || (int) $productUnit->points_per_unit <= 0) {
             return response()->json([
                 'message' => 'Product unit ini tidak memiliki nilai poin (points_per_unit harus > 0).',
             ], 422);
@@ -173,7 +173,7 @@ class ClaimReviewController extends Controller
         }
 
         $item = $model->lineItems()->where('id', $lineItem)->first();
-        if (!$item) {
+        if (! $item) {
             return response()->json(['message' => 'Line item tidak ditemukan.'], 404);
         }
 
@@ -211,7 +211,7 @@ class ClaimReviewController extends Controller
         }
 
         $item = $model->lineItems()->where('id', $lineItem)->first();
-        if (!$item) {
+        if (! $item) {
             return response()->json(['message' => 'Line item tidak ditemukan.'], 404);
         }
 
@@ -352,7 +352,7 @@ class ClaimReviewController extends Controller
     private function findOrFail(string $claim): Claim
     {
         $model = Claim::find($claim);
-        abort_if(!$model, 404, 'Klaim tidak ditemukan.');
+        abort_if(! $model, 404, 'Klaim tidak ditemukan.');
 
         return $model;
     }

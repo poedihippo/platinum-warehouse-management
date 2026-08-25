@@ -37,7 +37,9 @@ class DeliveryOrder extends Model
     {
         static::creating(function ($model) {
             $model->user_id = auth('sanctum')->id();
-            if (empty($model->description)) $model->description = '#Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih';
+            if (empty($model->description)) {
+                $model->description = '#Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih';
+            }
         });
 
         static::created(function ($model) {
@@ -86,6 +88,7 @@ class DeliveryOrder extends Model
     public static function getDoNumber(): string
     {
         $key = SettingEnum::DO_NUMBER;
+
         return DB::transaction(function () use ($key) {
             // Get current value to use. We use lock for update
             // to prevent other thread to read this row until we update it

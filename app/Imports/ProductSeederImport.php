@@ -7,14 +7,11 @@ use App\Models\ProductBrand;
 use App\Models\ProductCategory;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 class ProductSeederImport implements ToModel, WithHeadingRow
 {
     /**
-     * @param array $row
-     *
      * @return \Illuminate\Database\Eloquent\Model|null
      */
     public function model(array $row)
@@ -25,12 +22,12 @@ class ProductSeederImport implements ToModel, WithHeadingRow
         $productName = trim($row['product_name']);
 
         $prodcutCategory = ProductCategory::select('id')->firstWhere('name', $categoryName);
-        if (!$prodcutCategory) {
+        if (! $prodcutCategory) {
             throw new UnprocessableEntityHttpException('Product category not found');
         }
 
         $prodcutbrand = ProductBrand::select('id')->firstWhere('name', $brandName);
-        if (!$prodcutbrand) {
+        if (! $prodcutbrand) {
             throw new UnprocessableEntityHttpException('Product category not found');
         }
 

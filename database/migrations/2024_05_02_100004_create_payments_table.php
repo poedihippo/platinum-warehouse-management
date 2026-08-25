@@ -11,8 +11,6 @@ return new class extends Migration
 {
     /**
      * Creates the payments table in the database.
-     *
-     * @return void
      */
     public function up(): void
     {

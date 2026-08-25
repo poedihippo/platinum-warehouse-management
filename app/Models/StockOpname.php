@@ -9,9 +9,11 @@ use Illuminate\Database\Eloquent\Model;
 class StockOpname extends Model
 {
     use Tenanted;
+
     protected $guarded = [];
+
     protected $casts = [
-        'is_done' => 'boolean'
+        'is_done' => 'boolean',
     ];
 
     protected static function booted()
@@ -42,7 +44,7 @@ class StockOpname extends Model
                             'stock_product_unit_id' => $stockOpnameDetail->stock_product_unit_id,
                             'value' => $stockOpnameItems?->count() ?? 0,
                             'is_increment' => 0,
-                            'description' => 'Stock Opname - ' . $model->description,
+                            'description' => 'Stock Opname - '.$model->description,
                             'ip' => request()->ip(),
                             'agent' => request()->header('user-agent'),
                         ]);
@@ -61,7 +63,7 @@ class StockOpname extends Model
                             'stock_product_unit_id' => $stockOpnameDetail->stock_product_unit_id,
                             'value' => $stockOpnameItems?->count() ?? 0,
                             'is_increment' => 1,
-                            'description' => 'Stock Opname - ' . $model->description,
+                            'description' => 'Stock Opname - '.$model->description,
                             'ip' => request()->ip(),
                             'agent' => request()->header('user-agent'),
                         ]);

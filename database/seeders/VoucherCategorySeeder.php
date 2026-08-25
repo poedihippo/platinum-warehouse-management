@@ -4,9 +4,8 @@ namespace Database\Seeders;
 
 use App\Enums\DiscountType;
 use App\Models\Voucher;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use App\Models\VoucherCategory;
+use Illuminate\Database\Seeder;
 
 class VoucherCategorySeeder extends Seeder
 {
@@ -30,7 +29,7 @@ class VoucherCategorySeeder extends Seeder
             Voucher::create([
                 'voucher_category_id' => $voucherCategory->id,
                 'code' => trim($code),
-                'description' => 'Voucher Arwana - ' . $code,
+                'description' => 'Voucher Arwana - '.$code,
             ]);
         }
 
@@ -47,7 +46,7 @@ class VoucherCategorySeeder extends Seeder
             Voucher::create([
                 'voucher_category_id' => $voucherCategory->id,
                 'code' => trim($code),
-                'description' => 'Voucher Discus - ' . $code,
+                'description' => 'Voucher Discus - '.$code,
             ]);
         }
 
@@ -64,7 +63,7 @@ class VoucherCategorySeeder extends Seeder
             Voucher::create([
                 'voucher_category_id' => $voucherCategory->id,
                 'code' => trim($code),
-                'description' => 'Voucher Koi - ' . $code,
+                'description' => 'Voucher Koi - '.$code,
             ]);
         }
 
@@ -81,7 +80,7 @@ class VoucherCategorySeeder extends Seeder
             Voucher::create([
                 'voucher_category_id' => $voucherCategory->id,
                 'code' => trim($code),
-                'description' => 'Voucher Goldfish - ' . $code,
+                'description' => 'Voucher Goldfish - '.$code,
             ]);
         }
 
@@ -98,7 +97,7 @@ class VoucherCategorySeeder extends Seeder
             Voucher::create([
                 'voucher_category_id' => $voucherCategory->id,
                 'code' => trim($code),
-                'description' => 'Voucher Manfish - ' . $code,
+                'description' => 'Voucher Manfish - '.$code,
             ]);
         }
     }

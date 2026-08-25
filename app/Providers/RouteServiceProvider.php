@@ -54,7 +54,7 @@ class RouteServiceProvider extends ServiceProvider
         // unauthenticated (the route is auth:loyalty-gated anyway).
         RateLimiter::for('loyalty-claims', function (Request $request) {
             return Limit::perDay(5)->by(
-                'loyalty-claims:' . ($request->user()?->getKey() ?: $request->ip())
+                'loyalty-claims:'.($request->user()?->getKey() ?: $request->ip())
             );
         });
     }

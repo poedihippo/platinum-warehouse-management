@@ -50,8 +50,8 @@ class ProductUnitController extends Controller
                 AllowedFilter::scope('company', 'whereCompany'),
             ])
             ->allowedIncludes([
-                AllowedInclude::callback('relations', fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select('id', 'name'))),
-                AllowedInclude::callback('refer', fn($q) => $q->select('id', 'name')),
+                AllowedInclude::callback('relations', fn ($q) => $q->with('relatedProductUnit', fn ($q) => $q->select('id', 'name'))),
+                AllowedInclude::callback('refer', fn ($q) => $q->select('id', 'name')),
             ])
             ->allowedSorts(['id', 'product_id', 'name', 'price', 'created_at'])
             ->paginate($this->per_page);
@@ -64,12 +64,12 @@ class ProductUnitController extends Controller
         $productUnit = ProductUnit::with([
             'uom',
             'product',
-            'refer' => fn($q) => $q->select('id', 'name'),
-            'relations' => fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select('id', 'name'))
+            'refer' => fn ($q) => $q->select('id', 'name'),
+            'relations' => fn ($q) => $q->with('relatedProductUnit', fn ($q) => $q->select('id', 'name')),
         ])->has('product')->findOrFail($id);
+
         return new ProductUnitResource($productUnit);
     }
-
 
     public function store(ProductUnitStoreRequest $request)
     {
@@ -81,7 +81,7 @@ class ProductUnitController extends Controller
     public function update(ProductUnit $productUnit, ProductUnitUpdateRequest $request)
     {
         if ($productUnit->refer_id) {
-            throw new BadRequestHttpException("Product Grouping can not update here");
+            throw new BadRequestHttpException('Product Grouping can not update here');
         }
 
         $productUnit->update($request->validated());
@@ -92,6 +92,7 @@ class ProductUnitController extends Controller
     public function destroy(ProductUnit $productUnit)
     {
         $productUnit->delete();
+
         return $this->deletedResponse();
     }
 
@@ -114,7 +115,7 @@ class ProductUnitController extends Controller
                 $productUnit->toArray(),
                 $request->validated(),
                 [
-                    'refer_id' => $productUnit->id
+                    'refer_id' => $productUnit->id,
                 ]
             );
 
@@ -123,7 +124,7 @@ class ProductUnitController extends Controller
             $groupingProductUnit = ProductUnit::create($data);
 
             if ($request->related_product_units) {
-                $data = collect($request->related_product_units)->map(fn($req) => ['related_product_unit_id' => $req['id'], 'qty' => $req['qty']]);
+                $data = collect($request->related_product_units)->map(fn ($req) => ['related_product_unit_id' => $req['id'], 'qty' => $req['qty']]);
                 $groupingProductUnit->relations()->createMany($data);
             }
         });
@@ -158,7 +159,7 @@ class ProductUnitController extends Controller
             $groupingProductUnit->relations()->delete();
 
             if ($request->related_product_units) {
-                $data = collect($request->related_product_units)->map(fn($req) => ['related_product_unit_id' => $req['id'], 'qty' => $req['qty']]);
+                $data = collect($request->related_product_units)->map(fn ($req) => ['related_product_unit_id' => $req['id'], 'qty' => $req['qty']]);
                 $groupingProductUnit->relations()->createMany($data);
             }
         });
@@ -177,9 +178,9 @@ class ProductUnitController extends Controller
     {
         // $user = User::findOrFail($userId, ['id']);
         $salesOrderDetails = SalesOrderDetail::select('id', 'product_unit_id', 'unit_price', 'created_at')
-            ->whereHas('salesOrder', fn($q) => $q->where('reseller_id', $userId))
+            ->whereHas('salesOrder', fn ($q) => $q->where('reseller_id', $userId))
             ->where('product_unit_id', $productUnit->id)
-            ->with('productUnit', fn($q) => $q->select('id', 'code', 'name'))
+            ->with('productUnit', fn ($q) => $q->select('id', 'code', 'name'))
             ->paginate($this->per_page);
 
         return SalesOrderDetailResource::collection($salesOrderDetails);
@@ -204,23 +205,28 @@ class ProductUnitController extends Controller
     public function import(ImportByFileRequest $request)
     {
         \Maatwebsite\Excel\Facades\Excel::import(new \App\Imports\ProductUnitSeederImport, $request->file);
+
         return $this->createdResponse('Data imported successfully', 200);
     }
 
     public function showProductUnitByStock(string $stockId)
     {
         $stock = Stock::select('id', 'stock_product_unit_id', 'expired_date')->find($stockId);
-        if (!$stock) return response()->json(['message' => 'Product tidak ditemukan.'], 400);
+        if (! $stock) {
+            return response()->json(['message' => 'Product tidak ditemukan.'], 400);
+        }
 
         $productUnit = ProductUnit::select('id', 'product_id', 'uom_id', 'name', 'price', 'code')
             ->with([
-                'uom' => fn($q) => $q->select('id', 'name'),
-                'product' => fn($q) => $q->select('id', 'product_category_id', 'product_brand_id', 'name', 'article_url')->with('productCategory', fn($q) => $q->select('id', 'name'))->with('productBrand', fn($q) => $q->select('id', 'name')),
+                'uom' => fn ($q) => $q->select('id', 'name'),
+                'product' => fn ($q) => $q->select('id', 'product_category_id', 'product_brand_id', 'name', 'article_url')->with('productCategory', fn ($q) => $q->select('id', 'name'))->with('productBrand', fn ($q) => $q->select('id', 'name')),
             ])
-            ->whereHas('stockProductUnit', fn($q) => $q->where('id', $stock->stock_product_unit_id))
+            ->whereHas('stockProductUnit', fn ($q) => $q->where('id', $stock->stock_product_unit_id))
             ->first();
 
-        if (!$productUnit) return response()->json(['message' => 'Product tidak ditemukan.'], 400);
+        if (! $productUnit) {
+            return response()->json(['message' => 'Product tidak ditemukan.'], 400);
+        }
         $productUnit->expired_date = $stock->expired_date;
 
         return new DefaultResource($productUnit);

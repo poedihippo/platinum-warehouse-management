@@ -61,7 +61,7 @@ class PrizeManagementController extends Controller
         }
 
         $model = Prize::find($prize);
-        if (!$model) {
+        if (! $model) {
             return response()->json(['message' => 'Hadiah tidak ditemukan.'], 404);
         }
 
@@ -115,7 +115,7 @@ class PrizeManagementController extends Controller
         }
 
         $model = Prize::find($prize);
-        if (!$model) {
+        if (! $model) {
             return response()->json(['message' => 'Hadiah tidak ditemukan.'], 404);
         }
 
@@ -144,11 +144,11 @@ class PrizeManagementController extends Controller
         }
 
         $model = Prize::find($prize);
-        if (!$model) {
+        if (! $model) {
             return response()->json(['message' => 'Hadiah tidak ditemukan.'], 404);
         }
 
-        $model->update(['is_active' => !$model->is_active]);
+        $model->update(['is_active' => ! $model->is_active]);
 
         return new AdminPrizeResource($model->load('category')->loadCount('redemptions'));
     }

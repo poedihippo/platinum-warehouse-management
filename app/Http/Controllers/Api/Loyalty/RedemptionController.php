@@ -46,7 +46,7 @@ class RedemptionController extends Controller
             // Inactive prizes are not peekable by id (same as the catalog
             // detail endpoint): treat them as not found rather than leaking
             // their existence.
-            if (!$prize || !$prize->is_active) {
+            if (! $prize || ! $prize->is_active) {
                 return ['error' => ['message' => 'Hadiah tidak ditemukan.', 'code' => 404]];
             }
 
@@ -129,7 +129,7 @@ class RedemptionController extends Controller
     {
         $model = Redemption::with('prize')->find($redemption);
 
-        if (!$model) {
+        if (! $model) {
             return response()->json(['message' => 'Penukaran tidak ditemukan.'], 404);
         }
 
@@ -150,7 +150,7 @@ class RedemptionController extends Controller
     {
         $model = Redemption::find($redemption);
 
-        if (!$model) {
+        if (! $model) {
             return response()->json(['message' => 'Penukaran tidak ditemukan.'], 404);
         }
 
@@ -158,7 +158,7 @@ class RedemptionController extends Controller
             return response()->json(['message' => 'Anda tidak memiliki akses ke penukaran ini.'], 403);
         }
 
-        if (!$model->canBeDelivered()) {
+        if (! $model->canBeDelivered()) {
             return response()->json([
                 'message' => 'Penukaran ini belum berstatus dikirim, tidak dapat dikonfirmasi diterima.',
                 'status' => $model->status,

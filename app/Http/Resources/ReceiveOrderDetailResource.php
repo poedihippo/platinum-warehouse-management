@@ -25,7 +25,7 @@ class ReceiveOrderDetailResource extends JsonResource
             'updated_at' => $this->updated_at,
             // 'uom' => new UomResource($this->uom),
             'receive_order' => new ReceiveOrderResource($this->receiveOrder),
-            'product_unit' => new ProductUnitResource($this->productUnit)
+            'product_unit' => new ProductUnitResource($this->productUnit),
         ];
     }
 }

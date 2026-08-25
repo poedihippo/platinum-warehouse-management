@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 class ReceiveOrderDetail extends Model
 {
     protected $guarded = [];
+
     protected $casts = [
         'qty' => 'integer',
         'bruto_unit_price' => 'integer',
@@ -26,7 +27,9 @@ class ReceiveOrderDetail extends Model
     public function scopeFindTenanted(Builder $query, int|string $id, array $columns = ['*'], bool $fail = true): self
     {
         $query->tenanted()->where('id', $id);
-        if ($fail) return $query->firstOrFail($columns);
+        if ($fail) {
+            return $query->firstOrFail($columns);
+        }
 
         return $query->first($columns);
     }
@@ -58,6 +61,6 @@ class ReceiveOrderDetail extends Model
 
     public function scopeProductUnit(Builder $query, $value)
     {
-        return $query->whereHas('productUnit', fn ($q) => $q->where('name', 'like', '%' . $value . '%')->orWhere('code', 'like', '%' . $value . '%'));
+        return $query->whereHas('productUnit', fn ($q) => $q->where('name', 'like', '%'.$value.'%')->orWhere('code', 'like', '%'.$value.'%'));
     }
 }

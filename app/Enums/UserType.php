@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Enums;
 
@@ -15,9 +17,14 @@ use BenSampo\Enum\Enum;
 final class UserType extends Enum
 {
     const Admin = 'admin';
+
     const Reseller = 'reseller';
+
     const Customer = 'customer';
+
     const Dealer = 'dealer';
+
     const CustomerEvent = 'customer_event';
+
     const Spg = 'spg';
 }

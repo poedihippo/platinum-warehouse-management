@@ -13,7 +13,7 @@ class StockVerificationController extends Controller
 
     public function show(string $ulid)
     {
-        if (!preg_match(self::ULID_PATTERN, $ulid)) {
+        if (! preg_match(self::ULID_PATTERN, $ulid)) {
             return $this->notFound();
         }
 
@@ -32,13 +32,13 @@ class StockVerificationController extends Controller
             ->find($ulid);
 
         $product = $stock?->stockProductUnit?->productUnit?->product;
-        if (!$stock || !$product || !$product->productBrand) {
+        if (! $stock || ! $product || ! $product->productBrand) {
             return $this->notFound();
         }
 
         return response()->json([
             'verified' => true,
-            'data'     => new StockVerificationResource($stock),
+            'data' => new StockVerificationResource($stock),
         ]);
     }
 
@@ -46,7 +46,7 @@ class StockVerificationController extends Controller
     {
         return response()->json([
             'verified' => false,
-            'message'  => 'Product not found',
+            'message' => 'Product not found',
         ], 404);
     }
 }

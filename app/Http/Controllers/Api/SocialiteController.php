@@ -26,7 +26,7 @@ class SocialiteController extends Controller
             $user = Socialite::driver($provider)->stateless()->user();
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Failed'
+                'message' => 'Failed',
             ], Response::HTTP_UNAUTHORIZED);
         }
         // find or create user and send params user get from socialite and provider
@@ -54,27 +54,28 @@ class SocialiteController extends Controller
             ->first();
 
         // Jika sudah ada
-        if (!$user) {
+        if (! $user) {
             // User berdasarkan email
             $user = User::where('email', $socialUser->getEmail())->first();
 
             // Jika Tidak ada user
-            if (!$user) {
+            if (! $user) {
                 // Create user baru
                 $user = User::create([
-                    'name'  => $socialUser->getName(),
+                    'name' => $socialUser->getName(),
                     'email' => $socialUser->getEmail(),
-                    'provider_id'   => $socialUser->getId(),
-                    'provider_name' => $provider
+                    'provider_id' => $socialUser->getId(),
+                    'provider_name' => $provider,
                 ]);
             } else {
                 // Buat Social Account baru
                 $user->update([
-                    'provider_id'   => $socialUser->getId(),
-                    'provider_name' => $provider
+                    'provider_id' => $socialUser->getId(),
+                    'provider_name' => $provider,
                 ]);
             }
         }
+
         return $user;
     }
 }

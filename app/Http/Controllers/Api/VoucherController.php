@@ -30,7 +30,7 @@ class VoucherController extends Controller
             ->allowedFilters([
                 AllowedFilter::exact('voucher_generate_batch_id'),
                 AllowedFilter::exact('voucher_category_id'),
-                'code'
+                'code',
             ])
             ->allowedIncludes([
                 'voucherGenerateBatch',
@@ -52,7 +52,7 @@ class VoucherController extends Controller
         return new DefaultResource($voucher->load([
             'category',
             'voucherGenerateBatch',
-            'salesOrder' => fn ($q) => $q->select('id', 'invoice_no', 'voucher_id')
+            'salesOrder' => fn ($q) => $q->select('id', 'invoice_no', 'voucher_id'),
         ]));
     }
 
@@ -81,6 +81,7 @@ class VoucherController extends Controller
         }
 
         $voucher->delete();
+
         return $this->deletedResponse();
     }
 
@@ -115,6 +116,6 @@ class VoucherController extends Controller
         $import = new VoucherImport($request->voucher_category_id, $request->description);
         $import->import($request->file('file'));
 
-        return $this->createdResponse($import->getTotalInserted() . " data inserted successfully");
+        return $this->createdResponse($import->getTotalInserted().' data inserted successfully');
     }
 }

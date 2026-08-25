@@ -13,7 +13,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class StockProductUnit extends Model
 {
     use SoftDeletes, Tenanted;
+
     protected $guarded = [];
+
     protected $casts = [
         'qty' => 'integer',
     ];
@@ -45,21 +47,21 @@ class StockProductUnit extends Model
 
     public function scopeWhereProductBrandId(Builder $query, $id)
     {
-        return $query->whereHas('productUnit.product', fn($q) => $q->where('product_brand_id', $id));
+        return $query->whereHas('productUnit.product', fn ($q) => $q->where('product_brand_id', $id));
     }
 
     public function scopeWhereProductCategoryId(Builder $query, $id)
     {
-        return $query->whereHas('productUnit.product', fn($q) => $q->where('product_category_id', $id));
+        return $query->whereHas('productUnit.product', fn ($q) => $q->where('product_category_id', $id));
     }
 
     public function scopeWhereCompany(Builder $query, string $company)
     {
-        return $query->whereHas('productUnit.product', fn($q) => $q->where('company', $company));
+        return $query->whereHas('productUnit.product', fn ($q) => $q->where('company', $company));
     }
 
     public function scopeProductUnit(Builder $query, $value)
     {
-        return $query->whereHas('productUnit', fn($q) => $q->where('name', 'like', '%' . $value . '%')->orWhere('code', 'like', '%' . $value . '%'));
+        return $query->whereHas('productUnit', fn ($q) => $q->where('name', 'like', '%'.$value.'%')->orWhere('code', 'like', '%'.$value.'%'));
     }
 }

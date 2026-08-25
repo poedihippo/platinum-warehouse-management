@@ -70,7 +70,7 @@ class CustomerManagementController extends Controller
         }
 
         $model = LoyaltyUser::withCount(['claims', 'redemptions'])->find($loyaltyUser);
-        if (!$model) {
+        if (! $model) {
             return response()->json(['message' => 'Pelanggan tidak ditemukan.'], 404);
         }
 
@@ -94,7 +94,7 @@ class CustomerManagementController extends Controller
         }
 
         $model = LoyaltyUser::find($loyaltyUser);
-        if (!$model) {
+        if (! $model) {
             return response()->json(['message' => 'Pelanggan tidak ditemukan.'], 404);
         }
 
@@ -144,11 +144,11 @@ class CustomerManagementController extends Controller
         }
 
         $model = LoyaltyUser::find($loyaltyUser);
-        if (!$model) {
+        if (! $model) {
             return response()->json(['message' => 'Pelanggan tidak ditemukan.'], 404);
         }
 
-        $model->update(['is_active' => !$model->is_active]);
+        $model->update(['is_active' => ! $model->is_active]);
 
         $model->points_balance = $this->balanceFor($model->id);
         $model->loadCount(['claims', 'redemptions']);

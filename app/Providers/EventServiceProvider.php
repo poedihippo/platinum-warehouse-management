@@ -3,7 +3,6 @@
 namespace App\Providers;
 
 use App\Events\Loyalty\LoyaltyUserRegistered;
-use App\Listeners\Loyalty\SendLoyaltyVerificationEmail;
 use App\Events\ProductUnits\ProductUnitCreated;
 use App\Events\Stocks\StockOpnameCreated;
 use App\Events\Stocks\StockOpnameDetailCreated;
@@ -11,6 +10,7 @@ use App\Events\UnverifiedROEvent;
 use App\Events\VerifiedROEvent;
 use App\Listeners\CreateStockROListener;
 use App\Listeners\DeleteStockROListener;
+use App\Listeners\Loyalty\SendLoyaltyVerificationEmail;
 use App\Listeners\ProductUnits\CreateStockProductUnit;
 use App\Listeners\Stocks\CreateStockOpnameDetail;
 use App\Listeners\Stocks\CreateStockOpnameItems;

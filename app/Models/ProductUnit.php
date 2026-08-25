@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use App\Events\ProductUnits\ProductUnitCreated;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use App\Events\ProductUnits\ProductUnitCreated;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProductUnit extends Model
@@ -40,7 +40,7 @@ class ProductUnit extends Model
         });
 
         static::deleting(function ($model) {
-            $model->code = $model->code . '-deleted';
+            $model->code = $model->code.'-deleted';
         });
     }
 
@@ -79,24 +79,23 @@ class ProductUnit extends Model
         return $this->hasOne(StockProductUnit::class);
     }
 
-
     public function scopeSearch(Builder $query, string $value)
     {
-        return $query->where(fn($q) => $q->where('name', 'like', "%$value%")->orWhere('code', 'like', "%$value%"));
+        return $query->where(fn ($q) => $q->where('name', 'like', "%$value%")->orWhere('code', 'like', "%$value%"));
     }
 
     public function scopeWhereProductBrandId(Builder $query, $id)
     {
-        return $query->whereHas('product', fn($q) => $q->where('product_brand_id', $id));
+        return $query->whereHas('product', fn ($q) => $q->where('product_brand_id', $id));
     }
 
     public function scopeWhereProductCategoryId(Builder $query, $id)
     {
-        return $query->whereHas('product', fn($q) => $q->where('product_category_id', $id));
+        return $query->whereHas('product', fn ($q) => $q->where('product_category_id', $id));
     }
 
     public function scopeWhereCompany(Builder $query, string $company)
     {
-        return $query->whereHas('product', fn($q) => $q->where('company', $company));
+        return $query->whereHas('product', fn ($q) => $q->where('company', $company));
     }
 }

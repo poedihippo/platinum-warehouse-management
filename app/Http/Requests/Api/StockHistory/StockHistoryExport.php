@@ -12,10 +12,14 @@ class StockHistoryExport extends FormRequest
     protected function prepareForValidation(): void
     {
         $startDate = $this->start_date;
-        if(!$startDate) $startDate = date('Y-m-d');
+        if (! $startDate) {
+            $startDate = date('Y-m-d');
+        }
 
         $endDate = $this->end_date;
-        if(!$endDate) $endDate = $startDate;
+        if (! $endDate) {
+            $endDate = $startDate;
+        }
 
         $this->merge([
             'start_date' => $startDate,

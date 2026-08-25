@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class StockOpnameItem extends Model
 {
     protected $guarded = [];
+
     protected $casts = [
         'is_scanned' => 'boolean',
         'is_new' => 'boolean',

@@ -19,7 +19,7 @@ class GroupingByScanRequest extends FormRequest
             'ids' => ['required', 'array'],
             'ids.*' => ['required', function ($attribute, string $value, Closure $fail) {
                 $stock = Stock::select('id', 'stock_product_unit_id', 'parent_id')->where('id', $value)->first();
-                if (!$stock) {
+                if (! $stock) {
                     return $fail('QR tidak ditemukan');
                 }
 
@@ -30,7 +30,7 @@ class GroupingByScanRequest extends FormRequest
                 if ($stock->parent_id) {
                     return $fail('QR sudah digruping');
                 }
-            }]
+            }],
         ];
     }
 }

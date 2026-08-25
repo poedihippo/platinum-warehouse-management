@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('loyalty_users', function (Blueprint $table) {
-            if (!Schema::hasColumn('loyalty_users', 'is_active')) {
+            if (! Schema::hasColumn('loyalty_users', 'is_active')) {
                 $table->boolean('is_active')->default(true)->index()->after('address');
             }
         });

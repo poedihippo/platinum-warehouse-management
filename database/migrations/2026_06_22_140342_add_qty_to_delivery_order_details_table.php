@@ -24,5 +24,5 @@ return new class extends Migration
         Schema::table('delivery_order_details', function (Blueprint $table) {
             $table->dropColumn('qty');
         });
-}
+    }
 };

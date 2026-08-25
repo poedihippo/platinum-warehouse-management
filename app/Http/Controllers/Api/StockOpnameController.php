@@ -31,7 +31,7 @@ class StockOpnameController extends Controller
             ->allowedFilters([
                 AllowedFilter::exact('warehouse_id'),
                 'description',
-                'is_done'
+                'is_done',
             ])
             ->allowedSorts(['id', 'description', 'is_done', 'warehouse_id', 'created_at'])
             ->paginate($this->per_page);
@@ -43,6 +43,7 @@ class StockOpnameController extends Controller
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('stock_opname_access'), 403);
         $stockOpname = StockOpname::findTenanted($id);
+
         return new StockOpnameResource($stockOpname);
     }
 
@@ -58,6 +59,7 @@ class StockOpnameController extends Controller
         // abort_if(!auth('sanctum')->user()->tokenCan('stock_opname_delete'), 403);
         $stockOpname = StockOpname::findTenanted($id);
         $stockOpname->delete();
+
         return $this->deletedResponse();
     }
 
@@ -68,14 +70,16 @@ class StockOpnameController extends Controller
         $request->validate(['is_done' => 'required|boolean']);
 
         $stockOpname = StockOpname::findTenanted($id);
-        if (!$stockOpname->details->every(fn($detail) => $detail->is_done === true))
+        if (! $stockOpname->details->every(fn ($detail) => $detail->is_done === true)) {
             return response()->json(['message' => 'Semua data stock opname harus diset selesai'], 400);
+        }
         $stockOpname->update([
             'is_done' => $request->is_done,
             'done_at' => now(),
         ]);
 
-        $message = 'Data set as ' . ($stockOpname->is_done ? 'Done' : 'Pending');
+        $message = 'Data set as '.($stockOpname->is_done ? 'Done' : 'Pending');
+
         return response()->json(['message' => $message])->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
@@ -91,7 +95,8 @@ class StockOpnameController extends Controller
             'done_at' => now(),
         ]);
 
-        $message = 'All data set as ' . ($request->is_done ? 'Done' : 'Pending');
+        $message = 'All data set as '.($request->is_done ? 'Done' : 'Pending');
+
         return response()->json(['message' => $message])->setStatusCode(Response::HTTP_ACCEPTED);
     }
 }

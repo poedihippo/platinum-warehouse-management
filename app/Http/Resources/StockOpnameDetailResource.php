@@ -25,8 +25,8 @@ class StockOpnameDetailResource extends JsonResource
             'is_done' => $this->is_done,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'stock_product_unit' =>  new StockProductUnitResource($this->whenLoaded('stockProductUnit')),
-            'stock_opname' =>  new StockOpnameResource($this->whenLoaded('stockOpname')),
+            'stock_product_unit' => new StockProductUnitResource($this->whenLoaded('stockProductUnit')),
+            'stock_opname' => new StockOpnameResource($this->whenLoaded('stockOpname')),
         ];
     }
 }

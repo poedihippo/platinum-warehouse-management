@@ -11,7 +11,7 @@ class TenantedRule implements ValidationRule
 
     public function __construct(
         private $model = null,
-        string $message = null,
+        ?string $message = null,
         private ?Closure $query = null
     ) {
         if (is_null($model)) {
@@ -21,7 +21,7 @@ class TenantedRule implements ValidationRule
         if ($message) {
             $this->message = $message;
         } else {
-            $this->message = class_basename($this->model) . ' not found';
+            $this->message = class_basename($this->model).' not found';
         }
     }
 
@@ -36,7 +36,7 @@ class TenantedRule implements ValidationRule
             ->when($this->query, $this->query)
             ->firstWhere('id', $value);
 
-        if (!$data) {
+        if (! $data) {
             $fail($this->message);
         }
     }

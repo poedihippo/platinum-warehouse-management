@@ -88,7 +88,9 @@ class OrderController extends Controller
             CheckExpectedOrderPrice::class,
         ];
 
-        if (!$request->is_preview ?? true) $pipes[] = SaveOrder::class;
+        if (! $request->is_preview ?? true) {
+            $pipes[] = SaveOrder::class;
+        }
 
         $salesOrder = app(Pipeline::class)
             ->send(SalesOrder::make(['raw_source' => $rawSource, 'is_invoice' => true]))
@@ -102,15 +104,15 @@ class OrderController extends Controller
     {
         $user = auth('sanctum')->user();
         if ($user->type->is(UserType::Spg)) {
-            return response()->json(['message' => "Anda tidak dapat mengkonversi invoice ini"], 400);
+            return response()->json(['message' => 'Anda tidak dapat mengkonversi invoice ini'], 400);
         }
 
-        if (!empty($order->invoice_no)) {
-            return response()->json(['message' => "Quotation sudah diconvert menjadi Invoice"], 400);
+        if (! empty($order->invoice_no)) {
+            return response()->json(['message' => 'Quotation sudah diconvert menjadi Invoice'], 400);
         }
 
         $order->raw_source = $request->validated();
-        $isPreview = !$request->is_preview ?? true;
+        $isPreview = ! $request->is_preview ?? true;
 
         $pipes = [
             FillOrderAttributes::class,
@@ -123,14 +125,16 @@ class OrderController extends Controller
             CheckExpectedOrderPrice::class,
         ];
 
-        if ($isPreview) $pipes[] = ConvertToSO::class;
+        if ($isPreview) {
+            $pipes[] = ConvertToSO::class;
+        }
 
         $salesOrder = app(Pipeline::class)
             ->send($order)
             ->through($pipes)
             ->thenReturn();
 
-        if ($salesOrder && !$isPreview === false) {
+        if ($salesOrder && ! $isPreview === false) {
             // create history
             $salesOrder->details->each(function ($salesOrderDetail) use ($salesOrder) {
                 $stockProductUnit = StockProductUnit::where('warehouse_id', $salesOrderDetail->warehouse_id)
@@ -142,7 +146,7 @@ class OrderController extends Controller
                     'stock_product_unit_id' => $stockProductUnit->id,
                     'value' => $salesOrderDetail->qty,
                     'is_increment' => 0,
-                    'description' => "Create SO invoice " . $salesOrder->invoice_no,
+                    'description' => 'Create SO invoice '.$salesOrder->invoice_no,
                     'ip' => request()->ip(),
                     'agent' => request()->header('user-agent'),
                 ]);
@@ -158,14 +162,15 @@ class OrderController extends Controller
         // if ($order->deliverySalesOrder?->is_done) return response()->json(['message' => "Can't update SO if DO is already done"], 400);
         $user = auth('sanctum')->user();
         if ($user->type->is(UserType::Spg) && $order->spg_id != $user->id) {
-            return response()->json(['message' => "Anda tidak dapat menghapus invoice ini"], 400);
+            return response()->json(['message' => 'Anda tidak dapat menghapus invoice ini'], 400);
         }
 
-        if (!empty($order->invoice_no)) {
-            return response()->json(['message' => "Quotation sudah diconvert menjadi Invoice. Tidak dapat dihapus"], 400);
+        if (! empty($order->invoice_no)) {
+            return response()->json(['message' => 'Quotation sudah diconvert menjadi Invoice. Tidak dapat dihapus'], 400);
         }
 
         $order->forceDelete();
+
         return $this->deletedResponse();
     }
 

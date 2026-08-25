@@ -24,7 +24,7 @@ class VoucherCategoryController extends Controller
     {
         $voucherCategorys = QueryBuilder::for(VoucherCategory::class)
             ->allowedFilters([
-                'name', 'discount_type'
+                'name', 'discount_type',
             ])
             ->allowedSorts(['id', 'name', 'discount_type', 'created_at'])
             ->paginate($this->per_page);
@@ -54,6 +54,7 @@ class VoucherCategoryController extends Controller
     public function destroy(VoucherCategory $voucherCategory)
     {
         $voucherCategory->delete();
+
         return $this->deletedResponse();
     }
 

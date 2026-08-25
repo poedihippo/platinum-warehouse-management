@@ -19,7 +19,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasColumn('product_units', 'loyalty_eligible')) {
+        if (! Schema::hasColumn('product_units', 'loyalty_eligible')) {
             Schema::table('product_units', function (Blueprint $table) {
                 $table->boolean('loyalty_eligible')->default(false)->index();
             });

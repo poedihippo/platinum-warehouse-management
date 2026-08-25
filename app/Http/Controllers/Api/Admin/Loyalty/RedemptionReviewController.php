@@ -76,7 +76,7 @@ class RedemptionReviewController extends Controller
             'prize:id,name,photo_path',
         ])->find($redemption);
 
-        if (!$model) {
+        if (! $model) {
             return response()->json(['message' => 'Penukaran tidak ditemukan.'], 404);
         }
 
@@ -94,7 +94,7 @@ class RedemptionReviewController extends Controller
         }
 
         $model = $this->findOrFail($redemption);
-        if (!$model->canBeReviewed()) {
+        if (! $model->canBeReviewed()) {
             return $this->conflict($model);
         }
 
@@ -131,7 +131,7 @@ class RedemptionReviewController extends Controller
         }
 
         $model = $this->findOrFail($redemption);
-        if (!$model->canBeReviewed()) {
+        if (! $model->canBeReviewed()) {
             return $this->conflict($model);
         }
 
@@ -152,7 +152,7 @@ class RedemptionReviewController extends Controller
                 'amount' => $model->points_spent,
                 'source_type' => PointsTransaction::SOURCE_REDEMPTION,
                 'source_id' => $model->id,
-                'description' => 'Pengembalian poin: ' . ($prize?->name ?? 'penukaran ditolak'),
+                'description' => 'Pengembalian poin: '.($prize?->name ?? 'penukaran ditolak'),
             ]);
 
             $model->update([
@@ -191,7 +191,7 @@ class RedemptionReviewController extends Controller
         }
 
         $model = $this->findOrFail($redemption);
-        if (!$model->canBeShipped()) {
+        if (! $model->canBeShipped()) {
             return $this->conflict($model);
         }
 
@@ -231,7 +231,7 @@ class RedemptionReviewController extends Controller
         }
 
         $model = $this->findOrFail($redemption);
-        if (!$model->canBeDelivered()) {
+        if (! $model->canBeDelivered()) {
             return $this->conflict($model);
         }
 
@@ -253,7 +253,7 @@ class RedemptionReviewController extends Controller
     private function findOrFail(string $redemption): Redemption
     {
         $model = Redemption::find($redemption);
-        abort_if(!$model, 404, 'Penukaran tidak ditemukan.');
+        abort_if(! $model, 404, 'Penukaran tidak ditemukan.');
 
         return $model;
     }

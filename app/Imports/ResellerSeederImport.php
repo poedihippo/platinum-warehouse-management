@@ -10,10 +10,8 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 class ResellerSeederImport implements ToModel, WithHeadingRow
 {
     /**
-    * @param array $row
-    *
-    * @return \Illuminate\Database\Eloquent\Model|null
-    */
+     * @return \Illuminate\Database\Eloquent\Model|null
+     */
     public function model(array $row)
     {
         return new User([
@@ -24,7 +22,7 @@ class ResellerSeederImport implements ToModel, WithHeadingRow
             'city' => trim($row['city']),
             'province' => trim($row['province']),
             'address' => trim($row['address']),
-            'type' => UserType::Reseller
+            'type' => UserType::Reseller,
         ]);
     }
 }

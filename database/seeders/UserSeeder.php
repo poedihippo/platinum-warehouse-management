@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Enums\UserType;
 use App\Models\User;
 use App\Models\Warehouse;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 
@@ -345,7 +344,6 @@ class UserSeeder extends Seeder
         $user->assignRole($roleKasirPameran);
         $user->warehouses()->sync([$warehouseWk2Id]);
 
-
         $roleSpg = Role::create([
             'name' => 'Role SPG',
         ]);
@@ -405,9 +403,9 @@ class UserSeeder extends Seeder
         foreach ($spgNames as $spgName) {
             $user = User::create([
                 'name' => $spgName,
-                'code' => $spgName . '-spg',
-                'email' => $spgName . '@gmail.com',
-                'password' => $spgName . 'spg',
+                'code' => $spgName.'-spg',
+                'email' => $spgName.'@gmail.com',
+                'password' => $spgName.'spg',
                 'type' => UserType::Spg,
             ]);
             $user->assignRole($roleSpg);

@@ -24,10 +24,13 @@ class PointsTransaction extends Model
     const UPDATED_AT = null;
 
     public const DIRECTION_EARN = 'earn';
+
     public const DIRECTION_SPEND = 'spend';
 
     public const SOURCE_CLAIM = 'claim';
+
     public const SOURCE_REDEMPTION = 'redemption';
+
     public const SOURCE_MANUAL_ADJUSTMENT = 'manual_adjustment';
 
     protected $guarded = [];

@@ -9,12 +9,12 @@ use App\Enums\SettingEnum;
 use App\Enums\UserType;
 use App\Traits\FilterStartEndDate;
 use App\Traits\Tenanted;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class SalesOrder extends Model
 {
@@ -77,15 +77,19 @@ class SalesOrder extends Model
     {
         static::saving(function ($model) {
             $model->user_id = auth('sanctum')->id();
-            if (empty($model->type)) $model->type = SalesOrderType::DEFAULT;
+            if (empty($model->type)) {
+                $model->type = SalesOrderType::DEFAULT;
+            }
         });
 
         static::creating(function ($model) {
-            if (empty($model->description)) $model->description = "#Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih";
+            if (empty($model->description)) {
+                $model->description = '#Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih';
+            }
         });
 
         static::created(function ($model) {
-            if (!isset($model->invoice_no)) {
+            if (! isset($model->invoice_no)) {
                 $model->invoice_no = self::getSoNumber();
                 $model->save();
             }
@@ -94,12 +98,15 @@ class SalesOrder extends Model
 
     public function scopeTenanted(Builder $query, ?User $user = null)
     {
-        if (!$user) {
+        if (! $user) {
             /** @var \App\Models\User $user */
             $user = auth('sanctum')->user();
         }
 
-        if ($user->type->is(UserType::Spg)) return $query->where('spg_id', $user->id);
+        if ($user->type->is(UserType::Spg)) {
+            return $query->where('spg_id', $user->id);
+        }
+
         return $query;
         // if ($user->hasRole('admin')) return $query;
         // return $query->whereIn('warehouse_id', $user->warehouses()->pluck('warehouse_id') ?? []);
@@ -108,7 +115,7 @@ class SalesOrder extends Model
     protected function hasDeliveryOrder(): Attribute
     {
         return Attribute::make(
-            get: fn() => $this->details()->whereHas('deliveryOrderDetails', function ($q) {
+            get: fn () => $this->details()->whereHas('deliveryOrderDetails', function ($q) {
                 $q->whereColumn(
                     \Illuminate\Support\Facades\DB::raw('(SELECT COALESCE(SUM(qty), 0) FROM delivery_order_details WHERE delivery_order_details.sales_order_detail_id = sales_order_details.id)'),
                     '>=',
@@ -125,8 +132,13 @@ class SalesOrder extends Model
 
     public function getAutoDiscountNominalAttribute(): int|float
     {
-        if ($this->auto_discount == 0) return 0;
-        if (isset($this->raw_source['auto_discount_nominal'])) return $this->raw_source['auto_discount_nominal'];
+        if ($this->auto_discount == 0) {
+            return 0;
+        }
+        if (isset($this->raw_source['auto_discount_nominal'])) {
+            return $this->raw_source['auto_discount_nominal'];
+        }
+
         return $this->details->sum('total_price') * $this->auto_discount / 100;
     }
 
@@ -139,10 +151,12 @@ class SalesOrder extends Model
     {
         return $this->raw_source['voucher_type'] ?? DiscountType::NOMINAL;
     }
+
     public function getVoucherValueAttribute()
     {
         return $this->raw_source['voucher_value'] ?? 0;
     }
+
     public function getVoucherValueNominalAttribute()
     {
         return $this->raw_source['voucher_value_nominal'] ?? 0;
@@ -207,6 +221,7 @@ class SalesOrder extends Model
     public static function getSoNumber(): string
     {
         $key = SettingEnum::SO_NUMBER;
+
         return DB::transaction(function () use ($key) {
             // Get current value to use. We use lock for update
             // to prevent other thread to read this row until we update it
@@ -215,7 +230,7 @@ class SalesOrder extends Model
                 ->lockForUpdate()
                 ->first('value')?->value ?? null;
 
-            if (isset($lastSoNumber) && !is_null($lastSoNumber) && $lastSoNumber != '') {
+            if (isset($lastSoNumber) && ! is_null($lastSoNumber) && $lastSoNumber != '') {
                 $arrayLastSoNumber = explode('/', $lastSoNumber);
 
                 if (is_array($arrayLastSoNumber) && count($arrayLastSoNumber) == 5 && date('m') == $arrayLastSoNumber[2] && date('y') == $arrayLastSoNumber[3]) {
@@ -248,12 +263,12 @@ class SalesOrder extends Model
     {
         // if ($value) return $query->whereHas('details', fn ($q) => $q->has('deliveryOrderDetail'));
         // return $query->whereHas('details', fn ($q) => $q->doesntHave('deliveryOrderDetail'));
-        return $query->whereHas('details', fn($q) => $q->hasDeliveryOrder((bool)$value));
+        return $query->whereHas('details', fn ($q) => $q->hasDeliveryOrder((bool) $value));
     }
 
     public function scopeHasSalesOrder(Builder $query, bool $value = true)
     {
-        $query->when($value === true, fn($q) => $q->whereNotNull('warehouse_id')->whereNotNull('invoice_no')->where('invoice_no', '!=', ''));
+        $query->when($value === true, fn ($q) => $q->whereNotNull('warehouse_id')->whereNotNull('invoice_no')->where('invoice_no', '!=', ''));
         // $query->when($value === true, fn ($q) => $q->whereNotNull('warehouse_id')->where(fn ($q) => $q->whereNotNull('invoice_no')->orWhere('invoice_no', '')));
     }
 
@@ -262,11 +277,11 @@ class SalesOrder extends Model
         $query
             ->when(
                 $value === true,
-                fn($q) => $q->whereHas('details.salesOrderItems')
+                fn ($q) => $q->whereHas('details.salesOrderItems')
             )
             ->when(
                 $value === false,
-                fn($q) => $q->where(function ($q) {
+                fn ($q) => $q->where(function ($q) {
                     $q->whereDoesntHave('details.salesOrderItems')
                         ->orWhereHas('details', function ($q) {
                             $q->whereRaw(
@@ -275,10 +290,10 @@ class SalesOrder extends Model
                         });
                 })
             );
-            // ->when(
-            //     $value === false,
-            //     fn($q) => $q->whereDoesntHave('details.salesOrderItems')
-            // );
+        // ->when(
+        //     $value === false,
+        //     fn($q) => $q->whereDoesntHave('details.salesOrderItems')
+        // );
     }
 
     public function scopeHasRemainingDo(Builder $query, bool $value = true)

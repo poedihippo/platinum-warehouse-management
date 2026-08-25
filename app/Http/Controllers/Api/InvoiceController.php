@@ -40,12 +40,12 @@ class InvoiceController extends Controller
 
     public function index()
     {
-        return SalesOrderService::index($this->per_page, fn($q) => $q->where('is_invoice', true));
+        return SalesOrderService::index($this->per_page, fn ($q) => $q->where('is_invoice', true));
     }
 
     public function show($id)
     {
-        $salesOrder = SalesOrderService::show($id, fn($q) => $q->where('is_invoice', true));
+        $salesOrder = SalesOrderService::show($id, fn ($q) => $q->where('is_invoice', true));
         $salesOrder->id_hash = Crypt::encryptString($salesOrder->id);
         $salesOrder->whatsapp_url = empty($salesOrder->invoice_no) ? '' : SalesOrderService::getWhatsappUrl($salesOrder, $salesOrder->id_hash);
 
@@ -58,11 +58,13 @@ class InvoiceController extends Controller
             $stocks = \App\Models\Stock::whereAvailableStock()
                 ->whereIsStock()
                 ->whereNull('description')
-                ->whereHas('stockProductUnit', fn($q) => $q->where('product_unit_id', $item['product_unit_id'])->where('warehouse_id', $item['warehouse_id']))
+                ->whereHas('stockProductUnit', fn ($q) => $q->where('product_unit_id', $item['product_unit_id'])->where('warehouse_id', $item['warehouse_id']))
                 ->limit($item['qty'])
                 ->get(['id']);
 
-            if ($stocks->count() < $item['qty']) return $this->errorResponse(message: sprintf('Stok %s tidak tersedia', \Illuminate\Support\Facades\DB::table('product_units')->where('id', $item['product_unit_id'])->first()?->name ?? ''), code: \Illuminate\Http\Response::HTTP_UNPROCESSABLE_ENTITY);
+            if ($stocks->count() < $item['qty']) {
+                return $this->errorResponse(message: sprintf('Stok %s tidak tersedia', \Illuminate\Support\Facades\DB::table('product_units')->where('id', $item['product_unit_id'])->first()?->name ?? ''), code: \Illuminate\Http\Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
         }
 
         $isPreview = (bool) $request->is_preview ?? false;
@@ -80,7 +82,7 @@ class InvoiceController extends Controller
                     'stock_product_unit_id' => $stockProductUnit->id,
                     'value' => $salesOrderDetail->qty,
                     'is_increment' => 0,
-                    'description' => "Create SO invoice " . $salesOrder->invoice_no,
+                    'description' => 'Create SO invoice '.$salesOrder->invoice_no,
                     'ip' => request()->ip(),
                     'agent' => request()->header('user-agent'),
                 ]);
@@ -93,17 +95,21 @@ class InvoiceController extends Controller
     public function update($id, InvoiceUpdateRequest $request)
     {
         $salesOrder = SalesOrder::whereInvoice()->findTenanted($id);
-        if ($salesOrder->payment_status == 'paid') return response()->json(['message' => "Invoice sudah lunas tidak dapat diupdate"], 400);
-        if (empty($salesOrder->invoice_no)) return response()->json(['message' => "Konversi ke invoice terlebih dahulu untuk dapat mengedit."], 400);
+        if ($salesOrder->payment_status == 'paid') {
+            return response()->json(['message' => 'Invoice sudah lunas tidak dapat diupdate'], 400);
+        }
+        if (empty($salesOrder->invoice_no)) {
+            return response()->json(['message' => 'Konversi ke invoice terlebih dahulu untuk dapat mengedit.'], 400);
+        }
 
         // kalo udah settle gabisa diupdate
         if ($salesOrder->payment_status == 'paid') {
-            return response()->json(['message' => "Invoice sudah lunas tidak dapat diupdate"], 400);
+            return response()->json(['message' => 'Invoice sudah lunas tidak dapat diupdate'], 400);
         }
 
         $salesOrder->raw_source = $request->validated();
         $oldSalesOrderDetails = $salesOrder->details;
-        $isPreview = !$request->is_preview ?? true;
+        $isPreview = ! $request->is_preview ?? true;
 
         $pipes = [
             FillOrderAttributes::class,
@@ -116,16 +122,18 @@ class InvoiceController extends Controller
             CheckExpectedOrderPrice::class,
         ];
 
-        if ($isPreview) $pipes[] = ConvertToSO::class;
+        if ($isPreview) {
+            $pipes[] = ConvertToSO::class;
+        }
 
         $salesOrder = app(Pipeline::class)
             ->send($salesOrder)
             ->through($pipes)
             ->thenReturn();
 
-        if ($salesOrder && !$isPreview === false) {
+        if ($salesOrder && ! $isPreview === false) {
             // delete old history
-            $oldSalesOrderDetails->each(fn($salesOrderDetail) => $salesOrderDetail->histories()->delete());
+            $oldSalesOrderDetails->each(fn ($salesOrderDetail) => $salesOrderDetail->histories()->delete());
 
             // create history
             $salesOrder->details->each(function ($salesOrderDetail) use ($salesOrder) {
@@ -138,7 +146,7 @@ class InvoiceController extends Controller
                     'stock_product_unit_id' => $stockProductUnit->id,
                     'value' => $salesOrderDetail->qty,
                     'is_increment' => 0,
-                    'description' => "Create SO invoice " . $salesOrder->invoice_no,
+                    'description' => 'Create SO invoice '.$salesOrder->invoice_no,
                     'ip' => request()->ip(),
                     'agent' => request()->header('user-agent'),
                 ]);
@@ -151,13 +159,15 @@ class InvoiceController extends Controller
     public function destroy($id)
     {
         $salesOrder = SalesOrder::where('is_invoice', true)->findTenanted($id);
-        if ($salesOrder->deliveryOrder?->is_done) return response()->json(['message' => "Can't update SO if DO is already done"], 400);
+        if ($salesOrder->deliveryOrder?->is_done) {
+            return response()->json(['message' => "Can't update SO if DO is already done"], 400);
+        }
 
         // return stock if salesorder is invoice
         DB::beginTransaction();
         try {
 
-            if (!empty($salesOrder->invoice_no)) {
+            if (! empty($salesOrder->invoice_no)) {
                 $salesOrder->details->each(function ($salesOrderDetail) use ($salesOrder) {
                     $stockProductUnit = StockProductUnit::where('warehouse_id', $salesOrderDetail->warehouse_id)
                         ->where('product_unit_id', $salesOrderDetail->product_unit_id)
@@ -168,7 +178,7 @@ class InvoiceController extends Controller
                         'stock_product_unit_id' => $stockProductUnit->id,
                         'value' => $salesOrderDetail->qty,
                         'is_increment' => 1,
-                        'description' => "Return stock from delete SO invoice " . $salesOrder->invoice_no,
+                        'description' => 'Return stock from delete SO invoice '.$salesOrder->invoice_no,
                         'ip' => request()->ip(),
                         'agent' => request()->header('user-agent'),
                     ]);
@@ -180,6 +190,7 @@ class InvoiceController extends Controller
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
+
             return $this->errorResponse(message: $e->getMessage(), code: $e->getCode() ?? 500);
         }
 
@@ -192,12 +203,13 @@ class InvoiceController extends Controller
             $id = Crypt::decryptString($id);
         } catch (\Throwable $th) {
         }
-        return SalesOrderService::print($id, 'print-invoice', fn($q) => $q->where('is_invoice', true));
+
+        return SalesOrderService::print($id, 'print-invoice', fn ($q) => $q->where('is_invoice', true));
     }
 
     public function exportXml($id)
     {
-        return SalesOrderService::exportXml($id, fn($q) => $q->where('is_invoice', true));
+        return SalesOrderService::exportXml($id, fn ($q) => $q->where('is_invoice', true));
     }
 
     public function getInvoiceNo(\Illuminate\Http\Request $request)
@@ -213,7 +225,7 @@ class InvoiceController extends Controller
 
     public function bill(string $id)
     {
-        return SalesOrderService::print($id, 'print-invoice', fn($q) => $q->where('is_invoice', true));
+        return SalesOrderService::print($id, 'print-invoice', fn ($q) => $q->where('is_invoice', true));
     }
 
     public function export()

@@ -18,7 +18,7 @@ class AdminProductUnitPointsResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => trim(($this->product?->name ? $this->product->name . ' - ' : '') . $this->name),
+            'name' => trim(($this->product?->name ? $this->product->name.' - ' : '').$this->name),
             'code' => $this->code,
             'uom' => $this->uom?->name,
             'points_per_unit' => (int) $this->points_per_unit,

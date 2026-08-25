@@ -35,9 +35,9 @@ class LoyaltySignedUrl
     public static function verifyEmail(string $id, string $hash, DateTimeInterface $expiresAt): string
     {
         $expires = $expiresAt->getTimestamp();
-        $url = static::frontendBase() . "/verify-email/{$id}/{$hash}";
+        $url = static::frontendBase()."/verify-email/{$id}/{$hash}";
 
-        return $url . '?expires=' . $expires . '&signature=' . static::sign($url, $expires);
+        return $url.'?expires='.$expires.'&signature='.static::sign($url, $expires);
     }
 
     /**
@@ -48,7 +48,7 @@ class LoyaltySignedUrl
      */
     public static function expectedVerifyEmailSignature(string $id, string $hash, int|string $expires): string
     {
-        $url = static::frontendBase() . "/verify-email/{$id}/{$hash}";
+        $url = static::frontendBase()."/verify-email/{$id}/{$hash}";
 
         return static::sign($url, (int) $expires);
     }
@@ -66,8 +66,8 @@ class LoyaltySignedUrl
     public static function passwordReset(string $token, string $email): string
     {
         return static::frontendBase()
-            . '/reset-password/' . rawurlencode($token)
-            . '?email=' . urlencode($email);
+            .'/reset-password/'.rawurlencode($token)
+            .'?email='.urlencode($email);
     }
 
     /**
@@ -77,7 +77,7 @@ class LoyaltySignedUrl
      */
     protected static function sign(string $urlWithoutQuery, int $expires): string
     {
-        return hash_hmac('sha256', $urlWithoutQuery . '?expires=' . $expires, (string) config('app.key'));
+        return hash_hmac('sha256', $urlWithoutQuery.'?expires='.$expires, (string) config('app.key'));
     }
 
     protected static function frontendBase(): string

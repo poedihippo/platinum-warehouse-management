@@ -14,6 +14,7 @@ class AdjustmentRequest extends Model
     use SoftDeletes;
 
     protected $guarded = [];
+
     protected $casts = [
         'is_increment' => 'boolean',
         // 'is_approved' => 'boolean',
@@ -22,7 +23,9 @@ class AdjustmentRequest extends Model
     protected static function booted()
     {
         static::creating(function ($model) {
-            if (empty($model->user_id)) $model->user_id = auth('sanctum')->id();
+            if (empty($model->user_id)) {
+                $model->user_id = auth('sanctum')->id();
+            }
         });
     }
 
@@ -54,12 +57,14 @@ class AdjustmentRequest extends Model
     public function scopeStartDate(Builder $query, $value = null)
     {
         $value = is_null($value) ? date('Y-m-d') : date('Y-m-d', strtotime($value));
+
         return $query->whereDate('created_at', '>=', $value);
     }
 
     public function scopeEndDate(Builder $query, $value = null)
     {
         $value = is_null($value) ? date('Y-m-d') : date('Y-m-d', strtotime($value));
+
         return $query->whereDate('created_at', '<=', $value);
     }
 }

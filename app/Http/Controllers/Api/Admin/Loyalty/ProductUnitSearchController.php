@@ -57,11 +57,11 @@ class ProductUnitSearchController extends Controller
         foreach ($tokens as $token) {
             // The separator in "CZ Aqua - CZ Bacta Extrem" is its own token
             // and matches nothing, which would AND the whole result to empty.
-            if (!preg_match('/[\p{L}\p{N}]/u', $token)) {
+            if (! preg_match('/[\p{L}\p{N}]/u', $token)) {
                 continue;
             }
 
-            $like = '%' . $token . '%';
+            $like = '%'.$token.'%';
 
             $query->where(fn (Builder $q) => $q
                 ->where('product_units.name', 'like', $like)

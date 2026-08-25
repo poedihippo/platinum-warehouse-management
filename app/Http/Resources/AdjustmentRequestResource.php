@@ -17,7 +17,7 @@ class AdjustmentRequestResource extends JsonResource
         return [
             ...parent::toArray($request),
             'stock_product_unit' => new StockProductUnitResource($this->whenLoaded('stockProductUnit')?->load(['productUnit', 'warehouse'])),
-            'user' =>  new UserResource($this->whenLoaded('user')),
+            'user' => new UserResource($this->whenLoaded('user')),
         ];
     }
 }

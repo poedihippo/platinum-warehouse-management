@@ -32,7 +32,7 @@ class ProductController extends Controller
                 AllowedFilter::exact('product_category_id'),
                 AllowedFilter::exact('product_brand_id'),
                 AllowedFilter::exact('company'),
-                'name'
+                'name',
             ])
             ->allowedSorts(['id', 'product_category_id', 'product_brand_id', 'company', 'name', 'created_at'])
             ->paginate($this->per_page);
@@ -63,6 +63,7 @@ class ProductController extends Controller
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('product_delete'), 403);
         $product->delete();
+
         return $this->deletedResponse();
     }
 
@@ -74,6 +75,7 @@ class ProductController extends Controller
     public function import(ImportByFileRequest $request)
     {
         \Maatwebsite\Excel\Facades\Excel::import(new \App\Imports\ProductSeederImport, $request->file);
+
         return $this->createdResponse('Data imported successfully', 200);
     }
 }

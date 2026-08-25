@@ -21,21 +21,23 @@ class OrderStoreRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $items = collect($this->items)->map(function ($item) {
-            if (!isset($item['unit_price']) && empty($item['unit_price'])) {
+            if (! isset($item['unit_price']) && empty($item['unit_price'])) {
                 $productUnitPrice = DB::table('product_units')->where('id', $item['product_unit_id'])->first(['price'])?->price ?? 0;
             } else {
-                $productUnitPrice = (int)$item['unit_price'];
+                $productUnitPrice = (int) $item['unit_price'];
             }
 
             $tax = $item['tax'] ?? 0;
             $totalPrice = $productUnitPrice * ($item['qty'] ?? 1);
-            if ($tax == true) $totalPrice += $totalPrice * 0.11;
+            if ($tax == true) {
+                $totalPrice += $totalPrice * 0.11;
+            }
 
             return [
                 ...$item,
                 'tax' => $item['tax'] ?? 0,
                 'unit_price' => $productUnitPrice,
-                'total_price' => $totalPrice
+                'total_price' => $totalPrice,
             ];
         })->all();
 
@@ -46,7 +48,7 @@ class OrderStoreRequest extends FormRequest
             'spg_id' => auth('sanctum')->id(),
             'transaction_date' => $this->transaction_date ?? date('Y-m-d H:i:s'),
             'shipment_estimation_datetime' => $this->shipment_estimation_datetime ?? date('Y-m-d H:i:s'),
-            'items' => $items
+            'items' => $items,
         ]);
     }
 
@@ -68,18 +70,18 @@ class OrderStoreRequest extends FormRequest
                     if (DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::CustomerEvent)->doesntExist()) {
                         $fail('Customer Tidak ditemukan');
                     }
-                }
+                },
             ],
             'customer_name' => 'required_without:reseller_id',
             'customer_phone' => [
                 'required_without:reseller_id',
                 function (string $attribute, mixed $value, Closure $fail) {
-                    if (!empty($value) || !is_null($value) || $value != '') {
+                    if (! empty($value) || ! is_null($value) || $value != '') {
                         if (DB::table('users')->where('phone', $value)->exists()) {
                             $fail('No. Handphone sudah digunakan');
                         }
-                    };
-                }
+                    }
+                },
             ],
             'customer_address' => 'nullable|string',
             // 'invoice_no' => [
@@ -97,16 +99,22 @@ class OrderStoreRequest extends FormRequest
             // 'additional_discount' => 'required|integer',
             'voucher_code' => ['nullable', function (string $attribute, mixed $value, Closure $fail) {
                 $voucher = Voucher::where('code', $value)->first();
-                if (!$voucher) return $fail('Voucher tidak ditemukan!');
-                if ($voucher?->is_used) return $fail('Voucher sudah digunakan!');
+                if (! $voucher) {
+                    return $fail('Voucher tidak ditemukan!');
+                }
+                if ($voucher?->is_used) {
+                    return $fail('Voucher sudah digunakan!');
+                }
             }],
             'description' => 'nullable|string',
             'items' => [
                 'required',
                 'array',
                 function (string $attribute, mixed $value, Closure $fail) {
-                    if (count($value) <= 0) $fail('items required');
-                }
+                    if (count($value) <= 0) {
+                        $fail('items required');
+                    }
+                },
             ],
             'items.*.product_unit_id' => 'required|integer|exists:product_units,id',
             // 'items.*.packaging_id' => 'nullable|integer|exists:product_units,id',

@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 class StockOpnameDetail extends Model
 {
     protected $guarded = [];
+
     protected $casts = [
         'qty' => 'integer',
         'scanned_qty' => 'integer',

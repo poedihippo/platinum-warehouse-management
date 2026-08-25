@@ -23,7 +23,9 @@ class SaveOrder
 
                 $records = $salesOrder->records ?? [];
 
-                if ($reseller) $records['reseller'] = $reseller->setHidden(['email_verified_at', 'remember_token', 'created_at', 'updated_at', 'deleted_at'])?->toArray() ?? [];
+                if ($reseller) {
+                    $records['reseller'] = $reseller->setHidden(['email_verified_at', 'remember_token', 'created_at', 'updated_at', 'deleted_at'])?->toArray() ?? [];
+                }
 
                 $salesOrder->records = $records;
             }
@@ -38,7 +40,9 @@ class SaveOrder
             $salesOrder->save();
             $salesOrder->details()->saveMany($salesOrderDetails);
 
-            if ($salesOrder->is_invoice) $this->createSalesOrderItems($salesOrderDetails, $salesOrder->warehouse_id);
+            if ($salesOrder->is_invoice) {
+                $this->createSalesOrderItems($salesOrderDetails, $salesOrder->warehouse_id);
+            }
 
             return $salesOrder;
         });
@@ -46,7 +50,7 @@ class SaveOrder
         return $next($salesOrder);
     }
 
-    private function createReseller(SalesOrder $salesOrder): User|null
+    private function createReseller(SalesOrder $salesOrder): ?User
     {
         $rawSoruce = $salesOrder->raw_source;
         try {
@@ -69,7 +73,9 @@ class SaveOrder
                 ->limit($salesOrderDetail->qty)
                 ->get(['id'])->map(fn ($stock) => ['stock_id' => $stock->id]);
 
-            if ($stocks->count() < $salesOrderDetail->qty) throw new \Exception(sprintf('Stok %s tidak tersedia', $salesOrderDetail->productUnit->name), \Illuminate\Http\Response::HTTP_UNPROCESSABLE_ENTITY);
+            if ($stocks->count() < $salesOrderDetail->qty) {
+                throw new \Exception(sprintf('Stok %s tidak tersedia', $salesOrderDetail->productUnit->name), \Illuminate\Http\Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
 
             $salesOrderDetail->salesOrderItems()->createMany($stocks);
 

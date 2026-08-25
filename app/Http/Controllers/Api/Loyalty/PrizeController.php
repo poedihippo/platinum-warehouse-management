@@ -71,7 +71,7 @@ class PrizeController extends Controller
     {
         $model = Prize::active()->with('category')->find($prize);
 
-        if (!$model) {
+        if (! $model) {
             return response()->json(['message' => 'Hadiah tidak ditemukan.'], 404);
         }
 

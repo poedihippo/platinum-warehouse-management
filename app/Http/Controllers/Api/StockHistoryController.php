@@ -23,17 +23,17 @@ class StockHistoryController extends Controller
         // abort_if(!auth('sanctum')->user()->tokenCan('stock_history_access'), 403);
 
         $stockHistories = QueryBuilder::for(StockHistory::tenanted()->with([
-            'stockHistoryable' => fn($q) => $q->with('approvedBy', fn($q) => $q->select('id', 'name')),
-            'user' => fn($q) => $q->select('id', 'name')
+            'stockHistoryable' => fn ($q) => $q->with('approvedBy', fn ($q) => $q->select('id', 'name')),
+            'user' => fn ($q) => $q->select('id', 'name'),
         ]))
             ->allowedFilters([
                 AllowedFilter::exact('stock_product_unit_id'),
                 AllowedFilter::exact('user_id'),
                 'description',
-                AllowedFilter::callback('start_date', function($query, $value) {
+                AllowedFilter::callback('start_date', function ($query, $value) {
                     $query->where('created_at', '>=', $value);
                 }),
-                AllowedFilter::callback('end_date', function($query, $value) {
+                AllowedFilter::callback('end_date', function ($query, $value) {
                     $query->where('created_at', '<=', $value);
                 }),
             ])
@@ -45,6 +45,6 @@ class StockHistoryController extends Controller
 
     public function export(StockHistoryExport $request)
     {
-        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\StockHistoryExport($request->start_date, $request->end_date), 'stock history ' . $request->start_date . ' sd ' . $request->end_date . '.xlsx');
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\StockHistoryExport($request->start_date, $request->end_date), 'stock history '.$request->start_date.' sd '.$request->end_date.'.xlsx');
     }
 }

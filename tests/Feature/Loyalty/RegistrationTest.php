@@ -41,7 +41,7 @@ class RegistrationTest extends TestCase
             now()->addHours(24),
         );
         $query = parse_url($frontendUrl, PHP_URL_QUERY);
-        $apiUrl = "/api/loyalty/auth/verify-email/{$user->getKey()}/" . sha1($user->email) . "?{$query}";
+        $apiUrl = "/api/loyalty/auth/verify-email/{$user->getKey()}/".sha1($user->email)."?{$query}";
 
         $this->getJson($apiUrl)->assertOk();
         $this->assertNotNull($user->fresh()->email_verified_at);
@@ -60,7 +60,7 @@ class RegistrationTest extends TestCase
         $user = LoyaltyUser::factory()->unverified()->create();
 
         // Unsigned URL -> 'signed' middleware blocks it.
-        $this->getJson("/api/loyalty/auth/verify-email/{$user->getKey()}/" . sha1($user->email))
+        $this->getJson("/api/loyalty/auth/verify-email/{$user->getKey()}/".sha1($user->email))
             ->assertStatus(403);
 
         $this->assertNull($user->fresh()->email_verified_at);

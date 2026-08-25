@@ -35,7 +35,9 @@ class SalesOrderDetail extends Model
     protected static function booted()
     {
         static::saving(function ($model) {
-            if (isset($model->product_unit)) unset($model->product_unit);
+            if (isset($model->product_unit)) {
+                unset($model->product_unit);
+            }
         });
     }
 

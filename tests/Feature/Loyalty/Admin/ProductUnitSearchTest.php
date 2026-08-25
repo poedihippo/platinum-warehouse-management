@@ -58,7 +58,7 @@ class ProductUnitSearchTest extends TestCase
 
     private function search(string $q): array
     {
-        return $this->getJson('/api/admin/loyalty/product-units?q=' . urlencode($q))
+        return $this->getJson('/api/admin/loyalty/product-units?q='.urlencode($q))
             ->assertOk()
             ->json('data');
     }

@@ -56,6 +56,7 @@ class UomController extends Controller
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('uom_delete'), 403);
         $uom->delete();
+
         return $this->deletedResponse();
     }
 }

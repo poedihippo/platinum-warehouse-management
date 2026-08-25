@@ -14,7 +14,8 @@ class PersonalAccessToken extends SanctumPersonalAccessToken
         'expires_at',
     ];
 
-    public function user(){
+    public function user()
+    {
         return $this->belongsTo(User::class, 'tokenable_id');
     }
 }

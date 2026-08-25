@@ -20,8 +20,8 @@ class StockProductUnitResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'deleted_at' => $this->deleted_at,
-            'product_unit' =>  new ProductUnitResource($this->whenLoaded('productUnit')),
-            'warehouse' =>  new WarehouseResource($this->whenLoaded('warehouse')),
+            'product_unit' => new ProductUnitResource($this->whenLoaded('productUnit')),
+            'warehouse' => new WarehouseResource($this->whenLoaded('warehouse')),
         ];
     }
 }

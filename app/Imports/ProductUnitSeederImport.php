@@ -12,8 +12,6 @@ use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 class ProductUnitSeederImport implements ToModel, WithHeadingRow
 {
     /**
-     * @param array $row
-     *
      * @return \Illuminate\Database\Eloquent\Model|null
      */
     public function model(array $row)
@@ -23,16 +21,16 @@ class ProductUnitSeederImport implements ToModel, WithHeadingRow
         $productName = trim($row['product_name']);
         $uom = trim($row['uom_name']);
         // $isGenerateQr = (int) trim($row['is_generate_qr'] ?? 1);
-        $price = isset($row['price']) && !empty($row['price']) ? ((int) trim($row['price'])) : 0;
+        $price = isset($row['price']) && ! empty($row['price']) ? ((int) trim($row['price'])) : 0;
         $code = trim($row['code']);
 
         $product = Product::select('id')->firstWhere('name', $productName);
-        if (!$product) {
+        if (! $product) {
             throw new UnprocessableEntityHttpException('Product not found');
         }
 
         $uom = Uom::select('id')->firstWhere('name', $uom);
-        if (!$uom) {
+        if (! $uom) {
             throw new UnprocessableEntityHttpException('Product category not found');
         }
 

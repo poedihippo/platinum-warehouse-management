@@ -15,7 +15,10 @@ use BenSampo\Enum\Enum;
 final class SalesOrderType extends Enum
 {
     const DEFAULT = 'default';
+
     const DELIVERY = 'delivery';
+
     const PICKUP = 'pickup';
+
     const FREE = 'free';
 }

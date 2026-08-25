@@ -7,6 +7,7 @@ use Spatie\Permission\Models\Role as ModelsRole;
 class Role extends ModelsRole
 {
     public $table = 'roles';
+
     protected $guarded = [];
 
     // public function scopeTenanted($query)

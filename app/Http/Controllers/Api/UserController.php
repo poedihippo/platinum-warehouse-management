@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Enums\UserType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\UserStoreRequest;
 use App\Http\Requests\Api\UserUpdateRequest;
@@ -36,7 +35,7 @@ class UserController extends Controller
             ->allowedFilters([
                 'email', 'phone',
                 'type',
-                AllowedFilter::callback('name', fn ($q, $value) => $q->where(fn ($q) => $q->where('name', 'like', '%' . $value . '%')->orWhere('phone', 'like', '%' . $value . '%'))),
+                AllowedFilter::callback('name', fn ($q, $value) => $q->where(fn ($q) => $q->where('name', 'like', '%'.$value.'%')->orWhere('phone', 'like', '%'.$value.'%'))),
                 // AllowedFilter::exact('type'),
                 // AllowedFilter::callback('name', fn ($q, $value) => die($value)),
             ])
@@ -79,6 +78,7 @@ class UserController extends Controller
             ]);
             $user->syncRoles($request->role_ids);
             $user->warehouses()->sync($request->warehouse_ids);
+
             return $user;
         });
 
@@ -97,23 +97,30 @@ class UserController extends Controller
 
         $user->syncRoles($request->role_ids);
         $user->warehouses()->sync($request->warehouse_ids);
+
         return (new UserResource($user))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
     public function destroy(User $user)
     {
-        if ($user->id == 1) return response()->json(['message' => 'Admin dengan id 1 tidak dapat dihapus!']);
+        if ($user->id == 1) {
+            return response()->json(['message' => 'Admin dengan id 1 tidak dapat dihapus!']);
+        }
         // abort_if(!auth('sanctum')->user()->tokenCan('user_delete'), 403);
         $user->delete();
+
         return $this->deletedResponse();
     }
 
     public function forceDelete($id)
     {
-        if ($id == 1) return response()->json(['message' => 'Admin dengan id 1 tidak dapat dihapus!']);
+        if ($id == 1) {
+            return response()->json(['message' => 'Admin dengan id 1 tidak dapat dihapus!']);
+        }
         // abort_if(!auth('sanctum')->user()->tokenCan('user_delete'), 403);
         $user = User::withTrashed()->findOrFail($id);
         $user->forceDelete();
+
         return $this->deletedResponse();
     }
 
@@ -122,6 +129,7 @@ class UserController extends Controller
         // abort_if(!auth('sanctum')->user()->tokenCan('user_access'), 403);
         $user = User::withTrashed()->findOrFail($id);
         $user->restore();
+
         return new UserResource($user);
     }
 }

@@ -24,6 +24,7 @@ Route::get('product-units/{stock}', [\App\Http\Controllers\Api\ProductUnitContro
 Route::get('test', function () {
     $from = [255, 0, 0];
     $to = [0, 0, 255];
+
     return QrCode::size(200)
         ->gradient($from[0], $from[1], $from[2], $to[0], $to[1], $to[2], 'horizontal')
         ->email('gmail@gmail.com');

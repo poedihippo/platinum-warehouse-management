@@ -23,7 +23,7 @@ class ConvertSORequest extends FormRequest
     {
         $items = collect($this->items)->map(function ($item) {
             // $tax = !isset($item['tax']) ? false : (bool)$item['tax'];
-            if (!isset($item['tax'])) {
+            if (! isset($item['tax'])) {
                 $tax = 0;
             } else {
                 $tax = is_numeric($item['tax']) && $item['tax'] > 1 ? 1 : (bool) $item['tax'];
@@ -32,7 +32,7 @@ class ConvertSORequest extends FormRequest
             return [
                 ...$item,
                 'tax' => $tax,
-                'warehouse_id' => $this->warehouse_id ?? null
+                'warehouse_id' => $this->warehouse_id ?? null,
             ];
         })->all();
 
@@ -40,7 +40,7 @@ class ConvertSORequest extends FormRequest
             'shipment_fee' => $this->shipment_fee ? (int) $this->shipment_fee : 0,
             'additional_discount' => $this->additional_discount ? (int) $this->additional_discount : 0,
             'is_additional_discount_percentage' => $this->toBoolean($this->is_additional_discount_percentage ?? true),
-            'items' => $items
+            'items' => $items,
             // 'is_additional_discount_percentage' => isset($this->is_additional_discount_percentage) && !is_null($this->is_additional_discount_percentage) ? $this->toBoolean($this->is_additional_discount_percentage) : true,
         ]);
     }
@@ -62,18 +62,18 @@ class ConvertSORequest extends FormRequest
                     if (DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::CustomerEvent)->doesntExist()) {
                         $fail('Customer Tidak ditemukan');
                     }
-                }
+                },
             ],
             'customer_name' => 'required_without:reseller_id',
             'customer_phone' => [
                 'required_without:reseller_id',
                 function (string $attribute, mixed $value, Closure $fail) {
-                    if (!empty($value) || !is_null($value) || $value != '') {
+                    if (! empty($value) || ! is_null($value) || $value != '') {
                         if (DB::table('users')->where('phone', $value)->exists()) {
                             $fail('No. Handphone sudah digunakan');
                         }
-                    };
-                }
+                    }
+                },
             ],
             'customer_address' => 'nullable|string',
             'invoice_no' => [
@@ -82,7 +82,7 @@ class ConvertSORequest extends FormRequest
                     if (DB::table('sales_orders')->whereNull('deleted_at')->where('invoice_no', trim($value))->exists()) {
                         $fail('Invoice number sudah digunakan');
                     }
-                }
+                },
             ],
             'warehouse_id' => ['required', new TenantedRule()],
             'transaction_date' => 'required|date_format:Y-m-d H:i:s',
@@ -92,16 +92,22 @@ class ConvertSORequest extends FormRequest
             'voucher_code' => ['nullable', function (string $attribute, mixed $value, Closure $fail) {
                 $voucher = Voucher::where('code', $value)->first();
 
-                if (!$voucher) return $fail('Voucher tidak ditemukan!');
-                if ($voucher->is_used && ($voucher->id != $this->order->voucher_id)) return $fail('Voucher sudah digunakan!');
+                if (! $voucher) {
+                    return $fail('Voucher tidak ditemukan!');
+                }
+                if ($voucher->is_used && ($voucher->id != $this->order->voucher_id)) {
+                    return $fail('Voucher sudah digunakan!');
+                }
             }],
             'description' => 'nullable|string',
             'items' => [
                 'required',
                 'array',
                 function (string $attribute, mixed $value, Closure $fail) {
-                    if (count($value) <= 0) $fail('items required');
-                }
+                    if (count($value) <= 0) {
+                        $fail('items required');
+                    }
+                },
             ],
             'items.*.product_unit_id' => 'required|integer|exists:product_units,id',
             // 'items.*.packaging_id' => 'nullable|integer|exists:product_units,id',

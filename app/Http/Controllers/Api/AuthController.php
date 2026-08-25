@@ -33,7 +33,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
@@ -69,17 +69,17 @@ class AuthController extends Controller
         $productUnits = ProductUnit::get(['id', 'code']);
         foreach ($productUnits as $productUnit) {
             $stockProductUnit = StockProductUnit::where('product_unit_id', $productUnit->id)->whereHas('stocks')->first();
-            if (!$stockProductUnit) {
+            if (! $stockProductUnit) {
                 $productUnit->update([
-                    'deleted_at' => now()
+                    'deleted_at' => now(),
                 ]);
 
                 StockProductUnit::where('product_unit_id', $productUnit->id)->update([
-                    'deleted_at' => now()
+                    'deleted_at' => now(),
                 ]);
             }
         }
-        die('mantullll');
+        exit('mantullll');
         $this->validate($request, [
             'name' => 'required',
             'email' => 'required|email|unique:users,email',

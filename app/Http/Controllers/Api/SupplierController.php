@@ -30,9 +30,9 @@ class SupplierController extends Controller
         $suppliers = QueryBuilder::for(Supplier::class)
             ->allowedFilters([
                 AllowedFilter::callback('search', function (Builder $query, $value) {
-                    $query->where('name', 'like', '%' . $value . '%')
-                        ->orWhere('email', 'like', '%' . $value . '%')
-                        ->orWhere('phone', 'like', '%' . $value . '%');
+                    $query->where('name', 'like', '%'.$value.'%')
+                        ->orWhere('email', 'like', '%'.$value.'%')
+                        ->orWhere('phone', 'like', '%'.$value.'%');
                 }),
             ])
             ->allowedSorts(['id', 'name'])
@@ -65,6 +65,7 @@ class SupplierController extends Controller
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('supplier_delete'), 403);
         $supplier->delete();
+
         return $this->deletedResponse();
     }
 }

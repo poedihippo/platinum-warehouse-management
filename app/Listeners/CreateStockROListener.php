@@ -5,7 +5,6 @@ namespace App\Listeners;
 use App\Events\VerifiedROEvent;
 use App\Models\StockProductUnit;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 
 class CreateStockROListener implements ShouldQueue
 {
@@ -22,7 +21,6 @@ class CreateStockROListener implements ShouldQueue
     /**
      * Handle the event.
      *
-     * @param  \App\Events\VerifiedROEvent  $event
      * @return void
      */
     public function handle(VerifiedROEvent $event)

@@ -8,6 +8,7 @@ use Spatie\Permission\Models\Permission as ModelsPermission;
 class Permission extends ModelsPermission
 {
     public $table = 'permissions';
+
     protected $guarded = [];
 
     public function childs()
@@ -27,6 +28,6 @@ class Permission extends ModelsPermission
 
     public function scopeWhereRoleId(Builder $query, $id)
     {
-        $query->whereHas('roles', fn($q) => $q->where('id', $id));
+        $query->whereHas('roles', fn ($q) => $q->where('id', $id));
     }
 }

@@ -16,12 +16,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('points_transactions', function (Blueprint $table) {
-            if (!Schema::hasColumn('points_transactions', 'adjusted_by')) {
+            if (! Schema::hasColumn('points_transactions', 'adjusted_by')) {
                 $table->foreignId('adjusted_by')->nullable()->after('description')
                     ->constrained('users')->nullOnDelete();
             }
 
-            if (!Schema::hasColumn('points_transactions', 'reason')) {
+            if (! Schema::hasColumn('points_transactions', 'reason')) {
                 $table->text('reason')->nullable()->after('adjusted_by');
             }
         });

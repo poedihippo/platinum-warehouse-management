@@ -26,3 +26,10 @@ fitur di project ini :
    pencatatan stock tidak langsung ke product_units, tapi melalui table stock_product_units @app/Models/StockProductUnit.php karena pencatatan stocks harus berdasarkan warehouse nya @app/Models/Warehouse.php .
 
 dari deskripsi diatas, buatkan file AGENTS.md dan PRD.md untuk project ini agar ai agent paham. disini gw pake ai agent OPENCODE, setup berdasarkan kebutuhan opencode ya dengan cara yang propper dan best practice
+
+
+
+material masuk
+HU=handle unit
+BOM=bill of material
+WIP=work in progress

@@ -17,6 +17,7 @@ class ImportSampleExport implements FromCollection
     public function collection()
     {
         $exporter = $this->importType->getExporter();
+
         return $exporter::getSample();
     }
 }

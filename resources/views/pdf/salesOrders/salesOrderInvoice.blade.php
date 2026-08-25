@@ -164,13 +164,12 @@
     <header class="clearfix">
         <div id="logo">
             <img src="{{ public_path('images/logo-color.png') }}" />
-            <img src="{{ public_path('images/logo-winkoi.jpg') }}" />
+            <img src="{{ public_path('images/logo-platinum.jpg') }}" />
         </div>
         <h1>{{ $salesOrder->invoice_no }}</h1>
         <div id="project">
-            <div>WINKOI</div>
-            <div>Jl. Citra Dua Extension No.27 Blok BD 1, RT.2/RW.8</div>
-            <div>Pegadungan, Kec. Kalideres, Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11830</div>
+            <div>Duta Indah Iconic Blok B No. 17 RT.003/RW.002</div>
+            <div>Panunggangan Utara, Pinang, Kota Tangerang, Banten 15143</div>
             <div>(021) 29866646</div>
             <div>{{ date('d F Y', strtotime($salesOrder->created_at)) }}</div>
         </div>

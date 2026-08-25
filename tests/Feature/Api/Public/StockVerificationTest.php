@@ -23,7 +23,9 @@ class StockVerificationTest extends TestCase
     use RefreshDatabase;
 
     private Stock $stockWithExpiry;
+
     private Stock $stockWithoutExpiry;
+
     private int $brandId;
 
     protected function setUp(): void
@@ -43,33 +45,33 @@ class StockVerificationTest extends TestCase
 
             $product = ProductFactory::new()->create([
                 'product_category_id' => ProductCategoryFactory::new()->create()->id,
-                'product_brand_id'    => $brand->id,
-                'company'             => CompanyEnum::PAS,
-                'name'                => 'Mizuho',
+                'product_brand_id' => $brand->id,
+                'company' => CompanyEnum::PAS,
+                'name' => 'Mizuho',
             ]);
 
             $productUnit = ProductUnitFactory::new()->create([
                 'product_id' => $product->id,
-                'uom_id'     => UomFactory::new()->create()->id,
-                'name'       => 'Mizuho Wheatgerm',
+                'uom_id' => UomFactory::new()->create()->id,
+                'name' => 'Mizuho Wheatgerm',
             ]);
 
             $warehouse = WarehouseFactory::new()->create();
 
             $stockProductUnit = StockProductUnitFactory::new()->create([
                 'product_unit_id' => $productUnit->id,
-                'warehouse_id'    => $warehouse->id,
-                'qty'             => 10,
+                'warehouse_id' => $warehouse->id,
+                'qty' => 10,
             ]);
 
             $this->stockWithExpiry = StockFactory::new()->create([
                 'stock_product_unit_id' => $stockProductUnit->id,
-                'expired_date'          => '2026-12-31',
+                'expired_date' => '2026-12-31',
             ]);
 
             $this->stockWithoutExpiry = StockFactory::new()->create([
                 'stock_product_unit_id' => $stockProductUnit->id,
-                'expired_date'          => null,
+                'expired_date' => null,
             ]);
         });
     }
@@ -83,10 +85,10 @@ class StockVerificationTest extends TestCase
                 'verified' => true,
                 'data' => [
                     'serial_number' => $this->stockWithExpiry->id,
-                    'product_name'  => 'Mizuho Wheatgerm',
-                    'brand_id'      => $this->brandId,
-                    'brand_name'    => 'Mizuho',
-                    'expired_date'  => '2026-12-31',
+                    'product_name' => 'Mizuho Wheatgerm',
+                    'brand_id' => $this->brandId,
+                    'brand_name' => 'Mizuho',
+                    'expired_date' => '2026-12-31',
                 ],
             ]);
     }
@@ -116,7 +118,7 @@ class StockVerificationTest extends TestCase
         $response->assertStatus(404)
             ->assertExactJson([
                 'verified' => false,
-                'message'  => 'Product not found',
+                'message' => 'Product not found',
             ]);
     }
 
@@ -130,19 +132,19 @@ class StockVerificationTest extends TestCase
         $response->assertStatus(404)
             ->assertExactJson([
                 'verified' => false,
-                'message'  => 'Product not found',
+                'message' => 'Product not found',
             ]);
     }
 
     public static function invalidUlidProvider(): array
     {
         return [
-            'too short'                 => ['abc'],
+            'too short' => ['abc'],
             'wrong characters (lowercase i)' => ['01HZZZZZZZZZZZZZZZZZZZZZZi'],
-            'wrong characters (l)'      => ['01HZZZZZZZZZZZZZZZZZZZZZZl'],
-            'sql injection attempt'     => ["01HZZZZZZZ'%20OR%201=1--"],
-            'numeric id'                => ['12345'],
-            'uuid v4'                   => ['550e8400-e29b-41d4-a716-446655440000'],
+            'wrong characters (l)' => ['01HZZZZZZZZZZZZZZZZZZZZZZl'],
+            'sql injection attempt' => ["01HZZZZZZZ'%20OR%201=1--"],
+            'numeric id' => ['12345'],
+            'uuid v4' => ['550e8400-e29b-41d4-a716-446655440000'],
         ];
     }
 
@@ -190,7 +192,7 @@ class StockVerificationTest extends TestCase
         $response->assertStatus(404)
             ->assertExactJson([
                 'verified' => false,
-                'message'  => 'Product not found',
+                'message' => 'Product not found',
             ]);
     }
 
@@ -207,7 +209,7 @@ class StockVerificationTest extends TestCase
         $response->assertStatus(404)
             ->assertExactJson([
                 'verified' => false,
-                'message'  => 'Product not found',
+                'message' => 'Product not found',
             ]);
     }
 
@@ -224,6 +226,6 @@ class StockVerificationTest extends TestCase
 
     private function url(string $ulid): string
     {
-        return '/api/public/stocks/' . $ulid;
+        return '/api/public/stocks/'.$ulid;
     }
 }

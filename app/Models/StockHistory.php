@@ -19,7 +19,9 @@ class StockHistory extends Model
     public function scopeFindTenanted(Builder $query, int|string $id, array $columns = ['*'], bool $fail = true): self
     {
         $query->tenanted()->where('id', $id);
-        if ($fail) return $query->firstOrFail($columns);
+        if ($fail) {
+            return $query->firstOrFail($columns);
+        }
 
         return $query->first($columns);
     }

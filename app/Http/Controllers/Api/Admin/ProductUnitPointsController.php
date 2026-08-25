@@ -100,7 +100,7 @@ class ProductUnitPointsController extends Controller
 
         // An ineligible unit must never get points, regardless of which
         // route this was reached through.
-        if (!$productUnit->loyalty_eligible) {
+        if (! $productUnit->loyalty_eligible) {
             return response()->json([
                 'message' => 'Product unit ini tidak memenuhi syarat untuk program loyalty.',
             ], 422);

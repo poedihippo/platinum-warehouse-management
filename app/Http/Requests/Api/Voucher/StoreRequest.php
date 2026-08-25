@@ -25,7 +25,7 @@ class StoreRequest extends FormRequest
             return [
                 'voucher_generate_batch_id' => 'required|exists:voucher_generate_batches,id',
                 'voucher_category_id' => 'required|exists:voucher_categories,id',
-                'code' => 'required|unique:vouchers,code,' . $voucher->id,
+                'code' => 'required|unique:vouchers,code,'.$voucher->id,
                 'description' => 'nullable|string',
             ];
         }

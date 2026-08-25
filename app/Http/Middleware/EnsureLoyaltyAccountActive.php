@@ -18,7 +18,7 @@ class EnsureLoyaltyAccountActive
     {
         $user = $request->user();
 
-        if ($user && !$user->is_active) {
+        if ($user && ! $user->is_active) {
             return response()->json(['message' => 'Akun dinonaktifkan.'], 403);
         }
 

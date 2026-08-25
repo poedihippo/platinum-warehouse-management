@@ -13,10 +13,10 @@ class TemporaryStockController extends Controller
     public function index()
     {
         $products = QueryBuilder::for(
-            TemporaryStock::with(['stock' => fn($q) => $q->select('id', 'stock_product_unit_id')->with('stockProductUnit', fn($q) => $q->select('id', 'product_unit_id')->with('productUnit', fn($q) => $q->select('id', 'name', 'code', 'price')))])
+            TemporaryStock::with(['stock' => fn ($q) => $q->select('id', 'stock_product_unit_id')->with('stockProductUnit', fn ($q) => $q->select('id', 'product_unit_id')->with('productUnit', fn ($q) => $q->select('id', 'name', 'code', 'price')))])
         )
             ->allowedFilters([
-                'id'
+                'id',
             ])
             ->allowedSorts(['id', 'created_at'])
             ->paginate($this->per_page);
@@ -27,13 +27,13 @@ class TemporaryStockController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'id' => ['required', 'exists:stocks,id']
+            'id' => ['required', 'exists:stocks,id'],
         ]);
 
         TemporaryStock::create(['id' => $request->id, 'created_by_id' => auth()->id()]);
 
         return response()->json([
-            'message' => $request->id . ' stock scanned successfully',
+            'message' => $request->id.' stock scanned successfully',
         ]);
     }
 }

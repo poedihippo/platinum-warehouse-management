@@ -41,7 +41,7 @@ class ProductBrandUpdateTest extends TestCase
 
     private function makeBrand(): ProductBrand
     {
-        return ProductBrand::create(['name' => 'Test Brand ' . uniqid()]);
+        return ProductBrand::create(['name' => 'Test Brand '.uniqid()]);
     }
 
     public function test_user_can_update_brand_with_png_logo(): void

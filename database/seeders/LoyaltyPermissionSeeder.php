@@ -57,7 +57,7 @@ class LoyaltyPermissionSeeder extends Seeder
         ]);
 
         $adminRole = Role::where('name', 'admin')->first();
-        if ($adminRole && !$adminRole->hasPermissionTo($reviewClaims)) {
+        if ($adminRole && ! $adminRole->hasPermissionTo($reviewClaims)) {
             $adminRole->givePermissionTo($reviewClaims);
         }
 

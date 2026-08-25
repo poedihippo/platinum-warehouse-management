@@ -34,7 +34,7 @@ class StockOpnameDetailController extends Controller
             ->with('stockProductUnit.productUnit')
             ->withCount([
                 'stockOpnameItems',
-                'stockOpnameItems as total_scanned_qty' => fn ($q) => $q->where('is_scanned', 1)
+                'stockOpnameItems as total_scanned_qty' => fn ($q) => $q->where('is_scanned', 1),
             ]);
 
         $stockOpnameDetails = QueryBuilder::for($query)
@@ -55,7 +55,7 @@ class StockOpnameDetailController extends Controller
             ->with(['stockOpname', 'stockProductUnit.productUnit'])
             ->withCount([
                 'stockOpnameItems',
-                'stockOpnameItems as total_scanned_qty' => fn ($q) => $q->where('is_scanned', 1)
+                'stockOpnameItems as total_scanned_qty' => fn ($q) => $q->where('is_scanned', 1),
             ])
             ->firstOrFail();
 
@@ -90,20 +90,26 @@ class StockOpnameDetailController extends Controller
     public function scan(int $stockOpnameId, $stockOpnameDetailId, Request $request)
     {
         $request->validate([
-            'stock_id' => 'required|exists:stocks,id'
+            'stock_id' => 'required|exists:stocks,id',
         ]);
 
         $stockOpname = StockOpname::findTenanted($stockOpnameId, ['id']);
         $stockOpnameDetail = $stockOpname->details()->where('id', $stockOpnameDetailId)->first();
-        if (!$stockOpnameDetail) return response()->json(['message' => 'Data stock opname tidak cocok'], 400);
+        if (! $stockOpnameDetail) {
+            return response()->json(['message' => 'Data stock opname tidak cocok'], 400);
+        }
 
         $stockOpnameItem = $stockOpnameDetail->stockOpnameItems()->where('stock_id', $request->stock_id)->first();
-        if (!$stockOpnameItem) return response()->json(['message' => 'QR tidak sesuai dengan data stock opname'], 400);
+        if (! $stockOpnameItem) {
+            return response()->json(['message' => 'QR tidak sesuai dengan data stock opname'], 400);
+        }
 
         $isScanned = $request->is_scanned ?? 1;
 
         $stockOpnameItem->is_scanned = $isScanned;
-        if (!$stockOpnameItem->isDirty('is_scanned') && $stockOpnameItem->is_scanned == 1) return response()->json(['message' => 'Stock sudah di scan'], 400);
+        if (! $stockOpnameItem->isDirty('is_scanned') && $stockOpnameItem->is_scanned == 1) {
+            return response()->json(['message' => 'Stock sudah di scan'], 400);
+        }
         $stockOpnameItem->save();
         $message = 'Stock berhasil di scan';
 
@@ -123,13 +129,16 @@ class StockOpnameDetailController extends Controller
 
         $stockOpname = StockOpname::findTenanted($stockOpnameId, ['id']);
         $stockOpnameDetail = $stockOpname->details()->where('id', $id)->first();
-        if (!$stockOpnameDetail) return response()->json(['message' => 'Data stock opname tidak cocok'], 400);
+        if (! $stockOpnameDetail) {
+            return response()->json(['message' => 'Data stock opname tidak cocok'], 400);
+        }
 
         $stockOpnameDetail->update([
             'is_done' => $request->is_done,
             'done_at' => now(),
         ]);
-        $message = 'Data set as ' . ($stockOpnameDetail->is_done ? 'Done' : 'Pending');
+        $message = 'Data set as '.($stockOpnameDetail->is_done ? 'Done' : 'Pending');
+
         return response()->json(['message' => $message])->setStatusCode(Response::HTTP_ACCEPTED);
     }
 }

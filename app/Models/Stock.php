@@ -6,17 +6,19 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 // use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Stock extends Model
 {
     use HasUlids, SoftDeletes;
+
     protected $guarded = [];
+
     protected $casts = [
         'scanned_count' => 'integer',
         'is_tempel' => 'boolean',
@@ -26,13 +28,15 @@ class Stock extends Model
 
     public function scopeTenanted(Builder $query)
     {
-        $query->whereHas('stockProductUnit', fn($q) => $q->tenanted());
+        $query->whereHas('stockProductUnit', fn ($q) => $q->tenanted());
     }
 
     public function scopeFindTenanted(Builder $query, int|string $id, array $columns = ['*'], bool $fail = true): self
     {
         $query->tenanted()->where('id', $id);
-        if ($fail) return $query->firstOrFail($columns);
+        if ($fail) {
+            return $query->firstOrFail($columns);
+        }
 
         return $query->first($columns);
     }
@@ -88,24 +92,29 @@ class Stock extends Model
 
     public function scopeWhereAvailableStock(Builder $query)
     {
-        $query->whereDoesntHave('salesOrderItems', fn($q) => $q->whereNotReturned());
+        $query->whereDoesntHave('salesOrderItems', fn ($q) => $q->whereNotReturned());
     }
 
     public function scopeStartDate(Builder $query, $value = null)
     {
         $value = is_null($value) ? date('Y-m-d') : date('Y-m-d', strtotime($value));
+
         return $query->whereDate('created_at', '>=', $value);
     }
 
     public function scopeEndDate(Builder $query, $value = null)
     {
         $value = is_null($value) ? date('Y-m-d') : date('Y-m-d', strtotime($value));
+
         return $query->whereDate('created_at', '<=', $value);
     }
 
     public function scopeIsShowGroup(Builder $query, $value = 0)
     {
-        if ($value == 0) return $query->doesntHave('childs');
+        if ($value == 0) {
+            return $query->doesntHave('childs');
+        }
+
         return $query->has('childs');
     }
 

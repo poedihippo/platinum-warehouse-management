@@ -22,9 +22,13 @@ class Redemption extends Model
     use HasFactory, HasUlids;
 
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_APPROVED = 'approved';
+
     public const STATUS_SHIPPED = 'shipped';
+
     public const STATUS_DELIVERED = 'delivered';
+
     public const STATUS_REJECTED = 'rejected';
 
     protected $fillable = [

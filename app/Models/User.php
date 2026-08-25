@@ -12,13 +12,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, SoftDeletes, HasRoles;
+    use HasApiTokens, HasFactory, HasRoles, Notifiable, SoftDeletes;
 
     /**
      * Spatie role names that are loyalty-only. A user whose roles are a
@@ -66,26 +66,25 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'type' => UserType::class
+        'type' => UserType::class,
     ];
 
     protected static function booted()
     {
         static::created(function ($model) {
             // if user type is reseller, create user discounts
-            if ($model->type->is(UserType::Reseller)) ProductBrand::select('id')->pluck('id')?->each(fn ($id) => $model->userDiscounts()->create(['product_brand_id' => $id]));
+            if ($model->type->is(UserType::Reseller)) {
+                ProductBrand::select('id')->pluck('id')?->each(fn ($id) => $model->userDiscounts()->create(['product_brand_id' => $id]));
+            }
         });
     }
 
     /**
      * Create a new personal access token for the user.
      *
-     * @param  string  $name
-     * @param  array  $abilities
-     * @param  \DateTimeInterface|null  $expiresAt
      * @return \Laravel\Sanctum\NewAccessToken
      */
-    public function createToken(string $name, array $abilities = ['*'], \DateTimeInterface $expiresAt = null)
+    public function createToken(string $name, array $abilities = ['*'], ?\DateTimeInterface $expiresAt = null)
     {
         $token = $this->tokens()->create([
             'name' => $name,
@@ -95,7 +94,7 @@ class User extends Authenticatable
             'expires_at' => $expiresAt,
         ]);
 
-        return new \Laravel\Sanctum\NewAccessToken($token, $token->getKey() . '|' . $plainTextToken);
+        return new \Laravel\Sanctum\NewAccessToken($token, $token->getKey().'|'.$plainTextToken);
     }
 
     /**
@@ -116,15 +115,15 @@ class User extends Authenticatable
     protected function password(): Attribute
     {
         return Attribute::make(
-            set: fn (string|null $value) => empty($value) ? null : bcrypt($value),
+            set: fn (?string $value) => empty($value) ? null : bcrypt($value),
         );
     }
 
     protected function phone(): Attribute
     {
         return Attribute::make(
-            set: function (string|null $value) {
-                if (!isset($value) || is_null($value) || $value == '' || (string)$value == '0') {
+            set: function (?string $value) {
+                if (! isset($value) || is_null($value) || $value == '' || (string) $value == '0') {
                     $value = $this->generatePhoneNumber($value);
                 }
 
@@ -135,8 +134,8 @@ class User extends Authenticatable
 
     private function generatePhoneNumber(null|int|string $value)
     {
-        if (!isset($value) || is_null($value) || $value == '' || (string)$value == '0') {
-            $value = "fake" . rand(11111111, 99999999);
+        if (! isset($value) || is_null($value) || $value == '' || (string) $value == '0') {
+            $value = 'fake'.rand(11111111, 99999999);
         }
 
         if (DB::table('users')->where('phone', $value)->exists()) {
@@ -167,8 +166,8 @@ class User extends Authenticatable
     public function scopeSearch($query, $search)
     {
         return $query->where(function ($query) use ($search) {
-            $query->where('name', 'like', '%' . $search . '%')
-                ->orWhere('phone', 'like', '%' . $search . '%');
+            $query->where('name', 'like', '%'.$search.'%')
+                ->orWhere('phone', 'like', '%'.$search.'%');
             // ->orWhere('email', 'like', '%' . $search . '%')
         });
     }

@@ -34,7 +34,7 @@ class MakeOrderDetails
             $orderDetail->total_price = empty($item['total_price']) ? 0 : (int) $item['total_price'];
             $orderDetail->warehouse_id = empty($item['warehouse_id']) ? null : $item['warehouse_id'];
 
-            if (!empty($orderDetail->warehouse_id)) {
+            if (! empty($orderDetail->warehouse_id)) {
                 $stock = 0;
                 if ($productUnit->is_generate_qr) {
                     $stock = StockProductUnit::where('product_unit_id', $productUnit->id)

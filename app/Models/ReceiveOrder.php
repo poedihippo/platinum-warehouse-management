@@ -11,10 +11,11 @@ use Illuminate\Database\Eloquent\Model;
 class ReceiveOrder extends Model
 {
     use FilterStartEndDate, Tenanted;
+
     protected $guarded = [];
 
     protected $casts = [
-        'is_done' => 'boolean'
+        'is_done' => 'boolean',
     ];
 
     protected static function booted()

@@ -35,8 +35,7 @@ class UserDiscountUpdateRequest extends FormRequest
     /**
      * Convert to boolean
      *
-     * @param $booleable
-     * @return boolean
+     * @return bool
      */
     private function toBoolean($booleable)
     {

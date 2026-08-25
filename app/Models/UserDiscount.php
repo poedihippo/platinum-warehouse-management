@@ -7,8 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class UserDiscount extends Model
 {
     protected $guarded = [];
+
     protected $casts = [
-        'value' => 'float'
+        'value' => 'float',
     ];
 
     public function user()

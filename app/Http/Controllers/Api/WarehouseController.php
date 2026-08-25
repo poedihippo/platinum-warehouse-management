@@ -37,6 +37,7 @@ class WarehouseController extends Controller
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('warehouse_access'), 403);
         $warehouse = Warehouse::findTenanted($id);
+
         return new WarehouseResource($warehouse);
     }
 
@@ -60,6 +61,7 @@ class WarehouseController extends Controller
         // abort_if(!auth('sanctum')->user()->tokenCan('warehouse_delete'), 403);
         $warehouse = Warehouse::findTenanted($id);
         $warehouse->delete();
+
         return $this->deletedResponse();
     }
 }

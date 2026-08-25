@@ -58,7 +58,9 @@ class AdjustmentRequestController extends Controller
 
     public function update(AdjustmentRequest $adjustmentRequest, AdjustmentRequestStoreRequest $request)
     {
-        if ($adjustmentRequest->is_approved) return response()->json(['message' => "Tidak dapat update data jika sudah di approved"], 400);
+        if ($adjustmentRequest->is_approved) {
+            return response()->json(['message' => 'Tidak dapat update data jika sudah di approved'], 400);
+        }
         $adjustmentRequest->update($request->validated());
 
         return (new AdjustmentRequestResource($adjustmentRequest->load('stockProductUnit')))->response()->setStatusCode(Response::HTTP_ACCEPTED);
@@ -67,9 +69,12 @@ class AdjustmentRequestController extends Controller
     public function destroy(AdjustmentRequest $adjustmentRequest)
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('adjustment_request_delete'), 403);
-        if ($adjustmentRequest->is_approved) return response()->json(['message' => "Tidak dapat menghapus data jika sudah di approved"], 400);
+        if ($adjustmentRequest->is_approved) {
+            return response()->json(['message' => 'Tidak dapat menghapus data jika sudah di approved'], 400);
+        }
 
         $adjustmentRequest->delete();
+
         return $this->deletedResponse();
     }
 
@@ -77,11 +82,15 @@ class AdjustmentRequestController extends Controller
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('adjustment_request_approve'), 403);
 
-        if (!is_null($adjustmentRequest->is_approved)) return response()->json(['message' => sprintf("Adjustment request sudah di %s. Tidak dapat di edit!", $adjustmentRequest->is_approved ? 'approve' : 'reject')], 404);
+        if (! is_null($adjustmentRequest->is_approved)) {
+            return response()->json(['message' => sprintf('Adjustment request sudah di %s. Tidak dapat di edit!', $adjustmentRequest->is_approved ? 'approve' : 'reject')], 404);
+        }
 
         /** @var \App\Models\StockProductUnit $stockProductUnit */
         $stockProductUnit = $adjustmentRequest->stockProductUnit;
-        if (!$stockProductUnit) return response()->json(['message' => "Stock product unit tidak ditemukan"], 404);
+        if (! $stockProductUnit) {
+            return response()->json(['message' => 'Stock product unit tidak ditemukan'], 404);
+        }
 
         DB::beginTransaction();
         try {
@@ -128,7 +137,7 @@ class AdjustmentRequestController extends Controller
                         'stock_product_unit_id' => $adjustmentRequest->stock_product_unit_id,
                         'value' => $adjustmentRequest->value ?? 0,
                         'is_increment' => 1,
-                        'description' => 'Adjustment request (Penambahan) - ' . $adjustmentRequest->description,
+                        'description' => 'Adjustment request (Penambahan) - '.$adjustmentRequest->description,
                         'ip' => request()->ip(),
                         'agent' => request()->header('user-agent'),
                     ]);
@@ -148,7 +157,7 @@ class AdjustmentRequestController extends Controller
                         'stock_product_unit_id' => $adjustmentRequest->stock_product_unit_id,
                         'value' => $adjustmentRequest->value ?? 0,
                         'is_increment' => 0,
-                        'description' => 'Adjustment request (Pengurangan) - ' . $adjustmentRequest->description,
+                        'description' => 'Adjustment request (Pengurangan) - '.$adjustmentRequest->description,
                         'ip' => request()->ip(),
                         'agent' => request()->header('user-agent'),
                     ]);
@@ -160,10 +169,12 @@ class AdjustmentRequestController extends Controller
             DB::commit();
         } catch (\Throwable $th) {
             DB::rollBack();
+
             return response()->json(['message' => $th->getMessage()], 500);
         }
 
-        $message = 'Data ' . ($adjustmentRequest->is_approved ? 'approved' : 'rejected') . ' successfully';
+        $message = 'Data '.($adjustmentRequest->is_approved ? 'approved' : 'rejected').' successfully';
+
         return response()->json(['message' => $message]);
     }
 }

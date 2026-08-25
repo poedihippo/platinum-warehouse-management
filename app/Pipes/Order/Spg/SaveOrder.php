@@ -21,7 +21,9 @@ class SaveOrder
 
                 $records = $salesOrder->records ?? [];
 
-                if ($reseller) $records['reseller'] = $reseller->setHidden(['email_verified_at', 'remember_token', 'created_at', 'updated_at', 'deleted_at'])?->toArray() ?? [];
+                if ($reseller) {
+                    $records['reseller'] = $reseller->setHidden(['email_verified_at', 'remember_token', 'created_at', 'updated_at', 'deleted_at'])?->toArray() ?? [];
+                }
 
                 $salesOrder->records = $records;
             }
@@ -40,7 +42,7 @@ class SaveOrder
         return $next($salesOrder);
     }
 
-    private function createReseller(SalesOrder $salesOrder): User|null
+    private function createReseller(SalesOrder $salesOrder): ?User
     {
         $rawSoruce = $salesOrder->raw_source;
         try {

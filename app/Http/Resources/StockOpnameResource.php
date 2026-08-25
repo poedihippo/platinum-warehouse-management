@@ -22,7 +22,7 @@ class StockOpnameResource extends JsonResource
             'updated_at' => $this->updated_at,
             // 'deleted_at' => $this->deleted_at,
             'user' => new UserResource($this->user),
-            'warehouse' => new WarehouseResource($this->warehouse)
+            'warehouse' => new WarehouseResource($this->warehouse),
         ];
     }
 }

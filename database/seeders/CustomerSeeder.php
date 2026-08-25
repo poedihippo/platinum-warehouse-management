@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Imports\CustomerSeederImport;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Maatwebsite\Excel\Facades\Excel;
 

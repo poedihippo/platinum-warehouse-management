@@ -20,12 +20,12 @@ return new class extends Migration
         });
 
         // Isi data untuk sales_order_items yang sudah memiliki delivery_order_detail
-        DB::statement("
+        DB::statement('
             UPDATE sales_order_items soi
             INNER JOIN delivery_order_details dod
                 ON dod.sales_order_detail_id = soi.sales_order_detail_id
             SET soi.delivery_order_detail_id = dod.id
-        ");
+        ');
 
         // Tambahkan foreign key
         Schema::table('sales_order_items', function (Blueprint $table) {

@@ -38,6 +38,7 @@ class Voucher extends Model
     public function getIsUsedAttribute(): bool
     {
         $this->load(['salesOrder' => fn ($q) => $q->select('id', 'voucher_id')]);
+
         return (bool) $this->salesOrder;
     }
 }

@@ -36,7 +36,7 @@ class Payment extends Model implements HasMedia
     ];
 
     protected $appends = [
-        'files'
+        'files',
     ];
 
     protected static function booted()
@@ -54,7 +54,9 @@ class Payment extends Model implements HasMedia
     public function scopeFindTenanted(Builder $query, int|string $id, array $columns = ['*'], bool $fail = true): self
     {
         $query->tenanted()->where('id', $id);
-        if ($fail) return $query->firstOrFail($columns);
+        if ($fail) {
+            return $query->firstOrFail($columns);
+        }
 
         return $query->first($columns);
     }
@@ -72,13 +74,13 @@ class Payment extends Model implements HasMedia
 
         return $this->getMedia('payments')->map(function ($media) {
             return [
-                'id'              => $media->id,
-                'url'             => $media->getTemporaryUrl(now()->addMinutes(5)),
+                'id' => $media->id,
+                'url' => $media->getTemporaryUrl(now()->addMinutes(5)),
                 // 'thumbnail'       => $media->thumbnail,
                 // 'preview'         => $media->preview,
-                'mime_type'       => $media->mime_type,
+                'mime_type' => $media->mime_type,
                 'collection_name' => $media->collection_name,
-                'name'            => $media->name,
+                'name' => $media->name,
             ];
         })->all();
     }

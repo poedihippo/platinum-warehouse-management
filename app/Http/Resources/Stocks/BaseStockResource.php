@@ -18,7 +18,7 @@ class BaseStockResource extends JsonResource
         return [
             ...parent::toArray($request),
             'childs_count' => $this->whenCounted('childs'),
-            'receive_order_detail' =>  new ReceiveOrderDetailResource($this->whenLoaded('receiveOrderDetail')),
+            'receive_order_detail' => new ReceiveOrderDetailResource($this->whenLoaded('receiveOrderDetail')),
         ];
     }
 }

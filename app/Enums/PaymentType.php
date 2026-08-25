@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Enums;
 
@@ -12,7 +14,10 @@ use BenSampo\Enum\Enum;
 final class PaymentType extends Enum
 {
     const CASH = 'cash';
+
     const TRANSFER = 'transfer';
+
     const CREDIT_CARD = 'credit_card';
+
     const QRIS = 'qris';
 }

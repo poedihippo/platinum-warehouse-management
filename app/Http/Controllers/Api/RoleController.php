@@ -42,7 +42,6 @@ class RoleController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  RoleStoreRequest  $request
      * @return RoleResource
      */
     public function store(RoleStoreRequest $request)
@@ -63,10 +62,10 @@ class RoleController extends Controller
 
         return new RoleResource($role);
     }
+
     /**
      * Display the specified resource.
      *
-     * @param  Role  $role
      * @return RoleResource
      */
     public function show(Role $role)
@@ -77,14 +76,13 @@ class RoleController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  Role  $role
-     * @param  RoleUpdateRequest  $request
      * @return RoleResource
      */
     public function update(Role $role, RoleUpdateRequest $request)
     {
-        if ($role->id == 1)
+        if ($role->id == 1) {
             return response()->json(['message' => 'Role admin tidak dapat diupdate!']);
+        }
 
         $permissionNames = PermissionService::getPermissionNames($request->permission_ids ?? []);
         $role = DB::transaction(function () use ($role, $request, $permissionNames) {
@@ -100,6 +98,7 @@ class RoleController extends Controller
 
         return new RoleResource($role);
     }
+
     /**
      * Remove the specified resource from storage.
      *
@@ -108,9 +107,11 @@ class RoleController extends Controller
      */
     public function destroy(Role $role)
     {
-        if ($role->id == 1)
+        if ($role->id == 1) {
             return response()->json(['message' => 'Role admin tidak dapat dihapus!']);
+        }
         $role->delete();
+
         return $this->deletedResponse();
     }
 }

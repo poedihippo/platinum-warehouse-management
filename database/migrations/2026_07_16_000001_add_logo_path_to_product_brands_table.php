@@ -17,7 +17,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasColumn('product_brands', 'logo_path')) {
+        if (! Schema::hasColumn('product_brands', 'logo_path')) {
             Schema::table('product_brands', function (Blueprint $table) {
                 $table->string('logo_path')->nullable();
             });

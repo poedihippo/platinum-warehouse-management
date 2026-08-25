@@ -50,7 +50,7 @@ class RedemptionFactory extends Factory
         return $this->state(fn () => [
             'status' => Redemption::STATUS_SHIPPED,
             'reviewed_at' => now(),
-            'tracking_number' => 'JNE-' . fake()->numerify('##########'),
+            'tracking_number' => 'JNE-'.fake()->numerify('##########'),
             'shipping_carrier' => 'JNE',
             'shipped_at' => now(),
         ]);

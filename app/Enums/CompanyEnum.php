@@ -13,5 +13,6 @@ use BenSampo\Enum\Enum;
 final class CompanyEnum extends Enum
 {
     const PAS = 'pas';
+
     const PA = 'pa';
 }

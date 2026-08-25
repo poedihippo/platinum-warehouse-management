@@ -37,17 +37,17 @@ class SalesOrderUpdateRequest extends FormRequest
             'expected_price' => 'nullable|integer',
             'type' => ['nullable', new EnumValue(SalesOrderType::class)],
             'reseller_id' => ['required', function (string $attribute, mixed $value, Closure $fail) {
-                if (!DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::Reseller)->exists()) {
+                if (! DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::Reseller)->exists()) {
                     $fail('Reseller Tidak ditemukan');
                 }
             }],
             'invoice_no' => [
                 'nullable',
-                function (string $attribute, mixed $value, Closure $fail) use($salesOrderId) {
+                function (string $attribute, mixed $value, Closure $fail) use ($salesOrderId) {
                     if (DB::table('sales_orders')->whereNull('deleted_at')->where('id', '!=', $salesOrderId)->where('invoice_no', trim($value))->exists()) {
                         $fail('Invoice number sudah digunakan');
                     }
-                }
+                },
             ],
             // 'warehouse_id' => ['required', new TenantedRule()],
             'transaction_date' => 'required|date_format:Y-m-d H:i:s',
@@ -56,7 +56,9 @@ class SalesOrderUpdateRequest extends FormRequest
             'additional_discount' => 'required|integer',
             'description' => 'nullable|string',
             'items' => ['required', 'array', function (string $attribute, mixed $value, Closure $fail) {
-                if (count($value) <= 0) $fail('items required');
+                if (count($value) <= 0) {
+                    $fail('items required');
+                }
             }],
             'items.*.product_unit_id' => 'required|integer|exists:product_units,id',
             // 'items.*.packaging_id' => 'nullable|integer|exists:product_units,id',

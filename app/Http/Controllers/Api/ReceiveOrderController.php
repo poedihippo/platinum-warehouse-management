@@ -52,6 +52,7 @@ class ReceiveOrderController extends Controller
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('receive_order_access'), 403);
         $receiveOrder = ReceiveOrder::findTenanted($id);
+
         return new ReceiveOrderResource($receiveOrder->load('details')->loadCount('details'));
     }
 
@@ -63,8 +64,9 @@ class ReceiveOrderController extends Controller
         $xmlArray = json_decode($json, true);
 
         $invoiceNo = $xmlArray['TRANSACTIONS']['RECIEVEITEM']['INVOICENO'];
-        if (ReceiveOrder::where('invoice_no', $invoiceNo)->exists())
+        if (ReceiveOrder::where('invoice_no', $invoiceNo)->exists()) {
             return response()->json(['message' => 'Invoice number sudah digunakan'], 400);
+        }
 
         $productUnitBlacklist = DB::table('product_unit_blacklists')->select('product_unit_id')->get()?->pluck('product_unit_id')?->all() ?? [];
         $supplier = Supplier::where('code', $xmlArray['TRANSACTIONS']['RECIEVEITEM']['VENDORID'])->firstOrFail();
@@ -89,10 +91,11 @@ class ReceiveOrderController extends Controller
             $itemlines = $xmlArray['TRANSACTIONS']['RECIEVEITEM']['ITEMLINE'];
             if (isset($itemlines['ITEMNO'])) {
                 $productUnit = ProductUnit::where('code', $itemlines['ITEMNO'])->first();
-                if (!$productUnit)
-                    return response()->json(['message' => 'Product ' . $itemlines['ITEMNO'] . ' Tidak ditemukan on system. Please add first'], 400);
+                if (! $productUnit) {
+                    return response()->json(['message' => 'Product '.$itemlines['ITEMNO'].' Tidak ditemukan on system. Please add first'], 400);
+                }
 
-                if (!in_array($productUnit->id, $productUnitBlacklist)) {
+                if (! in_array($productUnit->id, $productUnitBlacklist)) {
                     $receiveOrder->details()->create([
                         'product_unit_id' => $productUnit->id,
                         'qty' => $itemlines['QUANTITY'],
@@ -103,10 +106,11 @@ class ReceiveOrderController extends Controller
             } else {
                 foreach ($itemlines as $item) {
                     $productUnit = ProductUnit::where('code', $item['ITEMNO'])->first();
-                    if (!$productUnit)
-                        return response()->json(['message' => 'Product ' . $item['ITEMNO'] . ' Tidak ditemukan on system. Please add first'], 400);
+                    if (! $productUnit) {
+                        return response()->json(['message' => 'Product '.$item['ITEMNO'].' Tidak ditemukan on system. Please add first'], 400);
+                    }
 
-                    if (!in_array($productUnit->id, $productUnitBlacklist)) {
+                    if (! in_array($productUnit->id, $productUnitBlacklist)) {
                         $receiveOrder->details()->create([
                             'product_unit_id' => $productUnit->id,
                             'qty' => $item['QUANTITY'],
@@ -120,6 +124,7 @@ class ReceiveOrderController extends Controller
             DB::commit();
         } catch (\Throwable $th) {
             DB::rollBack();
+
             return response()->json(['message' => $th->getMessage()], 400);
         }
 
@@ -141,11 +146,12 @@ class ReceiveOrderController extends Controller
         // abort_if(!auth('sanctum')->user()->tokenCan('receive_order_delete'), 403);
 
         $receiveOrder = ReceiveOrder::findTenanted($id);
-        if (!$receiveOrder->details->every(fn ($detail) => $detail->is_verified === false)) {
+        if (! $receiveOrder->details->every(fn ($detail) => $detail->is_verified === false)) {
             return response()->json(['message' => 'Semua receive order harus unverified']);
         }
 
         $receiveOrder->delete();
+
         return $this->deletedResponse();
     }
 
@@ -155,15 +161,20 @@ class ReceiveOrderController extends Controller
         $receiveOrder = ReceiveOrder::findTenanted($id);
         $request->validate(['is_done' => 'required|boolean']);
 
-        if (!$receiveOrder->details?->every(fn ($detail) => $detail->is_verified === true)) return response()->json(['message' => 'Semua receive order harus diverifikasi'], 400);
-        if (!$receiveOrder->details?->every(fn ($detail) => $detail->adjust_qty > 0)) return response()->json(['message' => 'Semua qty detail receive order harus di adjust'], 400);
+        if (! $receiveOrder->details?->every(fn ($detail) => $detail->is_verified === true)) {
+            return response()->json(['message' => 'Semua receive order harus diverifikasi'], 400);
+        }
+        if (! $receiveOrder->details?->every(fn ($detail) => $detail->adjust_qty > 0)) {
+            return response()->json(['message' => 'Semua qty detail receive order harus di adjust'], 400);
+        }
 
         $receiveOrder->update([
             'is_done' => $request->is_done ?? 1,
             'done_at' => now(),
         ]);
 
-        $message = 'Receive order set as ' . ($receiveOrder->is_done ? 'Done' : 'Pending');
+        $message = 'Receive order set as '.($receiveOrder->is_done ? 'Done' : 'Pending');
+
         return response()->json(['message' => $message])->setStatusCode(Response::HTTP_ACCEPTED);
     }
 }

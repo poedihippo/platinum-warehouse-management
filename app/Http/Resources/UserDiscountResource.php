@@ -16,7 +16,7 @@ class UserDiscountResource extends JsonResource
     {
         return [
             ...parent::toArray($request),
-            'product_brand' => new ProductBrandResource($this->whenLoaded('productBrand'))
+            'product_brand' => new ProductBrandResource($this->whenLoaded('productBrand')),
         ];
     }
 }

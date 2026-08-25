@@ -25,7 +25,7 @@ class ClaimController extends Controller
         $user = $request->user();
 
         // Fraud rule §9.1: email must be verified before submitting.
-        if (!$user->hasVerifiedEmail()) {
+        if (! $user->hasVerifiedEmail()) {
             return response()->json([
                 'message' => 'Email Anda belum diverifikasi. Verifikasi email sebelum mengajukan klaim.',
             ], 403);
@@ -54,7 +54,7 @@ class ClaimController extends Controller
         $invoiceFile = $request->file('invoice_photo');
         $invoicePath = $invoiceFile->storeAs(
             $baseDir,
-            'invoice.' . $this->extensionOf($invoiceFile)
+            'invoice.'.$this->extensionOf($invoiceFile)
         );
 
         $productPhotoPaths = [];
@@ -62,7 +62,7 @@ class ClaimController extends Controller
             $position = $index + 1;
             $productPhotoPaths[$position] = $file->storeAs(
                 $baseDir,
-                "product_{$position}." . $this->extensionOf($file)
+                "product_{$position}.".$this->extensionOf($file)
             );
         }
 
@@ -133,7 +133,7 @@ class ClaimController extends Controller
             ->where('id', $claim)
             ->first();
 
-        if (!$model) {
+        if (! $model) {
             return response()->json(['message' => 'Klaim tidak ditemukan.'], 404);
         }
 

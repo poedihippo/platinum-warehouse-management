@@ -63,6 +63,7 @@ class ProductBrandController extends Controller
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('product_brand_delete'), 403);
         $productBrand->delete();
+
         return $this->deletedResponse();
     }
 }

@@ -6,11 +6,11 @@ use App\Enums\CompanyEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\DeliveryOrderAttachRequest;
 use App\Http\Requests\Api\DeliveryOrderReturnRequest;
-use App\Http\Resources\DeliveryOrderResource;
 use App\Http\Requests\Api\DeliveryOrderStoreRequest;
 use App\Http\Requests\Api\DeliveryOrderUpdateRequest;
 use App\Http\Requests\Api\SalesOrderItemStoreRequest;
 use App\Http\Resources\DefaultResource;
+use App\Http\Resources\DeliveryOrderResource;
 use App\Http\Resources\SalesOrderItemResource;
 use App\Models\AdjustmentRequest;
 use App\Models\DeliveryOrder;
@@ -68,7 +68,7 @@ class DeliveryOrderController extends Controller
         $deliveryOrder = DeliveryOrder::findTenanted($id);
         $deliveryOrder->load([
             'user',
-            'reseller'
+            'reseller',
             // 'salesOrder' => function ($q) {
             //     $q->with('reseller');
             //     $q->with('details', function ($q) {
@@ -114,7 +114,7 @@ class DeliveryOrderController extends Controller
             SalesOrderItem::whereIn('delivery_order_detail_id', $deliveryOrderDetails->pluck('id'))->delete();
             DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
-            $deliveryOrderDetails->each(fn($d) => SalesOrderService::countFulfilledQty($d->sales_order_detail_id));
+            $deliveryOrderDetails->each(fn ($d) => SalesOrderService::countFulfilledQty($d->sales_order_detail_id));
 
             // $deliveryOrder->salesOrder?->details->each(function ($detail) use ($deliveryOrder) {
             //     $stockProductUnit = StockProductUnit::tenanted()->where('warehouse_id', $deliveryOrder->salesOrder?->warehouse_id)
@@ -139,14 +139,14 @@ class DeliveryOrderController extends Controller
                 $deliveryOrder->details?->each(function ($detail) use ($deliveryOrder) {
                     // $salesOrderDetail = $detail->salesOrderDetail->load('packaging');
                     $salesOrderDetail = $detail->salesOrderDetail->load([
-                        'productUnit' => fn($q) => $q->select('id', 'refer_id', 'refer_qty')->with('relations', fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select('id', 'is_generate_qr')))
+                        'productUnit' => fn ($q) => $q->select('id', 'refer_id', 'refer_qty')->with('relations', fn ($q) => $q->with('relatedProductUnit', fn ($q) => $q->select('id', 'is_generate_qr'))),
                     ]);
 
                     $stockProductUnit = StockProductUnit::tenanted()->where('warehouse_id', $salesOrderDetail?->warehouse_id)
                         ->when(
                             $salesOrderDetail->productUnit->refer_id,
-                            fn($q) => $q->where('product_unit_id', $salesOrderDetail->productUnit->refer_id),
-                            fn($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id),
+                            fn ($q) => $q->where('product_unit_id', $salesOrderDetail->productUnit->refer_id),
+                            fn ($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id),
                         )
                         ->first(['id']);
 
@@ -158,11 +158,10 @@ class DeliveryOrderController extends Controller
                                 'stock_product_unit_id' => $stockProductUnit->id,
                                 'value' => $salesOrderDetail?->fulfilled_qty ?? 0,
                                 'is_increment' => 1,
-                                'description' => $deliveryOrder->invoice_no . ' - Delete DO',
+                                'description' => $deliveryOrder->invoice_no.' - Delete DO',
                                 'ip' => request()->ip(),
                                 'agent' => request()->header('user-agent'),
                             ]);
-
 
                             if ($salesOrderDetail->productUnit->refer_id && $salesOrderDetail->productUnit->relations->count()) {
                                 // record stock history for relations
@@ -173,7 +172,7 @@ class DeliveryOrderController extends Controller
 
                                     if ($stockProductUnit) {
                                         $qty = $relation->qty * $multiply;
-                                        if (!$relation->relatedProductUnit->is_generate_qr) {
+                                        if (! $relation->relatedProductUnit->is_generate_qr) {
                                             $stockProductUnit->increment('qty', $qty);
                                         }
 
@@ -217,6 +216,7 @@ class DeliveryOrderController extends Controller
             DB::commit();
         } catch (Exception $e) {
             DB::rollBack();
+
             return response()->json(['message' => $e->getMessage()], 500);
         }
 
@@ -226,8 +226,8 @@ class DeliveryOrderController extends Controller
     public function print($id)
     {
         $deliveryOrder = DeliveryOrder::with([
-            'reseller' => fn($q) => $q->select('id', 'name', 'address'),
-            'details' => fn($q) => $q->with('salesOrderDetail.productUnit.uom')
+            'reseller' => fn ($q) => $q->select('id', 'name', 'address'),
+            'details' => fn ($q) => $q->with('salesOrderDetail.productUnit.uom'),
         ])->findTenanted($id);
 
         $chunkSize = 19;
@@ -243,7 +243,7 @@ class DeliveryOrderController extends Controller
             ->setOption('defaultFont', 'Arial')
             ->loadView($view, ['deliveryOrder' => $deliveryOrder, 'deliveryOrderDetailsChunk' => $deliveryOrderDetailsChunk]);
 
-        return $pdf->download('delivery-order-' . $deliveryOrder->code . '.pdf');
+        return $pdf->download('delivery-order-'.$deliveryOrder->code.'.pdf');
     }
 
     public function exportXml($id)
@@ -256,31 +256,33 @@ class DeliveryOrderController extends Controller
         $uomColumns = 'uom:id,name';
         $deliveryOrder = DeliveryOrder::with([
             'reseller',
-            'details' => fn($q) => $q->with('salesOrderDetail', fn($q) => $q->with(
+            'details' => fn ($q) => $q->with('salesOrderDetail', fn ($q) => $q->with(
                 'productUnit',
-                fn($q) => $q->select($productUnitColumns)
+                fn ($q) => $q->select($productUnitColumns)
                     ->with([
                         $uomColumns,
-                        'refer' => fn($q) => $q->select($productUnitColumns)->with($uomColumns),
-                        'relations' => fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select($productUnitColumns)->with($uomColumns)),
+                        'refer' => fn ($q) => $q->select($productUnitColumns)->with($uomColumns),
+                        'relations' => fn ($q) => $q->with('relatedProductUnit', fn ($q) => $q->select($productUnitColumns)->with($uomColumns)),
                     ])
-            ))
+            )),
         ])->findTenanted($id);
 
         return response(view('xml.deliveryOrders.deliveryOrder')->with(compact('deliveryOrder')), 200, [
             'Content-Type' => 'application/xml',
             // use your required mime type
-            'Content-Disposition' => 'attachment; filename="Delivery Order ' . $deliveryOrder->code . '.xml"',
+            'Content-Disposition' => 'attachment; filename="Delivery Order '.$deliveryOrder->code.'.xml"',
         ]);
     }
 
     public function verification(SalesOrderItemStoreRequest $request, int $id, DeliveryOrderDetail $deliveryOrderDetail)
     {
         $deliveryOrder = DeliveryOrder::findTenanted($id, ['id', 'is_done']);
-        if ($deliveryOrder->is_done) return response()->json(['message' => 'Delivery Order sudah diselesaikan. Batalkan untuk dapat scan lagi'], 404);
+        if ($deliveryOrder->is_done) {
+            return response()->json(['message' => 'Delivery Order sudah diselesaikan. Batalkan untuk dapat scan lagi'], 404);
+        }
 
         // 1. cek if exist $deliveryOrderDetail
-        $salesOrderDetail = $deliveryOrderDetail->salesOrderDetail->load(['productUnit' => fn($q) => $q->select('id', 'refer_id')]);
+        $salesOrderDetail = $deliveryOrderDetail->salesOrderDetail->load(['productUnit' => fn ($q) => $q->select('id', 'refer_id')]);
         // if (!$salesOrderDetail) {
         //     return response()->json(['message' => 'Sales order item Tidak ditemukan'], 404);
         // }
@@ -289,18 +291,18 @@ class DeliveryOrderController extends Controller
         $stock = Stock::where('id', $request->stock_id)
             ->whereHas(
                 'stockProductUnit',
-                fn($q) => $q->where('warehouse_id', $salesOrderDetail->salesOrder?->warehouse_id)
+                fn ($q) => $q->where('warehouse_id', $salesOrderDetail->salesOrder?->warehouse_id)
                     ->when(
                         $salesOrderDetail->productUnit->refer_id,
-                        fn($q) => $q->where('product_unit_id', $salesOrderDetail->productUnit->refer_id),
-                        fn($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id),
+                        fn ($q) => $q->where('product_unit_id', $salesOrderDetail->productUnit->refer_id),
+                        fn ($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id),
                     )
                 // ->where('product_unit_id', $salesOrderDetail->product_unit_id)
 
             )
             ->first();
 
-        if (!$stock) {
+        if (! $stock) {
             return response()->json(['message' => 'Stok produk tidak sesuai'], 400);
         }
 
@@ -318,7 +320,7 @@ class DeliveryOrderController extends Controller
             return response()->json(['message' => 'Qty sudah terpenuhi'], 400);
         }
 
-        $stock->load(['childs' => fn($q) => $q->select('id', 'parent_id')]);
+        $stock->load(['childs' => fn ($q) => $q->select('id', 'parent_id')]);
         $stockChilds = $stock->childs;
         $totalChilds = $stockChilds->count();
         if ($totalChilds > 0) {
@@ -362,6 +364,7 @@ class DeliveryOrderController extends Controller
                 DB::commit();
             } catch (Exception $e) {
                 DB::rollBack();
+
                 return response()->json(['message' => $e->getMessage()], 500);
             }
         } else {
@@ -374,6 +377,7 @@ class DeliveryOrderController extends Controller
                 DB::commit();
             } catch (Exception $e) {
                 DB::rollBack();
+
                 return response()->json(['message' => $e->getMessage()], 500);
             }
         }
@@ -407,15 +411,14 @@ class DeliveryOrderController extends Controller
                 $deliveryOrder->details?->each(function ($detail) use ($deliveryOrder) {
                     // $salesOrderDetail = $detail->salesOrderDetail->load('packaging');
                     $salesOrderDetail = $detail->salesOrderDetail->load([
-                        'productUnit' => fn($q) => $q->select('id', 'refer_id', 'refer_qty')->with('relations', fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select('id', 'is_generate_qr')))
+                        'productUnit' => fn ($q) => $q->select('id', 'refer_id', 'refer_qty')->with('relations', fn ($q) => $q->with('relatedProductUnit', fn ($q) => $q->select('id', 'is_generate_qr'))),
                     ]);
-
 
                     $stockProductUnit = StockProductUnit::tenanted()->where('warehouse_id', $salesOrderDetail?->warehouse_id)
                         ->when(
                             $salesOrderDetail->productUnit->refer_id,
-                            fn($q) => $q->where('product_unit_id', $salesOrderDetail->productUnit->refer_id),
-                            fn($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id),
+                            fn ($q) => $q->where('product_unit_id', $salesOrderDetail->productUnit->refer_id),
+                            fn ($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id),
                         )
                         ->first(['id']);
 
@@ -426,7 +429,7 @@ class DeliveryOrderController extends Controller
                             'stock_product_unit_id' => $stockProductUnit->id,
                             'value' => $salesOrderDetail?->fulfilled_qty ?? 0,
                             'is_increment' => 0,
-                            'description' => $deliveryOrder->invoice_no . ' - Verified DO',
+                            'description' => $deliveryOrder->invoice_no.' - Verified DO',
                             'ip' => request()->ip(),
                             'agent' => request()->header('user-agent'),
                         ]);
@@ -440,7 +443,7 @@ class DeliveryOrderController extends Controller
 
                                 if ($stockProductUnit) {
                                     $qty = $relation->qty * $multiply;
-                                    if (!$relation->relatedProductUnit->is_generate_qr) {
+                                    if (! $relation->relatedProductUnit->is_generate_qr) {
                                         $stockProductUnit->decrement('qty', $qty);
                                     }
 
@@ -481,14 +484,14 @@ class DeliveryOrderController extends Controller
                 $deliveryOrder->details?->each(function ($detail) use ($deliveryOrder) {
                     // $salesOrderDetail = $detail->salesOrderDetail->load('packaging');
                     $salesOrderDetail = $detail->salesOrderDetail->load([
-                        'productUnit' => fn($q) => $q->select('id', 'refer_id', 'refer_qty')->with('relations', fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select('id', 'is_generate_qr')))
+                        'productUnit' => fn ($q) => $q->select('id', 'refer_id', 'refer_qty')->with('relations', fn ($q) => $q->with('relatedProductUnit', fn ($q) => $q->select('id', 'is_generate_qr'))),
                     ]);
 
                     $stockProductUnit = StockProductUnit::tenanted()->where('warehouse_id', $salesOrderDetail?->warehouse_id)
                         ->when(
                             $salesOrderDetail->productUnit->refer_id,
-                            fn($q) => $q->where('product_unit_id', $salesOrderDetail->productUnit->refer_id),
-                            fn($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id),
+                            fn ($q) => $q->where('product_unit_id', $salesOrderDetail->productUnit->refer_id),
+                            fn ($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id),
                         )
                         ->first(['id']);
 
@@ -499,7 +502,7 @@ class DeliveryOrderController extends Controller
                             'stock_product_unit_id' => $stockProductUnit->id,
                             'value' => $salesOrderDetail?->fulfilled_qty ?? 0,
                             'is_increment' => 1,
-                            'description' => $deliveryOrder->invoice_no . ' - Unverified DO',
+                            'description' => $deliveryOrder->invoice_no.' - Unverified DO',
                             'ip' => request()->ip(),
                             'agent' => request()->header('user-agent'),
                         ]);
@@ -513,7 +516,7 @@ class DeliveryOrderController extends Controller
 
                                 if ($stockProductUnit) {
                                     $qty = $relation->qty * $multiply;
-                                    if (!$relation->relatedProductUnit->is_generate_qr) {
+                                    if (! $relation->relatedProductUnit->is_generate_qr) {
                                         $stockProductUnit->increment('qty', $qty);
                                     }
 
@@ -536,10 +539,12 @@ class DeliveryOrderController extends Controller
             DB::commit();
         } catch (Exception $e) {
             DB::rollBack();
+
             return response()->json(['message' => $e->getMessage()], 500);
         }
 
-        $message = 'Data set as ' . ($deliveryOrder->is_done ? 'Done' : 'Pending');
+        $message = 'Data set as '.($deliveryOrder->is_done ? 'Done' : 'Pending');
+
         return response()->json(['message' => $message])->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
@@ -580,6 +585,7 @@ class DeliveryOrderController extends Controller
                     'sales_order_detail_id' => $salesOrderDetail->id,
                     'message' => "Qty melebihi sisa yang tersedia. Sisa: {$remaining}, diminta: {$item['qty']}",
                 ];
+
                 continue;
             }
 
@@ -593,21 +599,21 @@ class DeliveryOrderController extends Controller
             } else {
                 $deliveryOrder->details()->create([
                     'sales_order_detail_id' => $salesOrderDetail->id,
-                    'qty'                   => $item['qty'],
+                    'qty' => $item['qty'],
                 ]);
                 $count++;
             }
         }
 
-        if (!empty($errors)) {
+        if (! empty($errors)) {
             return response()->json([
                 'message' => 'Beberapa item gagal ditambahkan.',
-                'errors'  => $errors,
+                'errors' => $errors,
             ], 422);
         }
 
         return response()->json([
-            'message' => $count . ' Sales order berhasil ditambahkan ke delivery order',
+            'message' => $count.' Sales order berhasil ditambahkan ke delivery order',
         ]);
     }
 
@@ -625,19 +631,19 @@ class DeliveryOrderController extends Controller
             ->toArray();
 
         if (count($salesOrderDetailIds) == 0) {
-            return new BadRequestHttpException("Stock not found");
+            return new BadRequestHttpException('Stock not found');
         }
 
         $deliveryOrderDetails = DeliveryOrderDetail::whereIn('sales_order_detail_id', $salesOrderDetailIds)->distinct()->pluck('delivery_order_id')->toArray();
 
         if (count($deliveryOrderDetails) > 1 || $deliveryOrderDetails[0] != $id) {
-            return new BadRequestHttpException("Can not return stock from different delivery order");
+            return new BadRequestHttpException('Can not return stock from different delivery order');
         }
 
         $invoiceNo = DeliveryOrder::select('invoice_no')->findOrFail($id)->invoice_no;
 
         DB::transaction(function () use ($request, $invoiceNo, $salesOrderDetailIds, $userId, $ip, $userAgent) {
-            SalesOrderItem::whereIn('stock_id', $request->ids)->orWhereHas('stock', fn($q) => $q->whereIn('parent_id', $request->ids))->update(['is_returned' => true]);
+            SalesOrderItem::whereIn('stock_id', $request->ids)->orWhereHas('stock', fn ($q) => $q->whereIn('parent_id', $request->ids))->update(['is_returned' => true]);
 
             foreach ($salesOrderDetailIds as $id) {
                 SalesOrderService::countFulfilledQty($id);
@@ -650,8 +656,8 @@ class DeliveryOrderController extends Controller
                 $stockCounts = Stock::whereIn('id', $request->ids)
                     ->orWhereIn('parent_id', $request->ids)
                     ->where(
-                        fn($q) => $q->whereNotNull('parent_id')
-                            ->orWhere(fn($q) => $q->whereNull('parent_id')->doesntHave('childs'))
+                        fn ($q) => $q->whereNotNull('parent_id')
+                            ->orWhere(fn ($q) => $q->whereNull('parent_id')->doesntHave('childs'))
                     )
                     ->select('stock_product_unit_id', DB::raw('count(*) as qty'))
                     ->groupBy('stock_product_unit_id')
@@ -661,7 +667,7 @@ class DeliveryOrderController extends Controller
                     $stockProductUnitId = $stockCount->stock_product_unit_id;
                     $qty = $stockCount->qty - 1;
 
-                    $stockProductUnit = StockProductUnit::where('id', $stockProductUnitId)->with('productUnit', fn($q) => $q->select('id', 'name', 'is_generate_qr'))->first();
+                    $stockProductUnit = StockProductUnit::where('id', $stockProductUnitId)->with('productUnit', fn ($q) => $q->select('id', 'name', 'is_generate_qr'))->first();
 
                     // create adjustment request that stock is back to inventory
                     $adjustmentRequest = AdjustmentRequest::create([
@@ -672,7 +678,7 @@ class DeliveryOrderController extends Controller
                         'is_increment' => 1,
                         'is_approved' => 1,
                         'description' => sprintf(
-                            "Return from DO %s - %s",
+                            'Return from DO %s - %s',
                             $invoiceNo,
                             $stockProductUnit->productUnit?->name ?? '',
                         ),
@@ -690,7 +696,7 @@ class DeliveryOrderController extends Controller
                     ]);
 
                     // update the stock_product_unit quantity if not using QR generation
-                    if (!$stockProductUnit->productUnit->is_generate_qr) {
+                    if (! $stockProductUnit->productUnit->is_generate_qr) {
                         $stockProductUnit->increment('qty', $qty);
                     }
                 }
@@ -698,7 +704,7 @@ class DeliveryOrderController extends Controller
         });
 
         return response()->json([
-            'message' => count($request->ids) . ' stocks returned ' . ($request->is_delete ? 'and deleted' : '') . ' successfully',
+            'message' => count($request->ids).' stocks returned '.($request->is_delete ? 'and deleted' : '').' successfully',
         ]);
     }
 }

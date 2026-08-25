@@ -17,7 +17,7 @@ class ClaimFactory extends Factory
     {
         return [
             'loyalty_user_id' => LoyaltyUserFactory::new(),
-            'invoice_number' => 'INV-' . fake()->unique()->numerify('####-##-####'),
+            'invoice_number' => 'INV-'.fake()->unique()->numerify('####-##-####'),
             'invoice_photo_path' => 'loyalty/claims/test/invoice.jpg',
             'status' => 'pending',
             'submitted_at' => now(),

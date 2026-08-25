@@ -22,6 +22,7 @@ class SalesOrderItemController extends Controller
     {
         // $salesOrderItems = SalesOrderItem::select(stock_id','created_at')->where('sales_order_detail_id', $salesOrderDetail->id)->get();
         $salesOrderItems = DB::table('sales_order_items')->select('stock_id', 'created_at')->where('sales_order_detail_id', $salesOrderDetail->id)->get();
+
         return response()->json($salesOrderItems);
     }
 
@@ -31,7 +32,9 @@ class SalesOrderItemController extends Controller
 
         $cek = $salesOrderDetail->salesOrderItems()->whereNotReturned()->where('stock_id', $stock->id)->exists();
 
-        if ($cek) return response()->json(['message' => 'Product sudah di scan'], 400);
+        if ($cek) {
+            return response()->json(['message' => 'Product sudah di scan'], 400);
+        }
 
         $salesOrderItem = $salesOrderDetail->salesOrderItems()->updateOrCreate(['stock_id' => $stock->id], ['is_returned' => false]);
 
@@ -41,7 +44,7 @@ class SalesOrderItemController extends Controller
     public function destroy(SalesOrderDetail $salesOrderDetail, Request $request)
     {
         $request->validate([
-            'stock_id' => 'required|exists:stocks,id'
+            'stock_id' => 'required|exists:stocks,id',
         ]);
 
         DB::beginTransaction();
@@ -49,13 +52,14 @@ class SalesOrderItemController extends Controller
             $salesOrderItem = $salesOrderDetail->salesOrderItems()->where('stock_id', $request->stock_id)->first(['id']);
 
             $salesOrderDetail->salesOrderItems()
-                ->where(fn($q) => $q->where('id', $salesOrderItem->id)->orWhere('parent_id', $salesOrderItem->id))
+                ->where(fn ($q) => $q->where('id', $salesOrderItem->id)->orWhere('parent_id', $salesOrderItem->id))
                 ->delete();
-                
+
             SalesOrderService::countFulfilledQty($salesOrderDetail);
             DB::commit();
         } catch (\Throwable $th) {
             DB::rollBack();
+
             return response()->json(['message' => $th->getMessage()], 500);
         }
 

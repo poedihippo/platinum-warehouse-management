@@ -19,7 +19,9 @@ class DeliveryOrderDetailUpdateRequest extends FormRequest
                     $deliveryOrderDetailId = $this->route('deliveryOrderDetail');
                     $deliveryOrderDetail = DeliveryOrderDetail::find($deliveryOrderDetailId);
 
-                    if (!$deliveryOrderDetail) return;
+                    if (! $deliveryOrderDetail) {
+                        return;
+                    }
 
                     $salesOrderDetail = $deliveryOrderDetail->salesOrderDetail;
 
@@ -32,7 +34,7 @@ class DeliveryOrderDetailUpdateRequest extends FormRequest
                     if ($value > $remaining) {
                         $fail("Qty melebihi sisa yang tersedia. Sisa: {$remaining}, diminta: {$value}.");
                     }
-                }
+                },
             ],
         ];
     }
@@ -41,7 +43,7 @@ class DeliveryOrderDetailUpdateRequest extends FormRequest
     {
         return [
             'qty.required' => 'Qty wajib diisi.',
-            'qty.min'      => 'Qty minimal 1.',
+            'qty.min' => 'Qty minimal 1.',
         ];
     }
 }

@@ -9,7 +9,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class SalesOrderItem extends Model
 {
     const SELECT_COLUMNS = ['id', 'is_returned', 'parent_id', 'is_parent', 'stock_id', 'sales_order_detail_id', 'delivery_order_detail_id'];
+
     protected $guarded = [];
+
     protected $casts = [
         'is_returned' => 'boolean',
         'is_parent' => 'boolean',

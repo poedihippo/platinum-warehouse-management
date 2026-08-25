@@ -22,7 +22,7 @@ class SalesOrderResource extends JsonResource
                 'warehouse' => new WarehouseResource($this->whenLoaded('warehouse')),
                 'user' => new UserResource($this->whenLoaded('user')),
                 'reseller' => new UserResource($this->reseller),
-                'details' => SalesOrderDetailResource::collection($this->whenLoaded('details'))
+                'details' => SalesOrderDetailResource::collection($this->whenLoaded('details')),
             ]
         );
     }

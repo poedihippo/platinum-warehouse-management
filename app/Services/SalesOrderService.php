@@ -25,12 +25,10 @@ class SalesOrderService
     /**
      * validation total price between BE calculation with FE calculation
      *
-     * @param int|float $totalPrice total price from FE calculation
-     * @param array $items SO items data
-     *
-     * @return bool
+     * @param  int|float  $totalPrice  total price from FE calculation
+     * @param  array  $items  SO items data
      */
-    public static function validateTotalPrice(int $totalPrice, ?int $shipmentFee = 0, array $items): bool
+    public static function validateTotalPrice(int $totalPrice, ?int $shipmentFee, array $items): bool
     {
         $cekTotalPrice = 0;
         $pricePerItem = 0;
@@ -47,36 +45,39 @@ class SalesOrderService
 
         $cekTotalPrice += $shipmentFee;
 
-        if ($cekTotalPrice != $totalPrice) return false;
+        if ($cekTotalPrice != $totalPrice) {
+            return false;
+        }
+
         return true;
     }
 
     /**
      * count fulfilled_qty in sales_order_details
      *
-     * @param SalesOrderDetail $salesOrderDetail
-     *
-     * @return void
+     * @param  SalesOrderDetail  $salesOrderDetail
      */
     public static function countFulfilledQty(SalesOrderDetail|int $salesOrderDetail): void
     {
-        if (!$salesOrderDetail instanceof SalesOrderDetail) {
+        if (! $salesOrderDetail instanceof SalesOrderDetail) {
             $salesOrderDetail = SalesOrderDetail::find($salesOrderDetail);
-            if (!$salesOrderDetail) return;
+            if (! $salesOrderDetail) {
+                return;
+            }
         }
 
         $salesOrderDetail->refresh();
 
         $salesOrderDetail->update([
-            'fulfilled_qty' => $salesOrderDetail->salesOrderItems()->where('is_parent', 0)->where('is_returned', 0)->count()
+            'fulfilled_qty' => $salesOrderDetail->salesOrderItems()->where('is_parent', 0)->where('is_returned', 0)->count(),
         ]);
     }
 
     /**
      * Creates a new sales order.
      *
-     * @param SalesOrder $salesOrder The sales order object.
-     * @param bool $isPerview (optional) Flag indicating whether the order is a preview. Default is false.
+     * @param  SalesOrder  $salesOrder  The sales order object.
+     * @param  bool  $isPerview  (optional) Flag indicating whether the order is a preview. Default is false.
      * @return SalesOrder The created sales order.
      */
     public static function createOrder(SalesOrder $salesOrder, bool $isPerview = false): SalesOrder
@@ -92,7 +93,9 @@ class SalesOrderService
             CheckExpectedOrderPrice::class,
         ];
 
-        if (!$isPerview) $pipes[] = SaveOrder::class;
+        if (! $isPerview) {
+            $pipes[] = SaveOrder::class;
+        }
 
         return app(Pipeline::class)
             ->send($salesOrder)
@@ -103,8 +106,8 @@ class SalesOrderService
     /**
      * Updates a sales order.
      *
-     * @param SalesOrder $salesOrder The sales order object to be updated.
-     * @param bool $isPerview (optional) Flag indicating whether the order is a preview. Default is false.
+     * @param  SalesOrder  $salesOrder  The sales order object to be updated.
+     * @param  bool  $isPerview  (optional) Flag indicating whether the order is a preview. Default is false.
      * @return SalesOrder The updated sales order.
      */
     public static function updateOrder(SalesOrder $salesOrder, bool $isPerview = false): SalesOrder
@@ -120,7 +123,9 @@ class SalesOrderService
             CheckExpectedOrderPrice::class,
         ];
 
-        if (!$isPerview) $pipes[] = UpdateOrder::class;
+        if (! $isPerview) {
+            $pipes[] = UpdateOrder::class;
+        }
 
         return app(Pipeline::class)
             ->send($salesOrder)
@@ -131,8 +136,8 @@ class SalesOrderService
     /**
      * Updates a sales order.
      *
-     * @param SalesOrder $salesOrder The sales order object to be updated.
-     * @param bool $isPerview (optional) Flag indicating whether the order is a preview. Default is false.
+     * @param  SalesOrder  $salesOrder  The sales order object to be updated.
+     * @param  bool  $isPerview  (optional) Flag indicating whether the order is a preview. Default is false.
      * @return SalesOrder The updated sales order.
      */
     public static function convertOrderToSO(SalesOrder $salesOrder, bool $isPerview = false): SalesOrder
@@ -148,7 +153,9 @@ class SalesOrderService
             CheckExpectedOrderPrice::class,
         ];
 
-        if (!$isPerview) $pipes[] = UpdateOrder::class;
+        if (! $isPerview) {
+            $pipes[] = UpdateOrder::class;
+        }
 
         return app(Pipeline::class)
             ->send($salesOrder)
@@ -176,16 +183,16 @@ class SalesOrderService
                 AllowedFilter::scope('end_date'),
                 AllowedFilter::scope('has_remaining_do', 'hasRemainingDo'),
                 AllowedFilter::callback('search', function ($q, $value) {
-                    $q->where('invoice_no', 'like', '%' . $value . '%')
-                        ->orWhereHas('user', fn($q) => $q->where('name', 'like', '%' . $value . '%'))
-                        ->orWhereHas('reseller', fn($q) => $q->where('name', 'like', '%' . $value . '%'))
-                        ->orWhereHas('spg', fn($q) => $q->where('name', 'like', '%' . $value . '%'));
-                })
+                    $q->where('invoice_no', 'like', '%'.$value.'%')
+                        ->orWhereHas('user', fn ($q) => $q->where('name', 'like', '%'.$value.'%'))
+                        ->orWhereHas('reseller', fn ($q) => $q->where('name', 'like', '%'.$value.'%'))
+                        ->orWhereHas('spg', fn ($q) => $q->where('name', 'like', '%'.$value.'%'));
+                }),
             ])
             ->allowedSorts(['id', 'invoice_no', 'user_id', 'reseller_id', 'warehouse_id', 'created_at'])
             ->allowedIncludes(['details', 'warehouse', 'user', 'spg', 'payments', \Spatie\QueryBuilder\AllowedInclude::callback('voucher', function ($q) {
                 $q->with('category');
-            }),])
+            }), ])
             ->paginate($perPage);
 
         return SalesOrderResource::collection($salesOrders);
@@ -194,13 +201,14 @@ class SalesOrderService
     public static function show($id, ?callable $query = null)
     {
         $salesOrder = SalesOrder::when($query, $query)->findTenanted($id);
+
         return $salesOrder->load([
             'voucher.category',
             'payments',
             'warehouse',
-            'details' => fn($q) => $q->with(['warehouse']),
-            'user' => fn($q) => $q->select('id', 'name', 'type'),
-            'reseller' => fn($q) => $q->select('id', 'name', 'type', 'type', 'email', 'phone', 'address'),
+            'details' => fn ($q) => $q->with(['warehouse']),
+            'user' => fn ($q) => $q->select('id', 'name', 'type'),
+            'reseller' => fn ($q) => $q->select('id', 'name', 'type', 'type', 'email', 'phone', 'address'),
         ])->loadCount('details');
     }
 
@@ -211,13 +219,15 @@ class SalesOrderService
             $view = 'pdf.salesOrders.salesOrder';
         } else {
             $salesOrder = SalesOrder::when($query, $query, $query)->find($id);
-            if (!$salesOrder) return redirect()->away('https://platinumadisentosa.com');
+            if (! $salesOrder) {
+                return redirect()->away('https://platinumadisentosa.com');
+            }
             $view = 'pdf.salesOrders.salesOrderInvoice';
         }
 
         $salesOrder->load([
             'reseller',
-            'details' => fn($q) => $q->with('productUnit.product'),
+            'details' => fn ($q) => $q->with('productUnit.product'),
         ])->loadSum('payments', 'amount');
 
         $salesOrderDetails = $salesOrder->details->chunk(10);
@@ -230,7 +240,7 @@ class SalesOrderService
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::setPaper('a4', 'landscape')->loadView($view, ['salesOrder' => $salesOrder, 'salesOrderDetails' => $salesOrderDetails, 'maxProductsBlackSpace' => $maxProductsBlackSpace, 'lastOrderDetailsKey' => $lastOrderDetailsKey, 'spellTotalPrice' => $spellTotalPrice, 'bankTransferInfo' => $bankTransferInfo]);
 
-        return $pdf->download('sales-order-' . $salesOrder->invoice_no . '.pdf');
+        return $pdf->download('sales-order-'.$salesOrder->invoice_no.'.pdf');
     }
 
     public static function exportXml($id, ?callable $query = null)
@@ -240,20 +250,20 @@ class SalesOrderService
         $salesOrder = SalesOrder::when($query, $query, null)->findTenanted($id);
         $salesOrder->load([
             'reseller',
-            'details' => fn($q) => $q->with('productUnit', fn($q) => $q
+            'details' => fn ($q) => $q->with('productUnit', fn ($q) => $q
                 ->select($productUnitColumns)
                 ->with([
                     $uomColumns,
-                    'refer' => fn($q) => $q->select($productUnitColumns)->with($uomColumns),
-                    'relations' => fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select($productUnitColumns)->with($uomColumns)),
-                ]))
+                    'refer' => fn ($q) => $q->select($productUnitColumns)->with($uomColumns),
+                    'relations' => fn ($q) => $q->with('relatedProductUnit', fn ($q) => $q->select($productUnitColumns)->with($uomColumns)),
+                ])),
         ]);
 
         // $salesOrder->load(['reseller', 'details' => fn($q) => $q->with('packaging', 'productUnit')]);
         return response(view('xml.salesOrders.salesOrder')->with(compact('salesOrder')), 200, [
             'Content-Type' => 'application/xml',
             // use your required mime type
-            'Content-Disposition' => 'attachment; filename="Sales Order ' . $salesOrder->invoice_no . '.xml"',
+            'Content-Disposition' => 'attachment; filename="Sales Order '.$salesOrder->invoice_no.'.xml"',
         ]);
     }
 
@@ -261,51 +271,54 @@ class SalesOrderService
     {
         $warehouseName = $salesOrder->warehouse?->company_name ? $salesOrder->warehouse->company_name : $salesOrder->warehouse->name;
 
-        $message = "Terima kasih atas pesanannya di " . ($warehouseName ?? '') . ". Detail pesanan:";
+        $message = 'Terima kasih atas pesanannya di '.($warehouseName ?? '').'. Detail pesanan:';
         $message .= PHP_EOL;
         $message .= PHP_EOL;
 
         $order = 1;
         foreach ($salesOrder->details as $salesOrderDetail) {
-            $message .= $order++ . ". " . $salesOrderDetail->productUnit->name . " x " . $salesOrderDetail->qty . " = *Rp " . number_format((float) $salesOrderDetail->total_price, 0, ',', '.') . "*";
+            $message .= $order++.'. '.$salesOrderDetail->productUnit->name.' x '.$salesOrderDetail->qty.' = *Rp '.number_format((float) $salesOrderDetail->total_price, 0, ',', '.').'*';
             $message .= PHP_EOL;
         }
 
         if ($salesOrder->auto_discount_nominal > 0) {
             $message .= PHP_EOL;
-            $message .= "Auto Discount            : *Rp " . number_format((float) $salesOrder->auto_discount_nominal, 0, ',', '.') . "*";
+            $message .= 'Auto Discount            : *Rp '.number_format((float) $salesOrder->auto_discount_nominal, 0, ',', '.').'*';
         }
 
         if ($salesOrder->voucher_id) {
             $message .= PHP_EOL;
-            $message .= "Voucher                        : *Rp " . number_format((float) $salesOrder->voucher_value_nominal ?? 0, 0, ',', '.') . "*";
+            $message .= 'Voucher                        : *Rp '.number_format((float) $salesOrder->voucher_value_nominal ?? 0, 0, ',', '.').'*';
         }
 
         if ($salesOrder->additional_discount > 0) {
             $message .= PHP_EOL;
-            $message .= "Additional Discount : *Rp " . number_format((float) $salesOrder->additional_discount, 0, ',', '.') . "*";
+            $message .= 'Additional Discount : *Rp '.number_format((float) $salesOrder->additional_discount, 0, ',', '.').'*';
         }
 
         if ($salesOrder->shipment_fee > 0) {
             $message .= PHP_EOL;
-            $message .= "Delivery Fee                : *Rp " . number_format((float) $salesOrder->shipment_fee, 0, ',', '.') . "*";
+            $message .= 'Delivery Fee                : *Rp '.number_format((float) $salesOrder->shipment_fee, 0, ',', '.').'*';
         }
 
         $message .= PHP_EOL;
-        $message .= "Grand Total                 : *Rp " . number_format((float) $salesOrder->price, 0, ',', '.') . "*";
+        $message .= 'Grand Total                 : *Rp '.number_format((float) $salesOrder->price, 0, ',', '.').'*';
         $message .= PHP_EOL;
         $message .= PHP_EOL;
         $message .= $salesOrder->description;
         $message .= PHP_EOL;
         $message .= PHP_EOL;
         $message .= PHP_EOL;
-        $message .= "Download invoice :";
+        $message .= 'Download invoice :';
         $message .= PHP_EOL;
-        $message .= 'https://platinumadisentosa.com/invoices/' . ($idHash ?? Crypt::encryptString($salesOrder->id)) . '/print';
+        $message .= 'https://platinumadisentosa.com/invoices/'.($idHash ?? Crypt::encryptString($salesOrder->id)).'/print';
 
         $phone = $salesOrder->reseller->phone;
-        if ($phone[0] == '0') $phone = substr($phone, 1);
-        return sprintf("https://web.whatsapp.com/send/?phone=%s&text=%s", $phone, urlencode($message));
+        if ($phone[0] == '0') {
+            $phone = substr($phone, 1);
+        }
+
+        return sprintf('https://web.whatsapp.com/send/?phone=%s&text=%s', $phone, urlencode($message));
     }
 
     public static function getDefaultInvoiceNo(string $warehouseCode): string
@@ -318,7 +331,7 @@ class SalesOrderService
         $lastInoviceNo = SalesOrder::where('is_invoice', true)
             ->whereDate('created_at', date('Y-m-d'))
             ->where('warehouse_id', $warehouse->id)
-            ->where('invoice_no', 'like', '%' . config('app.format_invoice_prefix') . '%')
+            ->where('invoice_no', 'like', '%'.config('app.format_invoice_prefix').'%')
             ->orderByDesc('invoice_no')
             ->first(['invoice_no']);
 

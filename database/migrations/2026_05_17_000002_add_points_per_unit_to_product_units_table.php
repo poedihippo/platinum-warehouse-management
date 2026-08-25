@@ -19,7 +19,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasColumn('product_units', 'points_per_unit')) {
+        if (! Schema::hasColumn('product_units', 'points_per_unit')) {
             Schema::table('product_units', function (Blueprint $table) {
                 $table->integer('points_per_unit')->default(0);
             });

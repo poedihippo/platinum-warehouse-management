@@ -26,7 +26,7 @@ class UpdateProductUnitRelationRequest extends FormRequest
     public function rules()
     {
         return [
-            'code' => ['sometimes', 'unique:product_units,code,' . $this->id],
+            'code' => ['sometimes', 'unique:product_units,code,'.$this->id],
             'name' => 'required',
             // 'description' => 'required',
             'price' => 'required',

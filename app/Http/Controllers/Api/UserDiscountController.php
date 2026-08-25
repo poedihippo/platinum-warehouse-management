@@ -38,13 +38,18 @@ class UserDiscountController extends Controller
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('user_discount_access'), 403);
         $userDiscount = $user->userDiscounts()->where('id', $id)->firstOrFail();
+
         return new UserDiscountResource($userDiscount->load('productBrand'));
     }
 
     public function store(User $user, UserDiscountStoreRequest $request)
     {
-        if (!$user) return response()->json(['message' => 'User Tidak ditemukan'], 400);
-        if ($user->type->isNot(UserType::Reseller)) return response()->json(['message' => 'Tipe user harus reseller'], 400);
+        if (! $user) {
+            return response()->json(['message' => 'User Tidak ditemukan'], 400);
+        }
+        if ($user->type->isNot(UserType::Reseller)) {
+            return response()->json(['message' => 'Tipe user harus reseller'], 400);
+        }
         $userDiscount = $user->userDiscounts()->create($request->validated());
 
         return new UserResource($userDiscount);
@@ -52,8 +57,12 @@ class UserDiscountController extends Controller
 
     public function update(User $user, $id, UserDiscountStoreRequest $request)
     {
-        if (!$user) return response()->json(['message' => 'User Tidak ditemukan'], 400);
-        if ($user->type->isNot(UserType::Reseller)) return response()->json(['message' => 'Tipe user harus reseller'], 400);
+        if (! $user) {
+            return response()->json(['message' => 'User Tidak ditemukan'], 400);
+        }
+        if ($user->type->isNot(UserType::Reseller)) {
+            return response()->json(['message' => 'Tipe user harus reseller'], 400);
+        }
         $userDiscount = $user->userDiscounts()->where('id', $id)->firstOrFail();
         $userDiscount->update($request->validated());
 

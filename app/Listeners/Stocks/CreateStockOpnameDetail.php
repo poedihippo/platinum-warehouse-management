@@ -5,7 +5,6 @@ namespace App\Listeners\Stocks;
 use App\Events\Stocks\StockOpnameCreated;
 use App\Models\StockProductUnit;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 
 class CreateStockOpnameDetail implements ShouldQueue
 {
@@ -22,7 +21,6 @@ class CreateStockOpnameDetail implements ShouldQueue
     /**
      * Handle the event.
      *
-     * @param  \App\Events\Stocks\StockOpnameCreated  $event
      * @return void
      */
     public function handle(StockOpnameCreated $event)

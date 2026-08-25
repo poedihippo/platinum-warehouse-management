@@ -2,12 +2,12 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Mail;
-use Laravel\Sanctum\Sanctum;
 use App\Models\PersonalAccessToken;
-use Symfony\Component\Mailer\Bridge\Brevo\Transport\BrevoApiTransport;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\ServiceProvider;
+use Laravel\Sanctum\Sanctum;
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\Mailer\Bridge\Brevo\Transport\BrevoApiTransport;
 
 class AppServiceProvider extends ServiceProvider
 {

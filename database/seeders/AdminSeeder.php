@@ -6,7 +6,6 @@ use App\Enums\UserType;
 use App\Models\PersonalAccessToken;
 use App\Models\User;
 use App\Models\Warehouse;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 
@@ -40,7 +39,7 @@ class AdminSeeder extends Seeder
             'name' => 'default',
             'token' => '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918',
             'plain_text_token' => 'admin',
-            'abilities' => ["*"],
+            'abilities' => ['*'],
         ]);
 
         $user->assignRole($adminRole);

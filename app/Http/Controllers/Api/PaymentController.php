@@ -31,13 +31,13 @@ class PaymentController extends Controller
             ->allowedFilters([
                 AllowedFilter::exact('user_id'),
                 AllowedFilter::exact('sales_order_id'),
-                'type'
+                'type',
             ])
             ->allowedIncludes([
                 AllowedInclude::callback('user', function ($query) {
                     $query->select('id', 'name');
                 }),
-                'salesOrder'
+                'salesOrder',
             ])
             ->allowedSorts(['id', 'sales_order_id', 'user_id', 'type', 'created_at'])
             ->paginate($this->per_page);
@@ -48,6 +48,7 @@ class PaymentController extends Controller
     public function show($id)
     {
         $payment = Payment::findTenanted($id);
+
         return new DefaultResource($payment->load(['salesOrder', 'user' => fn ($q) => $q->select('id', 'name')]));
     }
 
@@ -64,13 +65,16 @@ class PaymentController extends Controller
             $payment = Payment::create($data);
             if ($request->hasFile('files')) {
                 foreach ($request->file('files') as $file) {
-                    if ($file->isValid()) $payment->addMedia($file)->toMediaCollection('payments');
+                    if ($file->isValid()) {
+                        $payment->addMedia($file)->toMediaCollection('payments');
+                    }
                 }
             }
 
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
+
             return $this->errorResponse($e->getMessage());
         }
 
@@ -91,13 +95,16 @@ class PaymentController extends Controller
             $payment->update($data);
             if ($request->hasFile('files')) {
                 foreach ($request->file('files') as $file) {
-                    if ($file->isValid()) $payment->addMedia($file)->toMediaCollection('payments');
+                    if ($file->isValid()) {
+                        $payment->addMedia($file)->toMediaCollection('payments');
+                    }
                 }
             }
 
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
+
             return $this->errorResponse($e->getMessage());
         }
 
@@ -108,6 +115,7 @@ class PaymentController extends Controller
     {
         $payment = Payment::findTenanted($id);
         $payment->delete();
+
         return $this->deletedResponse();
     }
 

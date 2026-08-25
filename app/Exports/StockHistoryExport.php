@@ -7,8 +7,8 @@ use App\Models\Warehouse;
 use DateInterval;
 use DatePeriod;
 use DateTime;
-use Maatwebsite\Excel\Concerns\FromView;
 use Illuminate\Contracts\View\View;
+use Maatwebsite\Excel\Concerns\FromView;
 
 class StockHistoryExport implements FromView
 {
@@ -22,7 +22,7 @@ class StockHistoryExport implements FromView
         $timePeriod = new DatePeriod(
             new DateTime($this->startDate),
             new DateInterval('P1D'),
-            new DateTime(date('Y-m-d', strtotime($this->endDate . ' +1 day'))),
+            new DateTime(date('Y-m-d', strtotime($this->endDate.' +1 day'))),
         );
 
         foreach ($timePeriod as $key => $value) {
@@ -31,6 +31,7 @@ class StockHistoryExport implements FromView
         }
 
         $productUnits = ProductUnit::get(['id', 'code', 'name', 'price']);
+
         return view('exports.stockHistory', [
             'productUnits' => $productUnits,
             'dates' => $dates,

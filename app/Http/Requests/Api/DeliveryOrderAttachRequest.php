@@ -24,18 +24,18 @@ class DeliveryOrderAttachRequest extends FormRequest
     //         }],
     //     ];
     // }
-
     {
         return [
-            'details'                         => 'required|array|min:1',
+            'details' => 'required|array|min:1',
             'details.*.sales_order_detail_id' => [
                 'required',
                 'integer',
                 'exists:sales_order_details,id',
                 function ($attribute, $value, Closure $fail) {
                     $salesOrderDetail = SalesOrderDetail::find($value);
-                    if (!$salesOrderDetail) {
+                    if (! $salesOrderDetail) {
                         $fail('Sales order detail tidak ditemukan.');
+
                         return;
                     }
 
@@ -43,7 +43,7 @@ class DeliveryOrderAttachRequest extends FormRequest
                     // Kecualikan DO saat ini jika sedang update
                     $doId = $this->route('id'); // ambil dari route parameter
                     $alreadyScheduled = DeliveryOrderDetail::where('sales_order_detail_id', $value)
-                        ->when($doId, fn($q) => $q->where('delivery_order_id', '!=', $doId))
+                        ->when($doId, fn ($q) => $q->where('delivery_order_id', '!=', $doId))
                         ->sum('qty');
 
                     $remaining = $salesOrderDetail->qty - $alreadyScheduled;
@@ -51,7 +51,7 @@ class DeliveryOrderAttachRequest extends FormRequest
                     if ($remaining <= 0) {
                         $fail('Sales order detail ini sudah penuh terjadwal di delivery order lain.');
                     }
-                }
+                },
             ],
             'details.*.qty' => [
                 'required',
@@ -62,14 +62,18 @@ class DeliveryOrderAttachRequest extends FormRequest
                     $index = explode('.', $attribute)[1];
                     $salesOrderDetailId = $this->input("details.{$index}.sales_order_detail_id");
 
-                    if (!$salesOrderDetailId) return;
+                    if (! $salesOrderDetailId) {
+                        return;
+                    }
 
                     $salesOrderDetail = SalesOrderDetail::find($salesOrderDetailId);
-                    if (!$salesOrderDetail) return;
+                    if (! $salesOrderDetail) {
+                        return;
+                    }
 
                     $doId = $this->route('id');
                     $alreadyScheduled = DeliveryOrderDetail::where('sales_order_detail_id', $salesOrderDetailId)
-                        ->when($doId, fn($q) => $q->where('delivery_order_id', '!=', $doId))
+                        ->when($doId, fn ($q) => $q->where('delivery_order_id', '!=', $doId))
                         ->sum('qty');
 
                     $remaining = $salesOrderDetail->qty - $alreadyScheduled;
@@ -77,7 +81,7 @@ class DeliveryOrderAttachRequest extends FormRequest
                     if ($value > $remaining) {
                         $fail("Qty melebihi sisa yang tersedia. Sisa: {$remaining}, diminta: {$value}.");
                     }
-                }
+                },
             ],
         ];
     }
@@ -85,11 +89,11 @@ class DeliveryOrderAttachRequest extends FormRequest
     public function messages()
     {
         return [
-            'details.required'                         => 'Details tidak boleh kosong.',
+            'details.required' => 'Details tidak boleh kosong.',
             'details.*.sales_order_detail_id.required' => 'Sales order detail ID wajib diisi.',
-            'details.*.sales_order_detail_id.exists'   => 'Sales order detail tidak ditemukan.',
-            'details.*.qty.required'                   => 'Qty wajib diisi.',
-            'details.*.qty.min'                        => 'Qty minimal 1.',
+            'details.*.sales_order_detail_id.exists' => 'Sales order detail tidak ditemukan.',
+            'details.*.qty.required' => 'Qty wajib diisi.',
+            'details.*.qty.min' => 'Qty minimal 1.',
         ];
     }
 }

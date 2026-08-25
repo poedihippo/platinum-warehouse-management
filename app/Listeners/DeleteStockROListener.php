@@ -5,7 +5,6 @@ namespace App\Listeners;
 use App\Events\UnverifiedROEvent;
 use App\Models\StockProductUnit;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Storage;
 
 class DeleteStockROListener implements ShouldQueue
@@ -23,7 +22,6 @@ class DeleteStockROListener implements ShouldQueue
     /**
      * Handle the event.
      *
-     * @param  \App\Events\UnverifiedROEvent  $event
      * @return void
      */
     public function handle(UnverifiedROEvent $event)

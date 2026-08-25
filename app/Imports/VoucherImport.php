@@ -14,9 +14,10 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Validators\Failure;
 
-class VoucherImport implements ToCollection, SkipsEmptyRows, WithHeadingRow, SkipsOnFailure, WithValidation
+class VoucherImport implements SkipsEmptyRows, SkipsOnFailure, ToCollection, WithHeadingRow, WithValidation
 {
     use Importable;
+
     public int $totalInserted = 0;
 
     public function __construct(
@@ -26,8 +27,7 @@ class VoucherImport implements ToCollection, SkipsEmptyRows, WithHeadingRow, Ski
     }
 
     /**
-     * @param array $row
-     *
+     * @param  array  $row
      * @return \Illuminate\Database\Eloquent\Model|null
      */
     public function collection(Collection $rows)
@@ -38,7 +38,7 @@ class VoucherImport implements ToCollection, SkipsEmptyRows, WithHeadingRow, Ski
                 $batch = VoucherGenerateBatch::create([
                     'user_id' => auth('sanctum')->id(),
                     'source' => BatchSource::IMPORT,
-                    'description' => $this->description ?? ''
+                    'description' => $this->description ?? '',
                 ]);
             }
 
@@ -46,7 +46,7 @@ class VoucherImport implements ToCollection, SkipsEmptyRows, WithHeadingRow, Ski
                 'voucher_generate_batch_id' => $batch->id,
                 'voucher_category_id' => $this->voucherCategoryId,
                 'code' => trim($row['code']),
-                'description' => trim($row['description'] ?? '')
+                'description' => trim($row['description'] ?? ''),
             ]);
             $this->totalInserted++;
         }

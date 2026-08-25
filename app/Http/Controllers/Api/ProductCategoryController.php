@@ -57,6 +57,7 @@ class ProductCategoryController extends Controller
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('product_category_delete'), 403);
         $productCategory->delete();
+
         return $this->deletedResponse();
     }
 }

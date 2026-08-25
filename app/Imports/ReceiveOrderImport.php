@@ -10,9 +10,6 @@ class ReceiveOrderImport implements ToCollection
 {
     use Importable;
 
-    /**
-    * @param Collection $collection
-    */
     public function collection(Collection $collection)
     {
         dd($collection);
