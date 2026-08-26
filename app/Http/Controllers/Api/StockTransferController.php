@@ -47,7 +47,7 @@ class StockTransferController extends Controller
         try {
             $transfers = $stocks->map(function ($stock) use ($fromSpuId, $toSpuId, $fromWarehouseId, $toWarehouseId, $productUnitId, $userId, $userIp, $userAgent, $description, $fromWarehouseName, $toWarehouseName) {
                 $childCount = $stock->childs()->count();
-                $qty = $childCount > 0 ? $childCount + 1 : 1;
+                $qty = $childCount > 0 ? $childCount : 1;
 
                 Stock::where('id', $stock->id)
                     ->orWhere('parent_id', $stock->id)
