@@ -102,8 +102,11 @@ class OrderStoreRequest extends FormRequest
                 if (! $voucher) {
                     return $fail('Voucher tidak ditemukan!');
                 }
-                if ($voucher?->is_used) {
+                if ($voucher->is_used) {
                     return $fail('Voucher sudah digunakan!');
+                }
+                if (! $voucher->isValid()) {
+                    return $fail('Voucher tidak valid atau sudah kedaluwarsa!');
                 }
             }],
             'description' => 'nullable|string',

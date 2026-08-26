@@ -15,7 +15,6 @@ class VoucherGenerateBatchController extends Controller
     public function __construct()
     {
         parent::__construct();
-        // $this->middleware('permission:voucher_access', ['only' => ['index', 'show']]);
         $this->middleware('permission:voucher_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:voucher_create', ['only' => 'store']);
         $this->middleware('permission:voucher_edit', ['only' => 'update']);
@@ -45,10 +44,13 @@ class VoucherGenerateBatchController extends Controller
         DB::beginTransaction();
         try {
             $voucherGenerateBatch = VoucherGenerateBatch::create($request->validated());
+
             for ($i = 0; $i < $request->value; $i++) {
                 $voucherGenerateBatch->vouchers()->create([
                     'voucher_category_id' => $request->voucher_category_id,
                     'code' => $voucherGenerateBatch->id.'-'.$i,
+                    'start_date' => $request->start_date,
+                    'end_date' => $request->end_date,
                 ]);
             }
 
@@ -75,20 +77,4 @@ class VoucherGenerateBatchController extends Controller
 
         return $this->deletedResponse();
     }
-
-    // public function forceDelete($id)
-    // {
-    //     $voucherGenerateBatch = VoucherGenerateBatch::withTrashed()->findOrFail($id);
-    //     $voucherGenerateBatch->forceDelete();
-
-    //     return $this->deletedResponse();
-    // }
-
-    // public function restore($id)
-    // {
-    //     $voucherGenerateBatch = VoucherGenerateBatch::withTrashed()->findOrFail($id);
-    //     $voucherGenerateBatch->restore();
-
-    //     return new DefaultResource($voucherGenerateBatch);
-    // }
 }

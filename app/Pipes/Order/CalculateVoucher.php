@@ -13,7 +13,7 @@ class CalculateVoucher
         $rawSource = $salesOrder->raw_source;
         if ($voucherCode = $rawSource['voucher_code'] ?? null) {
             $voucher = Voucher::where('code', $voucherCode)->with('category', fn ($q) => $q->select('id', 'discount_type', 'discount_amount'))->first(['id', 'voucher_category_id']);
-            if (! $voucher) {
+            if (! $voucher || ! $voucher->isValid()) {
                 return $next($salesOrder);
             }
 

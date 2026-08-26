@@ -64,6 +64,9 @@ class SalesOrderStoreRequest extends FormRequest
                 if ($voucher?->is_used) {
                     $fail('Voucher sudah digunakan!');
                 }
+                if ($voucher && ! $voucher->isValid()) {
+                    $fail('Voucher tidak valid atau sudah kedaluwarsa!');
+                }
             }],
             'description' => 'nullable|string',
             'items' => [

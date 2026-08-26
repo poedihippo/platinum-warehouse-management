@@ -87,7 +87,9 @@ class InvoiceUpdateRequest extends FormRequest
                 if ($voucher->is_used && ($voucher->id != $salesOrder->voucher_id)) {
                     return $fail('Voucher sudah digunakan!');
                 }
-
+                if (! $voucher->isValid()) {
+                    return $fail('Voucher tidak valid atau sudah kedaluwarsa!');
+                }
             }],
             'description' => 'nullable|string',
             'items' => ['required', 'array', function (string $attribute, mixed $value, Closure $fail) {

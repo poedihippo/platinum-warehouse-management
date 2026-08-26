@@ -43,7 +43,7 @@ use App\Http\Controllers\Api\SalesOrderController;
 use App\Http\Controllers\Api\SalesOrderDetailController;
 use App\Http\Controllers\Api\SalesOrderItemController;
 use App\Http\Controllers\Api\SettingController;
-use App\Http\Controllers\Api\SocialiteController;
+// use App\Http\Controllers\Api\SocialiteController;
 use App\Http\Controllers\Api\StockController;
 use App\Http\Controllers\Api\StockHistoryController;
 use App\Http\Controllers\Api\StockOpnameController;
