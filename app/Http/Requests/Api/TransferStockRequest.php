@@ -6,6 +6,7 @@ use App\Models\Stock;
 use App\Models\StockProductUnit;
 use App\Rules\TenantedRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class TransferStockRequest extends FormRequest
 {
@@ -21,7 +22,7 @@ class TransferStockRequest extends FormRequest
         ];
     }
 
-    protected function withValidator($validator): void
+    protected function withValidator(Validator $validator): void
     {
         $validator->after(function ($validator) {
             $hasStockIds = ! empty($this->stock_ids);
@@ -35,7 +36,7 @@ class TransferStockRequest extends FormRequest
         });
     }
 
-    private function validateQrFlow($validator): void
+    private function validateQrFlow(Validator $validator): void
     {
         $fromSpu = StockProductUnit::with('productUnit')
             ->where('id', $this->stock_product_unit_id)
@@ -72,7 +73,7 @@ class TransferStockRequest extends FormRequest
             return;
         }
 
-        $validator->merge([
+        $this->merge([
             'from_stock_product_unit_id' => $fromSpu->id,
             'to_stock_product_unit_id' => $toSpu->id,
             'product_unit_id' => $fromSpu->product_unit_id,
@@ -82,44 +83,44 @@ class TransferStockRequest extends FormRequest
         $this->validateStockIds($validator, $fromSpu->id);
     }
 
-    private function validateStockIds($validator, int $fromSpuId): void
+    private function validateStockIds(Validator $validator, int $fromSpuId): void
     {
         $stocks = Stock::whereIn('id', $this->stock_ids)->get();
         $foundIds = $stocks->pluck('id')->toArray();
         $missingIds = array_diff($this->stock_ids, $foundIds);
 
         if ($missingIds !== []) {
-            $validator->errors()->add('stock_ids', 'Stock tidak ditemukan: '.implode(', ', $missingIds));
+            $validator->errors()->add('stock_ids', 'Stock tidak ditemukan: ' . implode(', ', $missingIds));
         }
 
         foreach ($stocks as $stock) {
             if (! $stock->is_stock) {
-                $validator->errors()->add('stock_ids', 'Stock "'.$stock->id.'" bukan stock aktif');
+                $validator->errors()->add('stock_ids', 'Stock "' . $stock->id . '" bukan stock aktif');
 
                 return;
             }
 
             if (! is_null($stock->parent_id)) {
-                $validator->errors()->add('stock_ids', 'Stock "'.$stock->id.'" adalah child. Scan QR parent-nya');
+                $validator->errors()->add('stock_ids', 'Stock "' . $stock->id . '" adalah child. Scan QR parent-nya');
 
                 return;
             }
 
             if ($stock->stock_product_unit_id != $fromSpuId) {
-                $validator->errors()->add('stock_ids', 'Stock "'.$stock->id.'" tidak sesuai dengan product unit asal');
+                $validator->errors()->add('stock_ids', 'Stock "' . $stock->id . '" tidak sesuai dengan product unit asal');
 
                 return;
             }
 
             if ($stock->salesOrderItems()->whereNotReturned()->exists()) {
-                $validator->errors()->add('stock_ids', 'Stock "'.$stock->id.'" sudah masuk di Sales Order');
+                $validator->errors()->add('stock_ids', 'Stock "' . $stock->id . '" sudah masuk di Sales Order');
 
                 return;
             }
         }
     }
 
-    private function validateNonQrFlow($validator): void
+    private function validateNonQrFlow(Validator $validator): void
     {
         if (empty($this->qty)) {
             $validator->errors()->add('qty', 'Qty wajib diisi untuk transfer non-QR');
@@ -144,7 +145,7 @@ class TransferStockRequest extends FormRequest
         }
 
         if ($fromSpu->qty < $this->qty) {
-            $validator->errors()->add('qty', 'Qty tidak mencukupi. Tersedia: '.$fromSpu->qty);
+            $validator->errors()->add('qty', 'Qty tidak mencukupi. Tersedia: ' . $fromSpu->qty);
 
             return;
         }
@@ -167,7 +168,7 @@ class TransferStockRequest extends FormRequest
             return;
         }
 
-        $validator->merge([
+        $this->merge([
             'from_stock_product_unit_id' => $fromSpu->id,
             'to_stock_product_unit_id' => $toSpu->id,
             'product_unit_id' => $productUnitId,
