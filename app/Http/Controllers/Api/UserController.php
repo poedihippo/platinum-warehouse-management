@@ -28,14 +28,15 @@ class UserController extends Controller
     public function index()
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('user_access'), 403);
-        $users = QueryBuilder::for(User::with(['roles' => fn ($q) => $q->select('id', 'name')]))
+        $users = QueryBuilder::for(User::with(['roles' => fn($q) => $q->select('id', 'name')]))
             ->allowedIncludes(\Spatie\QueryBuilder\AllowedInclude::callback('warehouses', function ($query) {
                 $query->select('id', 'code', 'name');
             }))
             ->allowedFilters([
-                'email', 'phone',
+                'email',
+                'phone',
                 'type',
-                AllowedFilter::callback('name', fn ($q, $value) => $q->where(fn ($q) => $q->where('name', 'like', '%'.$value.'%')->orWhere('phone', 'like', '%'.$value.'%'))),
+                AllowedFilter::callback('name', fn($q, $value) => $q->where(fn($q) => $q->where('name', 'like', '%' . $value . '%')->orWhere('phone', 'like', '%' . $value . '%'))),
                 // AllowedFilter::exact('type'),
                 // AllowedFilter::callback('name', fn ($q, $value) => die($value)),
             ])
@@ -47,13 +48,16 @@ class UserController extends Controller
 
     public function me()
     {
-        return new UserResource(auth('sanctum')->user()?->load(['roles' => fn ($q) => $q->select('id', 'name')]));
+        return new UserResource(auth('sanctum')->user()?->load(['roles' => fn($q) => $q->select('id', 'name')]));
     }
 
     public function show(User $user)
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('user_access'), 403);
-        return new UserResource($user->load(['roles' => fn ($q) => $q->select('id', 'name')]));
+        return new UserResource($user->load([
+            'roles' => fn($q) => $q->select('id', 'name'),
+            'warehouses' => fn($q) => $q->select('id', 'name')
+        ]));
     }
 
     public function store(UserStoreRequest $request)
