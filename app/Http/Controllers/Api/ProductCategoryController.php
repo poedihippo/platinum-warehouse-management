@@ -16,7 +16,7 @@ class ProductCategoryController extends Controller
     {
         parent::__construct();
         // $this->middleware('permission:product_category_access', ['only' => ['index', 'show']]);
-        $this->middleware('permission:product_category_read', ['only' => ['index', 'show']]);
+        // $this->middleware('permission:product_category_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:product_category_create', ['only' => 'store']);
         $this->middleware('permission:product_category_edit', ['only' => 'update']);
         $this->middleware('permission:product_category_delete', ['only' => 'destroy']);

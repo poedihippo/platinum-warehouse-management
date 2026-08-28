@@ -18,7 +18,7 @@ class SupplierController extends Controller
     {
         parent::__construct();
         // $this->middleware('permission:supplier_access', ['only' => ['index', 'show']]);
-        $this->middleware('permission:supplier_read', ['only' => ['index', 'show']]);
+        // $this->middleware('permission:supplier_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:supplier_create', ['only' => 'store']);
         $this->middleware('permission:supplier_edit', ['only' => 'update']);
         $this->middleware('permission:supplier_delete', ['only' => 'destroy']);

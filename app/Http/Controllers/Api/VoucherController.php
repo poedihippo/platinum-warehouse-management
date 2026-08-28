@@ -17,7 +17,7 @@ class VoucherController extends Controller
     public function __construct()
     {
         parent::__construct();
-        $this->middleware('permission:voucher_read', ['only' => ['index', 'show']]);
+        // $this->middleware('permission:voucher_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:voucher_create', ['only' => 'store']);
         $this->middleware('permission:voucher_edit', ['only' => 'update']);
         $this->middleware('permission:voucher_delete', ['only' => ['destroy', 'forceDelete', 'restore']]);

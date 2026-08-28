@@ -16,7 +16,7 @@ class WarehouseController extends Controller
     {
         parent::__construct();
         // $this->middleware('permission:warehouse_access', ['only' => ['index', 'show']]);
-        $this->middleware('permission:warehouse_read', ['only' => ['index', 'show']]);
+        // $this->middleware('permission:warehouse_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:warehouse_create', ['only' => 'store']);
         $this->middleware('permission:warehouse_edit', ['only' => 'update']);
         $this->middleware('permission:warehouse_delete', ['only' => 'destroy']);

@@ -18,7 +18,7 @@ class UserController extends Controller
     {
         parent::__construct();
         // $this->middleware('permission:user_access', ['only' => ['index', 'show', 'restore']]);
-        $this->middleware('permission:user_access', ['only' => ['restore']]);
+        // $this->middleware('permission:user_access', ['only' => ['restore']]);
         $this->middleware('permission:user_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:user_create', ['only' => 'store']);
         $this->middleware('permission:user_edit', ['only' => 'update']);

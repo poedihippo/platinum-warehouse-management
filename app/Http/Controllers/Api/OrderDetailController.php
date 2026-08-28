@@ -14,7 +14,7 @@ class OrderDetailController extends Controller
     public function __construct()
     {
         parent::__construct();
-        $this->middleware('permission:sales_order_access', ['only' => ['index', 'show']]);
+        // $this->middleware('permission:sales_order_access', ['only' => ['index', 'show']]);
     }
 
     public function index(int $orderId)

@@ -29,7 +29,7 @@ class OrderController extends Controller
     {
         parent::__construct();
         // $this->middleware('permission:order_access', ['only' => ['index', 'show']]);
-        $this->middleware('permission:order_read', ['only' => ['index', 'show']]);
+        // $this->middleware('permission:order_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:order_create', ['only' => 'store']);
         $this->middleware('permission:order_edit', ['only' => 'update']);
         $this->middleware('permission:order_delete', ['only' => 'destroy']);

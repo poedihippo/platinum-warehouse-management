@@ -16,7 +16,7 @@ class ProductBrandController extends Controller
     {
         parent::__construct();
         // $this->middleware('permission:product_brand_access', ['only' => ['index', 'show']]);
-        $this->middleware('permission:product_brand_read', ['only' => ['index', 'show']]);
+        // $this->middleware('permission:product_brand_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:product_brand_create', ['only' => 'store']);
         $this->middleware('permission:product_brand_edit', ['only' => 'update']);
         $this->middleware('permission:product_brand_delete', ['only' => 'destroy']);
