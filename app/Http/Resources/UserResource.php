@@ -20,6 +20,7 @@ class UserResource extends JsonResource
             $data['type'] = $this->type->description;
         }
         $data['roles'] = RoleResource::collection($this->whenLoaded('roles'));
+        $data['warehouses'] = WarehouseResource::collection($this->whenLoaded('warehouses'));
 
         if ($request->getRequestUri() === '/api/users/me') {
             return [
