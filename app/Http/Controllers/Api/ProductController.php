@@ -27,7 +27,10 @@ class ProductController extends Controller
     public function index()
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('product_access'), 403);
-        $products = QueryBuilder::for(Product::with(['productCategory', 'productBrand']))
+        $products = QueryBuilder::for(Product::with([
+            'productCategory' => fn($q) => $q->select('id', 'name'),
+            'productBrand' => fn($q) => $q->select('id', 'name')
+        ]))
             ->allowedFilters([
                 AllowedFilter::exact('product_category_id'),
                 AllowedFilter::exact('product_brand_id'),
@@ -42,6 +45,11 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
+        $product->load([
+            'productCategory' => fn($q) => $q->select('id', 'name'),
+            'productBrand' => fn($q) => $q->select('id', 'name')
+        ]);
+
         return new ProductResource($product);
     }
 
@@ -49,14 +57,14 @@ class ProductController extends Controller
     {
         $product = Product::create($request->validated());
 
-        return new ProductResource($product);
+        return $this->createdResponse();
     }
 
     public function update(Product $product, ProductUpdateRequest $request)
     {
         $product->update($request->validated());
 
-        return (new ProductResource($product))->response()->setStatusCode(Response::HTTP_ACCEPTED);
+        return $this->updatedResponse();
     }
 
     public function destroy(Product $product)

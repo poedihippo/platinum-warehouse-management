@@ -30,6 +30,8 @@ class ProductUnitResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'deleted_at' => $this->deleted_at,
+            // 'uom' => new UomResource($this->uom),
+            // 'product' => new ProductResource($this->product),
             'uom' => new UomResource($this->whenLoaded('uom')),
             'product' => new ProductResource($this->whenLoaded('product')),
             'relations' => DefaultResource::collection($this->whenLoaded('relations')),

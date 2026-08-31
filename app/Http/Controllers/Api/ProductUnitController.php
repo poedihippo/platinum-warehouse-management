@@ -64,6 +64,10 @@ class ProductUnitController extends Controller
         $productUnit = ProductUnit::with([
             'uom',
             'product',
+            'product' => fn ($q) => $q->with([
+                'productCategory' => fn ($q) => $q->select('id', 'name'),
+                'productBrand' => fn ($q) => $q->select('id', 'name')
+            ]),
             'refer' => fn ($q) => $q->select('id', 'name'),
             'relations' => fn ($q) => $q->with('relatedProductUnit', fn ($q) => $q->select('id', 'name')),
         ])->has('product')->findOrFail($id);

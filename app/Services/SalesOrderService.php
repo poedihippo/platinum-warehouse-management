@@ -206,7 +206,15 @@ class SalesOrderService
             'voucher.category',
             'payments',
             'warehouse',
-            'details' => fn($q) => $q->with(['warehouse', 'productUnit']),
+            'details' => fn($q) => $q->with([
+                'warehouse',
+                'productUnit' => fn($q) => $q->with([
+                    'product' => fn($q) => $q->select('id', 'name')->with([
+                        'productBrand' => fn($q) => $q->select('id', 'name')
+                    ]),
+                    'uom' => fn($q) => $q->select('id', 'name'),
+                ]),
+            ]),
             'user' => fn($q) => $q->select('id', 'name', 'type'),
             'reseller' => fn($q) => $q->select('id', 'name', 'type', 'type', 'email', 'phone', 'address'),
         ])->loadCount('details');
