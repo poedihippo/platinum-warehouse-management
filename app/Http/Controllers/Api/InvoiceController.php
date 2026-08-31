@@ -6,6 +6,7 @@ use App\Exports\InvoiceExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\InvoiceStoreRequest;
 use App\Http\Requests\Api\InvoiceUpdateRequest;
+use App\Http\Resources\DefaultResource;
 use App\Http\Resources\SalesOrderResource;
 use App\Models\SalesOrder;
 use App\Models\StockProductUnit;
@@ -40,12 +41,12 @@ class InvoiceController extends Controller
 
     public function index()
     {
-        return SalesOrderService::index($this->per_page, fn ($q) => $q->where('is_invoice', true));
+        return SalesOrderService::index($this->per_page, fn($q) => $q->where('is_invoice', true));
     }
 
     public function show($id)
     {
-        $salesOrder = SalesOrderService::show($id, fn ($q) => $q->where('is_invoice', true));
+        $salesOrder = SalesOrderService::show($id, fn($q) => $q->where('is_invoice', true));
         $salesOrder->id_hash = Crypt::encryptString($salesOrder->id);
         $salesOrder->whatsapp_url = empty($salesOrder->invoice_no) ? '' : SalesOrderService::getWhatsappUrl($salesOrder, $salesOrder->id_hash);
 
@@ -66,7 +67,7 @@ class InvoiceController extends Controller
 
             $stocks = \App\Models\Stock::whereAvailableStock()
                 ->whereNull('description')
-                ->whereHas('stockProductUnit', fn ($q) => $q->where('product_unit_id', $item['product_unit_id'])->where('warehouse_id', $item['warehouse_id']))
+                ->whereHas('stockProductUnit', fn($q) => $q->where('product_unit_id', $item['product_unit_id'])->where('warehouse_id', $item['warehouse_id']))
                 ->limit($item['qty'])
                 ->get(['id']);
 
@@ -90,7 +91,7 @@ class InvoiceController extends Controller
                     'stock_product_unit_id' => $stockProductUnit->id,
                     'value' => $salesOrderDetail->qty,
                     'is_increment' => 0,
-                    'description' => 'Create SO invoice '.$salesOrder->invoice_no,
+                    'description' => 'Create SO invoice ' . $salesOrder->invoice_no,
                     'ip' => request()->ip(),
                     'agent' => request()->header('user-agent'),
                 ]);
@@ -116,7 +117,7 @@ class InvoiceController extends Controller
 
         $matchedCount = \App\Models\Stock::whereIn('id', $item['stock_ids'])
             ->where('stock_product_unit_id', $stockProductUnit->id)
-            ->whereDoesntHave('salesOrderItems', fn ($q) => $q->whereNotReturned())
+            ->whereDoesntHave('salesOrderItems', fn($q) => $q->whereNotReturned())
             ->count();
 
         if ($matchedCount !== count($item['stock_ids'])) {
@@ -167,7 +168,7 @@ class InvoiceController extends Controller
 
         if ($salesOrder && ! $isPreview === false) {
             // delete old history
-            $oldSalesOrderDetails->each(fn ($salesOrderDetail) => $salesOrderDetail->histories()->delete());
+            $oldSalesOrderDetails->each(fn($salesOrderDetail) => $salesOrderDetail->histories()->delete());
 
             // create history
             $salesOrder->details->each(function ($salesOrderDetail) use ($salesOrder) {
@@ -180,7 +181,7 @@ class InvoiceController extends Controller
                     'stock_product_unit_id' => $stockProductUnit->id,
                     'value' => $salesOrderDetail->qty,
                     'is_increment' => 0,
-                    'description' => 'Create SO invoice '.$salesOrder->invoice_no,
+                    'description' => 'Create SO invoice ' . $salesOrder->invoice_no,
                     'ip' => request()->ip(),
                     'agent' => request()->header('user-agent'),
                 ]);
@@ -216,14 +217,14 @@ class InvoiceController extends Controller
                         'stock_product_unit_id' => $stockProductUnit->id,
                         'value' => $salesOrderDetail->qty,
                         'is_increment' => 1,
-                        'description' => 'Return stock from delete SO invoice '.$salesOrder->invoice_no,
+                        'description' => 'Return stock from delete SO invoice ' . $salesOrder->invoice_no,
                         'ip' => request()->ip(),
                         'agent' => request()->header('user-agent'),
                     ]);
                 });
             }
 
-            $salesOrder->details->each(fn ($salesOrderDetail) => $salesOrderDetail->salesOrderItems()->delete());
+            $salesOrder->details->each(fn($salesOrderDetail) => $salesOrderDetail->salesOrderItems()->delete());
 
             // $salesOrder->details->each(fn ($salesOrderDetail) => $salesOrderDetail->histories()->delete());
             $salesOrder->forceDelete();
@@ -244,12 +245,12 @@ class InvoiceController extends Controller
         } catch (\Throwable $th) {
         }
 
-        return SalesOrderService::print($id, 'print-invoice', fn ($q) => $q->where('is_invoice', true));
+        return SalesOrderService::print($id, 'print-invoice', fn($q) => $q->where('is_invoice', true));
     }
 
     public function exportXml($id)
     {
-        return SalesOrderService::exportXml($id, fn ($q) => $q->where('is_invoice', true));
+        return SalesOrderService::exportXml($id, fn($q) => $q->where('is_invoice', true));
     }
 
     public function getInvoiceNo(\Illuminate\Http\Request $request)
@@ -265,11 +266,21 @@ class InvoiceController extends Controller
 
     public function bill(string $id)
     {
-        return SalesOrderService::print($id, 'print-invoice', fn ($q) => $q->where('is_invoice', true));
+        return SalesOrderService::print($id, 'print-invoice', fn($q) => $q->where('is_invoice', true));
     }
 
     public function export()
     {
         return Excel::download(new InvoiceExport, 'invoices.xlsx');
+    }
+
+    public function getCashiers()
+    {
+        // use cache 1 hour to cache cashier list
+        $users = cache()->remember('cashiers', 60 * 60, function () {
+            return \App\Models\User::whereIn('id', config('app.cashier_ids'))->get(['id', 'name']);
+        });
+
+        return DefaultResource::collection($users);
     }
 }

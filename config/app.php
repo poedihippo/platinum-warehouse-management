@@ -217,6 +217,7 @@ return [
     'format_invoice_prefix' => env('FORMAT_INVOICE_PREFIX', 'IIPE'),
     'format_invoice_no' => env('FORMAT_INVOICE_NO', 'IIPE-%s/%s/%s/%s/%s'),
     'min_price_roll_dice' => env('MIN_PRICE_ROLL_DICE', 500000),
+    'cashier_ids' => explode(',', env('CASHIER_IDS', '728,729')),
     'min_trx_auto_discount' => [
         [
             'min_value' => 75001,

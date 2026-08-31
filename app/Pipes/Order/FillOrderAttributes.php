@@ -10,6 +10,7 @@ class FillOrderAttributes
     {
         $rawSoruce = $salesOrder->raw_source;
 
+        $salesOrder->user_id = isset($rawSoruce['user_id']) || isset($salesOrder->user_id) ? ($salesOrder->user_id ? $salesOrder->user_id : $rawSoruce['user_id']) : null;
         $salesOrder->company = $rawSoruce['company'];
         $salesOrder->expected_price = empty($rawSoruce['expected_price']) ? null : $rawSoruce['expected_price'];
         $salesOrder->reseller_id = $rawSoruce['reseller_id'] ?? $salesOrder->reseller_id;

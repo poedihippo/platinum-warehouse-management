@@ -50,8 +50,14 @@ class ProductUnitController extends Controller
                 AllowedFilter::scope('company', 'whereCompany'),
             ])
             ->allowedIncludes([
-                AllowedInclude::callback('relations', fn ($q) => $q->with('relatedProductUnit', fn ($q) => $q->select('id', 'name'))),
-                AllowedInclude::callback('refer', fn ($q) => $q->select('id', 'name')),
+                AllowedInclude::callback('relations', fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select('id', 'name'))),
+                AllowedInclude::callback('refer', fn($q) => $q->select('id', 'name')),
+                AllowedInclude::callback('product', fn($q) => $q->select('id', 'name', 'product_category_id', 'product_brand_id')->with([
+                    'productCategory' => fn($q) => $q->select('id', 'name'),
+                    'productBrand' => fn($q) => $q->select('id', 'name'),
+                ])),
+                // uom
+                AllowedInclude::callback('uom', fn($q) => $q->select('id', 'name')),
             ])
             ->allowedSorts(['id', 'product_id', 'name', 'price', 'created_at'])
             ->paginate($this->per_page);
@@ -62,14 +68,13 @@ class ProductUnitController extends Controller
     public function show($id)
     {
         $productUnit = ProductUnit::with([
-            'uom',
-            'product',
-            'product' => fn ($q) => $q->with([
-                'productCategory' => fn ($q) => $q->select('id', 'name'),
-                'productBrand' => fn ($q) => $q->select('id', 'name')
+            'uom' => fn($q) => $q->select('id', 'name'),
+            'product' => fn($q) => $q->with([
+                'productCategory' => fn($q) => $q->select('id', 'name'),
+                'productBrand' => fn($q) => $q->select('id', 'name')
             ]),
-            'refer' => fn ($q) => $q->select('id', 'name'),
-            'relations' => fn ($q) => $q->with('relatedProductUnit', fn ($q) => $q->select('id', 'name')),
+            'refer' => fn($q) => $q->select('id', 'name'),
+            'relations' => fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select('id', 'name')),
         ])->has('product')->findOrFail($id);
 
         return new ProductUnitResource($productUnit);
@@ -128,7 +133,7 @@ class ProductUnitController extends Controller
             $groupingProductUnit = ProductUnit::create($data);
 
             if ($request->related_product_units) {
-                $data = collect($request->related_product_units)->map(fn ($req) => ['related_product_unit_id' => $req['id'], 'qty' => $req['qty']]);
+                $data = collect($request->related_product_units)->map(fn($req) => ['related_product_unit_id' => $req['id'], 'qty' => $req['qty']]);
                 $groupingProductUnit->relations()->createMany($data);
             }
         });
@@ -163,7 +168,7 @@ class ProductUnitController extends Controller
             $groupingProductUnit->relations()->delete();
 
             if ($request->related_product_units) {
-                $data = collect($request->related_product_units)->map(fn ($req) => ['related_product_unit_id' => $req['id'], 'qty' => $req['qty']]);
+                $data = collect($request->related_product_units)->map(fn($req) => ['related_product_unit_id' => $req['id'], 'qty' => $req['qty']]);
                 $groupingProductUnit->relations()->createMany($data);
             }
         });
@@ -182,9 +187,9 @@ class ProductUnitController extends Controller
     {
         // $user = User::findOrFail($userId, ['id']);
         $salesOrderDetails = SalesOrderDetail::select('id', 'product_unit_id', 'unit_price', 'created_at')
-            ->whereHas('salesOrder', fn ($q) => $q->where('reseller_id', $userId))
+            ->whereHas('salesOrder', fn($q) => $q->where('reseller_id', $userId))
             ->where('product_unit_id', $productUnit->id)
-            ->with('productUnit', fn ($q) => $q->select('id', 'code', 'name'))
+            ->with('productUnit', fn($q) => $q->select('id', 'code', 'name'))
             ->paginate($this->per_page);
 
         return SalesOrderDetailResource::collection($salesOrderDetails);
@@ -222,10 +227,10 @@ class ProductUnitController extends Controller
 
         $productUnit = ProductUnit::select('id', 'product_id', 'uom_id', 'name', 'price', 'code')
             ->with([
-                'uom' => fn ($q) => $q->select('id', 'name'),
-                'product' => fn ($q) => $q->select('id', 'product_category_id', 'product_brand_id', 'name', 'article_url')->with('productCategory', fn ($q) => $q->select('id', 'name'))->with('productBrand', fn ($q) => $q->select('id', 'name')),
+                'uom' => fn($q) => $q->select('id', 'name'),
+                'product' => fn($q) => $q->select('id', 'product_category_id', 'product_brand_id', 'name', 'article_url')->with('productCategory', fn($q) => $q->select('id', 'name'))->with('productBrand', fn($q) => $q->select('id', 'name')),
             ])
-            ->whereHas('stockProductUnit', fn ($q) => $q->where('id', $stock->stock_product_unit_id))
+            ->whereHas('stockProductUnit', fn($q) => $q->where('id', $stock->stock_product_unit_id))
             ->first();
 
         if (! $productUnit) {

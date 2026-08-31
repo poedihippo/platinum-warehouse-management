@@ -78,13 +78,13 @@ class SalesOrder extends Model
     protected static function booted()
     {
         static::saving(function ($model) {
-            $model->user_id = auth('sanctum')->id();
             if (empty($model->type)) {
                 $model->type = SalesOrderType::DEFAULT;
             }
         });
 
         static::creating(function ($model) {
+            $model->user_id = $model->user_id ?? auth('sanctum')->id();
             if (empty($model->description)) {
                 $model->description = '#Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih';
             }

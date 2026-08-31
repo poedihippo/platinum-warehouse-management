@@ -46,9 +46,10 @@ class InvoiceStoreRequest extends FormRequest
     public function rules()
     {
         return [
+            'user_id' => ['nullable', 'integer', 'exists:users,id'],
             'company' => ['required', new EnumValue(CompanyEnum::class)],
-            'expected_price' => 'nullable|integer',
-            'is_additional_discount_percentage' => 'required|boolean',
+            'expected_price' => ['nullable', 'integer'],
+            'is_additional_discount_percentage' => ['required', 'boolean'],
             'type' => ['required', new EnumValue(SalesOrderType::class)],
             'reseller_id' => [
                 Rule::requiredIf(empty($this->customer_name) && empty($this->customer_phone)),
@@ -59,7 +60,7 @@ class InvoiceStoreRequest extends FormRequest
                 },
             ],
             'cashier_name' => ['nullable', 'string'],
-            'customer_name' => 'required_without:reseller_id',
+            'customer_name' => ['required_without:reseller_id'],
             'customer_phone' => [
                 'required_without:reseller_id',
                 function (string $attribute, mixed $value, Closure $fail) {
@@ -70,7 +71,7 @@ class InvoiceStoreRequest extends FormRequest
                     }
                 },
             ],
-            'customer_address' => 'nullable|string',
+            'customer_address' => ['nullable', 'string'],
             'invoice_no' => [
                 'nullable',
                 function (string $attribute, mixed $value, Closure $fail) {
@@ -82,8 +83,8 @@ class InvoiceStoreRequest extends FormRequest
             'warehouse_id' => ['required', new TenantedRule()],
             'transaction_date' => 'required|date_format:Y-m-d H:i:s',
             'shipment_estimation_datetime' => 'required|date_format:Y-m-d H:i:s',
-            'shipment_fee' => 'required|integer',
-            'additional_discount' => 'required|integer',
+            'shipment_fee' => ['required', 'integer'],
+            'additional_discount' => ['required', 'integer'],
             'voucher_code' => ['nullable', function (string $attribute, mixed $value, Closure $fail) {
                 $voucher = Voucher::where('code', $value)->first();
                 if (! $voucher) {
@@ -96,7 +97,7 @@ class InvoiceStoreRequest extends FormRequest
                     return $fail('Voucher tidak valid atau sudah kedaluwarsa!');
                 }
             }],
-            'description' => 'nullable|string',
+            'description' => ['nullable', 'string'],
             'items' => [
                 'required',
                 'array',
@@ -106,16 +107,16 @@ class InvoiceStoreRequest extends FormRequest
                     }
                 },
             ],
-            'items.*.product_unit_id' => 'required|integer|exists:product_units,id',
+            'items.*.product_unit_id' => ['required', 'integer', 'exists:product_units,id'],
             // 'items.*.packaging_id' => 'nullable|integer|exists:product_units,id',
-            'items.*.qty' => 'required|integer',
-            'items.*.unit_price' => 'required|numeric|min:0',
-            'items.*.discount' => 'required|numeric|min:0',
-            'items.*.tax' => 'required|boolean',
-            'items.*.total_price' => 'required|numeric|min:0',
+            'items.*.qty' => ['required', 'integer'],
+            'items.*.unit_price' => ['required', 'numeric', 'min:0'],
+            'items.*.discount' => ['required', 'numeric', 'min:0'],
+            'items.*.tax' => ['required', 'boolean'],
+            'items.*.total_price' => ['required', 'numeric', 'min:0'],
             'items.*.warehouse_id' => ['required', new TenantedRule()],
-            'items.*.stock_ids' => 'nullable|array',
-            'items.*.stock_ids.*' => 'required|exists:stocks,id',
+            'items.*.stock_ids' => ['nullable', 'array'],
+            'items.*.stock_ids.*' => ['required', 'exists:stocks,id'],
         ];
     }
 }

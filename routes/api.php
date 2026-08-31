@@ -272,6 +272,7 @@ Route::middleware(['auth:sanctum', 'ability:warehouse'])->group(function () {
     Route::get('sales-orders/{salesOrder}/print', [SalesOrderController::class, 'print']); // type (print/print-invoice)
     Route::apiResource('sales-orders', SalesOrderController::class);
 
+    Route::get('get-cashiers', [InvoiceController::class, 'getCashiers']);
     Route::get('invoices/export', [InvoiceController::class, 'export']);
     Route::get('invoices/get-invoice-no', [InvoiceController::class, 'getInvoiceNo']);
     Route::get('invoices/{salesOrder}/export-xml', [InvoiceController::class, 'exportXml']);
