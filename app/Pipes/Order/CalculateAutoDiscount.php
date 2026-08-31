@@ -14,8 +14,15 @@ class CalculateAutoDiscount
         $originalPrice = $salesOrder->price;
         $discounts = $this->getMatchedDiscounts($originalPrice);
 
+        $details = [];
         foreach ($discounts as $discount) {
-            $salesOrder->price = max($salesOrder->price - ($salesOrder->price * $discount / 100), 0);
+            $nominal = $salesOrder->price * $discount / 100;
+            $details[] = [
+                'percent' => $discount,
+                'price_before' => $salesOrder->price,
+                'discount_nominal' => round($nominal),
+            ];
+            $salesOrder->price = max($salesOrder->price - $nominal, 0);
         }
 
         $autoDiscountNominal = $originalPrice - $salesOrder->price;
@@ -25,6 +32,7 @@ class CalculateAutoDiscount
 
         $rawSource['auto_discount'] = $salesOrder->auto_discount;
         $rawSource['auto_discount_nominal'] = $autoDiscountNominal;
+        $rawSource['auto_discount_details'] = $details;
         $salesOrder->raw_source = $rawSource;
 
         return $next($salesOrder);
@@ -33,7 +41,7 @@ class CalculateAutoDiscount
     private function getMatchedDiscounts(int|float $price): array
     {
         $tier = collect(config('app.min_trx_auto_discount', []))
-            ->first(fn (array $tier) => $price >= $tier['min_value']
+            ->first(fn(array $tier) => $price >= $tier['min_value']
                 && ($tier['max_value'] === null || $price <= $tier['max_value']));
 
         return $tier['discount'] ?? [];

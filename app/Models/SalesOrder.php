@@ -25,6 +25,7 @@ class SalesOrder extends Model
     protected $appends = [
         'additional_discount_percentage',
         'auto_discount_nominal',
+        'auto_discount_details',
 
         'voucher_code',
         'voucher_type',
@@ -140,6 +141,11 @@ class SalesOrder extends Model
         }
 
         return $this->details->sum('total_price') * $this->auto_discount / 100;
+    }
+
+    public function getAutoDiscountDetailsAttribute(): array
+    {
+        return $this->raw_source['auto_discount_details'] ?? [];
     }
 
     public function getVoucherCodeAttribute()

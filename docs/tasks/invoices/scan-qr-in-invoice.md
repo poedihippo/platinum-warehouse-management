@@ -1,0 +1,3 @@
+di @app/Http/Controllers/Api/InvoiceController.php function store, gw pengen bisa scan qr stocks untuk setiap product_unit yang dibeli.
+ini workflow nya seperti di @app/Http/Controllers/Api/DeliveryOrderController.php function verification, dan nanti hasil scan qr stock nya akan disimpan di table sales_order_items @app/Models/SalesOrderItem.php, dengan sales_order_detail_id dari sales_order_details @app/Models/SalesOrderDetail.php yang terbuat dari invoice tersebut, dan delivery_order_detail_id nya null.
+perhatikan untuk kolom `parent_id` dan `is_parent` di SalesOrderItem. untuk qr stock yang di scan yang merupakan parent (bisa di cek di @app/Models/Stock.php jika memiliki childs)

@@ -209,7 +209,17 @@
                     <td colspan="4">TAX 25%</td>
                     <td class="total">$1,300.00</td>
                 </tr> --}}
-                @if ($salesOrder->auto_discount_nominal > 0)
+                @if (! empty($salesOrder->auto_discount_details))
+                    @foreach ($salesOrder->auto_discount_details as $discount)
+                        <tr>
+                            <td colspan="4" class="grand">AUTO DISCOUNT {{ $discount['percent'] }}%</td>
+                            <td class="grand">
+                                <span class="float-left">Rp. </span>
+                                <span>{{ number_format($discount['discount_nominal']) }}</span>
+                            </td>
+                        </tr>
+                    @endforeach
+                @elseif ($salesOrder->auto_discount_nominal > 0)
                     <tr>
                         <td colspan="4" class="grand">AUTO DISCOUNT</td>
                         <td class="grand">
