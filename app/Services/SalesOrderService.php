@@ -209,7 +209,7 @@ class SalesOrderService
             'details' => fn($q) => $q->with([
                 'warehouse',
                 'productUnit' => fn($q) => $q->with([
-                    'product' => fn($q) => $q->select('id', 'name')->with([
+                    'product' => fn($q) => $q->select('id', 'name', 'product_brand_id')->with([
                         'productBrand' => fn($q) => $q->select('id', 'name')
                     ]),
                     'uom' => fn($q) => $q->select('id', 'name'),

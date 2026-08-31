@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\OrderDetailResource;
+use App\Http\Resources\DefaultResource;
 use App\Models\Order;
 use App\Models\OrderDetail;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -31,7 +31,7 @@ class OrderDetailController extends Controller
                 AllowedFilter::scope('has_delivery_order'),
             ])->get();
 
-        return OrderDetailResource::collection($orderDetails);
+        return DefaultResource::collection($orderDetails);
     }
 
     public function show(int $orderId, $orderDetailId)
@@ -41,6 +41,6 @@ class OrderDetailController extends Controller
         $order = Order::findTenanted($orderId, ['id']);
         $orderDetail = $order->details()->where('id', $orderDetailId)->firstOrFail();
 
-        return new OrderDetailResource($orderDetail->load(['warehouse' => fn ($q) => $q->select('id', 'code', 'name')]));
+        return new DefaultResource($orderDetail->load(['warehouse' => fn ($q) => $q->select('id', 'code', 'name')]));
     }
 }
