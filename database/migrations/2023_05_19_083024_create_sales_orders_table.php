@@ -25,6 +25,7 @@ return new class extends Migration
             $table->string('invoice_no', 50)->nullable();
             $table->string('type', 10)->default(SalesOrderType::DEFAULT);
             $table->json('raw_source')->nullable();
+            $table->string('company', 10)->nullable();
             $table->json('records')->nullable();
             $table->integer('shipment_fee')->default(0);
             $table->integer('additional_discount')->default(0);

@@ -1,3 +1,9 @@
 di @app/Http/Controllers/Api/InvoiceController.php function store, gw pengen bisa scan qr stocks untuk setiap product_unit yang dibeli.
 ini workflow nya seperti di @app/Http/Controllers/Api/DeliveryOrderController.php function verification, dan nanti hasil scan qr stock nya akan disimpan di table sales_order_items @app/Models/SalesOrderItem.php, dengan sales_order_detail_id dari sales_order_details @app/Models/SalesOrderDetail.php yang terbuat dari invoice tersebut, dan delivery_order_detail_id nya null.
-perhatikan untuk kolom `parent_id` dan `is_parent` di SalesOrderItem. untuk qr stock yang di scan yang merupakan parent (bisa di cek di @app/Models/Stock.php jika memiliki childs)
+perhatikan untuk kolom `parent_id` dan `is_parent` di SalesOrderItem. untuk qr stock yang di scan yang merupakan parent (bisa di cek di @app/Models/Stock.php jika memiliki childs) nanti kolom is_parent=true dan parent_id=null, untuk childs nya parent_id=id stock yang di scan. karena di system ini ada stock grouping, ibarat kardus dan products yang ada didalam nya, kardus akan memiliki qr (tercatat juga sebagai row di stocks) dan setiap products didalam kardus tersebut juga memiliki qr.
+
+tapi scan qr di invoice ini sifatnya hanya optional, tidak wajib ya. jika hasil scan qr nya dikirim baru kita proses dan simpan ke SalesOrderItem, jika tidak biarkan saja.
+
+pastikan qr yang di scan di setiap product_unit @app/Models/ProductUnit.php pada product_unit_id yang dikirim, sesuai ya. nanti untuk pengecekannya harus melibatkan stock_product_units @app/Models/StockProductUnit.php dengan mengecek product_unit_id yang dikirim, dan warehouse_id yang dikirim di @app/Http/Requests/Api/InvoiceStoreRequest.php karena di stock_product_units ada kolom product_unit_id dan warehouse_id.
+
+lalu di InvoiceController.php function store line 59, scope whereIsStock dari @app/Models/Stock.php gw comment karena stocks dengan is_stock=false juga boleh di scan, jadi tidak ada pengecekan is_stock lagi

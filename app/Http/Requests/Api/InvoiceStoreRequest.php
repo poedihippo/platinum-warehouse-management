@@ -113,6 +113,8 @@ class InvoiceStoreRequest extends FormRequest
             'items.*.tax' => 'required|boolean',
             'items.*.total_price' => 'required|numeric|min:0',
             'items.*.warehouse_id' => ['required', new TenantedRule()],
+            'items.*.stock_ids' => 'nullable|array',
+            'items.*.stock_ids.*' => 'required|exists:stocks,id',
         ];
     }
 }
