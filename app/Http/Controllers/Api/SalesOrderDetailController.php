@@ -25,6 +25,7 @@ class SalesOrderDetailController extends Controller
         $query = SalesOrderDetail::where('sales_order_id', $salesOrder->id)->with([
             // 'packaging',
             'warehouse' => fn ($q) => $q->select('id', 'code', 'name'),
+            'productUnit' => fn ($q) => $q->select('id', 'name'),
         ]);
         $salesOrderDetails = QueryBuilder::for($query)
             ->allowedFilters([

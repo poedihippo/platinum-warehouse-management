@@ -58,6 +58,7 @@ class InvoiceStoreRequest extends FormRequest
                     }
                 },
             ],
+            'cashier_name' => ['nullable', 'string'],
             'customer_name' => 'required_without:reseller_id',
             'customer_phone' => [
                 'required_without:reseller_id',

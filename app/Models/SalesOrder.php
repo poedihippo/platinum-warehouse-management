@@ -23,6 +23,7 @@ class SalesOrder extends Model
     public ?int $expected_price = null;
 
     protected $appends = [
+        'cashier_name',
         'additional_discount_percentage',
         'auto_discount_nominal',
         'auto_discount_details',
@@ -141,6 +142,11 @@ class SalesOrder extends Model
         }
 
         return $this->details->sum('total_price') * $this->auto_discount / 100;
+    }
+
+    public function getCashierNameAttribute(): string
+    {
+        return $this->raw_source['cashier_name'] ?? '';
     }
 
     public function getAutoDiscountDetailsAttribute(): array

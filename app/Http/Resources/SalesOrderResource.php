@@ -17,6 +17,7 @@ class SalesOrderResource extends JsonResource
         return array_merge(
             parent::toArray($request),
             [
+                'cashier_name' => $this->cashier_name,
                 'total_roll_dice' => floor($this->price / config('app.min_price_roll_dice', 500000)),
                 'has_delivery_order' => $this->has_delivery_order,
                 'details_count' => $this->whenCounted('details'),
