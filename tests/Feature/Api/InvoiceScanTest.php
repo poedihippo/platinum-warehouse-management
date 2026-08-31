@@ -30,6 +30,7 @@ class InvoiceScanTest extends TestCase
 
         Permission::firstOrCreate(['name' => 'invoice_create', 'guard_name' => 'web']);
         Permission::firstOrCreate(['name' => 'invoice_delete', 'guard_name' => 'web']);
+        Permission::firstOrCreate(['name' => 'invoice_read', 'guard_name' => 'web']);
     }
 
     private function actingAsAdmin(): User
@@ -40,7 +41,7 @@ class InvoiceScanTest extends TestCase
             'password' => bcrypt('password'),
             'type' => 'admin',
         ]);
-        $admin->givePermissionTo('invoice_create', 'invoice_delete');
+        $admin->givePermissionTo('invoice_create', 'invoice_delete', 'invoice_read');
 
         Sanctum::actingAs($admin, ['warehouse']);
 
@@ -121,6 +122,18 @@ class InvoiceScanTest extends TestCase
         return $reflection->invoke($saveOrder, ...$args);
     }
 
+    private function createDetail(array $context, SalesOrder $salesOrder, int $qty = 1): SalesOrderDetail
+    {
+        return SalesOrderDetail::create([
+            'sales_order_id' => $salesOrder->id,
+            'product_unit_id' => $context['productUnit']->id,
+            'warehouse_id' => $context['warehouse']->id,
+            'qty' => $qty,
+            'unit_price' => 100000,
+            'total_price' => 100000 * $qty,
+        ]);
+    }
+
     public function test_scanned_parent_stock_is_grouped_with_children_sales_order_items(): void
     {
         $this->actingAsAdmin();
@@ -196,5 +209,111 @@ class InvoiceScanTest extends TestCase
 
         $this->assertDatabaseMissing('sales_orders', ['id' => $salesOrder->id]);
         $this->assertTrue($context['parent']->fresh()->salesOrderItem()->doesntExist());
+    }
+
+    public function test_verification_groups_parent_stock_with_children_via_http(): void
+    {
+        $admin = $this->actingAsAdmin();
+        $context = $this->createScannedContext();
+        $salesOrder = $this->sampleSalesOrder($context['warehouse'], $admin);
+        $detail = $this->createDetail($context, $salesOrder);
+
+        $response = $this->postJson("/api/invoices/{$salesOrder->id}/verification/{$detail->id}", [
+            'stock_id' => $context['parent']->id,
+        ]);
+
+        $response->assertStatus(201);
+
+        $items = $detail->salesOrderItems()->get();
+        $parentItem = $items->firstWhere('stock_id', $context['parent']->id);
+        $this->assertNotNull($parentItem);
+        $this->assertTrue((bool) $parentItem->is_parent);
+        $this->assertNull($parentItem->parent_id);
+        $this->assertNull($parentItem->delivery_order_detail_id);
+
+        $childIds = $items->whereNotNull('parent_id')->pluck('stock_id');
+        $this->assertCount(2, $childIds);
+        $this->assertEqualsCanonicalizing([$context['childA']->id, $context['childB']->id], $childIds->all());
+        $this->assertTrue($items->whereNotNull('parent_id')->every(fn ($item) => $item->parent_id === $parentItem->id));
+    }
+
+    public function test_verification_rejects_already_scanned_stock(): void
+    {
+        $admin = $this->actingAsAdmin();
+        $context = $this->createScannedContext();
+        $salesOrder = $this->sampleSalesOrder($context['warehouse'], $admin);
+        $detail = $this->createDetail($context, $salesOrder);
+
+        $this->postJson("/api/invoices/{$salesOrder->id}/verification/{$detail->id}", [
+            'stock_id' => $context['parent']->id,
+        ])->assertStatus(201);
+
+        $this->postJson("/api/invoices/{$salesOrder->id}/verification/{$detail->id}", [
+            'stock_id' => $context['parent']->id,
+        ])->assertStatus(400);
+    }
+
+    public function test_verification_rejects_stock_from_other_warehouse(): void
+    {
+        $admin = $this->actingAsAdmin();
+        $context = $this->createScannedContext();
+
+        $otherWarehouse = Warehouse::create([
+            'code' => 'WH-'.uniqid(),
+            'name' => 'Other Warehouse',
+            'company_name' => 'Other Company',
+        ]);
+        $otherSpu = StockProductUnit::where('product_unit_id', $context['productUnit']->id)
+            ->where('warehouse_id', $otherWarehouse->id)
+            ->firstOrFail();
+        $otherStock = Stock::create(['stock_product_unit_id' => $otherSpu->id]);
+
+        $salesOrder = $this->sampleSalesOrder($context['warehouse'], $admin);
+        $detail = $this->createDetail($context, $salesOrder);
+
+        $this->postJson("/api/invoices/{$salesOrder->id}/verification/{$detail->id}", [
+            'stock_id' => $otherStock->id,
+        ])->assertStatus(400);
+    }
+
+    public function test_items_endpoint_lists_scanned_stocks(): void
+    {
+        $admin = $this->actingAsAdmin();
+        $context = $this->createScannedContext();
+        $salesOrder = $this->sampleSalesOrder($context['warehouse'], $admin);
+        $detail = $this->createDetail($context, $salesOrder);
+
+        $this->postJson("/api/invoices/{$salesOrder->id}/verification/{$detail->id}", [
+            'stock_id' => $context['parent']->id,
+        ])->assertStatus(201);
+
+        $response = $this->getJson("/api/invoices/{$salesOrder->id}/details/{$detail->id}/items");
+
+        $response->assertOk();
+        $stockIds = collect($response->json('data'))->pluck('stock_id');
+        $this->assertTrue($stockIds->contains($context['parent']->id));
+        $this->assertTrue($stockIds->contains($context['childA']->id));
+        $this->assertTrue($stockIds->contains($context['childB']->id));
+    }
+
+    public function test_destroy_endpoint_removes_grouped_parent_and_children(): void
+    {
+        $admin = $this->actingAsAdmin();
+        $context = $this->createScannedContext();
+        $salesOrder = $this->sampleSalesOrder($context['warehouse'], $admin);
+        $detail = $this->createDetail($context, $salesOrder);
+
+        $this->postJson("/api/invoices/{$salesOrder->id}/verification/{$detail->id}", [
+            'stock_id' => $context['parent']->id,
+        ])->assertStatus(201);
+
+        $this->assertCount(3, $detail->salesOrderItems()->get());
+
+        $this->deleteJson("/api/sales-order-items/{$detail->id}", [
+            'stock_id' => $context['parent']->id,
+        ])->assertOk();
+
+        $this->assertCount(0, $detail->salesOrderItems()->get());
+        $this->assertSame(0, $detail->fresh()->fulfilled_qty);
     }
 }
