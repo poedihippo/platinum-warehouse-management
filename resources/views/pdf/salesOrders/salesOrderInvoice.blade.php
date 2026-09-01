@@ -200,33 +200,22 @@
                         </td>
                     </tr>
                 @endforeach
-                {{-- <tr>
-                    <td colspan="4">Sub Total</td>
-                    <td class="total">$5,200.00</td>
-                </tr>
                 <tr>
-                    <td colspan="4">TAX 25%</td>
-                    <td class="total">$1,300.00</td>
-                </tr> --}}
-                @if (! empty($salesOrder->auto_discount_details))
-                    @foreach ($salesOrder->auto_discount_details as $discount)
-                        <tr>
-                            <td colspan="4" class="grand">AUTO DISCOUNT {{ $discount['percent'] }}%</td>
-                            <td class="grand">
-                                <span class="float-left">Rp. </span>
-                                <span>{{ number_format($discount['discount_nominal']) }}</span>
-                            </td>
-                        </tr>
-                    @endforeach
-                @elseif ($salesOrder->auto_discount_nominal > 0)
+                    <td colspan="4">SUBTOTAL</td>
+                    <td>
+                        <span class="float-left">Rp. </span>
+                        <span>{{ number_format($salesOrder->details->sum('total_price')) }}</span>
+                    </td>
+                </tr>
+                @foreach ($salesOrder->auto_discount_details as $discount)
                     <tr>
-                        <td colspan="4" class="grand">AUTO DISCOUNT</td>
+                        <td colspan="4" class="grand">DISKON PAMERAN ({{ $discount['percent'] }}%)</td>
                         <td class="grand">
                             <span class="float-left">Rp. </span>
-                            <span>{{ number_format($salesOrder->auto_discount_nominal) }}</span>
+                            <span>{{ number_format($discount['discount_nominal']) }}</span>
                         </td>
                     </tr>
-                @endif
+                @endforeach
                 @if ($salesOrder->voucher_id)
                     <tr>
                         <td colspan="4" class="@if ($salesOrder->auto_discount_nominal <= 0) grand @endif">VOUCHER</td>

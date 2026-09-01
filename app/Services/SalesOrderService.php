@@ -290,7 +290,7 @@ class SalesOrderService
         }
 
         $message .= PHP_EOL;
-        $message .= 'Subtotal                   : *Rp '.number_format((float) $salesOrder->details->sum('total_price'), 0, ',', '.').'*';
+        $message .= 'Subtotal                      : *Rp '.number_format((float) $salesOrder->details->sum('total_price'), 0, ',', '.').'*';
 
         foreach ($salesOrder->auto_discount_details as $discount) {
             $message .= PHP_EOL;
@@ -313,7 +313,7 @@ class SalesOrderService
         }
 
         $message .= PHP_EOL;
-        $message .= 'Grand Total                 : *Rp '.number_format((float) $salesOrder->price, 0, ',', '.').'*';
+        $message .= 'Grand Total                  : *Rp '.number_format((float) $salesOrder->price, 0, ',', '.').'*';
         $message .= PHP_EOL;
         $message .= PHP_EOL;
         $message .= $salesOrder->description;
