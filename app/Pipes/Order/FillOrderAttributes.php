@@ -11,7 +11,9 @@ class FillOrderAttributes
         $rawSoruce = $salesOrder->raw_source;
 
         $salesOrder->user_id = isset($rawSoruce['user_id']) || isset($salesOrder->user_id) ? ($salesOrder->user_id ? $salesOrder->user_id : $rawSoruce['user_id']) : null;
-        $salesOrder->company = $rawSoruce['company'];
+        // company can be null
+        $salesOrder->company = isset($rawSoruce['company']) || isset($salesOrder->company) ? ($salesOrder->company ? $salesOrder->company : $rawSoruce['company']) : null;
+        // $salesOrder->company = $rawSoruce['company'];
         $salesOrder->expected_price = empty($rawSoruce['expected_price']) ? null : $rawSoruce['expected_price'];
         $salesOrder->reseller_id = $rawSoruce['reseller_id'] ?? $salesOrder->reseller_id;
         $salesOrder->spg_id = isset($rawSoruce['spg_id']) || isset($salesOrder->spg_id) ? ($salesOrder->spg_id ? $salesOrder->spg_id : $rawSoruce['spg_id']) : null;

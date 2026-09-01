@@ -48,7 +48,7 @@ class InvoiceUpdateRequest extends FormRequest
 
         return [
             'user_id' => ['nullable', 'integer', 'exists:users,id'],
-            'company' => ['required', new EnumValue(CompanyEnum::class)],
+            // 'company' => ['required', new EnumValue(CompanyEnum::class)],
             'expected_price' => 'nullable|integer',
             'is_additional_discount_percentage' => 'required|boolean',
             'type' => ['nullable', new EnumValue(SalesOrderType::class)],
