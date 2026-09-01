@@ -16,17 +16,7 @@ use App\Models\SalesOrderItem;
 use App\Models\Stock;
 use App\Models\StockProductUnit;
 use App\Models\Warehouse;
-use App\Pipes\Order\CalculateAdditionalDiscount;
-use App\Pipes\Order\CalculateAdditionalFees;
-use App\Pipes\Order\CalculateAutoDiscount;
-use App\Pipes\Order\CalculateVoucher;
-use App\Pipes\Order\CheckExpectedOrderPrice;
-use App\Pipes\Order\FillOrderAttributes;
-use App\Pipes\Order\FillOrderRecords;
-use App\Pipes\Order\MakeOrderDetails;
-use App\Pipes\Order\Spg\ConvertToSO;
 use App\Services\SalesOrderService;
-use Illuminate\Pipeline\Pipeline;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
@@ -47,12 +37,12 @@ class InvoiceController extends Controller
 
     public function index()
     {
-        return SalesOrderService::index($this->per_page, fn ($q) => $q->where('is_invoice', true));
+        return SalesOrderService::index($this->per_page, fn($q) => $q->where('is_invoice', true));
     }
 
     public function show($id)
     {
-        $salesOrder = SalesOrderService::show($id, fn ($q) => $q->where('is_invoice', true));
+        $salesOrder = SalesOrderService::show($id, fn($q) => $q->where('is_invoice', true));
         $salesOrder->id_hash = Crypt::encryptString($salesOrder->id);
         $salesOrder->whatsapp_url = empty($salesOrder->invoice_no) ? '' : SalesOrderService::getWhatsappUrl($salesOrder, $salesOrder->id_hash);
 
@@ -73,7 +63,7 @@ class InvoiceController extends Controller
 
             $stocks = \App\Models\Stock::whereAvailableStock()
                 ->whereNull('description')
-                ->whereHas('stockProductUnit', fn ($q) => $q->where('product_unit_id', $item['product_unit_id'])->where('warehouse_id', $item['warehouse_id']))
+                ->whereHas('stockProductUnit', fn($q) => $q->where('product_unit_id', $item['product_unit_id'])->where('warehouse_id', $item['warehouse_id']))
                 ->limit($item['qty'])
                 ->get(['id']);
 
@@ -123,7 +113,7 @@ class InvoiceController extends Controller
 
         $matchedCount = \App\Models\Stock::whereIn('id', $item['stock_ids'])
             ->where('stock_product_unit_id', $stockProductUnit->id)
-            ->whereDoesntHave('salesOrderItems', fn ($q) => $q->whereNotReturned())
+            ->whereDoesntHave('salesOrderItems', fn($q) => $q->whereNotReturned())
             ->count();
 
         if ($matchedCount !== count($item['stock_ids'])) {
@@ -158,16 +148,16 @@ class InvoiceController extends Controller
         $salesOrder = SalesOrder::where('is_invoice', true)->findTenanted($id);
         abort_unless($salesOrderDetail->sales_order_id === $salesOrder->id, 404);
 
-        $salesOrderDetail->load(['productUnit' => fn ($q) => $q->select('id', 'refer_id')]);
+        $salesOrderDetail->load(['productUnit' => fn($q) => $q->select('id', 'refer_id')]);
 
         $stock = Stock::where('id', $request->stock_id)
             ->whereHas(
                 'stockProductUnit',
-                fn ($q) => $q->where('warehouse_id', $salesOrderDetail->warehouse_id)
+                fn($q) => $q->where('warehouse_id', $salesOrderDetail->warehouse_id)
                     ->when(
                         $salesOrderDetail->productUnit->refer_id,
-                        fn ($q) => $q->where('product_unit_id', $salesOrderDetail->productUnit->refer_id),
-                        fn ($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id),
+                        fn($q) => $q->where('product_unit_id', $salesOrderDetail->productUnit->refer_id),
+                        fn($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id),
                     )
             )
             ->first();
@@ -186,7 +176,7 @@ class InvoiceController extends Controller
             return response()->json(['message' => 'Qty sudah terpenuhi'], 400);
         }
 
-        $stock->load(['childs' => fn ($q) => $q->select('id', 'parent_id')]);
+        $stock->load(['childs' => fn($q) => $q->select('id', 'parent_id')]);
         $totalChilds = $stock->childs->count();
 
         DB::beginTransaction();
@@ -198,7 +188,7 @@ class InvoiceController extends Controller
                 ]);
 
                 $parentItem->childs()->createMany(
-                    $stock->childs->map(fn ($child) => [
+                    $stock->childs->map(fn($child) => [
                         'sales_order_detail_id' => $salesOrderDetail->id,
                         'stock_id' => $child->id,
                     ])->all()
@@ -233,37 +223,10 @@ class InvoiceController extends Controller
             return response()->json(['message' => 'Konversi ke invoice terlebih dahulu untuk dapat mengedit.'], 400);
         }
 
-        // kalo udah settle gabisa diupdate
-        if ($salesOrder->payment_status == 'paid') {
-            return response()->json(['message' => 'Invoice sudah lunas tidak dapat diupdate'], 400);
-        }
-
         $salesOrder->raw_source = $request->validated();
-        // $oldSalesOrderDetails = $salesOrder->details;
-        // $isPreview = ! $request->is_preview ?? true;
-        // dump($isPreview);
-        $isPreview = (bool) $request->is_preview ?? false;
+        $isPreview = (bool) ($request->is_preview ?? false);
 
-        $pipes = [
-            FillOrderAttributes::class,
-            FillOrderRecords::class,
-            MakeOrderDetails::class,
-            CalculateAutoDiscount::class,
-            CalculateVoucher::class,
-            CalculateAdditionalDiscount::class,
-            CalculateAdditionalFees::class,
-            CheckExpectedOrderPrice::class,
-        ];
-
-        if ($isPreview) {
-            $pipes[] = ConvertToSO::class;
-        }
-
-        $salesOrder = app(Pipeline::class)
-            ->send($salesOrder)
-            ->through($pipes)
-            ->thenReturn();
-
+        $salesOrder = SalesOrderService::updateOrder($salesOrder, $isPreview);
         // if ($salesOrder && ! $isPreview === false) {
         //     // delete old history
         //     $oldSalesOrderDetails->each(fn($salesOrderDetail) => $salesOrderDetail->histories()->delete());
@@ -315,14 +278,14 @@ class InvoiceController extends Controller
                     'stock_product_unit_id' => $stockProductUnit->id,
                     'value' => $salesOrderDetail->qty,
                     'is_increment' => 1,
-                    'description' => 'Return stock from delete SO invoice '.$salesOrder->invoice_no,
+                    'description' => 'Return stock from delete SO invoice ' . $salesOrder->invoice_no,
                     'ip' => request()->ip(),
                     'agent' => request()->header('user-agent'),
                 ]);
             });
             // }
 
-            $salesOrder->details->each(fn ($salesOrderDetail) => $salesOrderDetail->salesOrderItems()->delete());
+            $salesOrder->details->each(fn($salesOrderDetail) => $salesOrderDetail->salesOrderItems()->delete());
 
             // $salesOrder->details->each(fn ($salesOrderDetail) => $salesOrderDetail->histories()->delete());
             $salesOrder->forceDelete();
@@ -343,12 +306,12 @@ class InvoiceController extends Controller
         } catch (\Throwable $th) {
         }
 
-        return SalesOrderService::print($id, 'print-invoice', fn ($q) => $q->where('is_invoice', true));
+        return SalesOrderService::print($id, 'print-invoice', fn($q) => $q->where('is_invoice', true));
     }
 
     public function exportXml($id)
     {
-        return SalesOrderService::exportXml($id, fn ($q) => $q->where('is_invoice', true));
+        return SalesOrderService::exportXml($id, fn($q) => $q->where('is_invoice', true));
     }
 
     public function getInvoiceNo(\Illuminate\Http\Request $request)
@@ -364,7 +327,7 @@ class InvoiceController extends Controller
 
     public function bill(string $id)
     {
-        return SalesOrderService::print($id, 'print-invoice', fn ($q) => $q->where('is_invoice', true));
+        return SalesOrderService::print($id, 'print-invoice', fn($q) => $q->where('is_invoice', true));
     }
 
     public function export()
