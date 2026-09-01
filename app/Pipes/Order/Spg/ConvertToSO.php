@@ -27,7 +27,7 @@ class ConvertToSO
 
             // $oldDetails->each->delete();
             // if ($salesOrder->is_invoice) $this->createSalesOrderItems($salesOrderDetails, $salesOrder->warehouse_id);
-            $this->createSalesOrderItems($salesOrderDetails, $salesOrder->warehouse_id);
+            // $this->createSalesOrderItems($salesOrderDetails, $salesOrder->warehouse_id);
 
             return $salesOrder;
         });
@@ -50,21 +50,21 @@ class ConvertToSO
     //     }
     // }
 
-    private function createSalesOrderItems(\Illuminate\Support\Collection $salesOrderDetails, int $warehouseId): void
-    {
-        $salesOrderDetails->each(function (SalesOrderDetail $salesOrderDetail) use ($warehouseId) {
-            $stocks = \App\Models\Stock::whereAvailableStock()
-                ->whereHas('stockProductUnit', fn ($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id)->where('warehouse_id', $warehouseId))
-                ->limit($salesOrderDetail->qty)
-                ->get(['id'])->map(fn ($stock) => ['stock_id' => $stock->id]);
+    // private function createSalesOrderItems(\Illuminate\Support\Collection $salesOrderDetails, int $warehouseId): void
+    // {
+    //     $salesOrderDetails->each(function (SalesOrderDetail $salesOrderDetail) use ($warehouseId) {
+    //         $stocks = \App\Models\Stock::whereAvailableStock()
+    //             ->whereHas('stockProductUnit', fn ($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id)->where('warehouse_id', $warehouseId))
+    //             ->limit($salesOrderDetail->qty)
+    //             ->get(['id'])->map(fn ($stock) => ['stock_id' => $stock->id]);
 
-            if ($stocks->count() < $salesOrderDetail->qty) {
-                throw new \Exception(sprintf('Stok %s tidak tersedia', $salesOrderDetail->productUnit->name), \Illuminate\Http\Response::HTTP_UNPROCESSABLE_ENTITY);
-            }
+    //         if ($stocks->count() < $salesOrderDetail->qty) {
+    //             throw new \Exception(sprintf('Stok %s tidak tersedia', $salesOrderDetail->productUnit->name), \Illuminate\Http\Response::HTTP_UNPROCESSABLE_ENTITY);
+    //         }
 
-            $salesOrderDetail->salesOrderItems()->createMany($stocks);
+    //         $salesOrderDetail->salesOrderItems()->createMany($stocks);
 
-            SalesOrderService::countFulfilledQty($salesOrderDetail);
-        });
-    }
+    //         SalesOrderService::countFulfilledQty($salesOrderDetail);
+    //     });
+    // }
 }
