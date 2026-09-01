@@ -30,6 +30,7 @@ class InvoiceStoreRequest extends FormRequest
         })->all();
 
         $this->merge([
+            'is_auto_discount_enabled' => $this->toBoolean($this->is_auto_discount_enabled ?? true),
             'shipment_fee' => $this->shipment_fee ? (int) $this->shipment_fee : 0,
             'additional_discount' => $this->additional_discount ? (int) $this->additional_discount : 0,
             'is_additional_discount_percentage' => $this->toBoolean($this->is_additional_discount_percentage ?? true),
@@ -47,8 +48,9 @@ class InvoiceStoreRequest extends FormRequest
     {
         return [
             'user_id' => ['nullable', 'integer', 'exists:users,id'],
-            'company' => ['required', new EnumValue(CompanyEnum::class)],
+            // 'company' => ['required', new EnumValue(CompanyEnum::class)],
             'expected_price' => ['nullable', 'integer'],
+            'is_auto_discount_enabled' => ['required', 'boolean'],
             'is_additional_discount_percentage' => ['required', 'boolean'],
             'type' => ['required', new EnumValue(SalesOrderType::class)],
             'reseller_id' => [

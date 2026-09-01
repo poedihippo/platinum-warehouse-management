@@ -11,6 +11,15 @@ class CalculateAutoDiscount
         $rawSource = $salesOrder->raw_source;
         $salesOrder->auto_discount = 0;
 
+        if (($rawSource['is_auto_discount_enabled'] ?? true) === false) {
+            $rawSource['auto_discount'] = 0;
+            $rawSource['auto_discount_nominal'] = 0;
+            $rawSource['auto_discount_details'] = [];
+            $salesOrder->raw_source = $rawSource;
+
+            return $next($salesOrder);
+        }
+
         $originalPrice = $salesOrder->price;
         $discounts = $this->getMatchedDiscounts($originalPrice);
 
@@ -41,7 +50,7 @@ class CalculateAutoDiscount
     private function getMatchedDiscounts(int|float $price): array
     {
         $tier = collect(config('app.min_trx_auto_discount', []))
-            ->first(fn(array $tier) => $price >= $tier['min_value']
+            ->first(fn (array $tier) => $price >= $tier['min_value']
                 && ($tier['max_value'] === null || $price <= $tier['max_value']));
 
         return $tier['discount'] ?? [];
