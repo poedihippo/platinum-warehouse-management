@@ -46,6 +46,8 @@ class InvoiceUpdateRequest extends FormRequest
         $salesOrder = SalesOrder::whereInvoice()->findOrFail($this->invoice);
 
         return [
+            'user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'company' => ['required', new EnumValue(CompanyEnum::class)],
             'expected_price' => 'nullable|integer',
             'is_additional_discount_percentage' => 'required|boolean',
             'type' => ['nullable', new EnumValue(SalesOrderType::class)],
@@ -105,6 +107,8 @@ class InvoiceUpdateRequest extends FormRequest
             'items.*.tax' => 'required|boolean',
             'items.*.total_price' => 'required|numeric|min:0',
             'items.*.warehouse_id' => ['required', new TenantedRule()],
+            'items.*.stock_ids' => ['nullable', 'array'],
+            'items.*.stock_ids.*' => ['required', 'exists:stocks,id'],
         ];
     }
 }
