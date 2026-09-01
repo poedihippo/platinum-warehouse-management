@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Api;
 
-use App\Enums\CompanyEnum;
 use App\Enums\SalesOrderType;
 use App\Models\Voucher;
 use App\Rules\TenantedRule;

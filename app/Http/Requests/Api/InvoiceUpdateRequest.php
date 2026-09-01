@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Api;
 
-use App\Enums\CompanyEnum;
 use App\Enums\SalesOrderType;
 use App\Models\SalesOrder;
 use App\Models\Voucher;
@@ -50,9 +49,9 @@ class InvoiceUpdateRequest extends FormRequest
         return [
             'user_id' => ['nullable', 'integer', 'exists:users,id'],
             // 'company' => ['required', new EnumValue(CompanyEnum::class)],
-            'expected_price' => 'nullable|integer',
-            'is_auto_discount_enabled' => 'required|boolean',
-            'is_additional_discount_percentage' => 'required|boolean',
+            'expected_price' => ['nullable', 'integer'],
+            'is_auto_discount_enabled' => ['required', 'boolean'],
+            'is_additional_discount_percentage' => ['required', 'boolean'],
             'type' => ['nullable', new EnumValue(SalesOrderType::class)],
             'reseller_id' => ['required', function (string $attribute, mixed $value, Closure $fail) {
                 if (! DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::CustomerEvent)->exists()) {
@@ -70,7 +69,7 @@ class InvoiceUpdateRequest extends FormRequest
                     }
                 },
             ],
-            'customer_address' => 'nullable|string',
+            'customer_address' => ['nullable', 'string'],
             // 'invoice_no' => [
             //     'required',
             //     function (string $attribute, mixed $value, Closure $fail) use($salesOrder) {
@@ -80,10 +79,10 @@ class InvoiceUpdateRequest extends FormRequest
             //     }
             // ],
             'warehouse_id' => ['required', new TenantedRule()],
-            'transaction_date' => 'required|date_format:Y-m-d H:i:s',
-            'shipment_estimation_datetime' => 'required|date_format:Y-m-d H:i:s',
-            'shipment_fee' => 'required|integer',
-            'additional_discount' => 'required|integer',
+            'transaction_date' => ['required', 'date_format:Y-m-d H:i:s'],
+            'shipment_estimation_datetime' => ['required', 'date_format:Y-m-d H:i:s'],
+            'shipment_fee' => ['required', 'integer'],
+            'additional_discount' => ['required', 'integer'],
             'voucher_code' => ['nullable', function (string $attribute, mixed $value, Closure $fail) use ($salesOrder) {
                 $voucher = Voucher::where('code', $value)->first();
                 if (! $voucher) {
@@ -96,19 +95,19 @@ class InvoiceUpdateRequest extends FormRequest
                     return $fail('Voucher tidak valid atau sudah kedaluwarsa!');
                 }
             }],
-            'description' => 'nullable|string',
+            'description' => ['nullable', 'string'],
             'items' => ['required', 'array', function (string $attribute, mixed $value, Closure $fail) {
                 if (count($value) <= 0) {
                     $fail('items required');
                 }
             }],
-            'items.*.product_unit_id' => 'required|integer|exists:product_units,id',
+            'items.*.product_unit_id' => ['required', 'integer', 'exists:product_units,id'],
             // 'items.*.packaging_id' => 'nullable|integer|exists:product_units,id',
-            'items.*.qty' => 'required|integer',
-            'items.*.unit_price' => 'required|numeric|min:0',
-            'items.*.discount' => 'required|numeric|min:0',
-            'items.*.tax' => 'required|boolean',
-            'items.*.total_price' => 'required|numeric|min:0',
+            'items.*.qty' => ['required', 'integer'],
+            'items.*.unit_price' => ['required', 'numeric', 'min:0'],
+            'items.*.discount' => ['required', 'numeric', 'min:0'],
+            'items.*.tax' => ['required', 'boolean'],
+            'items.*.total_price' => ['required', 'numeric', 'min:0'],
             'items.*.warehouse_id' => ['required', new TenantedRule()],
             'items.*.stock_ids' => ['nullable', 'array'],
             'items.*.stock_ids.*' => ['required', 'exists:stocks,id'],
