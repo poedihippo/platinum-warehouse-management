@@ -239,8 +239,10 @@ class InvoiceController extends Controller
         }
 
         $salesOrder->raw_source = $request->validated();
-        $oldSalesOrderDetails = $salesOrder->details;
-        $isPreview = (bool) ($request->is_preview ?? false);
+        // $oldSalesOrderDetails = $salesOrder->details;
+        // $isPreview = ! $request->is_preview ?? true;
+        // dump($isPreview);
+        $isPreview = (bool) $request->is_preview ?? false;
 
         $pipes = [
             FillOrderAttributes::class,
