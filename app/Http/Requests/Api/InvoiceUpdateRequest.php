@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Enums\CompanyEnum;
 use App\Enums\SalesOrderType;
 use App\Models\SalesOrder;
 use App\Models\Voucher;
