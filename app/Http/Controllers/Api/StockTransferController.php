@@ -49,11 +49,16 @@ class StockTransferController extends Controller
                 $childCount = $stock->childs()->count();
                 $qty = $childCount > 0 ? $childCount : 1;
 
-                Stock::where('id', $stock->id)
-                    ->orWhere('parent_id', $stock->id)
-                    ->update(['stock_product_unit_id' => $toSpuId]);
+                if ($childCount > 0) {
+                    Stock::where('id', $stock->id)
+                        ->orWhere('parent_id', $stock->id)
+                        ->update(['stock_product_unit_id' => $toSpuId]);
+                } else {
+                    Stock::where('id', $stock->id)
+                        ->update(['stock_product_unit_id' => $toSpuId]);
+                }
 
-                $descSuffix = $description ? ' - ' . $description : '';
+                $descSuffix = $description ? ' - '.$description : '';
 
                 $stockTransfer = StockTransfer::create([
                     'stock_id' => $stock->id,
@@ -71,7 +76,7 @@ class StockTransferController extends Controller
                     'stock_product_unit_id' => $fromSpuId,
                     'value' => $qty,
                     'is_increment' => 0,
-                    'description' => 'Transfer stock ke ' . $toWarehouseName . $descSuffix,
+                    'description' => 'Transfer stock ke '.$toWarehouseName.$descSuffix,
                     'ip' => $userIp,
                     'agent' => $userAgent,
                 ]);
@@ -81,7 +86,7 @@ class StockTransferController extends Controller
                     'stock_product_unit_id' => $toSpuId,
                     'value' => $qty,
                     'is_increment' => 1,
-                    'description' => 'Transfer stock dari ' . $fromWarehouseName . $descSuffix,
+                    'description' => 'Transfer stock dari '.$fromWarehouseName.$descSuffix,
                     'ip' => $userIp,
                     'agent' => $userAgent,
                 ]);
@@ -103,7 +108,7 @@ class StockTransferController extends Controller
             return response()->json(['message' => $th->getMessage()], 500);
         }
 
-        return $this->createdResponse("Transfer stock berhasil");
+        return $this->createdResponse('Transfer stock berhasil');
         // return response()->json([
         //     'message' => 'Transfer stock berhasil',
         //     'data' => StockTransferResource::collection($transfers),
@@ -145,7 +150,7 @@ class StockTransferController extends Controller
                 'stock_product_unit_id' => $fromSpuId,
                 'value' => $qty,
                 'is_increment' => 0,
-                'description' => 'Transfer stock ke ' . $toSpu->warehouse->name . ($request->description ? ' - ' . $request->description : ''),
+                'description' => 'Transfer stock ke '.$toSpu->warehouse->name.($request->description ? ' - '.$request->description : ''),
                 'ip' => $userIp,
                 'agent' => $userAgent,
             ]);
@@ -155,7 +160,7 @@ class StockTransferController extends Controller
                 'stock_product_unit_id' => $toSpu->id,
                 'value' => $qty,
                 'is_increment' => 1,
-                'description' => 'Transfer stock dari ' . $fromSpu->warehouse->name . ($request->description ? ' - ' . $request->description : ''),
+                'description' => 'Transfer stock dari '.$fromSpu->warehouse->name.($request->description ? ' - '.$request->description : ''),
                 'ip' => $userIp,
                 'agent' => $userAgent,
             ]);
@@ -167,7 +172,7 @@ class StockTransferController extends Controller
             return response()->json(['message' => $th->getMessage()], 500);
         }
 
-        return $this->createdResponse("Transfer stock berhasil");
+        return $this->createdResponse('Transfer stock berhasil');
         // return response()->json([
         //     'message' => 'Transfer stock berhasil',
         //     'data' => new StockTransferResource(

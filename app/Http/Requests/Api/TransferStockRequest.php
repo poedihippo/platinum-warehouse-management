@@ -90,30 +90,18 @@ class TransferStockRequest extends FormRequest
         $missingIds = array_diff($this->stock_ids, $foundIds);
 
         if ($missingIds !== []) {
-            $validator->errors()->add('stock_ids', 'Stock tidak ditemukan: ' . implode(', ', $missingIds));
+            $validator->errors()->add('stock_ids', 'Stock tidak ditemukan: '.implode(', ', $missingIds));
         }
 
         foreach ($stocks as $stock) {
-            if (! $stock->is_stock) {
-                $validator->errors()->add('stock_ids', 'Stock "' . $stock->id . '" bukan stock aktif');
-
-                return;
-            }
-
-            if (! is_null($stock->parent_id)) {
-                $validator->errors()->add('stock_ids', 'Stock "' . $stock->id . '" adalah child. Scan QR parent-nya');
-
-                return;
-            }
-
             if ($stock->stock_product_unit_id != $fromSpuId) {
-                $validator->errors()->add('stock_ids', 'Stock "' . $stock->id . '" tidak sesuai dengan product unit asal');
+                $validator->errors()->add('stock_ids', 'Stock "'.$stock->id.'" tidak sesuai dengan product unit asal');
 
                 return;
             }
 
             if ($stock->salesOrderItems()->whereNotReturned()->exists()) {
-                $validator->errors()->add('stock_ids', 'Stock "' . $stock->id . '" sudah masuk di Sales Order');
+                $validator->errors()->add('stock_ids', 'Stock "'.$stock->id.'" sudah masuk di Sales Order');
 
                 return;
             }
@@ -145,7 +133,7 @@ class TransferStockRequest extends FormRequest
         }
 
         if ($fromSpu->qty < $this->qty) {
-            $validator->errors()->add('qty', 'Qty tidak mencukupi. Tersedia: ' . $fromSpu->qty);
+            $validator->errors()->add('qty', 'Qty tidak mencukupi. Tersedia: '.$fromSpu->qty);
 
             return;
         }
