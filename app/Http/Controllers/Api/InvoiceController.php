@@ -98,7 +98,7 @@ class InvoiceController extends Controller
             return $this->createdResponse();
         }
 
-        return new SalesOrderResource($salesOrder);
+        return new SalesOrderResource($salesOrder->load('vouchers.category'));
     }
 
     private function validateScannedStocks(array $item): ?string
@@ -253,7 +253,7 @@ class InvoiceController extends Controller
             return $this->updatedResponse();
         }
 
-        return (new SalesOrderResource($salesOrder))->response()->setStatusCode(\Illuminate\Http\Response::HTTP_ACCEPTED);
+        return (new SalesOrderResource($salesOrder->load('vouchers.category')))->response()->setStatusCode(\Illuminate\Http\Response::HTTP_ACCEPTED);
     }
 
     public function destroy($id)
