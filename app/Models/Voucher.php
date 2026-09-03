@@ -39,7 +39,7 @@ class Voucher extends Model
 
     public function salesOrders(): BelongsToMany
     {
-        return $this->belongsToMany(SalesOrder::class)->withTimestamps();
+        return $this->belongsToMany(SalesOrder::class, 'sales_order_vouchers')->withTimestamps();
     }
 
     public function getIsUsedAttribute(): bool
