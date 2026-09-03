@@ -10,12 +10,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('sales_order_vouchers', function (Blueprint $table) {
-            $table->id();
             $table->foreignId('sales_order_id')->constrained()->cascadeOnDelete();
             $table->foreignId('voucher_id')->constrained()->restrictOnDelete();
             $table->timestamps();
 
-            $table->unique(['sales_order_id', 'voucher_id']);
+            $table->primary(['sales_order_id', 'voucher_id']);
         });
 
         // Migrate existing voucher_id from sales_orders
@@ -50,8 +49,8 @@ return new class extends Migration
         DB::statement('UPDATE sales_orders s
             JOIN sales_order_vouchers sov ON sov.sales_order_id = s.id
             SET s.voucher_id = sov.voucher_id
-            WHERE sov.id = (
-                SELECT MIN(sov2.id) FROM sales_order_vouchers sov2 WHERE sov2.sales_order_id = s.id
+            WHERE sov.voucher_id = (
+                SELECT MIN(sov2.voucher_id) FROM sales_order_vouchers sov2 WHERE sov2.sales_order_id = s.id
             )');
 
         Schema::dropIfExists('sales_order_vouchers');
