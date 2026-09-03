@@ -56,16 +56,17 @@ class SalesOrderStoreRequest extends FormRequest
             'shipment_estimation_datetime' => 'required|date_format:Y-m-d H:i:s',
             'shipment_fee' => 'required|integer',
             'additional_discount' => 'required|integer',
-            'voucher_code' => ['nullable', function (string $attribute, mixed $value, Closure $fail) {
+            'voucher_codes' => ['nullable', 'array'],
+            'voucher_codes.*' => ['required', 'string', function (string $attribute, mixed $value, Closure $fail) {
                 $voucher = Voucher::where('code', $value)->first();
                 if (! $voucher) {
-                    $fail('Voucher tidak ditemukan!');
+                    return $fail('Voucher tidak ditemukan!');
                 }
-                if ($voucher?->is_used) {
-                    $fail('Voucher sudah digunakan!');
+                if ($voucher->is_used) {
+                    return $fail('Voucher sudah digunakan!');
                 }
-                if ($voucher && ! $voucher->isValid()) {
-                    $fail('Voucher tidak valid atau sudah kedaluwarsa!');
+                if (! $voucher->isValid()) {
+                    return $fail('Voucher tidak valid atau sudah kedaluwarsa!');
                 }
             }],
             'description' => 'nullable|string',

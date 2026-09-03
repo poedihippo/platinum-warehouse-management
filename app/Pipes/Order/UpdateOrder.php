@@ -19,7 +19,10 @@ class UpdateOrder
             $salesOrder->save();
             $salesOrder->details()->saveMany($salesOrderDetails);
 
-            // $oldDetails->each->delete();
+            if (! empty($salesOrder->vouchers_ids_to_sync)) {
+                $salesOrder->vouchers()->sync($salesOrder->vouchers_ids_to_sync);
+                unset($salesOrder->vouchers_ids_to_sync);
+            }
 
             return $salesOrder;
         });

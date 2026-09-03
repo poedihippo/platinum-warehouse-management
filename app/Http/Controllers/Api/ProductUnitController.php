@@ -187,9 +187,12 @@ class ProductUnitController extends Controller
     {
         // $user = User::findOrFail($userId, ['id']);
         $salesOrderDetails = SalesOrderDetail::select('id', 'product_unit_id', 'unit_price', 'created_at')
-            ->whereHas('salesOrder', fn($q) => $q->where('reseller_id', $userId))
+            ->with([
+                'warehouse' => fn($q) => $q->select('id', 'name'),
+                'productUnit' => fn($q) => $q->select('id', 'code', 'name'),
+            ])
             ->where('product_unit_id', $productUnit->id)
-            ->with('productUnit', fn($q) => $q->select('id', 'code', 'name'))
+            ->whereHas('salesOrder', fn($q) => $q->where('reseller_id', $userId))
             ->paginate($this->per_page);
 
         return SalesOrderDetailResource::collection($salesOrderDetails);

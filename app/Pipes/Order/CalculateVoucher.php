@@ -11,31 +11,44 @@ class CalculateVoucher
     public function handle(SalesOrder $salesOrder, \Closure $next)
     {
         $rawSource = $salesOrder->raw_source;
-        if ($voucherCode = $rawSource['voucher_code'] ?? null) {
-            $voucher = Voucher::where('code', $voucherCode)->with('category', fn ($q) => $q->select('id', 'discount_type', 'discount_amount'))->first(['id', 'voucher_category_id']);
-            if (! $voucher || ! $voucher->isValid()) {
-                return $next($salesOrder);
-            }
+        $codes = $rawSource['voucher_codes'] ?? null;
 
-            $discountVoucherAmount = 0;
-            if ($voucher->category->discount_type->is(DiscountType::NOMINAL)) {
-                $discountVoucherAmount = $voucher->category->discount_amount;
-
-                $rawSource['voucher_type'] = DiscountType::NOMINAL;
-                $rawSource['voucher_value'] = $discountVoucherAmount;
-            } else {
-                $discountVoucherAmount = $salesOrder->price * $voucher->category->discount_amount / 100;
-
-                $rawSource['voucher_type'] = DiscountType::PERCENTAGE;
-                $rawSource['voucher_value'] = $voucher->category->discount_amount;
-            }
-
-            $salesOrder->price = max($salesOrder->price - $discountVoucherAmount, 0);
-            $salesOrder->voucher_id = $voucher->id;
-
-            $rawSource['voucher_value_nominal'] = $discountVoucherAmount;
-            $salesOrder->raw_source = $rawSource;
+        if (! is_array($codes) || empty($codes)) {
+            return $next($salesOrder);
         }
+
+        $vouchers = Voucher::whereIn('code', $codes)
+            ->with('category:id,discount_type,discount_amount')
+            ->get(['id', 'voucher_category_id', 'code']);
+
+        $validVouchers = $vouchers->filter(fn ($v) => $v->isValid());
+
+        if ($validVouchers->isEmpty()) {
+            return $next($salesOrder);
+        }
+
+        $totalVoucherNominal = 0;
+        $perVoucherNominal = [];
+
+        foreach ($validVouchers as $voucher) {
+            $category = $voucher->category;
+
+            if ($category->discount_type->is(DiscountType::NOMINAL)) {
+                $discountAmount = $category->discount_amount;
+            } else {
+                $discountAmount = $salesOrder->price * $category->discount_amount / 100;
+            }
+
+            $actualDiscount = min($discountAmount, $salesOrder->price);
+            $salesOrder->price -= $actualDiscount;
+            $totalVoucherNominal += $actualDiscount;
+            $perVoucherNominal[] = $actualDiscount;
+        }
+
+        $rawSource['voucher_total_nominal'] = $totalVoucherNominal;
+        $rawSource['voucher_value_nominal_per_voucher'] = $perVoucherNominal;
+        $salesOrder->raw_source = $rawSource;
+        $salesOrder->vouchers_ids_to_sync = $validVouchers->pluck('id')->all();
 
         return $next($salesOrder);
     }

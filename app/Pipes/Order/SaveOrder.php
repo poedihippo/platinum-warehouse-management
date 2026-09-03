@@ -39,9 +39,10 @@ class SaveOrder
             $salesOrder->save();
             $salesOrder->details()->saveMany($salesOrderDetails);
 
-            // if ($salesOrder->is_invoice) {
-            //     $this->createSalesOrderItems($salesOrder, $salesOrderDetails);
-            // }
+            if (! empty($salesOrder->vouchers_ids_to_sync)) {
+                $salesOrder->vouchers()->sync($salesOrder->vouchers_ids_to_sync);
+                unset($salesOrder->vouchers_ids_to_sync);
+            }
 
             return $salesOrder;
         });

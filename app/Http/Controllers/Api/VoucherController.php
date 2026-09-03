@@ -39,8 +39,8 @@ class VoucherController extends Controller
                 AllowedInclude::callback('category', function ($query) {
                     $query->select('id', 'name', 'discount_type', 'discount_amount');
                 }),
-                AllowedInclude::callback('salesOrder', function ($query) {
-                    $query->select('id', 'invoice_no', 'voucher_id');
+                AllowedInclude::callback('salesOrders', function ($query) {
+                    $query->select('id', 'invoice_no');
                 }),
             ])
             ->allowedSorts(['id', 'voucher_category_id', 'name', 'code', 'created_at'])
@@ -54,7 +54,7 @@ class VoucherController extends Controller
         return new DefaultResource($voucher->load([
             'category',
             'voucherGenerateBatch',
-            'salesOrder' => fn ($q) => $q->select('id', 'invoice_no', 'voucher_id'),
+            'salesOrders' => fn ($q) => $q->select('id', 'invoice_no'),
         ]));
     }
 
@@ -68,7 +68,7 @@ class VoucherController extends Controller
 
         $voucher = Voucher::create($data);
 
-        return new DefaultResource($voucher);
+        return $this->createdResponse();
     }
 
     public function update(Voucher $voucher, StoreRequest $request)
@@ -76,13 +76,15 @@ class VoucherController extends Controller
         $oldCode = $voucher->code;
         $voucher->update($request->validated());
 
-        if ($oldCode !== $voucher->code && $voucher->salesOrder) {
-            $rawSource = $voucher->salesOrder->raw_source ?? [];
-            $rawSource['voucher_code'] = $voucher->code;
-            $voucher->salesOrder->update(['raw_source' => $rawSource]);
+        if ($oldCode !== $voucher->code) {
+            $voucher->salesOrders()->each(function ($so) {
+                $rawSource = $so->raw_source ?? [];
+                $rawSource['voucher_codes'] = $so->vouchers()->pluck('code')->values()->all();
+                $so->update(['raw_source' => $rawSource]);
+            });
         }
 
-        return (new DefaultResource($voucher))->response()->setStatusCode(\Illuminate\Http\Response::HTTP_ACCEPTED);
+        return $this->updatedResponse();
     }
 
     public function destroy(Voucher $voucher)
@@ -114,7 +116,7 @@ class VoucherController extends Controller
         $voucher = Voucher::withTrashed()->findOrFail($id);
         $voucher->restore();
 
-        return new DefaultResource($voucher);
+        return $this->updatedResponse();
     }
 
     public function import(\Illuminate\Http\Request $request)

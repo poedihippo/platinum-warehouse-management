@@ -48,7 +48,7 @@ class VoucherGenerateBatchController extends Controller
             for ($i = 0; $i < $request->value; $i++) {
                 $voucherGenerateBatch->vouchers()->create([
                     'voucher_category_id' => $request->voucher_category_id,
-                    'code' => $voucherGenerateBatch->id.'-'.$i,
+                    'code' => $voucherGenerateBatch->id . '-' . $i,
                     'start_date' => $request->start_date,
                     'end_date' => $request->end_date,
                 ]);
@@ -61,14 +61,14 @@ class VoucherGenerateBatchController extends Controller
             return $this->errorResponse($e->getMessage());
         }
 
-        return new DefaultResource($voucherGenerateBatch);
+        return $this->createdResponse();
     }
 
     public function update(VoucherGenerateBatch $generateBatch, StoreRequest $request)
     {
         $generateBatch->update($request->validated());
 
-        return (new DefaultResource($generateBatch))->response()->setStatusCode(\Illuminate\Http\Response::HTTP_ACCEPTED);
+        return $this->updatedResponse();
     }
 
     public function destroy(VoucherGenerateBatch $generateBatch)

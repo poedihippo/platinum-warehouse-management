@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\CompanyEnum;
-use App\Enums\DiscountType;
 use App\Enums\SalesOrderType;
 use App\Enums\SettingEnum;
 use App\Enums\UserType;
@@ -28,10 +27,7 @@ class SalesOrder extends Model
         'auto_discount_nominal',
         'auto_discount_details',
 
-        'voucher_code',
-        'voucher_type',
-        'voucher_value',
-        'voucher_value_nominal',
+        'vouchers_data',
 
         'payment_amount',
         'payment_status',
@@ -44,7 +40,6 @@ class SalesOrder extends Model
 
     protected $fillable = [
         'user_id',
-        'voucher_id',
         'reseller_id',
         'spg_id',
         'warehouse_id',
@@ -154,24 +149,30 @@ class SalesOrder extends Model
         return $this->raw_source['auto_discount_details'] ?? [];
     }
 
-    public function getVoucherCodeAttribute()
+    public function getVouchersDataAttribute(): array
     {
-        return $this->voucher?->code ?? $this->voucher?->description ?? '';
+        $vouchers = $this->relationLoaded('vouchers')
+            ? $this->vouchers
+            : $this->vouchers()->select('id', 'code')->get();
+
+        $nominals = $this->raw_source['voucher_value_nominal_per_voucher'] ?? [];
+        $codes = $this->raw_source['voucher_codes'] ?? [];
+
+        return $vouchers->map(function ($v) use ($nominals, $codes) {
+            $index = array_search($v->code, $codes);
+
+            return [
+                'code' => $v->code,
+                'type' => $v->category->discount_type->value ?? 'nominal',
+                'value' => $v->category->discount_amount ?? 0,
+                'nominal' => ($index !== false && isset($nominals[$index])) ? $nominals[$index] : 0,
+            ];
+        })->all();
     }
 
-    public function getVoucherTypeAttribute()
+    public function getVoucherNominalTotalAttribute(): int|float
     {
-        return $this->raw_source['voucher_type'] ?? DiscountType::NOMINAL;
-    }
-
-    public function getVoucherValueAttribute()
-    {
-        return $this->raw_source['voucher_value'] ?? 0;
-    }
-
-    public function getVoucherValueNominalAttribute()
-    {
-        return $this->raw_source['voucher_value_nominal'] ?? 0;
+        return $this->raw_source['voucher_total_nominal'] ?? 0;
     }
 
     public function getPaymentAmountAttribute()
@@ -215,9 +216,9 @@ class SalesOrder extends Model
         return $this->belongsTo(User::class, 'spg_id');
     }
 
-    public function voucher(): BelongsTo
+    public function vouchers(): BelongsToMany
     {
-        return $this->belongsTo(Voucher::class);
+        return $this->belongsToMany(Voucher::class)->withTimestamps();
     }
 
     public function reseller(): BelongsTo

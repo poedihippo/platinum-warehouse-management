@@ -6,7 +6,7 @@ use App\Traits\CustomSoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
 
 class Voucher extends Model
@@ -37,16 +37,14 @@ class Voucher extends Model
         return $this->belongsTo(VoucherCategory::class, 'voucher_category_id');
     }
 
-    public function salesOrder(): HasOne
+    public function salesOrders(): BelongsToMany
     {
-        return $this->hasOne(SalesOrder::class);
+        return $this->belongsToMany(SalesOrder::class)->withTimestamps();
     }
 
     public function getIsUsedAttribute(): bool
     {
-        $this->load(['salesOrder' => fn ($q) => $q->select('id', 'voucher_id')]);
-
-        return (bool) $this->salesOrder;
+        return $this->salesOrders()->exists();
     }
 
     public function isValid(): bool

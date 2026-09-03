@@ -190,9 +190,7 @@ class SalesOrderService
                 }),
             ])
             ->allowedSorts(['id', 'invoice_no', 'user_id', 'reseller_id', 'warehouse_id', 'created_at'])
-            ->allowedIncludes(['details', 'warehouse', 'user', 'spg', 'payments', \Spatie\QueryBuilder\AllowedInclude::callback('voucher', function ($q) {
-                $q->with('category');
-            }), ])
+            ->allowedIncludes(['details', 'warehouse', 'user', 'spg', 'payments', 'vouchers.category'])
             ->paginate($perPage);
 
         return SalesOrderResource::collection($salesOrders);
@@ -203,7 +201,7 @@ class SalesOrderService
         $salesOrder = SalesOrder::when($query, $query)->findTenanted($id);
 
         return $salesOrder->load([
-            'voucher.category',
+            'vouchers.category',
             'payments',
             'warehouse',
             'details' => fn ($q) => $q->with([
@@ -297,9 +295,9 @@ class SalesOrderService
             $message .= 'Diskon Pameran ('.($discount['percent'] ?? 0).'%) : *Rp '.number_format((float) ($discount['discount_nominal'] ?? 0), 0, ',', '.').'*';
         }
 
-        if ($salesOrder->voucher_id) {
+        foreach ($salesOrder->vouchers_data as $voucher) {
             $message .= PHP_EOL;
-            $message .= 'Voucher                        : *Rp '.number_format((float) $salesOrder->voucher_value_nominal ?? 0, 0, ',', '.').'*';
+            $message .= 'Voucher ('.$voucher['description'].') : *Rp '.number_format((float) $voucher['nominal'], 0, ',', '.').'*';
         }
 
         if ($salesOrder->additional_discount > 0) {
