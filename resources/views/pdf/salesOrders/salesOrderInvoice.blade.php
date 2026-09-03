@@ -216,19 +216,19 @@
                         </td>
                     </tr>
                 @endforeach
-                @foreach ($salesOrder->vouchers_data as $voucher)
+                @foreach ($salesOrder->vouchers as $voucher)
                     <tr>
-                        <td colspan="4" class="@if ($salesOrder->auto_discount_nominal <= 0) grand @endif">VOUCHER ({{ $voucher['description'] }})</td>
+                        <td colspan="4" class="@if ($salesOrder->auto_discount_nominal <= 0) grand @endif">VOUCHER ({{ $voucher->description ?: $voucher->code }})</td>
                         <td class="@if ($salesOrder->auto_discount_nominal <= 0) grand @endif">
                             <span class="float-left">Rp. </span>
-                            <span>{{ number_format($voucher['nominal']) }}</span>
+                            <span>{{ number_format($voucher->pivot->discount_amount) }}</span>
                         </td>
                     </tr>
                 @endforeach
                 @if ($salesOrder->additional_discount > 0)
                     <tr>
-                        <td colspan="4" class="@if (empty($salesOrder->vouchers_data) && $salesOrder->additional_discount <= 0) grand @endif">ADDITIONAL DISCOUNT</td>
-                        <td class="@if (empty($salesOrder->vouchers_data) && $salesOrder->additional_discount <= 0) grand @endif">
+                        <td colspan="4" class="@if ($salesOrder->vouchers->isEmpty() && $salesOrder->additional_discount <= 0) grand @endif">ADDITIONAL DISCOUNT</td>
+                        <td class="@if ($salesOrder->vouchers->isEmpty() && $salesOrder->additional_discount <= 0) grand @endif">
                             <span class="float-left">Rp. </span>
                             <span>{{ number_format($salesOrder->additional_discount) }}</span>
                         </td>

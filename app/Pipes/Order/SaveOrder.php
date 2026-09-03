@@ -39,15 +39,26 @@ class SaveOrder
             $salesOrder->save();
             $salesOrder->details()->saveMany($salesOrderDetails);
 
-            if (! empty($salesOrder->vouchers_ids_to_sync)) {
-                $salesOrder->vouchers()->sync($salesOrder->vouchers_ids_to_sync);
-                unset($salesOrder->vouchers_ids_to_sync);
+            if (isset($salesOrder->vouchers_ids_to_sync) && ! empty($salesOrder->vouchers_ids_to_sync)) {
+                $salesOrder->vouchers()->sync($this->voucherPivot($salesOrder));
+                unset($salesOrder->vouchers_ids_to_sync, $salesOrder->vouchers_discount_amount);
             }
 
             return $salesOrder;
         });
 
         return $next($salesOrder);
+    }
+
+    private function voucherPivot(SalesOrder $salesOrder): array
+    {
+        $amounts = $salesOrder->vouchers_discount_amount ?? [];
+
+        return collect($salesOrder->vouchers_ids_to_sync)
+            ->mapWithKeys(fn ($voucherId) => [
+                $voucherId => ['discount_amount' => $amounts[$voucherId] ?? 0],
+            ])
+            ->all();
     }
 
     private function createReseller(SalesOrder $salesOrder): ?User

@@ -233,6 +233,7 @@ class SalesOrderService
 
         $salesOrder->load([
             'reseller',
+            'vouchers.category',
             'details' => fn ($q) => $q->with('productUnit.product'),
         ])->loadSum('payments', 'amount');
 
@@ -295,9 +296,9 @@ class SalesOrderService
             $message .= 'Diskon Pameran ('.($discount['percent'] ?? 0).'%) : *Rp '.number_format((float) ($discount['discount_nominal'] ?? 0), 0, ',', '.').'*';
         }
 
-        foreach ($salesOrder->vouchers_data as $voucher) {
+        foreach ($salesOrder->vouchers as $voucher) {
             $message .= PHP_EOL;
-            $message .= 'Voucher ('.$voucher['description'].') : *Rp '.number_format((float) $voucher['nominal'], 0, ',', '.').'*';
+            $message .= 'Voucher ('.($voucher->description ?: $voucher->code).') : *Rp '.number_format((float) $voucher->pivot->discount_amount, 0, ',', '.').'*';
         }
 
         if ($salesOrder->additional_discount > 0) {

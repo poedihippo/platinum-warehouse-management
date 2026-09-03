@@ -11,9 +11,18 @@ class CalculateVoucher
     public function handle(SalesOrder $salesOrder, \Closure $next)
     {
         $rawSource = $salesOrder->raw_source;
+
+        if (! array_key_exists('voucher_codes', $rawSource)) {
+            return $next($salesOrder);
+        }
+
         $codes = $rawSource['voucher_codes'] ?? null;
 
         if (! is_array($codes) || empty($codes)) {
+            $salesOrder->total_voucher = 0;
+            $salesOrder->vouchers_ids_to_sync = [];
+            $salesOrder->vouchers_discount_amount = [];
+
             return $next($salesOrder);
         }
 
@@ -24,11 +33,15 @@ class CalculateVoucher
         $validVouchers = $vouchers->filter(fn ($v) => $v->isValid());
 
         if ($validVouchers->isEmpty()) {
+            $salesOrder->total_voucher = 0;
+            $salesOrder->vouchers_ids_to_sync = [];
+            $salesOrder->vouchers_discount_amount = [];
+
             return $next($salesOrder);
         }
 
         $totalVoucherNominal = 0;
-        $perVoucherNominal = [];
+        $discountAmountByVoucherId = [];
 
         foreach ($validVouchers as $voucher) {
             $category = $voucher->category;
@@ -39,16 +52,18 @@ class CalculateVoucher
                 $discountAmount = $salesOrder->price * $category->discount_amount / 100;
             }
 
-            $actualDiscount = min($discountAmount, $salesOrder->price);
+            $actualDiscount = (int) min($discountAmount, $salesOrder->price);
             $salesOrder->price -= $actualDiscount;
             $totalVoucherNominal += $actualDiscount;
-            $perVoucherNominal[] = $actualDiscount;
+            $discountAmountByVoucherId[$voucher->id] = $actualDiscount;
         }
 
         $rawSource['voucher_total_nominal'] = $totalVoucherNominal;
-        $rawSource['voucher_value_nominal_per_voucher'] = $perVoucherNominal;
+        $rawSource['voucher_value_nominal_per_voucher'] = array_values($discountAmountByVoucherId);
         $salesOrder->raw_source = $rawSource;
+        $salesOrder->total_voucher = (int) $totalVoucherNominal;
         $salesOrder->vouchers_ids_to_sync = $validVouchers->pluck('id')->all();
+        $salesOrder->vouchers_discount_amount = $discountAmountByVoucherId;
 
         return $next($salesOrder);
     }

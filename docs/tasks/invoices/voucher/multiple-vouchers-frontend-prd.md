@@ -90,20 +90,28 @@ Bentuknya:
 ```
 
 ### Data tambahan untuk menampilkan besaran diskon
-Model SalesOrder memiliki **append attribute `vouchers_data`** (lihat `@app/Models/SalesOrder.php` line 152) yang berisi detail diskon per voucher yang sudah dihitung backend:
+Per-voucher applied discount disimpan di **pivot `sales_order_vouchers.discount_amount`** dan diekspos lewat relasi `vouchers` (bukan append `vouchers_data`, yang sudah dihapus). Setiap item di `vouchers` memuat:
 
 ```json
-"vouchers_data": [
-  {
-    "code": "KODE1",
-    "type": "nominal" | "percentage",
-    "value": 10000.0,        // nilai face voucher (bisa nominal/config persen)
-    "nominal": 10000.0        // nominal yang benar-benar terpotong untuk voucher ini
+{
+  "code": "KODE1",
+  "description": "...",
+  "pivot": {
+    "discount_amount": 10000.0
   }
-]
+}
 ```
 
-Gunakan key **`nominal`** untuk menampilkan/menghitung potongan riil tiap voucher (karena `value` belum tentu sama dengan potongan aktual, terutama untuk tipe percentage dan saat harga di-floored).
+Gunakan **`pivot.discount_amount`** pada tiap item untuk menampilkan/menghitung potongan riil voucher tersebut (karena `category.discount_amount` belum tentu sama dengan potongan aktual, terutama untuk tipe percentage dan saat harga di-floored).
+
+### Total diskon voucher (`total_voucher`)
+
+Sales order / invoice memiliki field **`total_voucher`** (integer) — total nominal yang benar-benar terpotong dari semua voucher (sama dengan penjumlahan `vouchers[].pivot.discount_amount`).
+
+Field ini tersedia di:
+
+- **Order tersimpan** (list/detail): kolom persisten di table `sales_orders`, langsung ada di response tanpa perlu load relasi `vouchers` (cocok untuk menampilkan total voucher di grid/list).
+- **Preview** (`is_preview = true`): diisi pipeline saat kalkulasi, jadi tetap muncul di response preview sebelum order tersimpan.
 
 ---
 
@@ -111,9 +119,9 @@ Gunakan key **`nominal`** untuk menampilkan/menghitung potongan riil tiap vouche
 
 1. **Input voucher** → kirim `voucher_codes` sebagai array string pada payload create/update invoice.
 2. **Edit invoice** → prefill input voucher dari response `vouchers[].code`.
-3. **Preview harga** → aplikasikan diskon voucher secara sequential (bukan sum nominal), gunakan `vouchers_data[].nominal` jika tersedia untuk memastikan cocok dengan backend.
+3. **Preview harga** → aplikasikan diskon voucher secara sequential (bukan sum nominal).
 4. **Update** → kirim daftar lengkap yang diinginkan; backend akan `sync` (daftar lama diganti total).
-5. **Hapus key `voucher`** dari semua handling data frontend — ganti dengan `vouchers` (dan opsional `vouchers_data`).
+5. **Hapus key `voucher`** dari semua handling data frontend — ganti dengan `vouchers`. Tampilkan potongan tiap voucher dari `vouchers[].pivot.discount_amount`.
 
 ---
 
@@ -121,6 +129,8 @@ Gunakan key **`nominal`** untuk menampilkan/menghitung potongan riil tiap vouche
 
 - [ ] Create invoice dengan 2+ voucher berhasil dan diskon dihitung sequential.
 - [ ] Update invoice sesuai array `voucher_codes` yang dikirim (voucher lama terganti total).
-- [ ] Response berisi key `vouchers` (array) dan TIDAK lagi berisi key `voucher`.
-- [ ] Frontend menampilkan potongan tiap voucher menggunakan `vouchers_data[].nominal`.
+- [ ] Response berisi key `vouchers` (array) dan TIDAK lagi berisi key `voucher` maupun `vouchers_data`.
+- [ ] Frontend menampilkan potongan tiap voucher menggunakan `vouchers[].pivot.discount_amount`.
+- [ ] Response (saved maupun preview) memuat field `total_voucher` berisi total potongan semua voucher.
+- [ ] Update invoice dengan `voucher_codes: []` menghapus semua voucher lama (pivot ter-sync kosong, `total_voucher` kembali 0).
 - [ ] Voucher kadaluwarsa/tidak valid menampilkan pesan error dari backend.

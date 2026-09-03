@@ -25,6 +25,9 @@ class SalesOrderResource extends JsonResource
                 'vouchers' => $this->whenLoaded('vouchers', fn () => $this->vouchers->map(fn ($v) => [
                     'id' => $v->id,
                     'code' => $v->code,
+                    'pivot' => [
+                        'discount_amount' => $v->pivot->discount_amount,
+                    ],
                     'category' => $v->category ? [
                         'id' => $v->category->id,
                         'name' => $v->category->name,

@@ -22,13 +22,15 @@ class SalesOrder extends Model
 
     public ?int $expected_price = null;
 
+    public ?array $vouchers_ids_to_sync = null;
+
+    public ?array $vouchers_discount_amount = null;
+
     protected $appends = [
         'cashier_name',
         'additional_discount_percentage',
         'auto_discount_nominal',
         'auto_discount_details',
-
-        'vouchers_data',
 
         'payment_amount',
         'payment_status',
@@ -54,6 +56,7 @@ class SalesOrder extends Model
         'additional_discount',
         'auto_discount',
         'price',
+        'total_voucher',
         'description',
         'is_invoice',
         'type',
@@ -66,6 +69,7 @@ class SalesOrder extends Model
         'additional_discount' => 'integer',
         'auto_discount' => 'float',
         'price' => 'integer',
+        'total_voucher' => 'integer',
         'is_invoice' => 'boolean',
         'type' => SalesOrderType::class,
         'company' => CompanyEnum::class,
@@ -113,7 +117,7 @@ class SalesOrder extends Model
     protected function hasDeliveryOrder(): Attribute
     {
         return Attribute::make(
-            get: fn() => $this->details()->whereHas('deliveryOrderDetails', function ($q) {
+            get: fn () => $this->details()->whereHas('deliveryOrderDetails', function ($q) {
                 $q->whereColumn(
                     \Illuminate\Support\Facades\DB::raw('(SELECT COALESCE(SUM(qty), 0) FROM delivery_order_details WHERE delivery_order_details.sales_order_detail_id = sales_order_details.id)'),
                     '>=',
@@ -148,32 +152,6 @@ class SalesOrder extends Model
     public function getAutoDiscountDetailsAttribute(): array
     {
         return $this->raw_source['auto_discount_details'] ?? [];
-    }
-
-    public function getVouchersDataAttribute(): array
-    {
-        $vouchers = $this->relationLoaded('vouchers')
-            ? $this->vouchers
-            : $this->vouchers()->select('id', 'code')->get();
-
-        $nominals = $this->raw_source['voucher_value_nominal_per_voucher'] ?? [];
-        $codes = $this->raw_source['voucher_codes'] ?? [];
-
-        return $vouchers->map(function ($v) use ($nominals, $codes) {
-            $index = array_search($v->code, $codes);
-
-            return [
-                'code' => $v->code,
-                'type' => $v->category->discount_type->value ?? 'nominal',
-                'value' => $v->category->discount_amount ?? 0,
-                'nominal' => ($index !== false && isset($nominals[$index])) ? $nominals[$index] : 0,
-            ];
-        })->all();
-    }
-
-    public function getVoucherNominalTotalAttribute(): int|float
-    {
-        return $this->raw_source['voucher_total_nominal'] ?? 0;
     }
 
     public function getPaymentAmountAttribute()
@@ -219,7 +197,9 @@ class SalesOrder extends Model
 
     public function vouchers(): BelongsToMany
     {
-        return $this->belongsToMany(Voucher::class, 'sales_order_vouchers')->withTimestamps();
+        return $this->belongsToMany(Voucher::class, 'sales_order_vouchers')
+            ->withPivot('discount_amount')
+            ->withTimestamps();
     }
 
     public function reseller(): BelongsTo
@@ -277,12 +257,12 @@ class SalesOrder extends Model
     {
         // if ($value) return $query->whereHas('details', fn ($q) => $q->has('deliveryOrderDetail'));
         // return $query->whereHas('details', fn ($q) => $q->doesntHave('deliveryOrderDetail'));
-        return $query->whereHas('details', fn($q) => $q->hasDeliveryOrder((bool) $value));
+        return $query->whereHas('details', fn ($q) => $q->hasDeliveryOrder((bool) $value));
     }
 
     public function scopeHasSalesOrder(Builder $query, bool $value = true)
     {
-        $query->when($value === true, fn($q) => $q->whereNotNull('warehouse_id')->whereNotNull('invoice_no')->where('invoice_no', '!=', ''));
+        $query->when($value === true, fn ($q) => $q->whereNotNull('warehouse_id')->whereNotNull('invoice_no')->where('invoice_no', '!=', ''));
         // $query->when($value === true, fn ($q) => $q->whereNotNull('warehouse_id')->where(fn ($q) => $q->whereNotNull('invoice_no')->orWhere('invoice_no', '')));
     }
 
@@ -291,11 +271,11 @@ class SalesOrder extends Model
         $query
             ->when(
                 $value === true,
-                fn($q) => $q->whereHas('details.salesOrderItems')
+                fn ($q) => $q->whereHas('details.salesOrderItems')
             )
             ->when(
                 $value === false,
-                fn($q) => $q->where(function ($q) {
+                fn ($q) => $q->where(function ($q) {
                     $q->whereDoesntHave('details.salesOrderItems')
                         ->orWhereHas('details', function ($q) {
                             $q->whereRaw(
