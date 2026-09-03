@@ -22,12 +22,13 @@ class CalculateVoucher
             $salesOrder->total_voucher = 0;
             $salesOrder->vouchers_ids_to_sync = [];
             $salesOrder->vouchers_discount_amount = [];
+            $salesOrder->setRelation('vouchers', collect());
 
             return $next($salesOrder);
         }
 
         $vouchers = Voucher::whereIn('code', $codes)
-            ->with('category:id,discount_type,discount_amount')
+            ->with('category:id,name,discount_type,discount_amount')
             ->get(['id', 'voucher_category_id', 'code']);
 
         $validVouchers = $vouchers->filter(fn ($v) => $v->isValid());
@@ -36,6 +37,7 @@ class CalculateVoucher
             $salesOrder->total_voucher = 0;
             $salesOrder->vouchers_ids_to_sync = [];
             $salesOrder->vouchers_discount_amount = [];
+            $salesOrder->setRelation('vouchers', collect());
 
             return $next($salesOrder);
         }
@@ -64,6 +66,17 @@ class CalculateVoucher
         $salesOrder->total_voucher = (int) $totalVoucherNominal;
         $salesOrder->vouchers_ids_to_sync = $validVouchers->pluck('id')->all();
         $salesOrder->vouchers_discount_amount = $discountAmountByVoucherId;
+
+        // Attach the vouchers with their applied discount to the relation so the
+        // response has them even on preview, where the pivot sync never runs.
+        $validVouchers->each(fn ($voucher) => $voucher->setRelation(
+            'pivot',
+            $salesOrder->vouchers()->newPivot([
+                'voucher_id' => $voucher->id,
+                'discount_amount' => $discountAmountByVoucherId[$voucher->id],
+            ])
+        ));
+        $salesOrder->setRelation('vouchers', $validVouchers->values());
 
         return $next($salesOrder);
     }
