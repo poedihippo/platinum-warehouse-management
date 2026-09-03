@@ -104,7 +104,7 @@ class InvoiceUpdateRequest extends FormRequest
             }],
             'items.*.product_unit_id' => ['required', 'integer', 'exists:product_units,id'],
             // 'items.*.packaging_id' => 'nullable|integer|exists:product_units,id',
-            'items.*.qty' => ['required', 'integer'],
+            'items.*.qty' => ['required', 'integer', 'min:1'],
             'items.*.unit_price' => ['required', 'numeric', 'min:0'],
             'items.*.discount' => ['required', 'numeric', 'min:0'],
             'items.*.tax' => ['required', 'boolean'],
