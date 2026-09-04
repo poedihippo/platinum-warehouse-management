@@ -38,15 +38,12 @@ class StockProductUnitResource extends JsonResource
                     $salesOrder = $salesOrderDetail->salesOrder->setAppends([]);
                     $data['sales_order'] = $salesOrder;
 
-                    // ==============================================
                     // Cek deliveryOrderDetail → deliveryOrder
-                    // ==============================================
-
                     if (
-                        $salesOrderDetail->relationLoaded('deliveryOrderDetail') &&
-                        $salesOrderDetail->deliveryOrderDetail?->relationLoaded('deliveryOrder')
+                        $salesOrderItem->relationLoaded('deliveryOrderDetail') &&
+                        $salesOrderItem->deliveryOrderDetail?->relationLoaded('deliveryOrder')
                     ) {
-                        $data['delivery_order'] = $salesOrderDetail
+                        $data['delivery_order'] = $salesOrderItem
                             ->deliveryOrderDetail
                             ->deliveryOrder
                             ->setAppends([]);
