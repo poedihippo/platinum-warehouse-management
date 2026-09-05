@@ -94,9 +94,9 @@ class InvoiceController extends Controller
         //     });
         // }
 
-        if (! $isPreview) {
-            return $this->createdResponse();
-        }
+        // if (! $isPreview) {
+        //     return $this->createdResponse();
+        // }
 
         return new SalesOrderResource($salesOrder->loadMissing('vouchers.category'));
     }
@@ -249,9 +249,9 @@ class InvoiceController extends Controller
         //     });
         // }
 
-        if (! $isPreview) {
-            return $this->updatedResponse();
-        }
+        // if (! $isPreview) {
+        //     return $this->updatedResponse();
+        // }
 
         return (new SalesOrderResource($salesOrder->loadMissing('vouchers.category')))->response()->setStatusCode(\Illuminate\Http\Response::HTTP_ACCEPTED);
     }
