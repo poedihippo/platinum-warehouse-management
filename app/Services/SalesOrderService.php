@@ -176,6 +176,12 @@ class SalesOrderService
                 AllowedFilter::exact('spg_id'),
                 AllowedFilter::exact('warehouse_id'),
                 AllowedFilter::exact('company'),
+                AllowedFilter::exact('marketplace'),
+                AllowedFilter::callback('is_marketplace', function ($q, $value) {
+                    filter_var($value, FILTER_VALIDATE_BOOLEAN)
+                        ? $q->whereNotNull('marketplace')
+                        : $q->whereNull('marketplace');
+                }),
                 AllowedFilter::scope('has_sales_order', 'hasSalesOrder'),
                 AllowedFilter::scope('has_delivery_order', 'detailsHasDO'),
                 AllowedFilter::scope('has_related_so', 'hasSalesOrderItem'),
@@ -323,7 +329,11 @@ class SalesOrderService
         $message .= PHP_EOL;
         $message .= 'https://platinumadisentosa.com/invoices/'.($idHash ?? Crypt::encryptString($salesOrder->id)).'/print';
 
-        $phone = $salesOrder->reseller->phone;
+        $phone = $salesOrder->reseller?->phone;
+        if (empty($phone)) {
+            return null;
+        }
+
         if ($phone[0] == '0') {
             $phone = substr($phone, 1);
         }

@@ -8,6 +8,7 @@ use App\Http\Requests\Api\SalesOrderUpdateRequest;
 use App\Http\Resources\SalesOrderResource;
 use App\Models\ProductUnit;
 use App\Models\SalesOrder;
+use App\Models\SalesOrderDetail;
 use App\Models\StockProductUnit;
 use App\Services\SalesOrderService;
 use Illuminate\Http\Response;
@@ -50,7 +51,10 @@ class SalesOrderController extends Controller
     public function update($id, SalesOrderUpdateRequest $request)
     {
         $salesOrder = SalesOrder::findTenanted($id);
-        if (! $salesOrder->details?->every(fn ($salesOrderDetail) => ! $salesOrderDetail->deliveryOrderDetail)) {
+        if (
+            ! $salesOrder->marketplace
+            && SalesOrderDetail::where('sales_order_id', $salesOrder->id)->whereHas('deliveryOrderDetails')->exists()
+        ) {
             return response()->json(['message' => 'DO harus dihapus terlebih dahulu sebelum mengedit SO'], 400);
         }
 

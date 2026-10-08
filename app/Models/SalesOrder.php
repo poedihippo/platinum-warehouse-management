@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CompanyEnum;
+use App\Enums\Marketplace;
 use App\Enums\SalesOrderType;
 use App\Enums\SettingEnum;
 use App\Enums\UserType;
@@ -60,6 +61,7 @@ class SalesOrder extends Model
         'description',
         'is_invoice',
         'type',
+        'marketplace',
     ];
 
     protected $casts = [
@@ -73,6 +75,7 @@ class SalesOrder extends Model
         'is_invoice' => 'boolean',
         'type' => SalesOrderType::class,
         'company' => CompanyEnum::class,
+        'marketplace' => Marketplace::class,
     ];
 
     protected static function booted()

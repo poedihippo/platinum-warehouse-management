@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api;
 
 use App\Enums\CompanyEnum;
+use App\Enums\Marketplace;
 use App\Enums\SalesOrderType;
 use App\Models\Voucher;
 use App\Rules\TenantedRule;
@@ -22,6 +23,10 @@ class SalesOrderStoreRequest extends FormRequest
             'shipment_fee' => $this->shipment_fee ? (int) $this->shipment_fee : 0,
             'additional_discount' => $this->additional_discount ? (int) $this->additional_discount : 0,
         ]);
+
+        if ($this->has('marketplace') && $this->input('marketplace') === '') {
+            $this->merge(['marketplace' => null]);
+        }
     }
 
     /**
@@ -35,8 +40,10 @@ class SalesOrderStoreRequest extends FormRequest
             'company' => ['required', new EnumValue(CompanyEnum::class)],
             'expected_price' => 'nullable|integer',
             'type' => ['nullable', new EnumValue(SalesOrderType::class)],
+            'marketplace' => ['nullable', new EnumValue(Marketplace::class)],
             'reseller_id' => [
-                'required',
+                'nullable',
+                'required_without:marketplace',
                 function (string $attribute, mixed $value, Closure $fail) {
                     if (! DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::Reseller)->exists()) {
                         $fail('Reseller Tidak ditemukan');
@@ -52,8 +59,8 @@ class SalesOrderStoreRequest extends FormRequest
                 },
             ],
             'warehouse_id' => ['required', new TenantedRule()],
-            'transaction_date' => 'required|date_format:Y-m-d H:i:s',
-            'shipment_estimation_datetime' => 'required|date_format:Y-m-d H:i:s',
+            'transaction_date' => ['nullable', 'required_without:marketplace', 'date_format:Y-m-d H:i:s'],
+            'shipment_estimation_datetime' => ['nullable', 'required_without:marketplace', 'date_format:Y-m-d H:i:s'],
             'shipment_fee' => 'required|integer',
             'additional_discount' => 'required|integer',
             'voucher_codes' => ['nullable', 'array'],

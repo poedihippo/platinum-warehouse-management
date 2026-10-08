@@ -15,10 +15,10 @@ use App\Http\Resources\SalesOrderItemResource;
 use App\Models\AdjustmentRequest;
 use App\Models\DeliveryOrder;
 use App\Models\DeliveryOrderDetail;
-use App\Models\SalesOrderDetail;
 use App\Models\SalesOrderItem;
 use App\Models\Stock;
 use App\Models\StockProductUnit;
+use App\Services\DeliveryOrderService;
 use App\Services\SalesOrderService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
@@ -567,53 +567,17 @@ class DeliveryOrderController extends Controller
     public function attach($id, DeliveryOrderAttachRequest $request)
     {
         $deliveryOrder = DeliveryOrder::findTenanted($id, ['id']);
-        $count = 0;
-        $errors = [];
+        $result = DeliveryOrderService::attachDetails($deliveryOrder, $request->details);
 
-        foreach ($request->details as $item) {
-            $salesOrderDetail = SalesOrderDetail::find($item['sales_order_detail_id']);
-
-            // Hitung qty yang sudah di-assign ke DO lain (selain DO ini)
-            $alreadyScheduled = DeliveryOrderDetail::where('sales_order_detail_id', $salesOrderDetail->id)
-                ->where('delivery_order_id', '!=', $deliveryOrder->id)
-                ->sum('qty');
-
-            $remaining = $salesOrderDetail->qty - $alreadyScheduled;
-
-            if ($item['qty'] > $remaining) {
-                $errors[] = [
-                    'sales_order_detail_id' => $salesOrderDetail->id,
-                    'message' => "Qty melebihi sisa yang tersedia. Sisa: {$remaining}, diminta: {$item['qty']}",
-                ];
-
-                continue;
-            }
-
-            // Jika SO detail ini sudah ada di DO ini, update qty-nya
-            $existing = $deliveryOrder->details()
-                ->where('sales_order_detail_id', $salesOrderDetail->id)
-                ->first();
-
-            if ($existing) {
-                $existing->update(['qty' => $item['qty']]);
-            } else {
-                $deliveryOrder->details()->create([
-                    'sales_order_detail_id' => $salesOrderDetail->id,
-                    'qty' => $item['qty'],
-                ]);
-                $count++;
-            }
-        }
-
-        if (! empty($errors)) {
+        if (! empty($result['errors'])) {
             return response()->json([
                 'message' => 'Beberapa item gagal ditambahkan.',
-                'errors' => $errors,
+                'errors' => $result['errors'],
             ], 422);
         }
 
         return response()->json([
-            'message' => $count.' Sales order berhasil ditambahkan ke delivery order',
+            'message' => $result['count'].' Sales order berhasil ditambahkan ke delivery order',
         ]);
     }
 

@@ -204,7 +204,7 @@
                                 <td>Ship To</td>
                                 <td>
                                     <div class="locationTop py-5">
-                                        <h3 class="m-0 mx-5">{{ $salesOrder->reseller->name }}</h3>
+                                        <h3 class="m-0 mx-5">{{ $salesOrder->reseller?->name }}</h3>
                                         <p class="m-0 mx-5">
                                             {{ $salesOrder->reseller?->address }}
                                         </p>
