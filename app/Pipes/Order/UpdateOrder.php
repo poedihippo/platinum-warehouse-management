@@ -17,11 +17,16 @@ class UpdateOrder
         $salesOrder = DB::transaction(function () use ($salesOrder) {
             $wasMarketplace = $salesOrder->getRawOriginal('marketplace') !== null;
             $deliveryOrder = null;
+            $lockedDetailIds = collect();
             $oldDetailIds = SalesOrderDetail::where('sales_order_id', $salesOrder->id)->pluck('id');
 
             if ($wasMarketplace) {
                 $deliveryOrder = DeliveryOrderService::assertEditable($salesOrder);
-                DeliveryOrderService::detachSalesOrderItems($oldDetailIds);
+                $lockedDetailIds = DeliveryOrderService::lockedSalesOrderDetailIds($salesOrder);
+
+                if (! $salesOrder->marketplace && $lockedDetailIds->isNotEmpty()) {
+                    $this->throwVerifiedDetail();
+                }
             }
 
             $newDetails = $salesOrder->details->values();
@@ -30,7 +35,7 @@ class UpdateOrder
             $salesOrder->save();
 
             if ($wasMarketplace) {
-                $this->syncDetailsInPlace($salesOrder, $oldDetailIds, $newDetails);
+                $this->syncDetailsInPlace($salesOrder, $oldDetailIds, $newDetails, $lockedDetailIds);
             } else {
                 if (DeliveryOrderDetail::whereIn('sales_order_detail_id', $oldDetailIds)->exists()) {
                     throw new BadRequestHttpException('DO harus dihapus terlebih dahulu sebelum mengedit SO');
@@ -64,10 +69,14 @@ class UpdateOrder
      * Update Sales Order details in place: unchanged rows keep their IDs, changed rows
      * are updated, new rows are inserted and removed rows are deleted.
      *
+     * Details that already have a verified (scanned) stock item are locked: they must be
+     * submitted unchanged and can never be removed.
+     *
      * @param  Collection<int, int>  $oldDetailIds
      * @param  Collection<int, SalesOrderDetail>  $newDetails
+     * @param  Collection<int, int>  $lockedDetailIds
      */
-    private function syncDetailsInPlace(SalesOrder $salesOrder, Collection $oldDetailIds, Collection $newDetails): void
+    private function syncDetailsInPlace(SalesOrder $salesOrder, Collection $oldDetailIds, Collection $newDetails, Collection $lockedDetailIds): void
     {
         $oldByItem = SalesOrderDetail::whereIn('id', $oldDetailIds)->get()
             ->groupBy(fn (SalesOrderDetail $detail) => $detail->product_unit_id.'|'.($detail->warehouse_id ?? ''))
@@ -88,6 +97,10 @@ class UpdateOrder
         }
 
         foreach ($matched as [$oldDetail, $newDetail]) {
+            if ($lockedDetailIds->contains($oldDetail->id)) {
+                continue;
+            }
+
             $oldDetail->qty = $newDetail->qty;
             $oldDetail->unit_price = $newDetail->unit_price;
             $oldDetail->discount = $newDetail->discount;
@@ -97,6 +110,10 @@ class UpdateOrder
         }
 
         foreach ($oldByItem->flatten(1) as $removedDetail) {
+            if ($lockedDetailIds->contains($removedDetail->id)) {
+                $this->throwVerifiedDetail();
+            }
+
             DeliveryOrderDetail::where('sales_order_detail_id', $removedDetail->id)->delete();
             $removedDetail->delete();
         }
@@ -104,6 +121,11 @@ class UpdateOrder
         if ($toCreate->isNotEmpty()) {
             $salesOrder->details()->saveMany($toCreate);
         }
+    }
+
+    private function throwVerifiedDetail(): void
+    {
+        throw new BadRequestHttpException(DeliveryOrderService::VERIFIED_STOCK_MESSAGE);
     }
 
     private function voucherPivot(SalesOrder $salesOrder): array

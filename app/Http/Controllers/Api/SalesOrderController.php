@@ -45,7 +45,7 @@ class SalesOrderController extends Controller
     {
         $salesOrder = SalesOrderService::createOrder(SalesOrder::make(['raw_source' => $request->validated()]), (bool) $request->is_preview ?? false);
 
-        return new SalesOrderResource($salesOrder);
+        return new SalesOrderResource($this->loadMarketplaceDeliveryOrder($salesOrder));
     }
 
     public function update($id, SalesOrderUpdateRequest $request)
@@ -61,7 +61,7 @@ class SalesOrderController extends Controller
         $salesOrder->raw_source = $request->validated();
         $salesOrder = SalesOrderService::updateOrder($salesOrder, (bool) $request->is_preview ?? false);
 
-        return (new SalesOrderResource($salesOrder))->response()->setStatusCode(Response::HTTP_ACCEPTED);
+        return (new SalesOrderResource($this->loadMarketplaceDeliveryOrder($salesOrder)))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
     public function destroy($id)
@@ -173,5 +173,14 @@ class SalesOrderController extends Controller
             });
 
         return response()->json($stockProductUnits);
+    }
+
+    private function loadMarketplaceDeliveryOrder(SalesOrder $salesOrder): SalesOrder
+    {
+        if ($salesOrder->marketplace) {
+            $salesOrder->load('deliveryOrderDetails');
+        }
+
+        return $salesOrder;
     }
 }

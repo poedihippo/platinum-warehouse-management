@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Facades\DB;
 
 class SalesOrder extends Model
@@ -181,6 +182,18 @@ class SalesOrder extends Model
     public function details(): HasMany
     {
         return $this->hasMany(SalesOrderDetail::class);
+    }
+
+    public function deliveryOrderDetails(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            DeliveryOrderDetail::class,
+            SalesOrderDetail::class,
+            'sales_order_id',
+            'sales_order_detail_id',
+            'id',
+            'id',
+        );
     }
 
     public function payments(): HasMany

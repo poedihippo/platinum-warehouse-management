@@ -20,6 +20,10 @@ class SalesOrderResource extends JsonResource
                 'cashier_name' => $this->cashier_name,
                 'total_roll_dice' => floor($this->price / config('app.min_price_roll_dice', 500000)),
                 'has_delivery_order' => $this->has_delivery_order,
+                'delivery_order_id' => $this->whenLoaded(
+                    'deliveryOrderDetails',
+                    fn () => $this->deliveryOrderDetails->first()?->delivery_order_id
+                ),
                 'details_count' => $this->whenCounted('details'),
                 'auto_discount_details' => $this->auto_discount_details,
                 'vouchers' => $this->whenLoaded('vouchers', fn () => $this->vouchers->map(fn ($v) => [

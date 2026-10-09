@@ -14,6 +14,7 @@ use App\Pipes\Order\CheckExpectedOrderPrice;
 use App\Pipes\Order\FillOrderAttributes;
 use App\Pipes\Order\FillOrderRecords;
 use App\Pipes\Order\MakeOrderDetails;
+use App\Pipes\Order\NormalizeLockedOrderItems;
 use App\Pipes\Order\SaveOrder;
 use App\Pipes\Order\UpdateOrder;
 use Illuminate\Pipeline\Pipeline;
@@ -85,6 +86,7 @@ class SalesOrderService
         $pipes = [
             FillOrderAttributes::class,
             FillOrderRecords::class,
+            NormalizeLockedOrderItems::class,
             MakeOrderDetails::class,
             CalculateAutoDiscount::class,
             CalculateVoucher::class,
@@ -115,6 +117,7 @@ class SalesOrderService
         $pipes = [
             FillOrderAttributes::class,
             FillOrderRecords::class,
+            NormalizeLockedOrderItems::class,
             MakeOrderDetails::class,
             CalculateAutoDiscount::class,
             CalculateVoucher::class,
@@ -145,6 +148,7 @@ class SalesOrderService
         $pipes = [
             FillOrderAttributes::class,
             FillOrderRecords::class,
+            NormalizeLockedOrderItems::class,
             MakeOrderDetails::class,
             CalculateAutoDiscount::class,
             CalculateVoucher::class,

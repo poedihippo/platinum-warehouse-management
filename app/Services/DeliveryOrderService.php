@@ -13,6 +13,8 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class DeliveryOrderService
 {
+    public const VERIFIED_STOCK_MESSAGE = 'Terdapat stock yang sudah di-scan pada Delivery Order. Reset verifikasi terlebih dahulu sebelum mengedit Sales Order.';
+
     /**
      * Create a Delivery Order for a marketplace Sales Order and link every SO detail.
      *
@@ -69,11 +71,111 @@ class DeliveryOrderService
             throw new BadRequestHttpException('Delivery Order berisi Sales Order lain. Lepas terlebih dahulu sebelum mengedit Sales Order.');
         }
 
-        if (SalesOrderItem::whereIn('sales_order_detail_id', $detailIds)->whereNotNull('stock_id')->exists()) {
-            throw new BadRequestHttpException('Terdapat stock yang sudah di-scan pada Delivery Order. Reset verifikasi terlebih dahulu sebelum mengedit Sales Order.');
+        return $deliveryOrder;
+    }
+
+    /**
+     * Sales Order detail IDs that already have a verified (non-returned) stock item.
+     * These details are locked during an edit; untouched details stay editable.
+     *
+     * @return Collection<int, int>
+     */
+    public static function lockedSalesOrderDetailIds(SalesOrder $salesOrder): Collection
+    {
+        $detailIds = SalesOrderDetail::where('sales_order_id', $salesOrder->id)->pluck('id');
+
+        return SalesOrderItem::whereIn('sales_order_detail_id', $detailIds)
+            ->whereNotNull('stock_id')
+            ->whereNotReturned()
+            ->distinct()
+            ->pluck('sales_order_detail_id');
+    }
+
+    /**
+     * Keep verified (scanned) Sales Order details immutable while editing the order.
+     *
+     * The request payload is validated against the stored values and the stored values are
+     * written back into raw_source, so the pricing pipeline always recomputes from what is
+     * actually persisted. This prevents both silent price drift and removal of scanned data.
+     */
+    public static function normalizeLockedItems(SalesOrder $salesOrder): void
+    {
+        if (! $salesOrder->exists || $salesOrder->getRawOriginal('marketplace') === null) {
+            return;
         }
 
-        return $deliveryOrder;
+        $lockedDetails = static::lockedDetailsByKey($salesOrder);
+
+        if ($lockedDetails->isEmpty()) {
+            return;
+        }
+
+        if (! $salesOrder->marketplace) {
+            throw new BadRequestHttpException(static::VERIFIED_STOCK_MESSAGE);
+        }
+
+        $rawSource = $salesOrder->raw_source;
+        $items = collect($rawSource['items'] ?? []);
+
+        foreach ($lockedDetails as $key => $detail) {
+            $item = $items->first(fn ($item) => static::itemKey($item) === $key);
+
+            if (! $item || static::itemChanged($item, $detail)) {
+                throw new BadRequestHttpException(static::VERIFIED_STOCK_MESSAGE);
+            }
+        }
+
+        $rawSource['items'] = $items->map(function ($item) use ($lockedDetails) {
+            $detail = $lockedDetails->get(static::itemKey($item));
+
+            if ($detail) {
+                $item['qty'] = (int) $detail->qty;
+                $item['unit_price'] = (int) $detail->unit_price;
+                $item['discount'] = (int) $detail->discount;
+                $item['tax'] = (int) $detail->tax === 11 ? 1 : 0;
+                $item['total_price'] = (int) $detail->total_price;
+            }
+
+            return $item;
+        })->all();
+
+        $salesOrder->raw_source = $rawSource;
+    }
+
+    /**
+     * @return Collection<string, SalesOrderDetail> keyed by product_unit_id|warehouse_id
+     */
+    private static function lockedDetailsByKey(SalesOrder $salesOrder): Collection
+    {
+        $lockedIds = static::lockedSalesOrderDetailIds($salesOrder);
+
+        if ($lockedIds->isEmpty()) {
+            return collect();
+        }
+
+        return SalesOrderDetail::whereIn('id', $lockedIds)
+            ->get()
+            ->keyBy(fn (SalesOrderDetail $detail) => static::detailKey($detail));
+    }
+
+    private static function detailKey(SalesOrderDetail $detail): string
+    {
+        return $detail->product_unit_id.'|'.($detail->warehouse_id ?? '');
+    }
+
+    private static function itemKey(array $item): string
+    {
+        return ($item['product_unit_id'] ?? '').'|'.($item['warehouse_id'] ?? '');
+    }
+
+    private static function itemChanged(array $item, SalesOrderDetail $detail): bool
+    {
+        $itemTax = ! empty($item['tax']) ? 11 : 0;
+
+        return (int) ($item['qty'] ?? 0) !== (int) $detail->qty
+            || (int) ($item['unit_price'] ?? 0) !== (int) $detail->unit_price
+            || (int) ($item['discount'] ?? 0) !== (int) $detail->discount
+            || $itemTax !== (int) $detail->tax;
     }
 
     /**
@@ -163,16 +265,6 @@ class DeliveryOrderService
             'shipment_estimation_datetime' => $salesOrder->shipment_estimation_datetime ?? $deliveryOrder->shipment_estimation_datetime,
             'description' => $salesOrder->description ?? $deliveryOrder->description,
         ]);
-    }
-
-    /**
-     * Remove sales_order_items that reference the given Sales Order details.
-     *
-     * @param  Collection<int, int>  $salesOrderDetailIds
-     */
-    public static function detachSalesOrderItems(Collection $salesOrderDetailIds): void
-    {
-        SalesOrderItem::whereIn('sales_order_detail_id', $salesOrderDetailIds)->delete();
     }
 
     /**
