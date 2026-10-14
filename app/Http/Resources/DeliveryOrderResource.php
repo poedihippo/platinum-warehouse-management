@@ -17,6 +17,7 @@ class DeliveryOrderResource extends JsonResource
         return array_merge(
             parent::toArray($request),
             [
+                'is_marketplace_source' => ! is_null($this->sales_order_id),
                 // 'sales_order' => new SalesOrderResource($this->whenLoaded('salesOrder')->loadCount('details')),
                 'user' => new UserResource($this->whenLoaded('user')),
                 'reseller' => new UserResource($this->reseller),

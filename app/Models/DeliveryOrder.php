@@ -19,6 +19,7 @@ class DeliveryOrder extends Model
         'user_id',
         'warehouse_id',
         'reseller_id',
+        'sales_order_id',
         'company',
         'invoice_no',
         'transaction_date',
@@ -65,10 +66,10 @@ class DeliveryOrder extends Model
         return $this->hasMany(DeliveryOrderDetail::class);
     }
 
-    // public function salesOrder()
-    // {
-    //     return $this->belongsTo(SalesOrder::class);
-    // }
+    public function salesOrder(): BelongsTo
+    {
+        return $this->belongsTo(SalesOrder::class);
+    }
 
     public function user(): BelongsTo
     {

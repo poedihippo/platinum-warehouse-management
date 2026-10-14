@@ -29,6 +29,7 @@ class DeliveryOrderService
         $deliveryOrder = DeliveryOrder::create([
             'warehouse_id' => $salesOrder->warehouse_id,
             'reseller_id' => $salesOrder->reseller_id,
+            'sales_order_id' => $salesOrder->id,
             'company' => $salesOrder->company ?? CompanyEnum::PAS,
             'transaction_date' => $salesOrder->transaction_date ?? now(),
             'shipment_estimation_datetime' => $salesOrder->shipment_estimation_datetime ?? now(),

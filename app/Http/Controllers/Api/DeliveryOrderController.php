@@ -52,6 +52,12 @@ class DeliveryOrderController extends Controller
                 'invoice_no',
                 AllowedFilter::exact('reseller_id'),
                 AllowedFilter::exact('company'),
+                AllowedFilter::exact('sales_order_id'),
+                AllowedFilter::callback('is_marketplace_source', function ($q, $value) {
+                    filter_var($value, FILTER_VALIDATE_BOOLEAN)
+                        ? $q->whereNotNull('sales_order_id')
+                        : $q->whereNull('sales_order_id');
+                }),
                 AllowedFilter::scope('start_date'),
                 AllowedFilter::scope('end_date'),
             ])
