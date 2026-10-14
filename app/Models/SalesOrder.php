@@ -63,6 +63,7 @@ class SalesOrder extends Model
         'is_invoice',
         'type',
         'marketplace',
+        'merged_into_sales_order_id',
     ];
 
     protected $casts = [
@@ -194,6 +195,26 @@ class SalesOrder extends Model
             'id',
             'id',
         );
+    }
+
+    public function mergedInto(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'merged_into_sales_order_id');
+    }
+
+    public function mergedSources(): HasMany
+    {
+        return $this->hasMany(self::class, 'merged_into_sales_order_id');
+    }
+
+    public function isMergeSource(): bool
+    {
+        return ! is_null($this->merged_into_sales_order_id);
+    }
+
+    public function isMergeResult(): bool
+    {
+        return $this->mergedSources()->exists();
     }
 
     public function payments(): HasMany

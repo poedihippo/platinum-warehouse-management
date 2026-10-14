@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\SalesOrderMergeRequest;
 use App\Http\Requests\Api\SalesOrderStoreRequest;
 use App\Http\Requests\Api\SalesOrderUpdateRequest;
 use App\Http\Resources\SalesOrderResource;
@@ -48,9 +49,26 @@ class SalesOrderController extends Controller
         return new SalesOrderResource($this->loadMarketplaceDeliveryOrder($salesOrder));
     }
 
+    public function merge(SalesOrderMergeRequest $request)
+    {
+        $salesOrder = SalesOrderService::mergeMarketplaceOrders($request->validated());
+        $salesOrder->load('mergedSources:id,merged_into_sales_order_id');
+
+        return new SalesOrderResource($this->loadMarketplaceDeliveryOrder($salesOrder));
+    }
+
     public function update($id, SalesOrderUpdateRequest $request)
     {
         $salesOrder = SalesOrder::findTenanted($id);
+
+        if ($salesOrder->isMergeSource()) {
+            return response()->json(['message' => 'Sales Order sumber merge tidak dapat diubah.'], 400);
+        }
+
+        if ($salesOrder->isMergeResult()) {
+            return response()->json(['message' => 'Sales Order hasil merge tidak dapat diubah. Hapus Sales Order hasil merge untuk membatalkan merge.'], 400);
+        }
+
         if (
             ! $salesOrder->marketplace
             && SalesOrderDetail::where('sales_order_id', $salesOrder->id)->whereHas('deliveryOrderDetails')->exists()
@@ -68,6 +86,17 @@ class SalesOrderController extends Controller
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('sales_order_delete'), 403);
         $salesOrder = SalesOrder::findTenanted($id);
+
+        if ($salesOrder->isMergeSource()) {
+            return response()->json(['message' => 'Sales Order sumber merge tidak dapat dihapus.'], 400);
+        }
+
+        if ($salesOrder->isMergeResult()) {
+            SalesOrderService::deleteMergeResult($salesOrder);
+
+            return $this->deletedResponse();
+        }
+
         if ($salesOrder->has_delivery_order) {
             return response()->json(['message' => 'Tidak dapat menghapus SO yang sudah direlasikan dengan DO'], 400);
         }
@@ -177,7 +206,7 @@ class SalesOrderController extends Controller
 
     private function loadMarketplaceDeliveryOrder(SalesOrder $salesOrder): SalesOrder
     {
-        if ($salesOrder->marketplace) {
+        if ($salesOrder->marketplace || $salesOrder->isMergeResult()) {
             $salesOrder->load('deliveryOrderDetails');
         }
 

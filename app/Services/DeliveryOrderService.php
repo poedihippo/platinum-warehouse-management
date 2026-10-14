@@ -18,11 +18,11 @@ class DeliveryOrderService
     /**
      * Create a Delivery Order for a marketplace Sales Order and link every SO detail.
      *
-     * No-op (null) when the Sales Order is not a marketplace order.
+     * No-op (null) when the Sales Order is not a marketplace order, unless $force is true.
      */
-    public static function createForSalesOrder(SalesOrder $salesOrder): ?DeliveryOrder
+    public static function createForSalesOrder(SalesOrder $salesOrder, bool $force = false): ?DeliveryOrder
     {
-        if (! $salesOrder->marketplace) {
+        if (! $force && ! $salesOrder->marketplace) {
             return null;
         }
 

@@ -266,6 +266,7 @@ Route::middleware(['auth:sanctum', 'ability:warehouse'])->group(function () {
     });
 
     // Route::post('sales-orders/invoice', [SalesOrderController::class, 'invoice']);
+    Route::post('sales-orders/merge', [SalesOrderController::class, 'merge']);
     Route::get('sales-orders/product-units', [SalesOrderController::class, 'productUnits']);
     Route::get('sales-orders/product-units-new', [SalesOrderController::class, 'productUnitsNew']);
     Route::get('sales-orders/{salesOrder}/export-xml', [SalesOrderController::class, 'exportXml']);
