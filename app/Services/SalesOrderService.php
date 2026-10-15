@@ -5,10 +5,8 @@ namespace App\Services;
 use App\Http\Resources\SalesOrderResource;
 use App\Models\DeliveryOrder;
 use App\Models\DeliveryOrderDetail;
-use App\Models\Payment;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderDetail;
-use App\Models\SalesOrderItem;
 use App\Models\Warehouse;
 use App\Pipes\Order\CalculateAdditionalDiscount;
 use App\Pipes\Order\CalculateAdditionalFees;
@@ -177,7 +175,12 @@ class SalesOrderService
     public static function index(int $perPage, ?callable $query = null)
     {
         $salesOrders = \Spatie\QueryBuilder\QueryBuilder::for(
-            SalesOrder::tenanted()->withCount('details')->when($query, $query)
+            SalesOrder::tenanted()->withCount([
+                'details',
+                'deliveryOrders',
+                'deliveryOrders as pending_delivery_orders_count' => fn ($q) => $q->where('is_done', false),
+                'mergedSalesOrders',
+            ])->when($query, $query)
         )
             ->allowedFilters([
                 'invoice_no',
@@ -199,6 +202,7 @@ class SalesOrderService
                 AllowedFilter::scope('start_date'),
                 AllowedFilter::scope('end_date'),
                 AllowedFilter::scope('has_remaining_do', 'hasRemainingDo'),
+                AllowedFilter::scope('is_mergeable', 'mergeable'),
                 AllowedFilter::callback('search', function ($q, $value) {
                     $q->where('invoice_no', 'like', '%'.$value.'%')
                         ->orWhereHas('user', fn ($q) => $q->where('name', 'like', '%'.$value.'%'))
@@ -233,7 +237,12 @@ class SalesOrderService
             ]),
             'user' => fn ($q) => $q->select('id', 'name', 'type'),
             'reseller' => fn ($q) => $q->select('id', 'name', 'type', 'type', 'email', 'phone', 'address'),
-        ])->loadCount('details');
+        ])->loadCount([
+            'details',
+            'deliveryOrders',
+            'deliveryOrders as pending_delivery_orders_count' => fn ($q) => $q->where('is_done', false),
+            'mergedSalesOrders',
+        ]);
     }
 
     public static function print(int|string $id, string $type = 'print', ?callable $query = null)
@@ -427,9 +436,12 @@ class SalesOrderService
 
             $mergedSalesOrder = static::createOrder(SalesOrder::make(['raw_source' => $rawSource]));
 
-            if (! $mergedSalesOrder->marketplace) {
-                DeliveryOrderService::createForSalesOrder($mergedSalesOrder, true);
-            }
+            $deliveryOrder = DeliveryOrder::where('sales_order_id', $mergedSalesOrder->id)->first()
+                ?? DeliveryOrderService::createForSalesOrder($mergedSalesOrder, true);
+
+            static::copyVerifiedStockItems($mergedSalesOrder, $deliveryOrder, $sourceIds->all());
+
+            $deliveryOrder->update(['is_done' => true, 'done_at' => now()]);
 
             SalesOrder::whereIn('id', $sourceIds->all())
                 ->update(['merged_into_sales_order_id' => $mergedSalesOrder->id]);
@@ -450,17 +462,10 @@ class SalesOrderService
                 ->unique()
                 ->values();
 
-            $deliveryOrders = DeliveryOrder::whereIn('id', $deliveryOrderIds)
+            DeliveryOrder::whereIn('id', $deliveryOrderIds)
                 ->lockForUpdate()
-                ->get();
-
-            foreach ($deliveryOrders as $deliveryOrder) {
-                if ($deliveryOrder->is_done) {
-                    throw new BadRequestHttpException('Delivery Order sudah diselesaikan. Batalkan status Done terlebih dahulu sebelum menghapus Sales Order hasil merge.');
-                }
-            }
-
-            $deliveryOrders->each(fn (DeliveryOrder $deliveryOrder) => DeliveryOrderService::deleteDeliveryOrder($deliveryOrder));
+                ->get()
+                ->each(fn (DeliveryOrder $deliveryOrder) => DeliveryOrderService::deleteDeliveryOrder($deliveryOrder));
 
             $salesOrder->mergedSalesOrders()->update(['merged_into_sales_order_id' => null]);
 
@@ -505,32 +510,54 @@ class SalesOrderService
             }
         }
 
-        $detailIds = SalesOrderDetail::whereIn('sales_order_id', $sources->pluck('id'))->pluck('id');
+        static::assertSourceDeliveryOrdersDone($sources);
+    }
 
-        $hasVerifiedStock = SalesOrderItem::whereIn('sales_order_detail_id', $detailIds)
-            ->whereNotNull('stock_id')
-            ->whereNotReturned()
-            ->exists();
+    /**
+     * Ensure every source Sales Order has at least one Delivery Order and that all of them
+     * are completed. Merging is only allowed once the goods have actually been delivered.
+     *
+     * @param  Collection<int, SalesOrder>  $sources
+     */
+    private static function assertSourceDeliveryOrdersDone(Collection $sources): void
+    {
+        $deliveryOrderIdsBySource = SalesOrderDetail::query()
+            ->join('delivery_order_details', 'delivery_order_details.sales_order_detail_id', '=', 'sales_order_details.id')
+            ->whereIn('sales_order_details.sales_order_id', $sources->pluck('id'))
+            ->get(['sales_order_details.sales_order_id', 'delivery_order_details.delivery_order_id'])
+            ->groupBy('sales_order_id')
+            ->map(fn (Collection $rows) => $rows->pluck('delivery_order_id')->unique()->values());
 
-        if ($hasVerifiedStock) {
-            throw new BadRequestHttpException('Sales Order sudah memiliki stock terverifikasi dan tidak dapat di-merge.');
+        $deliveryOrders = DeliveryOrder::whereIn('id', $deliveryOrderIdsBySource->flatten()->unique())
+            ->get(['id', 'invoice_no', 'is_done'])
+            ->keyBy('id');
+
+        $notDoneInvoiceNumbers = collect();
+
+        foreach ($sources as $source) {
+            $deliveryOrderIds = $deliveryOrderIdsBySource->get($source->id, collect());
+
+            if ($deliveryOrderIds->isEmpty()) {
+                throw new BadRequestHttpException(sprintf(
+                    'Sales Order %s belum memiliki Delivery Order dan tidak dapat di-merge.',
+                    $source->invoice_no
+                ));
+            }
+
+            foreach ($deliveryOrderIds as $deliveryOrderId) {
+                $deliveryOrder = $deliveryOrders->get($deliveryOrderId);
+
+                if ($deliveryOrder && ! $deliveryOrder->is_done) {
+                    $notDoneInvoiceNumbers->push($deliveryOrder->invoice_no);
+                }
+            }
         }
 
-        $deliveryOrderIds = DeliveryOrderDetail::whereIn('sales_order_detail_id', $detailIds)
-            ->pluck('delivery_order_id')
-            ->unique();
-
-        $hasDoneDeliveryOrder = $deliveryOrderIds->isNotEmpty()
-            && DeliveryOrder::whereIn('id', $deliveryOrderIds)->where('is_done', true)->exists();
-
-        if ($hasDoneDeliveryOrder) {
-            throw new BadRequestHttpException('Sales Order memiliki Delivery Order yang sudah diselesaikan dan tidak dapat di-merge.');
-        }
-
-        $hasPayment = Payment::whereIn('sales_order_id', $sources->pluck('id'))->exists();
-
-        if ($hasPayment) {
-            throw new BadRequestHttpException('Sales Order sudah memiliki pembayaran dan tidak dapat di-merge.');
+        if ($notDoneInvoiceNumbers->isNotEmpty()) {
+            throw new BadRequestHttpException(sprintf(
+                'Delivery Order belum diselesaikan: %s. Semua Delivery Order dari Sales Order yang akan di-merge harus berstatus Done.',
+                $notDoneInvoiceNumbers->unique()->implode(', ')
+            ));
         }
     }
 
@@ -543,12 +570,7 @@ class SalesOrderService
     {
         return SalesOrderDetail::whereIn('sales_order_id', $salesOrderIds)
             ->get()
-            ->groupBy(fn (SalesOrderDetail $detail) => implode('|', [
-                $detail->product_unit_id,
-                $detail->unit_price,
-                $detail->discount,
-                $detail->tax,
-            ]))
+            ->groupBy(fn (SalesOrderDetail $detail) => static::detailGroupKey($detail))
             ->map(function (Collection $group) {
                 /** @var SalesOrderDetail $first */
                 $first = $group->first();
@@ -565,5 +587,73 @@ class SalesOrderService
             })
             ->values()
             ->all();
+    }
+
+    /**
+     * Grouping key that identifies a merged detail across the source details.
+     */
+    private static function detailGroupKey(SalesOrderDetail $detail): string
+    {
+        return implode('|', [
+            $detail->product_unit_id,
+            $detail->unit_price,
+            $detail->discount,
+            $detail->tax,
+        ]);
+    }
+
+    /**
+     * Mirror the verified (scanned) stock items of the source Sales Orders into the merged
+     * Sales Order and its Delivery Order, so the merged order becomes an exact record of
+     * what has actually been delivered.
+     *
+     * @param  array<int, int>  $sourceIds
+     */
+    private static function copyVerifiedStockItems(SalesOrder $mergedSalesOrder, DeliveryOrder $deliveryOrder, array $sourceIds): void
+    {
+        $mergedDetails = SalesOrderDetail::where('sales_order_id', $mergedSalesOrder->id)
+            ->get()
+            ->keyBy(fn (SalesOrderDetail $detail) => static::detailGroupKey($detail));
+
+        $deliveryOrderDetailIds = DeliveryOrderDetail::where('delivery_order_id', $deliveryOrder->id)
+            ->pluck('id', 'sales_order_detail_id');
+
+        $sourceDetails = SalesOrderDetail::whereIn('sales_order_id', $sourceIds)
+            ->with([
+                'salesOrderItems' => fn ($query) => $query->where('is_returned', false)->orderByDesc('is_parent'),
+            ])
+            ->get();
+
+        foreach ($sourceDetails as $sourceDetail) {
+            $mergedDetail = $mergedDetails->get(static::detailGroupKey($sourceDetail));
+
+            if (! $mergedDetail) {
+                continue;
+            }
+
+            $deliveryOrderDetailId = $deliveryOrderDetailIds->get($mergedDetail->id);
+            $items = $sourceDetail->salesOrderItems;
+
+            foreach ($items->whereNull('parent_id') as $item) {
+                $newItem = $mergedDetail->salesOrderItems()->create([
+                    'stock_id' => $item->stock_id,
+                    'is_parent' => $item->is_parent,
+                    'is_returned' => false,
+                    'delivery_order_detail_id' => $deliveryOrderDetailId,
+                ]);
+
+                foreach ($items->where('parent_id', $item->id) as $child) {
+                    $mergedDetail->salesOrderItems()->create([
+                        'stock_id' => $child->stock_id,
+                        'is_parent' => false,
+                        'parent_id' => $newItem->id,
+                        'is_returned' => false,
+                        'delivery_order_detail_id' => $deliveryOrderDetailId,
+                    ]);
+                }
+            }
+
+            static::countFulfilledQty($mergedDetail);
+        }
     }
 }

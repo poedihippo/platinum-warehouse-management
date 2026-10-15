@@ -197,6 +197,11 @@ class SalesOrder extends Model
         );
     }
 
+    public function deliveryOrders(): HasMany
+    {
+        return $this->hasMany(DeliveryOrder::class, 'sales_order_id');
+    }
+
     public function mergedIntoSalesOrder(): BelongsTo
     {
         return $this->belongsTo(self::class, 'merged_into_sales_order_id');
@@ -344,5 +349,31 @@ class SalesOrder extends Model
                 '(SELECT COALESCE(SUM(qty), 0) FROM delivery_order_details WHERE delivery_order_details.sales_order_detail_id = sales_order_details.id) < sales_order_details.qty'
             );
         });
+    }
+
+    /**
+     * Sales Orders that are eligible to be merged: a marketplace order that has not been
+     * merged yet, is not a merge result, has at least one Delivery Order and every one of
+     * its Delivery Orders is completed (is_done = true).
+     */
+    public function scopeMergeable(Builder $query, mixed $value = true): void
+    {
+        $isMergeable = fn (Builder $q) => $q
+            ->whereNotNull('marketplace')
+            ->whereNull('merged_into_sales_order_id')
+            ->whereHas('deliveryOrders')
+            ->whereDoesntHave('deliveryOrders', fn (Builder $q) => $q->where('is_done', false))
+            ->whereDoesntHave('mergedSalesOrders');
+
+        $query->when(
+            filter_var($value, FILTER_VALIDATE_BOOLEAN),
+            $isMergeable,
+            fn (Builder $q) => $q->where(fn (Builder $q) => $q
+                ->whereNull('marketplace')
+                ->orWhereNotNull('merged_into_sales_order_id')
+                ->orWhereDoesntHave('deliveryOrders')
+                ->orWhereHas('deliveryOrders', fn (Builder $q) => $q->where('is_done', false))
+                ->orWhereHas('mergedSalesOrders'))
+        );
     }
 }
