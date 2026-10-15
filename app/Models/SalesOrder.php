@@ -41,6 +41,7 @@ class SalesOrder extends Model
     protected $hidden = [
         'raw_source',
         'records',
+        'mergedSalesOrders',
     ];
 
     protected $fillable = [
