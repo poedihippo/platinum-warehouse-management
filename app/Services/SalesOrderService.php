@@ -221,7 +221,7 @@ class SalesOrderService
             'vouchers.category',
             'payments',
             'warehouse',
-            'mergedSources:id,merged_into_sales_order_id',
+            'mergedSalesOrders:id,merged_into_sales_order_id',
             'details' => fn ($q) => $q->with([
                 'warehouse',
                 'productUnit' => fn ($q) => $q->with([
@@ -462,7 +462,7 @@ class SalesOrderService
 
             $deliveryOrders->each(fn (DeliveryOrder $deliveryOrder) => DeliveryOrderService::deleteDeliveryOrder($deliveryOrder));
 
-            $salesOrder->mergedSources()->update(['merged_into_sales_order_id' => null]);
+            $salesOrder->mergedSalesOrders()->update(['merged_into_sales_order_id' => null]);
 
             $salesOrder->delete();
         });
@@ -487,7 +487,7 @@ class SalesOrderService
                 throw new BadRequestHttpException('Sales Order yang dipilih harus berupa Sales Order marketplace.');
             }
 
-            if ($source->isMergeSource()) {
+            if ($source->isMergeSalesOrder()) {
                 throw new BadRequestHttpException('Sales Order sudah pernah di-merge.');
             }
 

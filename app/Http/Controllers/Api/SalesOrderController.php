@@ -52,7 +52,7 @@ class SalesOrderController extends Controller
     public function merge(SalesOrderMergeRequest $request)
     {
         $salesOrder = SalesOrderService::mergeMarketplaceOrders($request->validated());
-        $salesOrder->load('mergedSources:id,merged_into_sales_order_id');
+        $salesOrder->load('mergedSalesOrders:id,merged_into_sales_order_id');
 
         return new SalesOrderResource($this->loadMarketplaceDeliveryOrder($salesOrder));
     }
@@ -61,7 +61,7 @@ class SalesOrderController extends Controller
     {
         $salesOrder = SalesOrder::findTenanted($id);
 
-        if ($salesOrder->isMergeSource()) {
+        if ($salesOrder->isMergeSalesOrder()) {
             return response()->json(['message' => 'Sales Order sumber merge tidak dapat diubah.'], 400);
         }
 
@@ -87,7 +87,7 @@ class SalesOrderController extends Controller
         // abort_if(!auth('sanctum')->user()->tokenCan('sales_order_delete'), 403);
         $salesOrder = SalesOrder::findTenanted($id);
 
-        if ($salesOrder->isMergeSource()) {
+        if ($salesOrder->isMergeSalesOrder()) {
             return response()->json(['message' => 'Sales Order sumber merge tidak dapat dihapus.'], 400);
         }
 

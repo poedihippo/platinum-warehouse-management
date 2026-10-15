@@ -197,24 +197,24 @@ class SalesOrder extends Model
         );
     }
 
-    public function mergedInto(): BelongsTo
+    public function mergedIntoSalesOrder(): BelongsTo
     {
         return $this->belongsTo(self::class, 'merged_into_sales_order_id');
     }
 
-    public function mergedSources(): HasMany
+    public function mergedSalesOrders(): HasMany
     {
         return $this->hasMany(self::class, 'merged_into_sales_order_id');
     }
 
-    public function isMergeSource(): bool
+    public function isMergeSalesOrder(): bool
     {
         return ! is_null($this->merged_into_sales_order_id);
     }
 
     public function isMergeResult(): bool
     {
-        return $this->mergedSources()->exists();
+        return $this->mergedSalesOrders()->exists();
     }
 
     public function payments(): HasMany

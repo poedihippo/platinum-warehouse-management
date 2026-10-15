@@ -20,8 +20,8 @@ class SalesOrderResource extends JsonResource
                 'cashier_name' => $this->cashier_name,
                 'total_roll_dice' => floor($this->price / config('app.min_price_roll_dice', 500000)),
                 'has_delivery_order' => $this->has_delivery_order,
-                'is_merge_source' => $this->isMergeSource(),
-                'merged_source_ids' => $this->whenLoaded('mergedSources', fn () => $this->mergedSources->pluck('id')->values()),
+                'is_merge_sales_order' => $this->isMergeSalesOrder(),
+                'merged_source_ids' => $this->whenLoaded('mergedSalesOrders', fn () => $this->mergedSalesOrders->pluck('id')->values()),
                 'delivery_order_id' => $this->whenLoaded(
                     'deliveryOrderDetails',
                     fn () => $this->deliveryOrderDetails->first()?->delivery_order_id
