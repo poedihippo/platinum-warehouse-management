@@ -59,16 +59,16 @@ class StockController extends Controller
             ->has('productUnit')
             ->has('warehouse')
             ->with([
-                'warehouse' => fn ($q) => $q->select('warehouses.id', 'warehouses.name'),
-                'productUnit' => fn ($q) => $q->with([
-                    'uom' => fn ($q) => $q->select('id', 'name'),
-                    'product' => fn ($q) => $q->select('id', 'product_category_id', 'product_brand_id', 'name')->with([
-                        'productCategory' => fn ($q) => $q->select('id', 'name'),
-                        'productBrand' => fn ($q) => $q->select('id', 'name'),
+                'warehouse' => fn($q) => $q->select('warehouses.id', 'warehouses.name'),
+                'productUnit' => fn($q) => $q->with([
+                    'uom' => fn($q) => $q->select('id', 'name'),
+                    'product' => fn($q) => $q->select('id', 'product_category_id', 'product_brand_id', 'name')->with([
+                        'productCategory' => fn($q) => $q->select('id', 'name'),
+                        'productBrand' => fn($q) => $q->select('id', 'name'),
                     ]),
                 ]),
             ])
-            ->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereIsStock()->whereNull('description')]))
+            ->withCount(['stocks' => fn($q) => $q->whereAvailableStock()->whereIsStock()->whereNull('description')]))
             ->allowedFilters([
                 AllowedFilter::exact('id'),
                 AllowedFilter::exact('warehouse_id'),
@@ -76,6 +76,11 @@ class StockController extends Controller
                 AllowedFilter::scope('product_unit'),
                 AllowedFilter::scope('company', 'whereCompany'),
                 AllowedFilter::scope('is_product_unit_qr', 'whereProductUnitQr'),
+                AllowedFilter::callback('is_product_unit_qr', function ($q, $value) {
+                    filter_var($value, FILTER_VALIDATE_BOOLEAN)
+                        ? $q->whereProductUnitQr(1)
+                        : $q->whereProductUnitQr(0);
+                }),
                 // AllowedFilter::scope('product_brand_id', 'whereProductBrandId'),
                 // AllowedFilter::scope('product_category_id', 'whereProductCategoryId'),
             ])
@@ -148,29 +153,33 @@ class StockController extends Controller
         $includeSDeliveryOrder = str_contains($include, 'deliveryOrder');
 
         $stock = Stock::query()
-            ->when($includeChilds, fn ($q) => $q->with('childs', fn ($q) => $q->select('id', 'parent_id')))
-            ->when($includeReceiveOrder, fn ($q) => $q->with('receiveOrderDetail'))
+            ->when($includeChilds, fn($q) => $q->with('childs', fn($q) => $q->select('id', 'parent_id')))
+            ->when($includeReceiveOrder, fn($q) => $q->with('receiveOrderDetail'))
             ->when(
                 $includeSalesOrder,
-                fn ($q) => $q->with('salesOrderItem', fn ($q) => $q
-                    ->with('salesOrderDetail', fn ($q) => $q
-                        ->select('id', 'sales_order_id')
-                        ->with('salesOrder', fn ($q) => $q->select('id', 'invoice_no'))
-                    )
-                    ->when(
-                        $includeSDeliveryOrder,
-                        fn ($q) => $q->with(
-                            'deliveryOrderDetail',
-                            fn ($q) => $q->select('id', 'delivery_order_id', 'sales_order_detail_id')
-                                ->with('deliveryOrder', fn ($q) => $q->select('id', 'invoice_no'))
+                fn($q) => $q->with(
+                    'salesOrderItem',
+                    fn($q) => $q
+                        ->with(
+                            'salesOrderDetail',
+                            fn($q) => $q
+                                ->select('id', 'sales_order_id')
+                                ->with('salesOrder', fn($q) => $q->select('id', 'invoice_no'))
                         )
-                    )
+                        ->when(
+                            $includeSDeliveryOrder,
+                            fn($q) => $q->with(
+                                'deliveryOrderDetail',
+                                fn($q) => $q->select('id', 'delivery_order_id', 'sales_order_detail_id')
+                                    ->with('deliveryOrder', fn($q) => $q->select('id', 'invoice_no'))
+                            )
+                        )
                 )
             )
             ->findTenanted($id);
 
         return new StocksStockProductUnitResource($stock->load([
-            'stockProductUnit' => fn ($q) => $q->tenanted()->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')]),
+            'stockProductUnit' => fn($q) => $q->tenanted()->withCount(['stocks' => fn($q) => $q->whereAvailableStock()->whereNull('description')]),
         ]));
     }
 
@@ -504,7 +513,7 @@ class StockController extends Controller
             throw $th;
         }
 
-        return $this->updatedResponse('Stock berhasil diupdate '.($request->is_tempel ? 'Terpasang' : 'Belum Terpasang'));
+        return $this->updatedResponse('Stock berhasil diupdate ' . ($request->is_tempel ? 'Terpasang' : 'Belum Terpasang'));
     }
 
     public function repack($id, StockRepackRequest $request)
@@ -514,7 +523,7 @@ class StockController extends Controller
             return response()->json(['message' => 'Tidak dapat me-repack stock parent'], 400);
         }
 
-        $stock->load(['salesOrderItems' => fn ($q) => $q->whereNotReturned()->select('id', 'stock_id')]);
+        $stock->load(['salesOrderItems' => fn($q) => $q->whereNotReturned()->select('id', 'stock_id')]);
         if ($stock->salesOrderItems?->count() > 0) {
             return response()->json(['message' => 'Tidak dapat me-repack stock. Stock sudah masuk di Sales Order'], 400);
         }
@@ -582,7 +591,7 @@ class StockController extends Controller
 
     public function export()
     {
-        return Excel::download(new StockExport, 'stock-'.date('Y-m-d H:i').'.xlsx');
+        return Excel::download(new StockExport, 'stock-' . date('Y-m-d H:i') . '.xlsx');
     }
 
     public function setToPrinted(VerifyRequest $request)
@@ -593,7 +602,7 @@ class StockController extends Controller
         ]);
 
         return response()->json([
-            'message' => count($request->stocks).' stocks set to printed successfully',
+            'message' => count($request->stocks) . ' stocks set to printed successfully',
         ]);
     }
 
@@ -612,14 +621,14 @@ class StockController extends Controller
         Stock::whereIn('id', $request->stocks)->update($data);
 
         return response()->json([
-            'message' => count($request->stocks).' stocks added to printing queue',
+            'message' => count($request->stocks) . ' stocks added to printing queue',
         ]);
     }
 
     public function printVerification(VerifyRequest $request)
     {
         if ($request->is_preview) {
-            $stock = Stock::with(['stockProductUnit' => fn ($q) => $q->select('id', 'product_unit_id')->with('productUnit', fn ($q) => $q->select('id', 'name'))])
+            $stock = Stock::with(['stockProductUnit' => fn($q) => $q->select('id', 'product_unit_id')->with('productUnit', fn($q) => $q->select('id', 'name'))])
                 ->whereIn('id', $request->stocks)->whereNotNull('printed_at')->get(['id', 'printed_at', 'stock_product_unit_id']);
 
             return DefaultResource::collection($stock);
@@ -631,7 +640,7 @@ class StockController extends Controller
         ]);
 
         return response()->json([
-            'message' => count($request->stocks).' stocks scanned successfully',
+            'message' => count($request->stocks) . ' stocks scanned successfully',
         ]);
     }
 
@@ -642,7 +651,7 @@ class StockController extends Controller
         ]);
 
         return response()->json([
-            'message' => count($request->ids).' stocks '.($request->is_add ? 'added' : 'removed').' successfully',
+            'message' => count($request->ids) . ' stocks ' . ($request->is_add ? 'added' : 'removed') . ' successfully',
         ]);
     }
 
@@ -661,11 +670,11 @@ class StockController extends Controller
             $content .= "\n";
         }
 
-        $fileName = 'stocks-'.date('Y-m-d_His').'.txt';
+        $fileName = 'stocks-' . date('Y-m-d_His') . '.txt';
 
         return response($content, 200, [
             'Content-Type' => 'text/plain',
-            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
     }
 }

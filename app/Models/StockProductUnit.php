@@ -65,8 +65,8 @@ class StockProductUnit extends Model
         return $query->whereHas('productUnit', fn($q) => $q->where('name', 'like', '%' . $value . '%')->orWhere('code', 'like', '%' . $value . '%'));
     }
 
-    public function scopeWhereProductUnitQr(Builder $query)
+    public function scopeWhereProductUnitQr(Builder $query, bool $value)
     {
-        return $query->whereHas('productUnit', fn($q) => $q->where('is_generate_qr', true));
+        return $query->whereHas('productUnit', fn($q) => $q->where('is_generate_qr', (bool) $value));
     }
 }
