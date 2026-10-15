@@ -211,7 +211,7 @@ class SalesOrderService
                 }),
             ])
             ->allowedSorts(['id', 'invoice_no', 'user_id', 'reseller_id', 'warehouse_id', 'transaction_date', 'shipment_estimation_datetime', 'created_at'])
-            ->allowedIncludes(['details', 'warehouse', 'user', 'spg', 'payments', 'vouchers.category','deliveryOrders'])
+            ->allowedIncludes(['details', 'warehouse', 'user', 'spg', 'payments', 'vouchers.category', 'deliveryOrders'])
             ->paginate($perPage);
 
         return SalesOrderResource::collection($salesOrders);

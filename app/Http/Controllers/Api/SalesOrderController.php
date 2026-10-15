@@ -207,7 +207,7 @@ class SalesOrderController extends Controller
     private function loadMarketplaceDeliveryOrder(SalesOrder $salesOrder): SalesOrder
     {
         if ($salesOrder->marketplace || $salesOrder->isMergeResult()) {
-            $salesOrder->load('deliveryOrderDetails');
+            $salesOrder->load('deliveryOrders:id,sales_order_id')->makeHidden('deliveryOrders');
         }
 
         return $salesOrder;
