@@ -21,11 +21,6 @@ class SalesOrderResource extends JsonResource
                 'total_roll_dice' => floor($this->price / config('app.min_price_roll_dice', 500000)),
                 'has_delivery_order' => $this->has_delivery_order,
                 'is_merge_sales_order' => $this->isMergeSalesOrder(),
-                'is_merged_sales_order' => $this->whenLoaded(
-                    'mergedSalesOrders',
-                    fn () => $this->mergedSalesOrders->isNotEmpty(),
-                    fn () => ($this->merged_sales_orders_count ?? 0) > 0
-                ),
                 'can_be_merged' => ! is_null($this->marketplace)
                     && is_null($this->merged_into_sales_order_id)
                     && ($this->merged_sales_orders_count ?? 0) === 0
