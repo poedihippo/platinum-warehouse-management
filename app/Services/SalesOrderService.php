@@ -234,7 +234,7 @@ class SalesOrderService
             'vouchers.category',
             'payments',
             'warehouse',
-            'mergedSalesOrders:id,merged_into_sales_order_id',
+            'mergedSalesOrders:id,merged_into_sales_order_id,invoice_no',
             'deliveryOrders' => fn ($q) => $q->select('id', 'sales_order_id', 'invoice_no', 'is_done'),
             'details' => fn ($q) => $q->with([
                 'warehouse',
