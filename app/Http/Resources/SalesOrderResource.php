@@ -31,7 +31,7 @@ class SalesOrderResource extends JsonResource
                     && ($this->merged_sales_orders_count ?? 0) === 0
                     && ($this->delivery_orders_count ?? 0) > 0
                     && ($this->pending_delivery_orders_count ?? 0) === 0,
-                'merged_source_ids' => $this->whenLoaded('mergedSalesOrders', fn () => $this->mergedSalesOrders->pluck('id')->values()),
+                'merged_source_ids' => $this->whenLoaded('mergedSalesOrders'),
                 'delivery_order_id' => $this->whenLoaded(
                     'deliveryOrders',
                     fn () => $this->deliveryOrders->first()?->id
