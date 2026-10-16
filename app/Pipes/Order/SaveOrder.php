@@ -5,7 +5,6 @@ namespace App\Pipes\Order;
 use App\Enums\UserType;
 use App\Models\SalesOrder;
 use App\Models\User;
-use App\Services\DeliveryOrderService;
 use App\Services\SalesOrderService;
 use Illuminate\Support\Facades\DB;
 
@@ -39,8 +38,6 @@ class SaveOrder
 
             $salesOrder->save();
             $salesOrder->details()->saveMany($salesOrderDetails);
-
-            DeliveryOrderService::createForSalesOrder($salesOrder);
 
             if (isset($salesOrder->vouchers_ids_to_sync) && ! empty($salesOrder->vouchers_ids_to_sync)) {
                 $salesOrder->vouchers()->sync($this->voucherPivot($salesOrder));

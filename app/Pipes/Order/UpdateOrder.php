@@ -55,8 +55,6 @@ class UpdateOrder
             } elseif ($deliveryOrder) {
                 DeliveryOrderService::syncHeader($deliveryOrder, $salesOrder);
                 DeliveryOrderService::attachSalesOrderDetails($deliveryOrder, $salesOrder->details()->get());
-            } elseif ($salesOrder->marketplace) {
-                DeliveryOrderService::createForSalesOrder($salesOrder);
             }
 
             return $salesOrder;

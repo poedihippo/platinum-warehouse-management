@@ -271,6 +271,8 @@ Route::middleware(['auth:sanctum', 'ability:warehouse'])->group(function () {
     Route::get('sales-orders/product-units-new', [SalesOrderController::class, 'productUnitsNew']);
     Route::get('sales-orders/{salesOrder}/export-xml', [SalesOrderController::class, 'exportXml']);
     Route::get('sales-orders/{salesOrder}/print', [SalesOrderController::class, 'print']); // type (print/print-invoice)
+    Route::get('sales-orders/{salesOrder}/details/{salesOrderDetail}/items', [SalesOrderController::class, 'items']);
+    Route::post('sales-orders/{salesOrder}/verification/{salesOrderDetail}', [SalesOrderController::class, 'verification']);
     Route::apiResource('sales-orders', SalesOrderController::class);
 
     Route::get('get-cashiers', [InvoiceController::class, 'getCashiers']);

@@ -3,16 +3,20 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\SalesOrderItemStoreRequest;
 use App\Http\Requests\Api\SalesOrderMergeRequest;
 use App\Http\Requests\Api\SalesOrderStoreRequest;
 use App\Http\Requests\Api\SalesOrderUpdateRequest;
+use App\Http\Resources\SalesOrderItemResource;
 use App\Http\Resources\SalesOrderResource;
 use App\Models\ProductUnit;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderDetail;
+use App\Models\SalesOrderItem;
 use App\Models\StockProductUnit;
 use App\Services\SalesOrderService;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -42,6 +46,36 @@ class SalesOrderController extends Controller
         return new SalesOrderResource($salesOrder);
     }
 
+    public function items(int $id, SalesOrderDetail $salesOrderDetail)
+    {
+        $salesOrder = $this->findScanableMarketplaceOrder($id);
+        abort_unless($salesOrderDetail->sales_order_id === $salesOrder->id, 404);
+
+        $items = QueryBuilder::for(
+            SalesOrderItem::query()
+                ->where('sales_order_detail_id', $salesOrderDetail->id)
+                ->select(SalesOrderItem::SELECT_COLUMNS)
+                ->with('stock')
+        )
+            ->allowedFilters([
+                'is_returned',
+                'is_parent',
+            ])
+            ->paginate($this->per_page);
+
+        return SalesOrderItemResource::collection($items);
+    }
+
+    public function verification(SalesOrderItemStoreRequest $request, int $id, SalesOrderDetail $salesOrderDetail)
+    {
+        $salesOrder = $this->findScanableMarketplaceOrder($id);
+        abort_unless($salesOrderDetail->sales_order_id === $salesOrder->id, 404);
+
+        $salesOrderItem = SalesOrderService::verifyStockItem($salesOrderDetail, $request->stock_id);
+
+        return new SalesOrderItemResource($salesOrderItem);
+    }
+
     public function store(SalesOrderStoreRequest $request)
     {
         $salesOrder = SalesOrderService::createOrder(SalesOrder::make(['raw_source' => $request->validated()]), (bool) $request->is_preview ?? false);
@@ -52,7 +86,7 @@ class SalesOrderController extends Controller
     public function merge(SalesOrderMergeRequest $request)
     {
         $salesOrder = SalesOrderService::mergeMarketplaceOrders($request->validated());
-        $salesOrder->load('mergedSalesOrders:id,merged_into_sales_order_id');
+        $salesOrder->load('mergedSalesOrders:id,merged_into_sales_order_id,invoice_no');
 
         return new SalesOrderResource($this->loadMarketplaceDeliveryOrder($salesOrder));
     }
@@ -101,7 +135,13 @@ class SalesOrderController extends Controller
             return response()->json(['message' => 'Tidak dapat menghapus SO yang sudah direlasikan dengan DO'], 400);
         }
 
-        $salesOrder->delete();
+        DB::transaction(function () use ($salesOrder) {
+            if (! $salesOrder->deliveryOrders()->exists()) {
+                SalesOrderService::releaseScannedStock($salesOrder);
+            }
+
+            $salesOrder->delete();
+        });
 
         return $this->deletedResponse();
     }
@@ -208,6 +248,26 @@ class SalesOrderController extends Controller
     {
         if ($salesOrder->marketplace || $salesOrder->isMergeResult()) {
             $salesOrder->load('deliveryOrders:id,sales_order_id')->makeHidden('deliveryOrders');
+        }
+
+        return $salesOrder;
+    }
+
+    /**
+     * Resolve a marketplace Sales Order that is eligible for stock scanning.
+     *
+     * Merge results and merge sources are rejected, as are orders that already have a Delivery Order.
+     */
+    private function findScanableMarketplaceOrder(int $id): SalesOrder
+    {
+        $salesOrder = SalesOrder::whereNotNull('marketplace')->findTenanted($id);
+
+        if ($salesOrder->isMergeResult() || $salesOrder->isMergeSalesOrder()) {
+            abort(Response::HTTP_BAD_REQUEST, 'Sales Order merge tidak dapat diverifikasi.');
+        }
+
+        if ($salesOrder->deliveryOrders()->exists()) {
+            abort(Response::HTTP_BAD_REQUEST, 'Sales Order sudah memiliki Delivery Order dan tidak dapat diverifikasi.');
         }
 
         return $salesOrder;

@@ -13,7 +13,6 @@ use App\Http\Resources\SalesOrderResource;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderDetail;
 use App\Models\SalesOrderItem;
-use App\Models\Stock;
 use App\Models\StockProductUnit;
 use App\Models\Warehouse;
 use App\Services\SalesOrderService;
@@ -37,12 +36,12 @@ class InvoiceController extends Controller
 
     public function index()
     {
-        return SalesOrderService::index($this->per_page, fn($q) => $q->where('is_invoice', true));
+        return SalesOrderService::index($this->per_page, fn ($q) => $q->whereInvoice());
     }
 
     public function show($id)
     {
-        $salesOrder = SalesOrderService::show($id, fn($q) => $q->where('is_invoice', true));
+        $salesOrder = SalesOrderService::show($id, fn ($q) => $q->whereInvoice());
         $salesOrder->id_hash = Crypt::encryptString($salesOrder->id);
         $salesOrder->whatsapp_url = empty($salesOrder->invoice_no) ? '' : SalesOrderService::getWhatsappUrl($salesOrder, $salesOrder->id_hash);
 
@@ -63,7 +62,7 @@ class InvoiceController extends Controller
 
             $stocks = \App\Models\Stock::whereAvailableStock()
                 ->whereNull('description')
-                ->whereHas('stockProductUnit', fn($q) => $q->where('product_unit_id', $item['product_unit_id'])->where('warehouse_id', $item['warehouse_id']))
+                ->whereHas('stockProductUnit', fn ($q) => $q->where('product_unit_id', $item['product_unit_id'])->where('warehouse_id', $item['warehouse_id']))
                 ->limit($item['qty'])
                 ->get(['id']);
 
@@ -113,7 +112,7 @@ class InvoiceController extends Controller
 
         $matchedCount = \App\Models\Stock::whereIn('id', $item['stock_ids'])
             ->where('stock_product_unit_id', $stockProductUnit->id)
-            ->whereDoesntHave('salesOrderItems', fn($q) => $q->whereNotReturned())
+            ->whereDoesntHave('salesOrderItems', fn ($q) => $q->whereNotReturned())
             ->count();
 
         if ($matchedCount !== count($item['stock_ids'])) {
@@ -125,7 +124,7 @@ class InvoiceController extends Controller
 
     public function items(int $id, SalesOrderDetail $salesOrderDetail)
     {
-        $salesOrder = SalesOrder::where('is_invoice', true)->findTenanted($id);
+        $salesOrder = SalesOrder::whereInvoice()->findTenanted($id);
         abort_unless($salesOrderDetail->sales_order_id === $salesOrder->id, 404);
 
         $items = QueryBuilder::for(
@@ -145,75 +144,15 @@ class InvoiceController extends Controller
 
     public function verification(SalesOrderItemStoreRequest $request, int $id, SalesOrderDetail $salesOrderDetail)
     {
-        $salesOrder = SalesOrder::where('is_invoice', true)->findTenanted($id);
+        $salesOrder = SalesOrder::whereInvoice()->findTenanted($id);
         abort_unless($salesOrderDetail->sales_order_id === $salesOrder->id, 404);
 
-        $salesOrderDetail->load(['productUnit' => fn($q) => $q->select('id', 'refer_id')]);
-
-        $stock = Stock::where('id', $request->stock_id)
-            ->whereHas(
-                'stockProductUnit',
-                fn($q) => $q->where('warehouse_id', $salesOrderDetail->warehouse_id)
-                    ->when(
-                        $salesOrderDetail->productUnit->refer_id,
-                        fn($q) => $q->where('product_unit_id', $salesOrderDetail->productUnit->refer_id),
-                        fn($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id),
-                    )
-            )
-            ->first();
-
-        if (! $stock) {
-            return response()->json(['message' => 'Stok produk tidak sesuai'], 400);
-        }
-
-        $alreadyScanned = SalesOrderItem::where('stock_id', $stock->id)->whereNotReturned()->exists();
-        if ($alreadyScanned) {
-            return response()->json(['message' => 'Product sudah pernah di verifikasi'], 400);
-        }
-
-        $fulfilledQty = $salesOrderDetail->salesOrderItems()->where('is_parent', 0)->count();
-        if ($fulfilledQty >= $salesOrderDetail->qty) {
-            return response()->json(['message' => 'Qty sudah terpenuhi'], 400);
-        }
-
-        $stock->load(['childs' => fn($q) => $q->select('id', 'parent_id')]);
-        $totalChilds = $stock->childs->count();
-
-        DB::beginTransaction();
-        try {
-            if ($totalChilds > 0) {
-                $parentItem = $salesOrderDetail->salesOrderItems()->create([
-                    'stock_id' => $stock->id,
-                    'is_parent' => true,
-                ]);
-
-                $parentItem->childs()->createMany(
-                    $stock->childs->map(fn($child) => [
-                        'sales_order_detail_id' => $salesOrderDetail->id,
-                        'stock_id' => $child->id,
-                    ])->all()
-                );
-
-                $salesOrderItem = $parentItem;
-            } else {
-                $salesOrderItem = $salesOrderDetail->salesOrderItems()->create([
-                    'stock_id' => $stock->id,
-                    'is_parent' => false,
-                ]);
-            }
-
-            SalesOrderService::countFulfilledQty($salesOrderDetail);
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            return $this->errorResponse(message: $e->getMessage(), code: (int) $e->getCode() ?: 500);
-        }
+        $salesOrderItem = SalesOrderService::verifyStockItem($salesOrderDetail, $request->stock_id);
 
         return new SalesOrderItemResource($salesOrderItem);
     }
 
-    public function update($id, InvoiceUpdateRequest $request)
+    public function update(int $id, InvoiceUpdateRequest $request)
     {
         $salesOrder = SalesOrder::whereInvoice()->findTenanted($id);
         if ($salesOrder->payment_status == 'paid') {
@@ -258,7 +197,7 @@ class InvoiceController extends Controller
 
     public function destroy($id)
     {
-        $salesOrder = SalesOrder::where('is_invoice', true)->findTenanted($id);
+        $salesOrder = SalesOrder::whereInvoice()->findTenanted($id);
         if ($salesOrder->deliveryOrder?->is_done) {
             return response()->json(['message' => "Can't update SO if DO is already done"], 400);
         }
@@ -278,14 +217,14 @@ class InvoiceController extends Controller
                     'stock_product_unit_id' => $stockProductUnit->id,
                     'value' => $salesOrderDetail->qty,
                     'is_increment' => 1,
-                    'description' => 'Return stock from delete SO invoice ' . $salesOrder->invoice_no,
+                    'description' => 'Return stock from delete SO invoice '.$salesOrder->invoice_no,
                     'ip' => request()->ip(),
                     'agent' => request()->header('user-agent'),
                 ]);
             });
             // }
 
-            $salesOrder->details->each(fn($salesOrderDetail) => $salesOrderDetail->salesOrderItems()->delete());
+            $salesOrder->details->each(fn ($salesOrderDetail) => $salesOrderDetail->salesOrderItems()->delete());
 
             // $salesOrder->details->each(fn ($salesOrderDetail) => $salesOrderDetail->histories()->delete());
             $salesOrder->forceDelete();
@@ -306,12 +245,12 @@ class InvoiceController extends Controller
         } catch (\Throwable $th) {
         }
 
-        return SalesOrderService::print($id, 'print-invoice', fn($q) => $q->where('is_invoice', true));
+        return SalesOrderService::print($id, 'print-invoice', fn ($q) => $q->whereInvoice());
     }
 
     public function exportXml($id)
     {
-        return SalesOrderService::exportXml($id, fn($q) => $q->where('is_invoice', true));
+        return SalesOrderService::exportXml($id, fn ($q) => $q->whereInvoice());
     }
 
     public function getInvoiceNo(\Illuminate\Http\Request $request)
@@ -327,7 +266,7 @@ class InvoiceController extends Controller
 
     public function bill(string $id)
     {
-        return SalesOrderService::print($id, 'print-invoice', fn($q) => $q->where('is_invoice', true));
+        return SalesOrderService::print($id, 'print-invoice', fn ($q) => $q->whereInvoice());
     }
 
     public function export()

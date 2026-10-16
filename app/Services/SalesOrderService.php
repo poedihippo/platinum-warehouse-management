@@ -7,6 +7,9 @@ use App\Models\DeliveryOrder;
 use App\Models\DeliveryOrderDetail;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderDetail;
+use App\Models\SalesOrderItem;
+use App\Models\Stock;
+use App\Models\StockProductUnit;
 use App\Models\Warehouse;
 use App\Pipes\Order\CalculateAdditionalDiscount;
 use App\Pipes\Order\CalculateAdditionalFees;
@@ -78,6 +81,106 @@ class SalesOrderService
         $salesOrderDetail->update([
             'fulfilled_qty' => $salesOrderDetail->salesOrderItems()->where('is_parent', 0)->where('is_returned', 0)->count(),
         ]);
+    }
+
+    /**
+     * Verify (scan) a single stock into a Sales Order detail, reserving it against the order.
+     *
+     * Used by both the invoice (kasir) and marketplace flows. A grouped stock is stored as a
+     * parent item with its children; a regular stock becomes a single item.
+     *
+     * @throws BadRequestHttpException when the stock does not match, is already verified, or the qty is already fulfilled
+     */
+    public static function verifyStockItem(SalesOrderDetail $salesOrderDetail, string|int $stockId): SalesOrderItem
+    {
+        $salesOrderDetail->load(['productUnit' => fn ($q) => $q->select('id', 'refer_id')]);
+
+        $stock = Stock::where('id', $stockId)
+            ->whereHas(
+                'stockProductUnit',
+                fn ($q) => $q->where('warehouse_id', $salesOrderDetail->warehouse_id)
+                    ->when(
+                        $salesOrderDetail->productUnit->refer_id,
+                        fn ($q) => $q->where('product_unit_id', $salesOrderDetail->productUnit->refer_id),
+                        fn ($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id),
+                    )
+            )
+            ->first();
+
+        if (! $stock) {
+            throw new BadRequestHttpException('Stok produk tidak sesuai');
+        }
+
+        if (SalesOrderItem::where('stock_id', $stock->id)->whereNotReturned()->exists()) {
+            throw new BadRequestHttpException('Product sudah pernah di verifikasi');
+        }
+
+        $fulfilledQty = $salesOrderDetail->salesOrderItems()->where('is_parent', 0)->count();
+        if ($fulfilledQty >= $salesOrderDetail->qty) {
+            throw new BadRequestHttpException('Qty sudah terpenuhi');
+        }
+
+        $stock->load(['childs' => fn ($q) => $q->select('id', 'parent_id')]);
+
+        return DB::transaction(function () use ($salesOrderDetail, $stock) {
+            if ($stock->childs->isNotEmpty()) {
+                $salesOrderItem = $salesOrderDetail->salesOrderItems()->create([
+                    'stock_id' => $stock->id,
+                    'is_parent' => true,
+                ]);
+
+                $salesOrderItem->childs()->createMany(
+                    $stock->childs->map(fn ($child) => [
+                        'sales_order_detail_id' => $salesOrderDetail->id,
+                        'stock_id' => $child->id,
+                    ])->all()
+                );
+            } else {
+                $salesOrderItem = $salesOrderDetail->salesOrderItems()->create([
+                    'stock_id' => $stock->id,
+                    'is_parent' => false,
+                ]);
+            }
+
+            static::countFulfilledQty($salesOrderDetail);
+
+            return $salesOrderItem;
+        });
+    }
+
+    /**
+     * Release every scanned (verified) stock of a Sales Order back to available stock and
+     * record the movement in the stock history.
+     */
+    public static function releaseScannedStock(SalesOrder $salesOrder): void
+    {
+        $details = $salesOrder->details()->whereHas('salesOrderItems')->get();
+
+        if ($details->isEmpty()) {
+            return;
+        }
+
+        DB::transaction(function () use ($salesOrder, $details) {
+            foreach ($details as $salesOrderDetail) {
+                $stockProductUnitId = StockProductUnit::where('warehouse_id', $salesOrderDetail->warehouse_id)
+                    ->where('product_unit_id', $salesOrderDetail->product_unit_id)
+                    ->value('id');
+
+                if ($stockProductUnitId) {
+                    $salesOrderDetail->histories()->create([
+                        'user_id' => $salesOrder->user_id,
+                        'stock_product_unit_id' => $stockProductUnitId,
+                        'value' => $salesOrderDetail->fulfilled_qty,
+                        'is_increment' => 1,
+                        'description' => 'Return stock from delete SO '.$salesOrder->invoice_no,
+                        'ip' => request()->ip(),
+                        'agent' => request()->header('user-agent'),
+                    ]);
+                }
+
+                $salesOrderDetail->salesOrderItems()->delete();
+            }
+        });
     }
 
     /**
@@ -176,8 +279,9 @@ class SalesOrderService
     public static function index(int $perPage, ?callable $query = null)
     {
         $salesOrders = \Spatie\QueryBuilder\QueryBuilder::for(
-            SalesOrder::tenanted()->with('mergedSalesOrders:id,merged_into_sales_order_id')->withCount([
+            SalesOrder::tenanted()->with('mergedSalesOrders:id,merged_into_sales_order_id,invoice_no')->withCount([
                 'details',
+                'details as unverified_details_count' => fn ($q) => $q->whereColumn('fulfilled_qty', '<', 'qty'),
                 'deliveryOrders',
                 'deliveryOrders as pending_delivery_orders_count' => fn ($q) => $q->where('is_done', false),
                 'mergedSalesOrders',
@@ -249,6 +353,7 @@ class SalesOrderService
             'reseller' => fn ($q) => $q->select('id', 'name', 'type', 'type', 'email', 'phone', 'address'),
         ])->loadCount([
             'details',
+            'details as unverified_details_count' => fn ($q) => $q->whereColumn('fulfilled_qty', '<', 'qty'),
             'deliveryOrders',
             'deliveryOrders as pending_delivery_orders_count' => fn ($q) => $q->where('is_done', false),
             'mergedSalesOrders',
@@ -520,55 +625,34 @@ class SalesOrderService
             }
         }
 
-        static::assertSourceDeliveryOrdersDone($sources);
+        static::assertSourcesFullyVerified($sources);
     }
 
     /**
-     * Ensure every source Sales Order has at least one Delivery Order and that all of them
-     * are completed. Merging is only allowed once the goods have actually been delivered.
+     * Ensure every source Sales Order has at least one detail and that every detail has been
+     * fully scanned (verified). Merging is only allowed once all stock has been verified.
      *
      * @param  Collection<int, SalesOrder>  $sources
      */
-    private static function assertSourceDeliveryOrdersDone(Collection $sources): void
+    private static function assertSourcesFullyVerified(Collection $sources): void
     {
-        $deliveryOrderIdsBySource = SalesOrderDetail::query()
-            ->join('delivery_order_details', 'delivery_order_details.sales_order_detail_id', '=', 'sales_order_details.id')
-            ->whereIn('sales_order_details.sales_order_id', $sources->pluck('id'))
-            ->get(['sales_order_details.sales_order_id', 'delivery_order_details.delivery_order_id'])
-            ->groupBy('sales_order_id')
-            ->map(fn (Collection $rows) => $rows->pluck('delivery_order_id')->unique()->values());
+        $notFullyVerified = $sources->filter(fn (SalesOrder $source) => static::hasUnverifiedDetails($source));
 
-        $deliveryOrders = DeliveryOrder::whereIn('id', $deliveryOrderIdsBySource->flatten()->unique())
-            ->get(['id', 'invoice_no', 'is_done'])
-            ->keyBy('id');
-
-        $notDoneInvoiceNumbers = collect();
-
-        foreach ($sources as $source) {
-            $deliveryOrderIds = $deliveryOrderIdsBySource->get($source->id, collect());
-
-            if ($deliveryOrderIds->isEmpty()) {
-                throw new BadRequestHttpException(sprintf(
-                    'Sales Order %s belum memiliki Delivery Order dan tidak dapat di-merge.',
-                    $source->invoice_no
-                ));
-            }
-
-            foreach ($deliveryOrderIds as $deliveryOrderId) {
-                $deliveryOrder = $deliveryOrders->get($deliveryOrderId);
-
-                if ($deliveryOrder && ! $deliveryOrder->is_done) {
-                    $notDoneInvoiceNumbers->push($deliveryOrder->invoice_no);
-                }
-            }
-        }
-
-        if ($notDoneInvoiceNumbers->isNotEmpty()) {
+        if ($notFullyVerified->isNotEmpty()) {
             throw new BadRequestHttpException(sprintf(
-                'Delivery Order belum diselesaikan: %s. Semua Delivery Order dari Sales Order yang akan di-merge harus berstatus Done.',
-                $notDoneInvoiceNumbers->unique()->implode(', ')
+                'Sales Order belum selesai diverifikasi: %s. Semua item harus sudah discan sebelum di-merge.',
+                $notFullyVerified->pluck('invoice_no')->implode(', ')
             ));
         }
+    }
+
+    /**
+     * Whether the Sales Order has no details or at least one detail that is not fully verified.
+     */
+    private static function hasUnverifiedDetails(SalesOrder $salesOrder): bool
+    {
+        return $salesOrder->details()->doesntExist()
+            || $salesOrder->details()->whereColumn('fulfilled_qty', '<', 'qty')->exists();
     }
 
     /**

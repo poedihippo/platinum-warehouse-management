@@ -29,8 +29,8 @@ class SalesOrderResource extends JsonResource
                 'can_be_merged' => ! is_null($this->marketplace)
                     && is_null($this->merged_into_sales_order_id)
                     && ($this->merged_sales_orders_count ?? 0) === 0
-                    && ($this->delivery_orders_count ?? 0) > 0
-                    && ($this->pending_delivery_orders_count ?? 0) === 0,
+                    && ($this->details_count ?? 0) > 0
+                    && ($this->unverified_details_count ?? 0) === 0,
                 'merged_sales_orders' => $this->whenLoaded('mergedSalesOrders', fn () => $this->mergedSalesOrders->select(['id', 'merged_into_sales_order_id', 'invoice_no'])),
                 'delivery_order_id' => $this->whenLoaded(
                     'deliveryOrders',

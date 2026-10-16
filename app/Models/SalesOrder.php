@@ -354,16 +354,16 @@ class SalesOrder extends Model
 
     /**
      * Sales Orders that are eligible to be merged: a marketplace order that has not been
-     * merged yet, is not a merge result, has at least one Delivery Order and every one of
-     * its Delivery Orders is completed (is_done = true).
+     * merged yet, is not a merge result, has at least one detail and every detail has been
+     * fully verified (fulfilled_qty >= qty).
      */
     public function scopeMergeable(Builder $query, mixed $value = true): void
     {
         $isMergeable = fn (Builder $q) => $q
             ->whereNotNull('marketplace')
             ->whereNull('merged_into_sales_order_id')
-            ->whereHas('deliveryOrders')
-            ->whereDoesntHave('deliveryOrders', fn (Builder $q) => $q->where('is_done', false))
+            ->whereHas('details')
+            ->whereDoesntHave('details', fn (Builder $q) => $q->whereColumn('fulfilled_qty', '<', 'qty'))
             ->whereDoesntHave('mergedSalesOrders');
 
         $query->when(
@@ -372,8 +372,8 @@ class SalesOrder extends Model
             fn (Builder $q) => $q->where(fn (Builder $q) => $q
                 ->whereNull('marketplace')
                 ->orWhereNotNull('merged_into_sales_order_id')
-                ->orWhereDoesntHave('deliveryOrders')
-                ->orWhereHas('deliveryOrders', fn (Builder $q) => $q->where('is_done', false))
+                ->orWhereDoesntHave('details')
+                ->orWhereHas('details', fn (Builder $q) => $q->whereColumn('fulfilled_qty', '<', 'qty'))
                 ->orWhereHas('mergedSalesOrders'))
         );
     }
