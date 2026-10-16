@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Enums\CompanyEnum;
-use App\Enums\SettingEnum;
+use App\Enums\DocumentType;
+use App\Services\NumberingService;
 use App\Traits\FilterStartEndDate;
 use App\Traits\Tenanted;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\DB;
 
 class DeliveryOrder extends Model
 {
@@ -37,16 +37,13 @@ class DeliveryOrder extends Model
     protected static function booted()
     {
         static::creating(function ($model) {
-            $model->user_id = auth('sanctum')->id();
+            $model->user_id = $model->user_id ?? auth('sanctum')->id();
             if (empty($model->description)) {
                 $model->description = '#Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih';
             }
-        });
 
-        static::created(function ($model) {
-            if (empty($model->invoice_no)) {
-                $model->invoice_no = self::getDoNumber();
-                $model->save();
+            if (empty($model->invoice_no) && $model->company) {
+                $model->invoice_no = NumberingService::next($model->company, DocumentType::DO());
             }
         });
 
@@ -84,41 +81,5 @@ class DeliveryOrder extends Model
     public function reseller(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reseller_id');
-    }
-
-    public static function getDoNumber(): string
-    {
-        $key = SettingEnum::DO_NUMBER;
-
-        return DB::transaction(function () use ($key) {
-            // Get current value to use. We use lock for update
-            // to prevent other thread to read this row until we update it
-            $lastDoNumber = DB::table('settings')
-                ->where('key', $key)
-                ->lockForUpdate()
-                ->first('value')?->value ?? null;
-
-            if (isset($lastDoNumber) && ! is_null($lastDoNumber) && $lastDoNumber != '') {
-                $arrayLastDoNumber = explode('/', $lastDoNumber);
-
-                if (is_array($arrayLastDoNumber) && count($arrayLastDoNumber) == 5 && date('m') == $arrayLastDoNumber[2] && date('y') == $arrayLastDoNumber[3]) {
-                    $arrayLastDoNumber[4] = sprintf('%02d', (int) $arrayLastDoNumber[4] + 1);
-                    $nextLastDoNumber = implode('/', $arrayLastDoNumber);
-                } else {
-                    $lastDoNumber = sprintf('PAS/DO/%s/%s/01', date('m'), date('y'));
-                    $nextLastDoNumber = sprintf('PAS/DO/%s/%s/02', date('m'), date('y'));
-                }
-            } else {
-                $lastDoNumber = sprintf('PAS/DO/%s/%s/01', date('m'), date('y'));
-                $nextLastDoNumber = sprintf('PAS/DO/%s/%s/02', date('m'), date('y'));
-            }
-
-            // update the value with $nextLastDoNumber
-            DB::table('settings')
-                ->where('key', $key)
-                ->update(['value' => $nextLastDoNumber]);
-
-            return $lastDoNumber;
-        });
     }
 }

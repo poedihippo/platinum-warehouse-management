@@ -3,10 +3,11 @@
 namespace App\Models;
 
 use App\Enums\CompanyEnum;
+use App\Enums\DocumentType;
 use App\Enums\Marketplace;
 use App\Enums\SalesOrderType;
-use App\Enums\SettingEnum;
 use App\Enums\UserType;
+use App\Services\NumberingService;
 use App\Traits\FilterStartEndDate;
 use App\Traits\Tenanted;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,7 +17,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-use Illuminate\Support\Facades\DB;
 
 class SalesOrder extends Model
 {
@@ -94,13 +94,12 @@ class SalesOrder extends Model
             if (empty($model->description)) {
                 $model->description = '#Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih';
             }
-        });
 
-        static::created(function ($model) {
-            if (! isset($model->invoice_no)) {
-                $model->invoice_no = self::getSoNumber();
-                $model->save();
+            if ($model->is_invoice || ! empty($model->invoice_no) || ! $model->company) {
+                return;
             }
+
+            $model->invoice_no = NumberingService::next($model->company, DocumentType::SO());
         });
     }
 
@@ -253,42 +252,6 @@ class SalesOrder extends Model
     public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class, 'warehouse_id');
-    }
-
-    public static function getSoNumber(): string
-    {
-        $key = SettingEnum::SO_NUMBER;
-
-        return DB::transaction(function () use ($key) {
-            // Get current value to use. We use lock for update
-            // to prevent other thread to read this row until we update it
-            $lastSoNumber = DB::table('settings')
-                ->where('key', $key)
-                ->lockForUpdate()
-                ->first('value')?->value ?? null;
-
-            if (isset($lastSoNumber) && ! is_null($lastSoNumber) && $lastSoNumber != '') {
-                $arrayLastSoNumber = explode('/', $lastSoNumber);
-
-                if (is_array($arrayLastSoNumber) && count($arrayLastSoNumber) == 5 && date('m') == $arrayLastSoNumber[2] && date('y') == $arrayLastSoNumber[3]) {
-                    $arrayLastSoNumber[4] = sprintf('%02d', (int) $arrayLastSoNumber[4] + 1);
-                    $nextLastSoNumber = implode('/', $arrayLastSoNumber);
-                } else {
-                    $lastSoNumber = sprintf('PAS/SO/%s/%s/01', date('m'), date('y'));
-                    $nextLastSoNumber = sprintf('PAS/SO/%s/%s/02', date('m'), date('y'));
-                }
-            } else {
-                $lastSoNumber = sprintf('PAS/SO/%s/%s/01', date('m'), date('y'));
-                $nextLastSoNumber = sprintf('PAS/SO/%s/%s/02', date('m'), date('y'));
-            }
-
-            // update the value with $nextLastSoNumber
-            DB::table('settings')
-                ->where('key', $key)
-                ->update(['value' => trim($nextLastSoNumber)]);
-
-            return trim($lastSoNumber);
-        });
     }
 
     public function scopeWhereInvoice(Builder $query)
