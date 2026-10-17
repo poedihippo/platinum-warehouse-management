@@ -31,15 +31,6 @@ class SalesOrderMergeRequest extends FormRequest
         return [
             'sales_order_ids' => ['required', 'array', 'min:2'],
             'sales_order_ids.*' => ['required', 'integer', 'distinct', 'exists:sales_orders,id'],
-            'invoice_no' => [
-                'required',
-                'string',
-                function (string $attribute, mixed $value, Closure $fail) {
-                    if (DB::table('sales_orders')->whereNull('deleted_at')->where('invoice_no', trim($value))->exists()) {
-                        $fail('Invoice number sudah digunakan');
-                    }
-                },
-            ],
             'reseller_id' => [
                 'nullable',
                 function (string $attribute, mixed $value, Closure $fail) {

@@ -538,7 +538,6 @@ class SalesOrderService
                 'company' => $firstSource->getRawOriginal('company'),
                 'reseller_id' => $data['reseller_id'] ?? null,
                 'warehouse_id' => $firstSource->warehouse_id,
-                'invoice_no' => $data['invoice_no'],
                 'transaction_date' => $data['transaction_date'],
                 'shipment_estimation_datetime' => $data['transaction_date'],
                 'shipment_fee' => 0,
