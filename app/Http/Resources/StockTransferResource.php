@@ -14,8 +14,8 @@ class StockTransferResource extends JsonResource
             'stock' => new StockProductUnitResource($this->whenLoaded('stock')),
             'from_stock_product_unit' => new StockProductUnitResource($this->whenLoaded('fromStockProductUnit')?->load(['productUnit', 'warehouse'])),
             'to_stock_product_unit' => new StockProductUnitResource($this->whenLoaded('toStockProductUnit')?->load(['productUnit', 'warehouse'])),
-            'from_warehouse' => new WarehouseResource($this->whenLoaded('fromWarehouse')),
-            'to_warehouse' => new WarehouseResource($this->whenLoaded('toWarehouse')),
+            'from_warehouse' => new DefaultResource($this->whenLoaded('fromWarehouse')),
+            'to_warehouse' => new DefaultResource($this->whenLoaded('toWarehouse')),
             'product_unit' => new ProductUnitResource($this->whenLoaded('productUnit')),
             'user' => new UserResource($this->whenLoaded('user')),
         ];

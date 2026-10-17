@@ -17,7 +17,7 @@ class ProductUnitStockResourceBackup extends JsonResource
         return [
             'qty' => $this->qty,
             'product_unit' => new ProductUnitResource($this->productUnit),
-            'warehouse' => new WarehouseResource($this->warehouse),
+            'warehouse' => new DefaultResource($this->warehouse),
         ];
     }
 }

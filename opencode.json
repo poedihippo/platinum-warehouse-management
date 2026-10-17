@@ -5,44 +5,85 @@
         "PRD.md"
     ],
     "mcp": {
-        "mysql": {
-            "type": "local",
-            "command": ["npx", "-y", "@benborla29/mcp-server-mysql"],
-            "enabled": true,
-            "environment": {
-                "MYSQL_HOST": "127.0.0.1",
-                "MYSQL_PORT": "3306",
-                "MYSQL_USER": "root",
-                "MYSQL_PASS": "password",
-                "MYSQL_DB": "platinum_event"
+        "timeout": {
+            "startup": 60000,
+            "catalog": 30000,
+            "execution": 60000
+        },
+        "servers": {
+            "mysql": {
+                "type": "local",
+                "command": [
+                    "npx",
+                    "-y",
+                    "--prefer-offline",
+                    "@benborla29/mcp-server-mysql"
+                ],
+                "environment": {
+                    "NODE_OPTIONS": "--dns-result-order=ipv4first",
+                    "MYSQL_HOST": "127.0.0.1",
+                    "MYSQL_PORT": "3306",
+                    "MYSQL_USER": "root",
+                    "MYSQL_PASS": "password",
+                    "MYSQL_DB": "platinum_event"
+                },
+                "timeout": {
+                    "startup": 60000,
+                    "catalog": 30000,
+                    "execution": 60000
+                }
+            },
+            "sequential-thinking": {
+                "type": "local",
+                "command": [
+                    "npx",
+                    "-y",
+                    "--prefer-offline",
+                    "@modelcontextprotocol/server-sequential-thinking"
+                ],
+                "environment": {
+                    "NODE_OPTIONS": "--dns-result-order=ipv4first"
+                },
+                "timeout": {
+                    "startup": 60000,
+                    "catalog": 30000,
+                    "execution": 60000
+                }
+            },
+            "memory": {
+                "type": "local",
+                "command": [
+                    "npx",
+                    "-y",
+                    "--prefer-offline",
+                    "@modelcontextprotocol/server-memory"
+                ],
+                "environment": {
+                    "NODE_OPTIONS": "--dns-result-order=ipv4first"
+                },
+                "timeout": {
+                    "startup": 60000,
+                    "catalog": 30000,
+                    "execution": 60000
+                }
+            },
+            "context7": {
+                "type": "local",
+                "command": [
+                    "npx",
+                    "-y",
+                    "--prefer-offline",
+                    "@upstash/context7-mcp"
+                ],
+                "environment": {
+                    "NODE_OPTIONS": "--dns-result-order=ipv4first"
+                },
+                "timeout": {
+                    "startup": 60000,
+                    "catalog": 30000,
+                    "execution": 60000
+                }
             }
-        },
-        "sequential-thinking": {
-            "type": "local",
-            "command": [
-                "npx",
-                "-y",
-                "@modelcontextprotocol/server-sequential-thinking"
-            ],
-            "enabled": true
-        },
-        "memory": {
-            "type": "local",
-            "command": [
-                "npx",
-                "-y",
-                "@modelcontextprotocol/server-memory"
-            ],
-            "enabled": true
-        },
-        "context7": {
-            "type": "local",
-            "command": [
-                "npx",
-                "-y",
-                "@upstash/context7-mcp"
-            ],
-            "enabled": true
         }
     },
     "lsp": {

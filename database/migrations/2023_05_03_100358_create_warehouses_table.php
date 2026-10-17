@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('code', 100);
             $table->string('name', 100);
             $table->string('company_name', 100);
+            $table->boolean('is_for_marketplace')->default(false);
             $table->timestamps();
             $table->softDeletes();
         });

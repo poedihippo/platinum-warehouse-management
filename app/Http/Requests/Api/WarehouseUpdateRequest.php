@@ -14,9 +14,10 @@ class WarehouseUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'code' => ['sometimes', 'required', 'unique:warehouses,code,'.$this->warehouse],
+            'code' => ['sometimes', 'required', 'unique:warehouses,code,' . $this->warehouse],
             'name' => ['sometimes', 'required', 'string'],
             'company_name' => ['sometimes', 'required', 'string'],
+            'is_for_marketplace' => ['sometimes', 'boolean'],
         ];
     }
 }

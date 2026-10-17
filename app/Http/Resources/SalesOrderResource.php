@@ -51,7 +51,7 @@ class SalesOrderResource extends JsonResource
                         'discount_amount' => $v->category->discount_amount,
                     ] : null,
                 ])),
-                'warehouse' => new WarehouseResource($this->whenLoaded('warehouse')),
+                'warehouse' => new DefaultResource($this->whenLoaded('warehouse')),
                 'user' => new UserResource($this->whenLoaded('user')),
                 'reseller' => new UserResource($this->reseller),
                 'details' => SalesOrderDetailResource::collection($this->whenLoaded('details')),

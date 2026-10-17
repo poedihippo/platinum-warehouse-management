@@ -14,12 +14,17 @@ class Warehouse extends Model
         'code',
         'name',
         'company_name',
+        'is_for_marketplace',
+    ];
+
+    protected $casts = [
+        'is_for_marketplace' => 'boolean',
     ];
 
     protected static function booted()
     {
         static::created(function ($model) {
-            ProductUnit::get(['id'])->each(fn ($productUnit) => $productUnit->stockProductUnits()->create([
+            ProductUnit::get(['id'])->each(fn($productUnit) => $productUnit->stockProductUnits()->create([
                 'warehouse_id' => $model->id,
             ]));
         });

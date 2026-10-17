@@ -17,7 +17,7 @@ class SalesOrderDetailResource extends JsonResource
         return array_merge(
             parent::toArray($request),
             [
-                'warehouse' => new WarehouseResource($this->whenLoaded('warehouse')),
+                'warehouse' => new DefaultResource($this->whenLoaded('warehouse')),
                 'sales_order' => new SalesOrderResource($this->whenLoaded('salesOrder')),
                 // 'packaging' => new SalesOrderResource($this->whenLoaded('packaging')),
                 'product_unit' => new ProductUnitResource($this->whenLoaded('productUnit')),

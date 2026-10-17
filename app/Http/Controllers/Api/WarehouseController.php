@@ -5,9 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\WarehouseStoreRequest;
 use App\Http\Requests\Api\WarehouseUpdateRequest;
-use App\Http\Resources\WarehouseResource;
+use App\Http\Resources\DefaultResource;
 use App\Models\Warehouse;
 use Illuminate\Http\Response;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class WarehouseController extends Controller
@@ -26,11 +27,14 @@ class WarehouseController extends Controller
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('warehouse_access'), 403);
         $warehouses = QueryBuilder::for(Warehouse::tenanted())
-            ->allowedFilters(['name'])
-            ->allowedSorts(['id', 'name', 'created_at'])
+            ->allowedFilters([
+                'name',
+                AllowedFilter::exact('is_for_marketplace')
+            ])
+            ->allowedSorts(['id', 'name', 'is_for_marketplace', 'created_at'])
             ->paginate($this->per_page);
 
-        return WarehouseResource::collection($warehouses);
+        return DefaultResource::collection($warehouses);
     }
 
     public function show($id)
@@ -38,14 +42,14 @@ class WarehouseController extends Controller
         // abort_if(!auth('sanctum')->user()->tokenCan('warehouse_access'), 403);
         $warehouse = Warehouse::findTenanted($id);
 
-        return new WarehouseResource($warehouse);
+        return new DefaultResource($warehouse);
     }
 
     public function store(WarehouseStoreRequest $request)
     {
         $warehouse = Warehouse::create($request->validated());
 
-        return new WarehouseResource($warehouse);
+        return new DefaultResource($warehouse);
     }
 
     public function update($id, WarehouseUpdateRequest $request)
@@ -53,7 +57,7 @@ class WarehouseController extends Controller
         $warehouse = Warehouse::findTenanted($id);
         $warehouse->update($request->validated());
 
-        return (new WarehouseResource($warehouse))->response()->setStatusCode(Response::HTTP_ACCEPTED);
+        return (new DefaultResource($warehouse))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
     public function destroy($id)

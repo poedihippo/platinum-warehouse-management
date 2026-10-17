@@ -14,9 +14,10 @@ class WarehouseStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'code' => 'required|unique:warehouses,code',
-            'name' => 'required|string',
-            'company_name' => 'required|string',
+            'code' => ['required', 'unique:warehouses,code'],
+            'name' => ['required', 'string'],
+            'company_name' => ['required', 'string'],
+            'is_for_marketplace' => ['sometimes', 'boolean'],
         ];
     }
 }
