@@ -219,6 +219,11 @@ class PermissionsHelper
                 'voucher_delete',
                 'voucher_import',
             ],
+
+            'document_counter_access' => [
+                'document_counter_read',
+                'document_counter_edit',
+            ],
         ];
     }
 

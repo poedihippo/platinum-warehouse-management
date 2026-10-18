@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\Admin\ProductUnitPointsController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DeliveryOrderController;
 use App\Http\Controllers\Api\DeliveryOrderDetailController;
+use App\Http\Controllers\Api\DocumentCounterController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\Loyalty\Auth\LoginController as LoyaltyLoginController;
 use App\Http\Controllers\Api\Loyalty\Auth\LogoutController as LoyaltyLogoutController;
@@ -352,6 +353,9 @@ Route::middleware(['auth:sanctum', 'ability:warehouse'])->group(function () {
     Route::get('stock-histories', [StockHistoryController::class, 'index']);
 
     Route::apiResource('settings', SettingController::class)->only(['index', 'update']);
+
+    Route::get('document-counters', [DocumentCounterController::class, 'index']);
+    Route::put('document-counters', [DocumentCounterController::class, 'update']);
 
     Route::group(['prefix' => 'payments/{payment}'], function () {
         Route::put('restore', [PaymentController::class, 'restore']);
