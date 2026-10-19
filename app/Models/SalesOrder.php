@@ -122,7 +122,7 @@ class SalesOrder extends Model
     protected function hasDeliveryOrder(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->details()->whereHas('deliveryOrderDetails', function ($q) {
+            get: fn() => $this->details()->whereHas('deliveryOrderDetails', function ($q) {
                 $q->whereColumn(
                     \Illuminate\Support\Facades\DB::raw('(SELECT COALESCE(SUM(qty), 0) FROM delivery_order_details WHERE delivery_order_details.sales_order_detail_id = sales_order_details.id)'),
                     '>=',
@@ -254,6 +254,15 @@ class SalesOrder extends Model
         return $this->belongsTo(Warehouse::class, 'warehouse_id');
     }
 
+    public function scopeIsWhereMarketplace(Builder $query, bool $condition = true)
+    {
+        if ($condition) {
+            return $query->where(fn($q) => $q->whereNotNull('marketplace')->orHas('mergedSalesOrders'));
+        }
+
+        return $query->whereNull('marketplace');
+    }
+
     public function scopeWhereInvoice(Builder $query)
     {
         $query->where('is_invoice', true);
@@ -263,12 +272,12 @@ class SalesOrder extends Model
     {
         // if ($value) return $query->whereHas('details', fn ($q) => $q->has('deliveryOrderDetail'));
         // return $query->whereHas('details', fn ($q) => $q->doesntHave('deliveryOrderDetail'));
-        return $query->whereHas('details', fn ($q) => $q->hasDeliveryOrder((bool) $value));
+        return $query->whereHas('details', fn($q) => $q->hasDeliveryOrder((bool) $value));
     }
 
     public function scopeHasSalesOrder(Builder $query, bool $value = true)
     {
-        $query->when($value === true, fn ($q) => $q->whereNotNull('warehouse_id')->whereNotNull('invoice_no')->where('invoice_no', '!=', ''));
+        $query->when($value === true, fn($q) => $q->whereNotNull('warehouse_id')->whereNotNull('invoice_no')->where('invoice_no', '!=', ''));
         // $query->when($value === true, fn ($q) => $q->whereNotNull('warehouse_id')->where(fn ($q) => $q->whereNotNull('invoice_no')->orWhere('invoice_no', '')));
     }
 
@@ -277,11 +286,11 @@ class SalesOrder extends Model
         $query
             ->when(
                 $value === true,
-                fn ($q) => $q->whereHas('details.salesOrderItems')
+                fn($q) => $q->whereHas('details.salesOrderItems')
             )
             ->when(
                 $value === false,
-                fn ($q) => $q->where(function ($q) {
+                fn($q) => $q->where(function ($q) {
                     $q->whereDoesntHave('details.salesOrderItems')
                         ->orWhereHas('details', function ($q) {
                             $q->whereRaw(
@@ -322,21 +331,21 @@ class SalesOrder extends Model
      */
     public function scopeMergeable(Builder $query, mixed $value = true): void
     {
-        $isMergeable = fn (Builder $q) => $q
+        $isMergeable = fn(Builder $q) => $q
             ->whereNotNull('marketplace')
             ->whereNull('merged_into_sales_order_id')
             ->whereHas('details')
-            ->whereDoesntHave('details', fn (Builder $q) => $q->whereColumn('fulfilled_qty', '<', 'qty'))
+            ->whereDoesntHave('details', fn(Builder $q) => $q->whereColumn('fulfilled_qty', '<', 'qty'))
             ->whereDoesntHave('mergedSalesOrders');
 
         $query->when(
             filter_var($value, FILTER_VALIDATE_BOOLEAN),
             $isMergeable,
-            fn (Builder $q) => $q->where(fn (Builder $q) => $q
+            fn(Builder $q) => $q->where(fn(Builder $q) => $q
                 ->whereNull('marketplace')
                 ->orWhereNotNull('merged_into_sales_order_id')
                 ->orWhereDoesntHave('details')
-                ->orWhereHas('details', fn (Builder $q) => $q->whereColumn('fulfilled_qty', '<', 'qty'))
+                ->orWhereHas('details', fn(Builder $q) => $q->whereColumn('fulfilled_qty', '<', 'qty'))
                 ->orWhereHas('mergedSalesOrders'))
         );
     }

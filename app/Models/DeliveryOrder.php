@@ -34,6 +34,10 @@ class DeliveryOrder extends Model
         'is_done' => 'boolean',
     ];
 
+    protected $hidden = [
+        'mergedSalesOrders',
+    ];
+
     protected static function booted()
     {
         static::creating(function ($model) {
@@ -66,6 +70,15 @@ class DeliveryOrder extends Model
     public function salesOrder(): BelongsTo
     {
         return $this->belongsTo(SalesOrder::class);
+    }
+
+    /**
+     * Sales orders that were merged into this delivery order's sales order.
+     * When this relation is not empty, the delivery order is the result of a marketplace merge.
+     */
+    public function mergedSalesOrders(): HasMany
+    {
+        return $this->hasMany(SalesOrder::class, 'merged_into_sales_order_id', 'sales_order_id');
     }
 
     public function user(): BelongsTo

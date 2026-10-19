@@ -34,6 +34,11 @@ class DeliveryOrderDetailController extends Controller
                     $query->where('is_parent', false)->where('is_returned', false);
                 }])
                 ->with([
+                    'deliveryOrder' => fn ($q) => $q->withCount('mergedSalesOrders')
+                        ->with([
+                            'reseller',
+                            'mergedSalesOrders' => fn ($q) => $q->select('id', 'invoice_no', 'merged_into_sales_order_id'),
+                        ]),
                     'salesOrderDetail' => fn ($q) => $q->select('id', 'sales_order_id', 'product_unit_id', 'fulfilled_qty', 'total_price')
                         ->with([
                             'salesOrder' => fn ($q) => $q->select('id', 'invoice_no', 'reseller_id')
@@ -71,7 +76,11 @@ class DeliveryOrderDetailController extends Controller
         }]);
 
         $deliveryOrderDetail->load([
-            'deliveryOrder',
+            'deliveryOrder' => fn ($q) => $q->withCount('mergedSalesOrders')
+                ->with([
+                    'reseller',
+                    'mergedSalesOrders' => fn ($q) => $q->select('id', 'invoice_no', 'merged_into_sales_order_id'),
+                ]),
             'salesOrderDetail' => function ($q) {
                 $q->with(['warehouse', 'salesOrder', 'productUnit' => fn ($q) => $q->withTrashed()]);
             },
@@ -127,7 +136,11 @@ class DeliveryOrderDetailController extends Controller
         }]);
 
         $deliveryOrderDetail->load([
-            'deliveryOrder',
+            'deliveryOrder' => fn ($q) => $q->withCount('mergedSalesOrders')
+                ->with([
+                    'reseller',
+                    'mergedSalesOrders' => fn ($q) => $q->select('id', 'invoice_no', 'merged_into_sales_order_id'),
+                ]),
             'salesOrderDetail' => function ($q) {
                 $q->with(['warehouse', 'salesOrder', 'productUnit' => fn ($q) => $q->withTrashed()]);
             },

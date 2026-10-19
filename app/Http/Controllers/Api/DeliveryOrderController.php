@@ -47,7 +47,12 @@ class DeliveryOrderController extends Controller
     public function index()
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('delivery_order_access'), 403);
-        $deliveryOrders = QueryBuilder::for(DeliveryOrder::tenanted()->with('user', 'reseller')->withCount('details'))
+        $deliveryOrders = QueryBuilder::for(
+            DeliveryOrder::tenanted()
+                ->with('user', 'reseller')
+                ->withCount('details')
+                ->withCount('mergedSalesOrders')
+        )
             ->allowedFilters([
                 'invoice_no',
                 AllowedFilter::exact('reseller_id'),
@@ -75,13 +80,9 @@ class DeliveryOrderController extends Controller
         $deliveryOrder->load([
             'user',
             'reseller',
-            // 'salesOrder' => function ($q) {
-            //     $q->with('reseller');
-            //     $q->with('details', function ($q) {
-            //         $q->with('productUnit.product');
-            //     });
-            // }
+            'mergedSalesOrders' => fn ($q) => $q->select('id', 'invoice_no', 'merged_into_sales_order_id'),
         ]);
+        $deliveryOrder->loadCount('mergedSalesOrders');
 
         return new DeliveryOrderResource($deliveryOrder);
     }

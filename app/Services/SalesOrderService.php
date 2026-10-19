@@ -298,8 +298,8 @@ class SalesOrderService
                 AllowedFilter::exact('marketplace'),
                 AllowedFilter::callback('is_marketplace', function ($q, $value) {
                     filter_var($value, FILTER_VALIDATE_BOOLEAN)
-                        ? $q->whereNotNull('marketplace')
-                        : $q->whereNull('marketplace');
+                        ? $q->isWhereMarketplace(true)
+                        : $q->isWhereMarketplace(false);
                 }),
                 AllowedFilter::scope('has_sales_order', 'hasSalesOrder'),
                 AllowedFilter::scope('has_delivery_order', 'detailsHasDO'),

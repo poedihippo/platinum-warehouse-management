@@ -18,6 +18,16 @@ class DeliveryOrderResource extends JsonResource
             parent::toArray($request),
             [
                 'is_marketplace_source' => ! is_null($this->sales_order_id),
+                'is_merged_sales_order' => (bool) (($this->merged_sales_orders_count ?? 0) > 0),
+                'merged_sales_orders_count' => (int) ($this->merged_sales_orders_count ?? 0),
+                'merged_sales_orders' => $this->whenLoaded(
+                    'mergedSalesOrders',
+                    fn () => $this->mergedSalesOrders->map(fn ($salesOrder) => [
+                        'id' => $salesOrder->id,
+                        'merged_into_sales_order_id' => $salesOrder->merged_into_sales_order_id,
+                        'invoice_no' => $salesOrder->invoice_no,
+                    ])->values()
+                ),
                 // 'sales_order' => new SalesOrderResource($this->whenLoaded('salesOrder')->loadCount('details')),
                 'user' => new UserResource($this->whenLoaded('user')),
                 'reseller' => new UserResource($this->reseller),
