@@ -34,6 +34,10 @@ class DeliveryOrder extends Model
         'is_done' => 'boolean',
     ];
 
+    protected $hidden = [
+        'mergedSalesOrders',
+    ];
+
     protected static function booted()
     {
         static::creating(function ($model) {
