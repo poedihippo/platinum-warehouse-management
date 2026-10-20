@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
+use App\Enums\CompanyEnum;
 use App\Enums\UserType;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -38,13 +39,22 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
+
     protected $fillable = [
         'name',
         'email',
         'password',
         'type',
+        'company',
         'phone',
         'address',
+        'tax_address',
+        'city',
+        'province',
+        'zip_code',
+        'country',
+        'contact_person',
+        'web_page',
         'provider_id',
         'provider_name',
     ];
@@ -67,6 +77,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'type' => UserType::class,
+        'company' => CompanyEnum::class,
     ];
 
     protected static function booted()
@@ -74,7 +85,7 @@ class User extends Authenticatable
         static::created(function ($model) {
             // if user type is reseller, create user discounts
             if ($model->type->is(UserType::Reseller)) {
-                ProductBrand::select('id')->pluck('id')?->each(fn ($id) => $model->userDiscounts()->create(['product_brand_id' => $id]));
+                ProductBrand::select('id')->pluck('id')?->each(fn($id) => $model->userDiscounts()->create(['product_brand_id' => $id]));
             }
         });
     }
@@ -94,7 +105,7 @@ class User extends Authenticatable
             'expires_at' => $expiresAt,
         ]);
 
-        return new \Laravel\Sanctum\NewAccessToken($token, $token->getKey().'|'.$plainTextToken);
+        return new \Laravel\Sanctum\NewAccessToken($token, $token->getKey() . '|' . $plainTextToken);
     }
 
     /**
@@ -115,7 +126,7 @@ class User extends Authenticatable
     protected function password(): Attribute
     {
         return Attribute::make(
-            set: fn (?string $value) => empty($value) ? null : bcrypt($value),
+            set: fn(?string $value) => empty($value) ? null : bcrypt($value),
         );
     }
 
@@ -135,7 +146,7 @@ class User extends Authenticatable
     private function generatePhoneNumber(null|int|string $value)
     {
         if (! isset($value) || is_null($value) || $value == '' || (string) $value == '0') {
-            $value = 'fake'.rand(11111111, 99999999);
+            $value = 'fake' . rand(11111111, 99999999);
         }
 
         if (DB::table('users')->where('phone', $value)->exists()) {
@@ -166,8 +177,8 @@ class User extends Authenticatable
     public function scopeSearch($query, $search)
     {
         return $query->where(function ($query) use ($search) {
-            $query->where('name', 'like', '%'.$search.'%')
-                ->orWhere('phone', 'like', '%'.$search.'%');
+            $query->where('name', 'like', '%' . $search . '%')
+                ->orWhere('phone', 'like', '%' . $search . '%');
             // ->orWhere('email', 'like', '%' . $search . '%')
         });
     }

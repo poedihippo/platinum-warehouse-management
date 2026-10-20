@@ -31,7 +31,7 @@ class DeliveryOrderUpdateRequest extends FormRequest
                 },
             ],
             'reseller_id' => ['required', function (string $attribute, mixed $value, Closure $fail) {
-                if (! DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::Reseller)->exists()) {
+                if (! DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::Reseller)->where('company', $this->company)->exists()) {
                     $fail('Reseller Tidak ditemukan');
                 }
             }],

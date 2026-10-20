@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('code')->nullable();
             $table->string('email')->unique()->nullable();
             $table->string('type')->default(UserType::Customer);
+            $table->string('company', 10)->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password')->nullable();
             $table->text('address')->nullable();
@@ -28,9 +29,9 @@ return new class extends Migration
             $table->string('provider_name')->nullable();
             $table->string('city')->nullable();
             $table->string('province')->nullable();
-            $table->string('zip_code')->nullable();
+            $table->string('zip_code', 7)->nullable();
             $table->string('country')->nullable();
-            $table->string('phone')->unique()->nullable();
+            $table->string('phone', 100)->unique()->nullable();
             $table->string('contact_person')->nullable();
             $table->string('web_page')->nullable();
             $table->rememberToken();

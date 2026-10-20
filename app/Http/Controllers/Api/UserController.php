@@ -18,7 +18,6 @@ class UserController extends Controller
     {
         parent::__construct();
         // $this->middleware('permission:user_access', ['only' => ['index', 'show', 'restore']]);
-        // $this->middleware('permission:user_access', ['only' => ['restore']]);
         $this->middleware('permission:user_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:user_create', ['only' => 'store']);
         $this->middleware('permission:user_edit', ['only' => 'update']);
@@ -36,7 +35,8 @@ class UserController extends Controller
                 'email',
                 'phone',
                 'type',
-                AllowedFilter::callback('name', fn($q, $value) => $q->where(fn($q) => $q->where('name', 'like', '%' . $value . '%')->orWhere('phone', 'like', '%' . $value . '%'))),
+                AllowedFilter::exact('company'),
+                AllowedFilter::callback('name', fn($q, $value) => $q->where(fn($q) => $q->where('name', 'like', '%' . $value . '%')->orWhere('phone', 'like', '%' . $value . '%')->orWhere('code', 'like', '%' . $value . '%'))),
                 // AllowedFilter::exact('type'),
                 // AllowedFilter::callback('name', fn ($q, $value) => die($value)),
             ])
@@ -63,23 +63,7 @@ class UserController extends Controller
     public function store(UserStoreRequest $request)
     {
         $user = DB::transaction(function () use ($request) {
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => $request->password ?? null,
-                'phone' => $request->phone,
-                'address' => $request->address,
-                'tax_address' => $request->tax_address,
-                'provider_id' => $request->provider_id,
-                'provider_name' => $request->provider_name,
-                'city' => $request->city,
-                'province' => $request->province,
-                'zip_code' => $request->zip_code,
-                'country' => $request->country,
-                'contact_person' => $request->contact_person,
-                'web_page' => $request->web_page,
-                'type' => $request->type,
-            ]);
+            $user = User::create($request->validated());
             $user->syncRoles($request->role_ids);
             $user->warehouses()->sync($request->warehouse_ids);
 
@@ -91,13 +75,7 @@ class UserController extends Controller
 
     public function update(User $user, UserUpdateRequest $request)
     {
-        $data = $request->validated();
-
-        if ($request->password) {
-            $data['password'] = $request->password;
-        }
-
-        $user->update($data);
+        $user->update($request->validated());
 
         $user->syncRoles($request->role_ids);
         $user->warehouses()->sync($request->warehouse_ids);
