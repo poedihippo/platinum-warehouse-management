@@ -39,7 +39,9 @@ return [
 
     'allowed_headers' => ['*'],
 
-    'exposed_headers' => [],
+    // Content-Disposition must be exposed so the browser can read the
+    // attachment filename returned by the export (XML/TXT/PDF) endpoints.
+    'exposed_headers' => ['Content-Disposition'],
 
     'max_age' => 0,
 
