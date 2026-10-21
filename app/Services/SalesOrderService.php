@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Helpers\ContentDispositionHelper;
 use App\Http\Resources\SalesOrderResource;
 use App\Models\DeliveryOrder;
 use App\Models\DeliveryOrderDetail;
@@ -409,10 +410,14 @@ class SalesOrderService
         ]);
 
         // $salesOrder->load(['reseller', 'details' => fn($q) => $q->with('packaging', 'productUnit')]);
+        $filename = ContentDispositionHelper::filename(
+            $salesOrder->invoice_no,
+            'sales-order-'.$salesOrder->id
+        );
+
         return response(view('xml.salesOrders.salesOrder')->with(compact('salesOrder')), 200, [
             'Content-Type' => 'application/xml',
-            // use your required mime type
-            'Content-Disposition' => 'attachment; filename="'.$salesOrder->invoice_no.'.xml"',
+            'Content-Disposition' => ContentDispositionHelper::attachmentHeader($filename),
         ]);
     }
 

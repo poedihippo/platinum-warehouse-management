@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Enums\CompanyEnum;
+use App\Helpers\ContentDispositionHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\DeliveryOrderAttachRequest;
 use App\Http\Requests\Api\DeliveryOrderReturnRequest;
@@ -274,10 +275,14 @@ class DeliveryOrderController extends Controller
             )),
         ])->findTenanted($id);
 
+        $filename = ContentDispositionHelper::filename(
+            $deliveryOrder->invoice_no,
+            'delivery-order-'.$deliveryOrder->id
+        );
+
         return response(view('xml.deliveryOrders.deliveryOrder')->with(compact('deliveryOrder')), 200, [
             'Content-Type' => 'application/xml',
-            // use your required mime type
-            'Content-Disposition' => 'attachment; filename="'.$deliveryOrder->invoice_no.'.xml"',
+            'Content-Disposition' => ContentDispositionHelper::attachmentHeader($filename),
         ]);
     }
 
