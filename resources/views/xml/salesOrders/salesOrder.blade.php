@@ -5,17 +5,55 @@
             <TRANSACTIONID>00001</TRANSACTIONID>
             @php
                 $keyId = 0;
-                $GROUPSEQ = 0;
             @endphp
             @foreach ($salesOrder->details ?? [] as $detail)
-                {{-- @if ($detail->packaging) --}}
-                @if (false)
-                    @for ($i = 0; $i < 2; $i++)
+                @php
+                    $hasRelation = false;
+                    $productUnit = $detail->productUnit;
+                    $baseUnit = null;
+                    $relations = collect();
+                    if ($productUnit->refer) {
+                        $relations = $productUnit->relations;
+                        $baseUnit = $productUnit->refer;
+                        $hasRelation = true;
+                    }
+                    $mainKeyId = $keyId;
+                @endphp
+                <ITEMLINE operation="Add">
+                    <KeyID>{{ $keyId++ }}</KeyID>
+                    <ITEMNO>{{ $hasRelation ? rtrim($productUnit->code, '*') . '*' : $productUnit->code }}</ITEMNO>
+                    <QUANTITY>{{ $detail->qty }}</QUANTITY>
+                    <ITEMUNIT>{{ $productUnit->uom?->name }}</ITEMUNIT>
+                    <UNITRATIO>1</UNITRATIO>
+                    <ITEMRESERVED1 />
+                    <ITEMRESERVED2 />
+                    <ITEMRESERVED3 />
+                    <ITEMRESERVED4 />
+                    <ITEMRESERVED5 />
+                    <ITEMRESERVED6 />
+                    <ITEMRESERVED7 />
+                    <ITEMRESERVED8 />
+                    <ITEMRESERVED9 />
+                    <ITEMRESERVED10 />
+                    <ITEMOVDESC>{{ $hasRelation ? rtrim($productUnit->name, '*') . '*' : $productUnit->name }}
+                    </ITEMOVDESC>
+                    <UNITPRICE>{{ $detail->unit_price }}</UNITPRICE>
+                    <DISCPC />
+                    @if ($detail->tax > 0)
+                        <TAXCODES>T</TAXCODES>
+                    @else
+                        <TAXCODES />
+                    @endif
+                    <GROUPSEQ />
+                    <QTYSHIPPED>{{ $detail->qty }}</QTYSHIPPED>
+                </ITEMLINE>
+                @if ($hasRelation)
+                    @foreach ($relations ?? [] as $relation)
                         <ITEMLINE operation="Add">
                             <KeyID>{{ $keyId++ }}</KeyID>
-                            <ITEMNO>{{ $detail->productUnit->code . ($i == 0 ? '*' : '') }}</ITEMNO>
-                            <QUANTITY>{{ $detail->qty }}</QUANTITY>
-                            <ITEMUNIT>{{ $detail->productUnit->uom?->name }}</ITEMUNIT>
+                            <ITEMNO>{{ $relation->relatedProductUnit->code }}</ITEMNO>
+                            <QUANTITY>{{ $detail->qty * $relation->qty }}</QUANTITY>
+                            <ITEMUNIT>{{ $relation->relatedProductUnit->uom?->name }}</ITEMUNIT>
                             <UNITRATIO>1</UNITRATIO>
                             <ITEMRESERVED1 />
                             <ITEMRESERVED2 />
@@ -27,140 +65,38 @@
                             <ITEMRESERVED8 />
                             <ITEMRESERVED9 />
                             <ITEMRESERVED10 />
-                            <ITEMOVDESC>{{ ($i == 0 ? '' : '--') . $detail->productUnit->name . ($i == 0 ? '*' : '') }}
-                            </ITEMOVDESC>
-                            <UNITPRICE>{{ $i == 0 ? $detail->unit_price : 0 }}</UNITPRICE>
-                            <DISCPC />
-                            @if ($detail->tax > 0)
-                                <TAXCODES>T</TAXCODES>
-                            @else
-                                <TAXCODES />
-                            @endif
-                            <GROUPSEQ>{{ $i == 0 ? null : $GROUPSEQ }}</GROUPSEQ>
-                            <QTYSHIPPED>0</QTYSHIPPED>
-                        </ITEMLINE>
-                    @endfor
-                    <ITEMLINE operation="Add">
-                        <KeyID>{{ $keyId++ }}</KeyID>
-                        <ITEMNO>{{ $detail->packaging->code }}</ITEMNO>
-                        <QUANTITY>{{ $detail->qty }}</QUANTITY>
-                        <ITEMUNIT>{{ $detail->packaging->uom?->name }}</ITEMUNIT>
-                        <UNITRATIO>1</UNITRATIO>
-                        <ITEMRESERVED1 />
-                        <ITEMRESERVED2 />
-                        <ITEMRESERVED3 />
-                        <ITEMRESERVED4 />
-                        <ITEMRESERVED5 />
-                        <ITEMRESERVED6 />
-                        <ITEMRESERVED7 />
-                        <ITEMRESERVED8 />
-                        <ITEMRESERVED9 />
-                        <ITEMRESERVED10 />
-                        <ITEMOVDESC>--{{ $detail->packaging->name }}</ITEMOVDESC>
-                        <UNITPRICE>{{ $detail->packaging->price }}</UNITPRICE>
-                        <DISCPC />
-                        @if ($detail->tax > 0)
-                            <TAXCODES>T</TAXCODES>
-                        @else
-                            <TAXCODES />
-                        @endif
-                        <GROUPSEQ>{{ $GROUPSEQ }}</GROUPSEQ>
-                        <QTYSHIPPED>0</QTYSHIPPED>
-                    </ITEMLINE>
-                @else
-                    @php
-                        $hasRelation = false;
-                        $productUnit = $detail->productUnit;
-                        $baseUnit = null;
-                        $relations = collect();
-                        if($productUnit->refer) {
-                            $relations = $productUnit->relations;
-                            $baseUnit = $productUnit->refer;
-                            $hasRelation = true;
-                        }
-                        $mainKeyId = $keyId;
-                    @endphp
-                    <ITEMLINE operation="Add">
-                        <KeyID>{{ $keyId++ }}</KeyID>
-                        <ITEMNO>{{ $hasRelation ? rtrim($productUnit->code, '*') . '*' : $productUnit->code }}</ITEMNO>
-                        <QUANTITY>{{ $detail->qty }}</QUANTITY>
-                        <ITEMUNIT>{{ $productUnit->uom?->name }}</ITEMUNIT>
-                        <UNITRATIO>1</UNITRATIO>
-                        <ITEMRESERVED1 />
-                        <ITEMRESERVED2 />
-                        <ITEMRESERVED3 />
-                        <ITEMRESERVED4 />
-                        <ITEMRESERVED5 />
-                        <ITEMRESERVED6 />
-                        <ITEMRESERVED7 />
-                        <ITEMRESERVED8 />
-                        <ITEMRESERVED9 />
-                        <ITEMRESERVED10 />
-                        <ITEMOVDESC>{{ $hasRelation ? rtrim($productUnit->name, '*') . '*' : $productUnit->name }}</ITEMOVDESC>
-                        <UNITPRICE>{{ $detail->unit_price }}</UNITPRICE>
-                        <DISCPC />
-                        @if ($detail->tax > 0)
-                            <TAXCODES>T</TAXCODES>
-                        @else
-                            <TAXCODES />
-                        @endif
-                        <GROUPSEQ />
-                        <QTYSHIPPED>{{ $detail->qty }}</QTYSHIPPED>
-                    </ITEMLINE>
-                    @if($hasRelation)
-                        @foreach ($relations ?? [] as $relation)
-                            <ITEMLINE operation="Add">
-                                <KeyID>{{ $keyId++ }}</KeyID>
-                                <ITEMNO>{{ $relation->relatedProductUnit->code }}</ITEMNO>
-                                <QUANTITY>{{ $detail->qty * $relation->qty }}</QUANTITY>
-                                <ITEMUNIT>{{ $relation->relatedProductUnit->uom?->name }}</ITEMUNIT>
-                                <UNITRATIO>1</UNITRATIO>
-                                <ITEMRESERVED1 />
-                                <ITEMRESERVED2 />
-                                <ITEMRESERVED3 />
-                                <ITEMRESERVED4 />
-                                <ITEMRESERVED5 />
-                                <ITEMRESERVED6 />
-                                <ITEMRESERVED7 />
-                                <ITEMRESERVED8 />
-                                <ITEMRESERVED9 />
-                                <ITEMRESERVED10 />
-                                <ITEMOVDESC>--{{ $relation->relatedProductUnit->name }}</ITEMOVDESC>
-                                <UNITPRICE>0</UNITPRICE>
-                                <DISCPC />
-                                <TAXCODES />
-                                <GROUPSEQ>{{ $mainKeyId }}</GROUPSEQ>
-                                <QTYSHIPPED>{{ $detail->qty * $relation->qty }}</QTYSHIPPED>
-                            </ITEMLINE>
-                        @endforeach
-                        <ITEMLINE operation="Add">
-                            <KeyID>{{ $keyId++ }}</KeyID>
-                            <ITEMNO>{{ $baseUnit->code }}</ITEMNO>
-                            <QUANTITY>{{ $detail->qty }}</QUANTITY>
-                            <ITEMUNIT>{{ $baseUnit->uom?->name }}</ITEMUNIT>
-                            <UNITRATIO>1</UNITRATIO>
-                            <ITEMRESERVED1 />
-                            <ITEMRESERVED2 />
-                            <ITEMRESERVED3 />
-                            <ITEMRESERVED4 />
-                            <ITEMRESERVED5 />
-                            <ITEMRESERVED6 />
-                            <ITEMRESERVED7 />
-                            <ITEMRESERVED8 />
-                            <ITEMRESERVED9 />
-                            <ITEMRESERVED10 />
-                            <ITEMOVDESC>--{{ $baseUnit->name }}</ITEMOVDESC>
+                            <ITEMOVDESC>--{{ $relation->relatedProductUnit->name }}</ITEMOVDESC>
                             <UNITPRICE>0</UNITPRICE>
                             <DISCPC />
                             <TAXCODES />
                             <GROUPSEQ>{{ $mainKeyId }}</GROUPSEQ>
-                            <QTYSHIPPED>{{ $detail->qty }}</QTYSHIPPED>
+                            <QTYSHIPPED>{{ $detail->qty * $relation->qty }}</QTYSHIPPED>
                         </ITEMLINE>
-                    @endif
+                    @endforeach
+                    <ITEMLINE operation="Add">
+                        <KeyID>{{ $keyId++ }}</KeyID>
+                        <ITEMNO>{{ $baseUnit->code }}</ITEMNO>
+                        <QUANTITY>{{ $detail->qty }}</QUANTITY>
+                        <ITEMUNIT>{{ $baseUnit->uom?->name }}</ITEMUNIT>
+                        <UNITRATIO>1</UNITRATIO>
+                        <ITEMRESERVED1 />
+                        <ITEMRESERVED2 />
+                        <ITEMRESERVED3 />
+                        <ITEMRESERVED4 />
+                        <ITEMRESERVED5 />
+                        <ITEMRESERVED6 />
+                        <ITEMRESERVED7 />
+                        <ITEMRESERVED8 />
+                        <ITEMRESERVED9 />
+                        <ITEMRESERVED10 />
+                        <ITEMOVDESC>--{{ $baseUnit->name }}</ITEMOVDESC>
+                        <UNITPRICE>0</UNITPRICE>
+                        <DISCPC />
+                        <TAXCODES />
+                        <GROUPSEQ>{{ $mainKeyId }}</GROUPSEQ>
+                        <QTYSHIPPED>{{ $detail->qty }}</QTYSHIPPED>
+                    </ITEMLINE>
                 @endif
-                @php
-                    $GROUPSEQ++;
-                @endphp
             @endforeach
             <SONO>{{ $salesOrder->invoice_no }}</SONO>
             <SODATE>{{ date('Y-m-d', strtotime($salesOrder->transaction_date)) }}</SODATE>

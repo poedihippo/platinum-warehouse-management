@@ -5,20 +5,28 @@
             <TRANSACTIONID>00001</TRANSACTIONID>
             @php
                 $keyId = 0;
+                $SOSEQ = 0;
             @endphp
             @foreach ($deliveryOrder->details ?? [] as $detail)
                 @php
                     $hasRelation = false;
                     $productUnit = $detail->salesOrderDetail?->productUnit;
+                    $baseUnit = null;
+                    $relations = collect();
                     if($productUnit && $productUnit->refer) {
                         $relations = $productUnit->relations;
-                        $productUnit = $productUnit->refer;
+                        $baseUnit = $productUnit->refer;
                         $hasRelation = true;
+
+                        $productUnit->price = $baseUnit->price;
                     }
 
+                    $mainKeyId = $keyId;
                     $warehouseCode = $detail->salesOrderDetail?->warehouse?->code;
                     $SONumber = $detail->salesOrderDetail?->salesOrder?->invoice_no;
                     $SODetailQty = $detail->salesOrderDetail?->qty ?? 0;
+
+                    $unitPrice = $detail->salesOrderDetail?->unit_price ?? $productUnit?->price ?? 0;
                 @endphp
                 <ITEMLINE operation="Add">
                     <KeyID>{{ $keyId++ }}</KeyID>
@@ -37,7 +45,7 @@
                     <ITEMRESERVED9 />
                     <ITEMRESERVED10 />
                     <ITEMOVDESC>{{ $productUnit?->name }}</ITEMOVDESC>
-                    <UNITPRICE>{{ $productUnit?->price }}</UNITPRICE>
+                    <UNITPRICE>{{ $unitPrice }}</UNITPRICE>
                     <ITEMDISCPC />
                     @if ($detail->salesOrderDetail && $detail->salesOrderDetail->tax > 0)
                         <TAXCODES>T</TAXCODES>
@@ -45,8 +53,8 @@
                         <TAXCODES />
                     @endif
                     <GROUPSEQ />
-                    <SOSEQ>0</SOSEQ>
-                    <BRUTOUNITPRICE>0</BRUTOUNITPRICE>
+                    <SOSEQ>{{ $SOSEQ++ }}</SOSEQ>
+                    <BRUTOUNITPRICE>{{ $unitPrice }}</BRUTOUNITPRICE>
                     <WAREHOUSEID>{{ $warehouseCode }}</WAREHOUSEID>
                     <QTYCONTROL>0</QTYCONTROL>
                     <DOSEQ />
@@ -72,11 +80,11 @@
                         <ITEMRESERVED9 />
                         <ITEMRESERVED10 />
                         <ITEMOVDESC>{{ $relation->relatedProductUnit?->name }}</ITEMOVDESC>
-                        <UNITPRICE>{{ $relation->relatedProductUnit?->price }}</UNITPRICE>
+                        <UNITPRICE>0</UNITPRICE>
                         <ITEMDISCPC />
                         <TAXCODES />
-                        <GROUPSEQ />
-                        <SOSEQ>0</SOSEQ>
+                        <GROUPSEQ>{{ $mainKeyId }}</GROUPSEQ>
+                        <SOSEQ>{{ $SOSEQ++ }}</SOSEQ>
                         <BRUTOUNITPRICE>0</BRUTOUNITPRICE>
                         <WAREHOUSEID>{{ $warehouseCode }}</WAREHOUSEID>
                         <QTYCONTROL>0</QTYCONTROL>
@@ -85,6 +93,37 @@
                         <DOID />
                     </ITEMLINE>
                     @endforeach
+                    @if($baseUnit)
+                    <ITEMLINE operation="Add">
+                        <KeyID>{{ $keyId++ }}</KeyID>
+                        <ITEMNO>{{ $baseUnit->code }}</ITEMNO>
+                        <QUANTITY>{{ $SODetailQty }}</QUANTITY>
+                        <ITEMUNIT>{{ $baseUnit->uom?->name }}</ITEMUNIT>
+                        <UNITRATIO>1</UNITRATIO>
+                        <ITEMRESERVED1 />
+                        <ITEMRESERVED2 />
+                        <ITEMRESERVED3 />
+                        <ITEMRESERVED4 />
+                        <ITEMRESERVED5 />
+                        <ITEMRESERVED6 />
+                        <ITEMRESERVED7 />
+                        <ITEMRESERVED8 />
+                        <ITEMRESERVED9 />
+                        <ITEMRESERVED10 />
+                        <ITEMOVDESC>{{ $baseUnit->name }}</ITEMOVDESC>
+                        <UNITPRICE>0</UNITPRICE>
+                        <ITEMDISCPC />
+                        <TAXCODES />
+                        <GROUPSEQ>{{ $mainKeyId }}</GROUPSEQ>
+                        <SOSEQ>{{ $SOSEQ++ }}</SOSEQ>
+                        <BRUTOUNITPRICE>0</BRUTOUNITPRICE>
+                        <WAREHOUSEID>{{ $warehouseCode }}</WAREHOUSEID>
+                        <QTYCONTROL>0</QTYCONTROL>
+                        <DOSEQ />
+                        <SOID>{{ $SONumber }}</SOID>
+                        <DOID />
+                    </ITEMLINE>
+                    @endif
                 @endif
             @endforeach
             <INVOICENO>{{ $deliveryOrder->invoice_no }}</INVOICENO>
