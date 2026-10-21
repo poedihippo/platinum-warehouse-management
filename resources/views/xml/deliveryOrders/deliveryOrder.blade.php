@@ -4,7 +4,7 @@
         <DELIVERYORDER operation="Add" REQUESTID="1">
             <TRANSACTIONID>00001</TRANSACTIONID>
             @php
-                $keyId = 0;
+                $keyId = 1;
                 $SOSEQ = 0;
             @endphp
             @foreach ($deliveryOrder->details ?? [] as $detail)
@@ -55,7 +55,9 @@
                     <GROUPSEQ />
                     <SOSEQ>{{ $SOSEQ++ }}</SOSEQ>
                     <BRUTOUNITPRICE>{{ $unitPrice }}</BRUTOUNITPRICE>
-                    <WAREHOUSEID>{{ $warehouseCode }}</WAREHOUSEID>
+                    @if(!$baseUnit)
+                        <WAREHOUSEID>{{ $warehouseCode }}</WAREHOUSEID>
+                    @endif
                     <QTYCONTROL>0</QTYCONTROL>
                     <DOSEQ />
                     <SOID>{{ $SONumber }}</SOID>
