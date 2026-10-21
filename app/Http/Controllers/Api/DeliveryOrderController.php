@@ -277,7 +277,7 @@ class DeliveryOrderController extends Controller
         return response(view('xml.deliveryOrders.deliveryOrder')->with(compact('deliveryOrder')), 200, [
             'Content-Type' => 'application/xml',
             // use your required mime type
-            'Content-Disposition' => 'attachment; filename="Delivery Order '.$deliveryOrder->code.'.xml"',
+            'Content-Disposition' => 'attachment; filename="Delivery Order '.$deliveryOrder->invoice_no.'.xml"',
         ]);
     }
 
