@@ -412,7 +412,7 @@ class SalesOrderService
         return response(view('xml.salesOrders.salesOrder')->with(compact('salesOrder')), 200, [
             'Content-Type' => 'application/xml',
             // use your required mime type
-            'Content-Disposition' => 'attachment; filename="Sales Order '.$salesOrder->invoice_no.'.xml"',
+            'Content-Disposition' => 'attachment; filename="'.$salesOrder->invoice_no.'.xml"',
         ]);
     }
 
