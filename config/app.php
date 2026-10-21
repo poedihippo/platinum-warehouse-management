@@ -219,30 +219,30 @@ return [
     'min_price_roll_dice' => env('MIN_PRICE_ROLL_DICE', 500000),
     'cashier_ids' => explode(',', env('CASHIER_IDS', '728,729')),
     'min_trx_auto_discount' => [
-        [
-            'min_value' => 75001,
-            'max_value' => 250000,
-            'discount' => [5],
-        ],
-        [
-            'min_value' => 250001,
-            'max_value' => 500000,
-            'discount' => [5, 2],
-        ],
-        [
-            'min_value' => 500001,
-            'max_value' => 1000000,
-            'discount' => [10],
-        ],
-        [
-            'min_value' => 1000001,
-            'max_value' => 2000000,
-            'discount' => [15],
-        ],
-        [
-            'min_value' => 2000001,
-            'max_value' => null,
-            'discount' => [20],
-        ],
+        // [
+        //     'min_value' => 75001,
+        //     'max_value' => 250000,
+        //     'discount' => [5],
+        // ],
+        // [
+        //     'min_value' => 250001,
+        //     'max_value' => 500000,
+        //     'discount' => [5, 2],
+        // ],
+        // [
+        //     'min_value' => 500001,
+        //     'max_value' => 1000000,
+        //     'discount' => [10],
+        // ],
+        // [
+        //     'min_value' => 1000001,
+        //     'max_value' => 2000000,
+        //     'discount' => [15],
+        // ],
+        // [
+        //     'min_value' => 2000001,
+        //     'max_value' => null,
+        //     'discount' => [20],
+        // ],
     ],
 ];
