@@ -94,7 +94,7 @@
                         <DISCPC />
                         <TAXCODES />
                         <GROUPSEQ>{{ $mainKeyId }}</GROUPSEQ>
-                        <QUANTITY>{{ $detail->qty * $productUnit->refer_qty }}</QUANTITY>
+                        <QTYSHIPPED>{{ $detail->qty * $productUnit->refer_qty }}</QTYSHIPPED>
                     </ITEMLINE>
                 @endif
             @endforeach
