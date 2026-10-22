@@ -21,7 +21,6 @@ return new class extends Migration
             $table->foreignIdFor(SalesOrder::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(ProductUnit::class)->constrained();
             $table->foreignIdFor(Warehouse::class)->nullable()->constrained();
-            // $table->foreignId('packaging_id')->nullable();
             $table->integer('qty')->default(0);
             $table->integer('fulfilled_qty')->default(0);
             $table->integer('unit_price')->default(0);

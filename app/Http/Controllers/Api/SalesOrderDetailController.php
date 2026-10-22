@@ -23,7 +23,6 @@ class SalesOrderDetailController extends Controller
 
         $salesOrder = SalesOrder::findTenanted($salesOrderId, ['id']);
         $query = SalesOrderDetail::where('sales_order_id', $salesOrder->id)->with([
-            // 'packaging',
             'warehouse' => fn ($q) => $q->select('id', 'code', 'name'),
             'productUnit' => fn ($q) => $q->select('id', 'name'),
         ]);

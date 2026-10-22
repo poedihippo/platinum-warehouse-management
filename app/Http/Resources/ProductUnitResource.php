@@ -36,7 +36,6 @@ class ProductUnitResource extends JsonResource
             'product' => new ProductResource($this->whenLoaded('product')),
             'relations' => DefaultResource::collection($this->whenLoaded('relations')),
             'refer' => $this->refer,
-            // 'packaging' =>  new self($this->whenLoaded('packaging')),
         ];
     }
 }

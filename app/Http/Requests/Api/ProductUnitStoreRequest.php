@@ -38,7 +38,6 @@ class ProductUnitStoreRequest extends FormRequest
             // 'description' => 'required',
             'product_id' => 'required',
             'price' => 'required',
-            // 'packaging_id' => 'nullable|exists:product_units,id',
             'is_generate_qr' => 'required|boolean',
             // 'is_auto_tempel' => 'nullable|boolean',
             'is_ppn' => 'required|boolean',

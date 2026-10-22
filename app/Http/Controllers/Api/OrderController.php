@@ -62,7 +62,7 @@ class OrderController extends Controller
     {
         $order->load([
             'vouchers.category', 'payments', 'warehouse',
-            // 'details' => fn ($q) => $q->with(['warehouse', 'packaging']),
+            // 'details' => fn ($q) => $q->with(['warehouse']),
             'details' => fn ($q) => $q->with(['warehouse']),
             'user' => fn ($q) => $q->select('id', 'name', 'type'),
             'reseller' => fn ($q) => $q->select('id', 'name', 'type', 'type', 'email', 'phone', 'address'),

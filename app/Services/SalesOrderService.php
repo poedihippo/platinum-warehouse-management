@@ -409,7 +409,6 @@ class SalesOrderService
                 ])),
         ]);
 
-        // $salesOrder->load(['reseller', 'details' => fn($q) => $q->with('packaging', 'productUnit')]);
         $filename = ContentDispositionHelper::filename(
             $salesOrder->invoice_no,
             'sales-order-'.$salesOrder->id

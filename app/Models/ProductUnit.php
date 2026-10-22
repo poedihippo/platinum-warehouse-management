@@ -14,11 +14,10 @@ class ProductUnit extends Model
     protected $fillable = [
         'product_id',
         'refer_id',
-        // 'packaging_id',
+        'refer_qty',
         'uom_id',
         'name',
         'price',
-        'refer_qty',
         // 'description',
         'code',
         'is_generate_qr',
@@ -48,11 +47,6 @@ class ProductUnit extends Model
     {
         return $this->belongsTo(Product::class);
     }
-
-    // public function packaging()
-    // {
-    //     return $this->belongsTo(self::class, 'packaging_id');
-    // }
 
     public function refer()
     {

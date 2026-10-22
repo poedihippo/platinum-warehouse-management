@@ -237,7 +237,6 @@ Route::middleware(['auth:sanctum', 'ability:warehouse'])->group(function () {
     Route::post('product-units/{productUnit}/create-relations', [ProductUnitController::class, 'createProductUnitRelations']);
     Route::put('product-units/{productUnit}/update-relations/{id}', [ProductUnitController::class, 'updateProductUnitRelations']);
     Route::put('product-units/{productUnit}/change-product', [ProductUnitController::class, 'changeProduct']);
-    // Route::put('product-units/{productUnit}/set-packaging', [ProductUnitController::class, 'setPackaging']);
     Route::get('product-units/{productUnit}/user-price/{user}', [ProductUnitController::class, 'userPrice']);
     Route::get('product-units/sample-import', [ProductUnitController::class, 'sampleImport']);
     Route::post('product-units/import', [ProductUnitController::class, 'import']);

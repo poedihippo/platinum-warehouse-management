@@ -214,7 +214,7 @@ class SalesOrderController extends Controller
             ->with([
                 'warehouse' => fn ($q) => $q->select('id', 'code'),
                 'productUnit' => function ($q) {
-                    // $q->select('id', 'uom_id', 'product_id', 'packaging_id', 'name', 'price', 'is_ppn')
+                    // $q->select('id', 'uom_id', 'product_id', 'name', 'price', 'is_ppn')
                     $q->select('id', 'uom_id', 'product_id', 'name', 'price', 'is_ppn')
                         ->with([
                             'uom' => fn ($q) => $q->select('id', 'name'),
