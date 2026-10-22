@@ -135,7 +135,7 @@ class StockController extends Controller
                 }),
                 'in_printing_queue',
             ])
-            ->allowedSorts(['in_printing_queue', 'printed_at', 'scanned_count', 'scanned_datetime', 'warehouse_id', 'created_at'])
+            ->allowedSorts(['id', 'in_printing_queue', 'printed_at', 'scanned_count', 'scanned_datetime', 'warehouse_id', 'created_at'])
             // ->allowedIncludes(['productUnit', 'warehouse', 'receiveOrderDetail'])
             ->paginate($this->per_page);
 
