@@ -395,7 +395,7 @@ class SalesOrderService
 
     public static function exportXml($id, ?callable $query = null)
     {
-        $productUnitColumns = ['id', 'uom_id', 'refer_id', 'code', 'name'];
+        $productUnitColumns = ['id', 'uom_id', 'refer_id', 'refer_qty', 'code', 'name'];
         $uomColumns = 'uom:id,name';
         $salesOrder = SalesOrder::when($query, $query, null)->findTenanted($id);
         $salesOrder->load([

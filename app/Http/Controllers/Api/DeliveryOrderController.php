@@ -260,7 +260,7 @@ class DeliveryOrderController extends Controller
 
         // $deliveryOrder->load(['reseller', 'details' => fn ($q) => $q->with('salesOrderDetail.productUnit.uom')]);
 
-        $productUnitColumns = ['id', 'uom_id', 'refer_id', 'code', 'name', 'price'];
+        $productUnitColumns = ['id', 'uom_id', 'refer_id', 'refer_qty', 'code', 'name', 'price'];
         $uomColumns = 'uom:id,name';
         $deliveryOrder = DeliveryOrder::with([
             'reseller',

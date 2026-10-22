@@ -99,7 +99,7 @@
                     <ITEMLINE operation="Add">
                         <KeyID>{{ $keyId++ }}</KeyID>
                         <ITEMNO>{{ $baseUnit->code }}</ITEMNO>
-                        <QUANTITY>{{ $SODetailQty }}</QUANTITY>
+                        <QUANTITY>{{ $SODetailQty * $productUnit->refer_qty }}</QUANTITY>
                         <ITEMUNIT>{{ $baseUnit->uom?->name }}</ITEMUNIT>
                         <UNITRATIO>1</UNITRATIO>
                         <ITEMRESERVED1 />
