@@ -95,6 +95,24 @@ class Stock extends Model
         $query->whereDoesntHave('salesOrderItems', fn ($q) => $q->whereNotReturned());
     }
 
+    /**
+     * Stok yang dihitung sebagai stocks_count: stok aktif (is_stock = 1),
+     * belum masuk sales order, dan bukan anak hasil grouping (description null).
+     *
+     * useIndex() dipakai karena optimizer MySQL salah menaksir jumlah baris per
+     * product unit (5 product unit memegang 63% baris stocks), lalu memilih index
+     * is_stock yang praktis tidak selektif: ~1,7 detik vs ~0,38 detik pada
+     * stock_product_unit terbesar. Index-nya covering untuk query ini, lihat
+     * migration 2026_10_23_000002_add_available_stock_count_index_on_stocks_table.
+     */
+    public function scopeWhereCountableStock(Builder $query)
+    {
+        return $query->useIndex('stocks_available_count_index')
+            ->whereAvailableStock()
+            ->whereIsStock()
+            ->whereNull('description');
+    }
+
     public function scopeStartDate(Builder $query, $value = null)
     {
         $value = is_null($value) ? date('Y-m-d') : date('Y-m-d', strtotime($value));
