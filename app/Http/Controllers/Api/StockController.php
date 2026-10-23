@@ -75,7 +75,9 @@ class StockController extends Controller
                 AllowedFilter::exact('product_unit_id'),
                 AllowedFilter::scope('product_unit'),
                 AllowedFilter::scope('company', 'whereCompany'),
-                AllowedFilter::scope('is_product_unit_qr', 'whereProductUnitQr'),
+                // Didaftarkan dua kali dengan nama sama; callback di bawah sudah
+                // menangani konversi nilai boolean, jadi scope-nya cukup satu.
+                // AllowedFilter::scope('is_product_unit_qr', 'whereProductUnitQr'),
                 AllowedFilter::callback('is_product_unit_qr', function ($q, $value) {
                     filter_var($value, FILTER_VALIDATE_BOOLEAN)
                         ? $q->whereProductUnitQr(1)
@@ -100,7 +102,7 @@ class StockController extends Controller
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('stock_access'), 403);
 
-        $filter = request()->filter;
+        $filter = request()->input('filter', []);
 
         if (isset($filter) && ! empty($filter['parent_id'])) {
             $query = Stock::tenanted()->whereNotNull('parent_id');
@@ -121,7 +123,9 @@ class StockController extends Controller
                 AllowedFilter::exact('printer_id'),
                 AllowedFilter::exact('parent_id'),
                 AllowedFilter::exact('stock_product_unit_id'),
-                AllowedFilter::exact('warehouse_id'),
+                // Tabel stocks tidak punya kolom warehouse_id (warehouse hanya
+                // lewat stock_product_units), filter ini selalu error 1054.
+                // AllowedFilter::exact('warehouse_id'),
                 AllowedFilter::exact('receive_order_id'),
                 AllowedFilter::exact('receive_order_detail_id'),
                 // AllowedFilter::exact('is_tempel'),
@@ -135,7 +139,15 @@ class StockController extends Controller
                 }),
                 'in_printing_queue',
             ])
-            ->allowedSorts(['id', 'in_printing_queue', 'printed_at', 'scanned_count', 'scanned_datetime', 'warehouse_id', 'created_at'])
+            ->allowedSorts([
+                'id',
+                'in_printing_queue',
+                'printed_at',
+                'scanned_count',
+                'scanned_datetime',
+                // 'warehouse_id', // bukan kolom tabel stocks
+                'created_at',
+            ])
             // ->allowedIncludes(['productUnit', 'warehouse', 'receiveOrderDetail'])
             ->paginate($this->per_page);
 
@@ -415,7 +427,7 @@ class StockController extends Controller
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('stock_print'), 403);
 
-        $filter = $request->filter;
+        $filter = $request->input('filter', []);
         $query = Stock::tenanted()->select('id', 'parent_id', 'qr_code', 'description');
 
         if (isset($filter) && isset($filter['stock_product_unit_id']) && $filter['stock_product_unit_id'] != '') {
@@ -437,8 +449,9 @@ class StockController extends Controller
         }
 
         $stocks = QueryBuilder::for($query)
-            ->allowedFilters(['id', 'receive_order_detail_id', 'stock_product_unit_id', 'parent_id', 'product_unit_id', 'warehouse_id'])
-            ->allowedSorts(['product_unit_id', 'warehouse_id', 'created_at'])
+            // product_unit_id dan warehouse_id bukan kolom tabel stocks.
+            ->allowedFilters(['id', 'receive_order_detail_id', 'stock_product_unit_id', 'parent_id'])
+            ->allowedSorts(['created_at'])
             ->get();
 
         return response()->json($stocks);
@@ -499,7 +512,9 @@ class StockController extends Controller
 
         // Excel::queueImport(new StockImport($request->warehouse_id ?? 1), $request->file);
         Excel::import(new StockImport($request->warehouse_id ?? 1), $request->file);
-        exit('duarrr nmax');
+        // exit('duarrr nmax');
+
+        return $this->createdResponse('Data imported successfully', 200);
     }
 
     public function verificationTempel(\App\Http\Requests\Api\VerificationTempelRequest $request)
