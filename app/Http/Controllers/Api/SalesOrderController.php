@@ -161,48 +161,68 @@ class SalesOrderController extends Controller
     {
         // $userDiscounts = UserDiscount::select('product_brand_id', 'value', 'is_percentage')->where('user_id', $request->customer_id)->get();
 
-        $warehouseId = request()->filter['warehouse_id'] ?? null;
+        // Sebelumnya: request()->filter['warehouse_id'] ?? null;
+        // Diganti ke input() supaya tidak memicu warning "Trying to access array offset on null"
+        // saat request datang tanpa parameter filter[].
+        $warehouseId = request()->input('filter.warehouse_id');
 
-        $fn = fn ($q) => $q->select('id', 'warehouse_id', 'product_unit_id')->has('productUnit')->has('warehouse')
+        /*
+         * CATATAN PERFORMA (2026-10-23)
+         *
+         * withCount('stocks') di bawah dihitung sebagai NOT EXISTS per baris stocks
+         * (376rb stocks x 324rb sales_order_items). Untuk product unit besar
+         * (contoh stock_product_unit 967 = 94rb stock) satu produk saja butuh ~1,9 detik,
+         * sementara frontend tidak memakai stocks_count (max qty di
+         * components/molecules/counter/index.tsx masih di-comment).
+         *
+         * Untuk mengaktifkan kembali: uncomment baris withCount() di bawah.
+         */
+        $stockProductUnitQuery = fn ($q) => $q->select('id', 'warehouse_id', 'product_unit_id')->has('productUnit')->has('warehouse')
             ->when($warehouseId, fn ($q) => $q->where('warehouse_id', $warehouseId))
-            ->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereIsStock()->whereNull('description')])
+            // ->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereIsStock()->whereNull('description')])
             ->with([
                 'warehouse' => fn ($q) => $q->select('id', 'code'),
             ]);
 
-        $query = ProductUnit::select('id', 'refer_id', 'uom_id', 'product_id', 'name', 'price', 'is_ppn', 'code')
+        // ProductUnit::select('id', 'refer_id', 'uom_id', 'product_id', 'name', 'price', 'is_ppn', 'code')
+        // product_id tidak lagi di-select karena relasi 'product' (satu-satunya pemakainya) tidak dipakai frontend.
+        $query = ProductUnit::select('id', 'refer_id', 'uom_id', 'name', 'price', 'is_ppn', 'code')
             ->where('is_generate_qr', true)
             ->with([
-                'refer' => fn ($q) => $q->select('id', 'name')->with('stockProductUnit', $fn),
+                'refer' => fn ($q) => $q->select('id', 'name')->with('stockProductUnit', $stockProductUnitQuery),
                 'uom' => fn ($q) => $q->select('id', 'name'),
-                'product' => fn ($q) => $q->select('id', 'name', 'product_brand_id'),
+                // 'product' => fn ($q) => $q->select('id', 'name', 'product_brand_id'),
             ])
-            ->with('stockProductUnit', $fn);
+            ->with('stockProductUnit', $stockProductUnitQuery)
+            // Order deterministik supaya pagination tidak menghasilkan baris dobel/hilang.
+            ->orderBy('id');
 
-        $stockProductUnits = QueryBuilder::for($query)
+        $productUnits = QueryBuilder::for($query)
             ->allowedFilters([
                 AllowedFilter::callback('warehouse_id', fn ($q) => $q),
                 AllowedFilter::scope('product_unit', 'search'),
                 AllowedFilter::scope('company', 'whereCompany'),
             ])
             ->paginate($this->per_page)
-            ->through(function ($productUnit) {
+            ->through(function (ProductUnit $productUnit) {
                 $productUnit->price_discount = $productUnit->price;
                 $productUnit->discount = 0;
                 $productUnit->is_percentage = 1;
 
                 if ($productUnit->refer && ! $productUnit->stockProductUnit) {
-                    $productUnit->name = $productUnit->name.' - '.($productUnit->refer->stockProductUnit->warehouse?->code ?? '');
+                    // Sebelumnya: ($productUnit->refer->stockProductUnit->warehouse?->code ?? '')
+                    $productUnit->name = $productUnit->name.' - '.($productUnit->refer->stockProductUnit?->warehouse?->code ?? '');
                     $productUnit->setRelation('stockProductUnit', $productUnit->refer->stockProductUnit);
                 } else {
-                    $productUnit->name = $productUnit->name.' - '.($productUnit->stockProductUnit->warehouse?->code ?? '');
+                    // Sebelumnya: ($productUnit->stockProductUnit->warehouse?->code ?? '')
+                    $productUnit->name = $productUnit->name.' - '.($productUnit->stockProductUnit?->warehouse?->code ?? '');
                 }
                 $productUnit->unsetRelation('refer');
 
                 return $productUnit;
             });
 
-        return response()->json($stockProductUnits);
+        return response()->json($productUnits);
     }
 
     public function productUnits()
