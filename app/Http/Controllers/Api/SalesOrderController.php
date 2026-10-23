@@ -146,10 +146,17 @@ class SalesOrderController extends Controller
         return $this->deletedResponse();
     }
 
-    public function print($id)
+    public function print($id, \Illuminate\Http\Request $request)
     {
         // abort_if(!auth('sanctum')->user()->tokenCan('sales_order_print'), 403);
-        return SalesOrderService::print($id);
+        $mode = strtolower($request->query('mode', 'download'));
+        $allowedModes = ['download', 'preview', 'inline', 'view'];
+
+        if (! in_array($mode, $allowedModes, true)) {
+            $mode = 'download';
+        }
+
+        return SalesOrderService::print($id, 'print', null, $mode);
     }
 
     public function exportXml($id)
