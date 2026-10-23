@@ -169,17 +169,19 @@ class SalesOrderController extends Controller
         /*
          * CATATAN PERFORMA (2026-10-23)
          *
-         * withCount('stocks') di bawah dihitung sebagai NOT EXISTS per baris stocks
-         * (376rb stocks x 324rb sales_order_items). Untuk product unit besar
-         * (contoh stock_product_unit 967 = 94rb stock) satu produk saja butuh ~1,9 detik,
-         * sementara frontend tidak memakai stocks_count (max qty di
-         * components/molecules/counter/index.tsx masih di-comment).
+         * stocks_count DIPAKAI frontend: SelectProductListTest mengirim nilainya ke
+         * CounterComponent pada form Create SO (newShipmentTest.tsx / editShipment.tsx).
+         * Jadi withCount() di bawah WAJIB ada, jangan di-comment.
          *
-         * Untuk mengaktifkan kembali: uncomment baris withCount() di bawah.
+         * Biayanya: NOT EXISTS per baris stocks (376rb stocks x 324rb sales_order_items).
+         * Untuk stock_product_unit besar (contoh id 967 = 93rb stock) satu produk saja
+         * ~0,9-1,9 detik. Solusinya index, bukan menghapus count:
+         *  - stocks (stock_product_unit_id, is_stock, deleted_at, description)
+         *  - sales_order_items (stock_id, is_returned)
          */
         $stockProductUnitQuery = fn ($q) => $q->select('id', 'warehouse_id', 'product_unit_id')->has('productUnit')->has('warehouse')
             ->when($warehouseId, fn ($q) => $q->where('warehouse_id', $warehouseId))
-            // ->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereIsStock()->whereNull('description')])
+            ->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereIsStock()->whereNull('description')])
             ->with([
                 'warehouse' => fn ($q) => $q->select('id', 'code'),
             ]);
