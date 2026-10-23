@@ -7,6 +7,7 @@ use App\Enums\DocumentType;
 use App\Services\NumberingService;
 use App\Traits\FilterStartEndDate;
 use App\Traits\Tenanted;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -94,5 +95,15 @@ class DeliveryOrder extends Model
     public function reseller(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reseller_id');
+    }
+
+    public function scopeSearch(Builder $query, string $search)
+    {
+        return $query->where(function ($query) use ($search) {
+            $query->where('invoice_no', 'like', "%{$search}%")
+                ->orWhereHas('reseller', function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%");
+                });
+        });
     }
 }

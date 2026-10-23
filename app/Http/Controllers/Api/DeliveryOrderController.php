@@ -56,6 +56,7 @@ class DeliveryOrderController extends Controller
         )
             ->allowedFilters([
                 'invoice_no',
+                AllowedFilter::scope('search'),
                 AllowedFilter::exact('reseller_id'),
                 AllowedFilter::exact('company'),
                 AllowedFilter::exact('sales_order_id'),

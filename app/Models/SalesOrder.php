@@ -254,6 +254,16 @@ class SalesOrder extends Model
         return $this->belongsTo(Warehouse::class, 'warehouse_id');
     }
 
+    public function scopeSearch(Builder $query, string $search)
+    {
+        return $query->where(function ($q) use ($search) {
+            $q->where('invoice_no', 'like', '%' . $search . '%')
+                ->orWhereHas('reseller', fn($q) => $q->where('name', 'like', '%' . $search . '%'));
+            // ->orWhereHas('user', fn ($q) => $q->where('name', 'like', '%'.$search.'%'))
+            // ->orWhereHas('spg', fn ($q) => $q->where('name', 'like', '%'.$search.'%'));
+        });
+    }
+
     public function scopeIsWhereMarketplace(Builder $query, bool $condition = true)
     {
         if ($condition) {

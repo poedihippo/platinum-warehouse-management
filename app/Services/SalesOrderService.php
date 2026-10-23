@@ -94,16 +94,16 @@ class SalesOrderService
      */
     public static function verifyStockItem(SalesOrderDetail $salesOrderDetail, string|int $stockId): SalesOrderItem
     {
-        $salesOrderDetail->load(['productUnit' => fn ($q) => $q->select('id', 'refer_id')]);
+        $salesOrderDetail->load(['productUnit' => fn($q) => $q->select('id', 'refer_id')]);
 
         $stock = Stock::where('id', $stockId)
             ->whereHas(
                 'stockProductUnit',
-                fn ($q) => $q->where('warehouse_id', $salesOrderDetail->warehouse_id)
+                fn($q) => $q->where('warehouse_id', $salesOrderDetail->warehouse_id)
                     ->when(
                         $salesOrderDetail->productUnit->refer_id,
-                        fn ($q) => $q->where('product_unit_id', $salesOrderDetail->productUnit->refer_id),
-                        fn ($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id),
+                        fn($q) => $q->where('product_unit_id', $salesOrderDetail->productUnit->refer_id),
+                        fn($q) => $q->where('product_unit_id', $salesOrderDetail->product_unit_id),
                     )
             )
             ->first();
@@ -121,7 +121,7 @@ class SalesOrderService
             throw new BadRequestHttpException('Qty sudah terpenuhi');
         }
 
-        $stock->load(['childs' => fn ($q) => $q->select('id', 'parent_id')]);
+        $stock->load(['childs' => fn($q) => $q->select('id', 'parent_id')]);
 
         return DB::transaction(function () use ($salesOrderDetail, $stock) {
             if ($stock->childs->isNotEmpty()) {
@@ -131,7 +131,7 @@ class SalesOrderService
                 ]);
 
                 $salesOrderItem->childs()->createMany(
-                    $stock->childs->map(fn ($child) => [
+                    $stock->childs->map(fn($child) => [
                         'sales_order_detail_id' => $salesOrderDetail->id,
                         'stock_id' => $child->id,
                     ])->all()
@@ -173,7 +173,7 @@ class SalesOrderService
                         'stock_product_unit_id' => $stockProductUnitId,
                         'value' => $salesOrderDetail->fulfilled_qty,
                         'is_increment' => 1,
-                        'description' => 'Return stock from delete SO '.$salesOrder->invoice_no,
+                        'description' => 'Return stock from delete SO ' . $salesOrder->invoice_no,
                         'ip' => request()->ip(),
                         'agent' => request()->header('user-agent'),
                     ]);
@@ -282,9 +282,9 @@ class SalesOrderService
         $salesOrders = \Spatie\QueryBuilder\QueryBuilder::for(
             SalesOrder::tenanted()->with('mergedSalesOrders:id,merged_into_sales_order_id,invoice_no')->withCount([
                 'details',
-                'details as unverified_details_count' => fn ($q) => $q->whereColumn('fulfilled_qty', '<', 'qty'),
+                'details as unverified_details_count' => fn($q) => $q->whereColumn('fulfilled_qty', '<', 'qty'),
                 'deliveryOrders',
-                'deliveryOrders as pending_delivery_orders_count' => fn ($q) => $q->where('is_done', false),
+                'deliveryOrders as pending_delivery_orders_count' => fn($q) => $q->where('is_done', false),
                 'mergedSalesOrders',
             ])->when($query, $query)
         )
@@ -309,12 +309,7 @@ class SalesOrderService
                 AllowedFilter::scope('end_date'),
                 AllowedFilter::scope('has_remaining_do', 'hasRemainingDo'),
                 AllowedFilter::scope('is_mergeable', 'mergeable'),
-                AllowedFilter::callback('search', function ($q, $value) {
-                    $q->where('invoice_no', 'like', '%'.$value.'%')
-                        ->orWhereHas('user', fn ($q) => $q->where('name', 'like', '%'.$value.'%'))
-                        ->orWhereHas('reseller', fn ($q) => $q->where('name', 'like', '%'.$value.'%'))
-                        ->orWhereHas('spg', fn ($q) => $q->where('name', 'like', '%'.$value.'%'));
-                }),
+                AllowedFilter::scope('search'),
             ])
             ->allowedSorts(['id', 'invoice_no', 'user_id', 'reseller_id', 'warehouse_id', 'transaction_date', 'shipment_estimation_datetime', 'created_at'])
             ->allowedIncludes([
@@ -324,7 +319,7 @@ class SalesOrderService
                 'spg',
                 'payments',
                 'vouchers.category',
-                AllowedInclude::callback('deliveryOrders', fn ($q) => $q->select('id', 'sales_order_id', 'invoice_no', 'is_done')),
+                AllowedInclude::callback('deliveryOrders', fn($q) => $q->select('id', 'sales_order_id', 'invoice_no', 'is_done')),
             ])
             ->paginate($perPage);
 
@@ -340,23 +335,23 @@ class SalesOrderService
             'payments',
             'warehouse',
             'mergedSalesOrders:id,merged_into_sales_order_id,invoice_no',
-            'deliveryOrders' => fn ($q) => $q->select('id', 'sales_order_id', 'invoice_no', 'is_done'),
-            'details' => fn ($q) => $q->with([
+            'deliveryOrders' => fn($q) => $q->select('id', 'sales_order_id', 'invoice_no', 'is_done'),
+            'details' => fn($q) => $q->with([
                 'warehouse',
-                'productUnit' => fn ($q) => $q->with([
-                    'product' => fn ($q) => $q->select('id', 'name', 'product_brand_id')->with([
-                        'productBrand' => fn ($q) => $q->select('id', 'name'),
+                'productUnit' => fn($q) => $q->with([
+                    'product' => fn($q) => $q->select('id', 'name', 'product_brand_id')->with([
+                        'productBrand' => fn($q) => $q->select('id', 'name'),
                     ]),
-                    'uom' => fn ($q) => $q->select('id', 'name'),
+                    'uom' => fn($q) => $q->select('id', 'name'),
                 ]),
             ]),
-            'user' => fn ($q) => $q->select('id', 'name', 'type'),
-            'reseller' => fn ($q) => $q->select('id', 'name', 'type', 'type', 'email', 'phone', 'address'),
+            'user' => fn($q) => $q->select('id', 'name', 'type'),
+            'reseller' => fn($q) => $q->select('id', 'name', 'type', 'type', 'email', 'phone', 'address'),
         ])->loadCount([
             'details',
-            'details as unverified_details_count' => fn ($q) => $q->whereColumn('fulfilled_qty', '<', 'qty'),
+            'details as unverified_details_count' => fn($q) => $q->whereColumn('fulfilled_qty', '<', 'qty'),
             'deliveryOrders',
-            'deliveryOrders as pending_delivery_orders_count' => fn ($q) => $q->where('is_done', false),
+            'deliveryOrders as pending_delivery_orders_count' => fn($q) => $q->where('is_done', false),
             'mergedSalesOrders',
         ]);
     }
@@ -377,7 +372,7 @@ class SalesOrderService
         $salesOrder->load([
             'reseller',
             'vouchers.category',
-            'details' => fn ($q) => $q->with('productUnit.product'),
+            'details' => fn($q) => $q->with('productUnit.product'),
         ])->loadSum('payments', 'amount');
 
         $salesOrderDetails = $salesOrder->details->chunk(10);
@@ -390,7 +385,7 @@ class SalesOrderService
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::setPaper('a4', 'landscape')->loadView($view, ['salesOrder' => $salesOrder, 'salesOrderDetails' => $salesOrderDetails, 'maxProductsBlackSpace' => $maxProductsBlackSpace, 'lastOrderDetailsKey' => $lastOrderDetailsKey, 'spellTotalPrice' => $spellTotalPrice, 'bankTransferInfo' => $bankTransferInfo]);
 
-        return $pdf->download('sales-order-'.$salesOrder->invoice_no.'.pdf');
+        return $pdf->download('sales-order-' . $salesOrder->invoice_no . '.pdf');
     }
 
     public static function exportXml($id, ?callable $query = null)
@@ -400,18 +395,18 @@ class SalesOrderService
         $salesOrder = SalesOrder::when($query, $query, null)->findTenanted($id);
         $salesOrder->load([
             'reseller',
-            'details' => fn ($q) => $q->with('productUnit', fn ($q) => $q
+            'details' => fn($q) => $q->with('productUnit', fn($q) => $q
                 ->select($productUnitColumns)
                 ->with([
                     $uomColumns,
-                    'refer' => fn ($q) => $q->select($productUnitColumns)->with($uomColumns),
-                    'relations' => fn ($q) => $q->with('relatedProductUnit', fn ($q) => $q->select($productUnitColumns)->with($uomColumns)),
+                    'refer' => fn($q) => $q->select($productUnitColumns)->with($uomColumns),
+                    'relations' => fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select($productUnitColumns)->with($uomColumns)),
                 ])),
         ]);
 
         $filename = ContentDispositionHelper::filename(
             $salesOrder->invoice_no,
-            'sales-order-'.$salesOrder->id
+            'sales-order-' . $salesOrder->id
         );
 
         return response(view('xml.salesOrders.salesOrder')->with(compact('salesOrder')), 200, [
@@ -424,41 +419,41 @@ class SalesOrderService
     {
         $warehouseName = $salesOrder->warehouse?->company_name ? $salesOrder->warehouse->company_name : $salesOrder->warehouse->name;
 
-        $message = 'Terima kasih atas pesanannya di '.($warehouseName ?? '').'. Detail pesanan:';
+        $message = 'Terima kasih atas pesanannya di ' . ($warehouseName ?? '') . '. Detail pesanan:';
         $message .= PHP_EOL;
         $message .= PHP_EOL;
 
         $order = 1;
         foreach ($salesOrder->details as $salesOrderDetail) {
-            $message .= $order++.'. '.$salesOrderDetail->productUnit->name.' x '.$salesOrderDetail->qty.' = *Rp '.number_format((float) $salesOrderDetail->total_price, 0, ',', '.').'*';
+            $message .= $order++ . '. ' . $salesOrderDetail->productUnit->name . ' x ' . $salesOrderDetail->qty . ' = *Rp ' . number_format((float) $salesOrderDetail->total_price, 0, ',', '.') . '*';
             $message .= PHP_EOL;
         }
 
         $message .= PHP_EOL;
-        $message .= 'Subtotal                       : *Rp '.number_format((float) $salesOrder->details->sum('total_price'), 0, ',', '.').'*';
+        $message .= 'Subtotal                       : *Rp ' . number_format((float) $salesOrder->details->sum('total_price'), 0, ',', '.') . '*';
 
         foreach ($salesOrder->auto_discount_details as $discount) {
             $message .= PHP_EOL;
-            $message .= 'Diskon Pameran ('.($discount['percent'] ?? 0).'%) : *Rp '.number_format((float) ($discount['discount_nominal'] ?? 0), 0, ',', '.').'*';
+            $message .= 'Diskon Pameran (' . ($discount['percent'] ?? 0) . '%) : *Rp ' . number_format((float) ($discount['discount_nominal'] ?? 0), 0, ',', '.') . '*';
         }
 
         foreach ($salesOrder->vouchers as $voucher) {
             $message .= PHP_EOL;
-            $message .= 'Voucher ('.($voucher->description ?: $voucher->code).') : *Rp '.number_format((float) $voucher->pivot->discount_amount, 0, ',', '.').'*';
+            $message .= 'Voucher (' . ($voucher->description ?: $voucher->code) . ') : *Rp ' . number_format((float) $voucher->pivot->discount_amount, 0, ',', '.') . '*';
         }
 
         if ($salesOrder->additional_discount > 0) {
             $message .= PHP_EOL;
-            $message .= 'Additional Discount : *Rp '.number_format((float) $salesOrder->additional_discount, 0, ',', '.').'*';
+            $message .= 'Additional Discount : *Rp ' . number_format((float) $salesOrder->additional_discount, 0, ',', '.') . '*';
         }
 
         if ($salesOrder->shipment_fee > 0) {
             $message .= PHP_EOL;
-            $message .= 'Delivery Fee                : *Rp '.number_format((float) $salesOrder->shipment_fee, 0, ',', '.').'*';
+            $message .= 'Delivery Fee                : *Rp ' . number_format((float) $salesOrder->shipment_fee, 0, ',', '.') . '*';
         }
 
         $message .= PHP_EOL;
-        $message .= 'Grand Total                    : *Rp '.number_format((float) $salesOrder->price, 0, ',', '.').'*';
+        $message .= 'Grand Total                    : *Rp ' . number_format((float) $salesOrder->price, 0, ',', '.') . '*';
         $message .= PHP_EOL;
         $message .= PHP_EOL;
         $message .= $salesOrder->description;
@@ -467,7 +462,7 @@ class SalesOrderService
         $message .= PHP_EOL;
         $message .= 'Download invoice :';
         $message .= PHP_EOL;
-        $message .= 'https://platinumadisentosa.com/invoices/'.($idHash ?? Crypt::encryptString($salesOrder->id)).'/print';
+        $message .= 'https://platinumadisentosa.com/invoices/' . ($idHash ?? Crypt::encryptString($salesOrder->id)) . '/print';
 
         $phone = $salesOrder->reseller?->phone;
         if (empty($phone)) {
@@ -491,7 +486,7 @@ class SalesOrderService
         $lastInoviceNo = SalesOrder::where('is_invoice', true)
             ->whereDate('created_at', date('Y-m-d'))
             ->where('warehouse_id', $warehouse->id)
-            ->where('invoice_no', 'like', '%'.config('app.format_invoice_prefix').'%')
+            ->where('invoice_no', 'like', '%' . config('app.format_invoice_prefix') . '%')
             ->orderByDesc('invoice_no')
             ->first(['invoice_no']);
 
@@ -583,7 +578,7 @@ class SalesOrderService
             DeliveryOrder::whereIn('id', $deliveryOrderIds)
                 ->lockForUpdate()
                 ->get()
-                ->each(fn (DeliveryOrder $deliveryOrder) => DeliveryOrderService::deleteDeliveryOrder($deliveryOrder));
+                ->each(fn(DeliveryOrder $deliveryOrder) => DeliveryOrderService::deleteDeliveryOrder($deliveryOrder));
 
             $salesOrder->mergedSalesOrders()->update(['merged_into_sales_order_id' => null]);
 
@@ -639,7 +634,7 @@ class SalesOrderService
      */
     private static function assertSourcesFullyVerified(Collection $sources): void
     {
-        $notFullyVerified = $sources->filter(fn (SalesOrder $source) => static::hasUnverifiedDetails($source));
+        $notFullyVerified = $sources->filter(fn(SalesOrder $source) => static::hasUnverifiedDetails($source));
 
         if ($notFullyVerified->isNotEmpty()) {
             throw new BadRequestHttpException(sprintf(
@@ -667,7 +662,7 @@ class SalesOrderService
     {
         return SalesOrderDetail::whereIn('sales_order_id', $salesOrderIds)
             ->get()
-            ->groupBy(fn (SalesOrderDetail $detail) => static::detailGroupKey($detail))
+            ->groupBy(fn(SalesOrderDetail $detail) => static::detailGroupKey($detail))
             ->map(function (Collection $group) {
                 /** @var SalesOrderDetail $first */
                 $first = $group->first();
@@ -710,14 +705,14 @@ class SalesOrderService
     {
         $mergedDetails = SalesOrderDetail::where('sales_order_id', $mergedSalesOrder->id)
             ->get()
-            ->keyBy(fn (SalesOrderDetail $detail) => static::detailGroupKey($detail));
+            ->keyBy(fn(SalesOrderDetail $detail) => static::detailGroupKey($detail));
 
         $deliveryOrderDetailIds = DeliveryOrderDetail::where('delivery_order_id', $deliveryOrder->id)
             ->pluck('id', 'sales_order_detail_id');
 
         $sourceDetails = SalesOrderDetail::whereIn('sales_order_id', $sourceIds)
             ->with([
-                'salesOrderItems' => fn ($query) => $query->where('is_returned', false)->orderByDesc('is_parent'),
+                'salesOrderItems' => fn($query) => $query->where('is_returned', false)->orderByDesc('is_parent'),
             ])
             ->get();
 
