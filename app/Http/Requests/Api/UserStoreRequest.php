@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api;
 
 use App\Enums\CompanyEnum;
 use App\Enums\UserType;
+use App\Rules\PhoneRule;
 use App\Rules\StringRule;
 use App\Rules\TenantedRule;
 use BenSampo\Enum\Rules\EnumValue;
@@ -25,7 +26,7 @@ class UserStoreRequest extends FormRequest
             'password' => ['nullable', 'required_unless:type,' . UserType::Reseller],
             'type' => ['nullable', new EnumValue(UserType::class, false)],
             'company' => ['nullable', new EnumValue(CompanyEnum::class, false)],
-            'phone' => ['nullable', new StringRule(100)],
+            'phone' => ['nullable', new PhoneRule(100)],
             'address' => ['nullable', new StringRule(1000)],
             'tax_address' => ['nullable', new StringRule()],
             'provider_id' => ['nullable', 'unique:users,provider_id'],
