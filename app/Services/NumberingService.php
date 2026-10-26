@@ -6,7 +6,6 @@ use App\Enums\CompanyEnum;
 use App\Enums\DocumentType;
 use App\Models\DocumentCounter;
 use Carbon\CarbonInterface;
-use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
 final class NumberingService
@@ -16,7 +15,8 @@ final class NumberingService
      *
      * The sequence is scoped per company + document type + period, so every scope keeps its
      * own independent counter that resets when the period changes. The counter is incremented
-     * inside the caller's transaction, meaning a rolled back document leaves no gap.
+     * inside the caller's transaction, so a caller that inserts the document in the same
+     * transaction leaves no gap when that transaction is rolled back.
      */
     public static function next(CompanyEnum $company, DocumentType $type, ?CarbonInterface $date = null): string
     {
@@ -55,6 +55,16 @@ final class NumberingService
 
     /**
      * Lock the counter row of the given scope, creating it on first use of the period.
+     *
+     * The row is created with an upsert instead of a locking read followed by an insert: a
+     * locking read on a missing row leaves a gap lock behind, and two transactions holding
+     * that gap lock deadlock as soon as both try to insert. An upsert ends up holding an
+     * exclusive row lock, so concurrent callers serialise instead of deadlocking.
+     *
+     * The existence check reads the snapshot and therefore takes no lock, so it cannot
+     * reintroduce the gap lock. It only avoids rewriting the counter on every document;
+     * correctness comes from the locking read below, which always reads the latest
+     * committed sequence, including one committed by a request that raced us.
      */
     private static function lockCounter(CompanyEnum $company, DocumentType $type, string $period): DocumentCounter
     {
@@ -64,32 +74,18 @@ final class NumberingService
             'period' => $period,
         ];
 
-        $counter = DocumentCounter::query()
-            ->where('company', $company->value)
-            ->where('document_type', $type->value)
-            ->where('period', $period)
-            ->lockForUpdate()
-            ->first();
+        if (! DocumentCounter::query()->where($scope)->exists()) {
+            $now = now();
 
-        if ($counter) {
-            return $counter;
-        }
-
-        try {
-            DocumentCounter::create([
-                'company' => $company->value,
-                'document_type' => $type->value,
-                'period' => $period,
-                'sequence' => 0,
-            ]);
-        } catch (UniqueConstraintViolationException) {
-            // Another request created the counter of this period first, lock it below instead.
+            DocumentCounter::query()->upsert(
+                [$scope + ['sequence' => 0, 'created_at' => $now, 'updated_at' => $now]],
+                ['company', 'document_type', 'period'],
+                ['period'],
+            );
         }
 
         return DocumentCounter::query()
-            ->where('company', $company->value)
-            ->where('document_type', $type->value)
-            ->where('period', $period)
+            ->where($scope)
             ->lockForUpdate()
             ->firstOrFail();
     }

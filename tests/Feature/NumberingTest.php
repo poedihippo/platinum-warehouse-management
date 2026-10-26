@@ -18,6 +18,7 @@ use App\Models\Warehouse;
 use App\Services\NumberingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class NumberingTest extends TestCase
@@ -346,6 +347,105 @@ class NumberingTest extends TestCase
 
         $this->assertSame('PAS/SO/10/26/01', $pas);
         $this->assertSame('DO/PA/10/26/05', $pa);
+
+        Carbon::setTestNow();
+    }
+
+    public function test_counter_row_is_created_when_missing(): void
+    {
+        Carbon::setTestNow('2026-10-16 00:00:00');
+
+        $this->assertSame(0, DocumentCounter::count());
+
+        $number = NumberingService::next(CompanyEnum::PAS(), DocumentType::SO());
+
+        $this->assertSame('PAS/SO/10/26/01', $number);
+        $this->assertSame(1, DocumentCounter::count());
+
+        $counter = DocumentCounter::first();
+        $this->assertSame(CompanyEnum::PAS()->value, $counter->company->value);
+        $this->assertSame(DocumentType::SO()->value, $counter->document_type->value);
+        $this->assertSame('2026-10', $counter->period);
+        $this->assertSame(1, $counter->sequence);
+
+        Carbon::setTestNow();
+    }
+
+    public function test_existing_counter_row_is_reused(): void
+    {
+        Carbon::setTestNow('2026-10-16 00:00:00');
+
+        DocumentCounter::create([
+            'company' => CompanyEnum::PAS()->value,
+            'document_type' => DocumentType::SO()->value,
+            'period' => '2026-10',
+            'sequence' => 5,
+        ]);
+
+        $number = NumberingService::next(CompanyEnum::PAS(), DocumentType::SO());
+
+        $this->assertSame('PAS/SO/10/26/06', $number);
+        $this->assertSame(1, DocumentCounter::count());
+        $this->assertSame(6, DocumentCounter::first()->sequence);
+
+        Carbon::setTestNow();
+    }
+
+    public function test_rolled_back_document_leaves_no_gap(): void
+    {
+        Carbon::setTestNow('2026-10-16 00:00:00');
+
+        try {
+            DB::transaction(function () {
+                NumberingService::next(CompanyEnum::PAS(), DocumentType::SO());
+
+                throw new \RuntimeException('order failed');
+            });
+        } catch (\RuntimeException) {
+            // expected
+        }
+
+        $this->assertSame('PAS/SO/10/26/01', NumberingService::next(CompanyEnum::PAS(), DocumentType::SO()));
+        $this->assertSame(1, DocumentCounter::first()->sequence);
+
+        Carbon::setTestNow();
+    }
+
+    public function test_delivery_order_rollback_releases_the_number(): void
+    {
+        Carbon::setTestNow('2026-10-16 00:00:00');
+
+        $ctx = $this->createBasicContext();
+
+        try {
+            DB::transaction(function () use ($ctx) {
+                DeliveryOrder::create([
+                    'user_id' => $ctx['user']->id,
+                    'warehouse_id' => $ctx['warehouse']->id,
+                    'reseller_id' => $ctx['user']->id,
+                    'company' => CompanyEnum::PAS()->value,
+                    'transaction_date' => now()->format('Y-m-d H:i:s'),
+                    'shipment_estimation_datetime' => now()->format('Y-m-d H:i:s'),
+                ]);
+
+                throw new \RuntimeException('delivery order failed');
+            });
+        } catch (\RuntimeException) {
+            // expected
+        }
+
+        $this->assertSame(0, DeliveryOrder::count());
+
+        $deliveryOrder = DeliveryOrder::create([
+            'user_id' => $ctx['user']->id,
+            'warehouse_id' => $ctx['warehouse']->id,
+            'reseller_id' => $ctx['user']->id,
+            'company' => CompanyEnum::PAS()->value,
+            'transaction_date' => now()->format('Y-m-d H:i:s'),
+            'shipment_estimation_datetime' => now()->format('Y-m-d H:i:s'),
+        ]);
+
+        $this->assertSame('PAS/DO/10/26/01', $deliveryOrder->invoice_no);
 
         Carbon::setTestNow();
     }

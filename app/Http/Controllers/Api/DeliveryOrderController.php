@@ -98,7 +98,13 @@ class DeliveryOrderController extends Controller
 
     public function store(DeliveryOrderStoreRequest $request)
     {
-        $deliveryOrder = DeliveryOrder::create($request->validated());
+        // Reserving the number and inserting the delivery order share one transaction, so a
+        // failed insert releases the number instead of leaving a gap, and a concurrency error
+        // on the counter can be retried safely.
+        $deliveryOrder = DB::transaction(
+            fn () => DeliveryOrder::create($request->validated()),
+            3
+        );
 
         return response()->json(['data' => $deliveryOrder], 201);
     }

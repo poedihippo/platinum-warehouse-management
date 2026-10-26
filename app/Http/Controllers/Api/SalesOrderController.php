@@ -78,7 +78,16 @@ class SalesOrderController extends Controller
 
     public function store(SalesOrderStoreRequest $request)
     {
-        $salesOrder = SalesOrderService::createOrder(SalesOrder::make(['raw_source' => $request->validated()]), (bool) $request->is_preview ?? false);
+        // The whole pipeline runs inside a retryable transaction: a concurrency error (for
+        // example while reserving the document number) rolls everything back, so retrying
+        // rebuilds the order from the request instead of reusing a half processed model.
+        $salesOrder = DB::transaction(
+            fn () => SalesOrderService::createOrder(
+                SalesOrder::make(['raw_source' => $request->validated()]),
+                (bool) $request->is_preview
+            ),
+            3
+        );
 
         return new SalesOrderResource($this->loadMarketplaceDeliveryOrder($salesOrder));
     }
