@@ -21,7 +21,7 @@ class UserUpdateRequest extends FormRequest
     {
         return [
             'name' => ['sometimes', 'required', new StringRule()],
-            'email' => ['sometimes', 'email', 'unique:users,email', 'max:255'],
+            'email' => ['sometimes', 'email', 'unique:users,email,' . $this->user->id, 'max:255'],
             'code' => ['sometimes', 'nullable', 'required_if:type,' . UserType::Reseller],
             'password' => ['sometimes', 'required_unless:type,' . UserType::Reseller],
             'type' => ['sometimes', new EnumValue(UserType::class, false)],
@@ -29,7 +29,7 @@ class UserUpdateRequest extends FormRequest
             'phone' => ['sometimes', 'nullable', new PhoneRule(100)],
             'address' => ['sometimes', 'nullable', new StringRule(1000)],
             'tax_address' => ['sometimes', 'nullable', new StringRule()],
-            'provider_id' => ['sometimes', 'nullable', 'unique:users,provider_id'],
+            'provider_id' => ['sometimes', 'nullable', 'unique:users,provider_id,' . $this->user->id],
             'provider_name' => ['sometimes', 'nullable', new StringRule()],
             'city' => ['sometimes', 'nullable', new StringRule()],
             'province' => ['sometimes', 'nullable', new StringRule()],
