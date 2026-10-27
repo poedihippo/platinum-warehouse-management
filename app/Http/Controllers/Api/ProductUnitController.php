@@ -185,7 +185,7 @@ class ProductUnitController extends Controller
 
     public function userPrice(ProductUnit $productUnit, int $userId)
     {
-        $datas = QueryBuilder::for(SalesOrderDetail::select('id', 'product_unit_id', 'unit_price', 'created_at'))
+        $datas = QueryBuilder::for(SalesOrderDetail::select('id', 'product_unit_id', 'warehouse_id', 'unit_price', 'created_at'))
             ->with([
                 'warehouse' => fn($q) => $q->select('id', 'name'),
                 'productUnit' => fn($q) => $q->select('id', 'code', 'name'),
