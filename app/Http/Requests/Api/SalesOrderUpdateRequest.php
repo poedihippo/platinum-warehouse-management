@@ -6,10 +6,13 @@ use App\Enums\CompanyEnum;
 use App\Enums\Marketplace;
 use App\Enums\SalesOrderType;
 use App\Rules\TenantedRule;
+use App\Rules\UniqueInvoiceNumber;
+use App\Services\NumberingService;
 use BenSampo\Enum\Rules\EnumValue;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class SalesOrderUpdateRequest extends FormRequest
 {
@@ -35,8 +38,6 @@ class SalesOrderUpdateRequest extends FormRequest
      */
     public function rules()
     {
-        $salesOrderId = $this->sales_order;
-
         return [
             'company' => ['required', new EnumValue(CompanyEnum::class)],
             'expected_price' => 'nullable|integer',
@@ -53,11 +54,8 @@ class SalesOrderUpdateRequest extends FormRequest
             ],
             'invoice_no' => [
                 'nullable',
-                function (string $attribute, mixed $value, Closure $fail) use ($salesOrderId) {
-                    if (DB::table('sales_orders')->whereNull('deleted_at')->where('id', '!=', $salesOrderId)->where('invoice_no', trim($value))->exists()) {
-                        $fail('Invoice number sudah digunakan');
-                    }
-                },
+                Rule::requiredIf(fn () => ! NumberingService::enabled()),
+                new UniqueInvoiceNumber('sales_orders', $this->route('sales_order')),
             ],
             // 'warehouse_id' => ['required', new TenantedRule()],
             'transaction_date' => ['nullable', 'required_without:marketplace', 'date_format:Y-m-d H:i:s'],

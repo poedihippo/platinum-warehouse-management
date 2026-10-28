@@ -571,13 +571,23 @@ All enums: `app/Enums/`
 
 ### 11.2 Auto-Numbering
 
-| Document | Format | Example | Table |
-|----------|--------|---------|-------|
-| Sales Order | `PAS/SO/MM/YY/NN` | `PAS/SO/05/26/01` | `settings` (key: `so_number`) |
-| Delivery Order | `PAS/DO/MM/YY/NN` | `PAS/DO/05/26/01` | `settings` (key: `do_number`) |
+Gated by `config('app.enable_document_counter')` (`ENABLE_DOCUMENT_COUNTER`), read through
+`NumberingService::enabled()`.
 
-- Uses `DB::transaction` + `lockForUpdate` on `settings` table to prevent race conditions
-- Sequential counter resets monthly
+| Document | Format | Example | Counter |
+|----------|--------|---------|---------|
+| Sales Order | `PAS/SO/MM/YY/NN` | `PAS/SO/05/26/01` | `document_counters` (`pas/so`, `pa/so`) |
+| Delivery Order | `PAS/DO/MM/YY/NN` | `PAS/DO/05/26/01` | `document_counters` (`pas/do`, `pa/do`) |
+
+- **Flag on**: numbers are reserved in `SalesOrder` / `DeliveryOrder` `creating` hooks via
+  `NumberingService::next()`; counter row is locked with `lockForUpdate`, sequence resets monthly.
+- **Flag off**: numbers are entered manually and `invoice_no` becomes **required** on store
+  (422 when missing); `GET`/`PUT /document-counters` return **404**.
+- Marketplace merge takes both numbers manually when the flag is off (`invoice_no` +
+  `delivery_order_invoice_no`, must differ) and ignores them when the flag is on.
+- The `/invoices` (IIPE) path is separate and always uses `getSoNumber()`.
+- Default is `false`, and the value is baked into the config cache — changing it needs
+  `php artisan config:cache`.
 
 ### 11.3 Stock Tracking Dual Model
 

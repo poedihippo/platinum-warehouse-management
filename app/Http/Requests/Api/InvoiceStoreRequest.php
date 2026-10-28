@@ -5,6 +5,7 @@ namespace App\Http\Requests\Api;
 use App\Enums\SalesOrderType;
 use App\Models\Voucher;
 use App\Rules\TenantedRule;
+use App\Rules\UniqueInvoiceNumber;
 use App\Traits\Requests\RequestToBoolean;
 use BenSampo\Enum\Rules\EnumValue;
 use Closure;
@@ -73,14 +74,7 @@ class InvoiceStoreRequest extends FormRequest
                 },
             ],
             'customer_address' => ['nullable', 'string'],
-            'invoice_no' => [
-                'nullable',
-                function (string $attribute, mixed $value, Closure $fail) {
-                    if (DB::table('sales_orders')->whereNull('deleted_at')->where('invoice_no', trim($value))->exists()) {
-                        $fail('Invoice number sudah digunakan');
-                    }
-                },
-            ],
+            'invoice_no' => ['nullable', new UniqueInvoiceNumber('sales_orders')],
             'warehouse_id' => ['required', new TenantedRule()],
             'transaction_date' => 'required|date_format:Y-m-d H:i:s',
             'shipment_estimation_datetime' => 'required|date_format:Y-m-d H:i:s',

@@ -19,8 +19,10 @@ class DeliveryOrderService
      * Create a Delivery Order for a marketplace Sales Order and link every SO detail.
      *
      * No-op (null) when the Sales Order is not a marketplace order, unless $force is true.
+     * $invoiceNo fills the document number when the counter is disabled; null lets the
+     * counter generate it.
      */
-    public static function createForSalesOrder(SalesOrder $salesOrder, bool $force = false): ?DeliveryOrder
+    public static function createForSalesOrder(SalesOrder $salesOrder, bool $force = false, ?string $invoiceNo = null): ?DeliveryOrder
     {
         if (! $force && ! $salesOrder->marketplace) {
             return null;
@@ -31,6 +33,7 @@ class DeliveryOrderService
             'reseller_id' => $salesOrder->reseller_id,
             'sales_order_id' => $salesOrder->id,
             'company' => $salesOrder->company ?? CompanyEnum::PAS,
+            'invoice_no' => $invoiceNo,
             'transaction_date' => $salesOrder->transaction_date ?? now(),
             'shipment_estimation_datetime' => $salesOrder->shipment_estimation_datetime ?? now(),
             'description' => $salesOrder->description,

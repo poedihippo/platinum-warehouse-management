@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\CompanyEnum;
 use App\Enums\DocumentType;
+use App\Enums\Marketplace;
 use App\Models\DeliveryOrder;
 use App\Models\DocumentCounter;
 use App\Models\Product;
@@ -16,14 +17,23 @@ use App\Models\Uom;
 use App\Models\User;
 use App\Models\Warehouse;
 use App\Services\NumberingService;
+use App\Services\SalesOrderService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class NumberingTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config(['app.enable_document_counter' => true]);
+    }
 
     private function createBasicContext(): array
     {
@@ -70,7 +80,7 @@ class NumberingTest extends TestCase
         return compact('warehouse', 'uom', 'category', 'brand', 'product', 'productUnit', 'stockProductUnit', 'user');
     }
 
-    private function createNonInvoiceSo(CompanyEnum $company): SalesOrder
+    private function createNonInvoiceSo(CompanyEnum $company, ?string $invoiceNo = null): SalesOrder
     {
         $ctx = $this->createBasicContext();
 
@@ -79,6 +89,7 @@ class NumberingTest extends TestCase
             'reseller_id' => $ctx['user']->id,
             'warehouse_id' => $ctx['warehouse']->id,
             'company' => $company->value,
+            'invoice_no' => $invoiceNo,
             'transaction_date' => now()->format('Y-m-d H:i:s'),
             'shipment_estimation_datetime' => now()->format('Y-m-d H:i:s'),
             'shipment_fee' => 0,
@@ -446,6 +457,146 @@ class NumberingTest extends TestCase
         ]);
 
         $this->assertSame('PAS/DO/10/26/01', $deliveryOrder->invoice_no);
+
+        Carbon::setTestNow();
+    }
+
+    public function test_sales_order_gets_no_number_when_counter_is_disabled(): void
+    {
+        config(['app.enable_document_counter' => false]);
+        Carbon::setTestNow('2026-10-16 00:00:00');
+
+        $salesOrder = $this->createNonInvoiceSo(CompanyEnum::PAS());
+
+        $this->assertNull($salesOrder->invoice_no);
+        $this->assertSame(0, DocumentCounter::count());
+
+        Carbon::setTestNow();
+    }
+
+    public function test_delivery_order_gets_no_number_when_counter_is_disabled(): void
+    {
+        config(['app.enable_document_counter' => false]);
+        Carbon::setTestNow('2026-10-16 00:00:00');
+
+        $ctx = $this->createBasicContext();
+
+        $deliveryOrder = DeliveryOrder::create([
+            'user_id' => $ctx['user']->id,
+            'warehouse_id' => $ctx['warehouse']->id,
+            'reseller_id' => $ctx['user']->id,
+            'company' => CompanyEnum::PAS()->value,
+            'transaction_date' => now()->format('Y-m-d H:i:s'),
+            'shipment_estimation_datetime' => now()->format('Y-m-d H:i:s'),
+        ]);
+
+        $this->assertNull($deliveryOrder->invoice_no);
+        $this->assertSame(0, DocumentCounter::count());
+
+        Carbon::setTestNow();
+    }
+
+    public function test_manual_number_is_kept_when_counter_is_disabled(): void
+    {
+        config(['app.enable_document_counter' => false]);
+        Carbon::setTestNow('2026-10-16 00:00:00');
+
+        $salesOrder = $this->createNonInvoiceSo(CompanyEnum::PAS(), 'MANUAL/OFF/01');
+
+        $this->assertSame('MANUAL/OFF/01', $salesOrder->invoice_no);
+        $this->assertSame(0, DocumentCounter::count());
+
+        Carbon::setTestNow();
+    }
+
+    /**
+     * Two mergeable marketplace Sales Orders: same warehouse, same company, fully verified.
+     *
+     * @return array<int, SalesOrder>
+     */
+    private function createMergeableMarketplaceOrders(array $ctx): array
+    {
+        return collect([1, 2])->map(function () use ($ctx) {
+            $salesOrder = SalesOrder::create([
+                'user_id' => $ctx['user']->id,
+                'reseller_id' => $ctx['user']->id,
+                'warehouse_id' => $ctx['warehouse']->id,
+                'company' => CompanyEnum::PAS()->value,
+                'marketplace' => Marketplace::SHOPEE,
+                'transaction_date' => now()->format('Y-m-d H:i:s'),
+                'shipment_estimation_datetime' => now()->format('Y-m-d H:i:s'),
+            ]);
+
+            $salesOrder->details()->create([
+                'product_unit_id' => $ctx['productUnit']->id,
+                'warehouse_id' => $ctx['warehouse']->id,
+                'qty' => 1,
+                'fulfilled_qty' => 1,
+                'unit_price' => 10000,
+                'discount' => 0,
+                'tax' => 0,
+                'total_price' => 10000,
+            ]);
+
+            return $salesOrder;
+        })->all();
+    }
+
+    private function mergePayload(array $sources, array $ctx, array $overrides = []): array
+    {
+        return array_merge([
+            'sales_order_ids' => array_map(fn (SalesOrder $salesOrder) => $salesOrder->id, $sources),
+            'reseller_id' => $ctx['user']->id,
+            'marketplace' => Marketplace::SHOPEE,
+            'transaction_date' => now()->format('Y-m-d H:i:s'),
+            'description' => null,
+        ], $overrides);
+    }
+
+    public function test_merge_uses_the_manual_numbers_when_counter_is_disabled(): void
+    {
+        config(['app.enable_document_counter' => false]);
+        Carbon::setTestNow('2026-10-16 00:00:00');
+
+        $ctx = $this->createBasicContext();
+        Sanctum::actingAs($ctx['user'], ['warehouse']);
+
+        $sources = $this->createMergeableMarketplaceOrders($ctx);
+
+        $merged = SalesOrderService::mergeMarketplaceOrders($this->mergePayload($sources, $ctx, [
+            'invoice_no' => 'PAS/SO/MERGE/01',
+            'delivery_order_invoice_no' => 'PAS/DO/MERGE/01',
+        ]));
+
+        $this->assertSame('PAS/SO/MERGE/01', $merged->invoice_no);
+        $this->assertSame(
+            'PAS/DO/MERGE/01',
+            DeliveryOrder::where('sales_order_id', $merged->id)->value('invoice_no')
+        );
+        $this->assertSame(0, DocumentCounter::count());
+
+        Carbon::setTestNow();
+    }
+
+    public function test_merge_generates_the_numbers_when_counter_is_enabled(): void
+    {
+        Carbon::setTestNow('2026-10-16 00:00:00');
+
+        $ctx = $this->createBasicContext();
+        Sanctum::actingAs($ctx['user'], ['warehouse']);
+
+        $sources = $this->createMergeableMarketplaceOrders($ctx);
+
+        $merged = SalesOrderService::mergeMarketplaceOrders($this->mergePayload($sources, $ctx, [
+            'invoice_no' => 'IGNORED/SO',
+            'delivery_order_invoice_no' => 'IGNORED/DO',
+        ]));
+
+        $this->assertSame('PAS/SO/10/26/03', $merged->invoice_no);
+        $this->assertSame(
+            'PAS/DO/10/26/01',
+            DeliveryOrder::where('sales_order_id', $merged->id)->value('invoice_no')
+        );
 
         Carbon::setTestNow();
     }

@@ -551,6 +551,10 @@ class SalesOrderService
 
             $firstSource = $sources->first();
 
+            // Document numbers come from the request only while the counter is disabled.
+            $manualInvoiceNo = NumberingService::enabled() ? null : ($data['invoice_no'] ?? null);
+            $manualDeliveryOrderInvoiceNo = NumberingService::enabled() ? null : ($data['delivery_order_invoice_no'] ?? null);
+
             $rawSource = [
                 'user_id' => auth('sanctum')->id(),
                 'company' => $firstSource->getRawOriginal('company'),
@@ -566,10 +570,14 @@ class SalesOrderService
                 'items' => static::buildMergedOrderItems($sourceIds->all()),
             ];
 
+            if ($manualInvoiceNo !== null) {
+                $rawSource['invoice_no'] = $manualInvoiceNo;
+            }
+
             $mergedSalesOrder = static::createOrder(SalesOrder::make(['raw_source' => $rawSource]));
 
             $deliveryOrder = DeliveryOrder::where('sales_order_id', $mergedSalesOrder->id)->first()
-                ?? DeliveryOrderService::createForSalesOrder($mergedSalesOrder, true);
+                ?? DeliveryOrderService::createForSalesOrder($mergedSalesOrder, true, $manualDeliveryOrderInvoiceNo);
 
             static::copyVerifiedStockItems($mergedSalesOrder, $deliveryOrder, $sourceIds->all());
 

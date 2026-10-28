@@ -9,6 +9,7 @@ use App\Http\Requests\Api\DocumentCounterIndexRequest;
 use App\Http\Requests\Api\DocumentCounterUpdateRequest;
 use App\Http\Resources\DocumentCounterResource;
 use App\Models\DocumentCounter;
+use App\Services\NumberingService;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class DocumentCounterController extends Controller
@@ -28,6 +29,8 @@ class DocumentCounterController extends Controller
     public function __construct()
     {
         parent::__construct();
+
+        abort_unless(NumberingService::enabled(), 404);
 
         $this->middleware('permission:document_counter_read', ['only' => ['index']]);
         $this->middleware('permission:document_counter_edit', ['only' => ['update']]);

@@ -29,6 +29,8 @@ class DocumentCounterTest extends TestCase
     {
         parent::setUp();
 
+        config(['app.enable_document_counter' => true]);
+
         Permission::firstOrCreate(['name' => 'document_counter_read', 'guard_name' => 'web']);
         Permission::firstOrCreate(['name' => 'document_counter_edit', 'guard_name' => 'web']);
     }
@@ -283,6 +285,24 @@ class DocumentCounterTest extends TestCase
             'period' => '2026-10',
             'next_sequence' => 5,
         ])->assertForbidden();
+
+        $this->assertSame(0, DocumentCounter::count());
+    }
+
+    public function test_endpoints_are_hidden_when_the_counter_is_disabled(): void
+    {
+        config(['app.enable_document_counter' => false]);
+
+        $this->actingAsUser(['document_counter_read', 'document_counter_edit']);
+
+        $this->getJson('/api/document-counters')->assertNotFound();
+
+        $this->putJson('/api/document-counters', [
+            'company' => CompanyEnum::PAS,
+            'document_type' => DocumentType::SO,
+            'period' => '2026-10',
+            'next_sequence' => 5,
+        ])->assertNotFound();
 
         $this->assertSame(0, DocumentCounter::count());
     }

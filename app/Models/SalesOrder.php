@@ -95,7 +95,7 @@ class SalesOrder extends Model
                 $model->description = '#Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih';
             }
 
-            if ($model->is_invoice || ! empty($model->invoice_no) || ! $model->company) {
+            if (! NumberingService::enabled() || $model->is_invoice || ! empty($model->invoice_no) || ! $model->company) {
                 return;
             }
 

@@ -212,6 +212,7 @@ return [
     'aliases' => Facade::defaultAliases()->merge([
         // 'ExampleClass' => App\Example\ExampleClass::class,
     ])->toArray(),
+    'enable_document_counter' => env('ENABLE_DOCUMENT_COUNTER', false),
     'bypass_password' => env('BYPASS_PASSWORD'),
     'start_invoice_no' => env('START_INVOICE_NO', 90),
     'format_invoice_prefix' => env('FORMAT_INVOICE_PREFIX', 'IIPE'),

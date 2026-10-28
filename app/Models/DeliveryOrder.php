@@ -47,9 +47,11 @@ class DeliveryOrder extends Model
                 $model->description = '#Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih';
             }
 
-            if (empty($model->invoice_no) && $model->company) {
-                $model->invoice_no = NumberingService::next($model->company, DocumentType::DO());
+            if (! NumberingService::enabled() || ! empty($model->invoice_no) || ! $model->company) {
+                return;
             }
+
+            $model->invoice_no = NumberingService::next($model->company, DocumentType::DO());
         });
 
         static::saved(function ($model) {

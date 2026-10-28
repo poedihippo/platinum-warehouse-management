@@ -11,6 +11,17 @@ use Illuminate\Support\Facades\DB;
 final class NumberingService
 {
     /**
+     * Whether document numbers are generated from the document counter.
+     *
+     * When disabled the caller supplies the number manually, so nothing is reserved here and
+     * the counter table, endpoints and formatting are left unused but fully intact.
+     */
+    public static function enabled(): bool
+    {
+        return (bool) config('app.enable_document_counter');
+    }
+
+    /**
      * Reserve the next document number for the given company, document type and month.
      *
      * The sequence is scoped per company + document type + period, so every scope keeps its

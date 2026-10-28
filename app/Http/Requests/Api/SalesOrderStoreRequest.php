@@ -7,10 +7,13 @@ use App\Enums\Marketplace;
 use App\Enums\SalesOrderType;
 use App\Models\Voucher;
 use App\Rules\TenantedRule;
+use App\Rules\UniqueInvoiceNumber;
+use App\Services\NumberingService;
 use BenSampo\Enum\Rules\EnumValue;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class SalesOrderStoreRequest extends FormRequest
 {
@@ -51,12 +54,9 @@ class SalesOrderStoreRequest extends FormRequest
                 },
             ],
             'invoice_no' => [
+                Rule::requiredIf(fn () => ! NumberingService::enabled()),
                 'nullable',
-                function (string $attribute, mixed $value, Closure $fail) {
-                    if (DB::table('sales_orders')->whereNull('deleted_at')->where('invoice_no', trim($value))->exists()) {
-                        $fail('Invoice number sudah digunakan');
-                    }
-                },
+                new UniqueInvoiceNumber('sales_orders'),
             ],
             'warehouse_id' => ['required', new TenantedRule()],
             'transaction_date' => ['nullable', 'required_without:marketplace', 'date_format:Y-m-d H:i:s'],

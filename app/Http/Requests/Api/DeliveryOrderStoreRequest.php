@@ -4,10 +4,13 @@ namespace App\Http\Requests\Api;
 
 use App\Enums\CompanyEnum;
 use App\Rules\TenantedRule;
+use App\Rules\UniqueInvoiceNumber;
+use App\Services\NumberingService;
 use BenSampo\Enum\Rules\EnumValue;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class DeliveryOrderStoreRequest extends FormRequest
 {
@@ -26,12 +29,9 @@ class DeliveryOrderStoreRequest extends FormRequest
             // }],
             'company' => ['required', new EnumValue(CompanyEnum::class)],
             'invoice_no' => [
+                Rule::requiredIf(fn () => ! NumberingService::enabled()),
                 'nullable',
-                function (string $attribute, mixed $value, Closure $fail) {
-                    if (DB::table('delivery_orders')->whereNull('deleted_at')->where('invoice_no', trim($value))->exists()) {
-                        $fail('Invoice number sudah digunakan');
-                    }
-                },
+                new UniqueInvoiceNumber('delivery_orders'),
             ],
             'reseller_id' => ['required', function (string $attribute, mixed $value, Closure $fail) {
                 if (! DB::table('users')->where('id', $value)->where('type', \App\Enums\UserType::Reseller)->where('company', $this->company)->exists()) {
