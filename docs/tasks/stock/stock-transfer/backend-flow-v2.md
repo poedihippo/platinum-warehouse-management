@@ -1,5 +1,7 @@
 # BACKEND DOCUMENTATION — Transfer Stock v2 (Updated Flow)
 
+> ⚠️ **SUPERSEDED oleh `backend-flow-v3.md`.** Dokumen ini disimpan sebagai histori. Perubahan v3: child stock (`parent_id != null`) **ditolak** saat transfer dan Delivery Order verification menolak grouping yang tidak lengkap. Detail v2 di bawah tetap berlaku untuk bagian yang tidak berubah.
+
 > **Target:** AI Agent / Backend Developer
 > **Framework:** Laravel 10 REST API (BEJO WMS)
 > **Feature Status:** Implemented — v2 (flow updated August 2026)

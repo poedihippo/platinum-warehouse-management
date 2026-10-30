@@ -121,7 +121,11 @@ class SalesOrderService
             throw new BadRequestHttpException('Qty sudah terpenuhi');
         }
 
-        $stock->load(['childs' => fn ($q) => $q->select('id', 'parent_id')]);
+        $stock->load(['childs' => fn ($q) => $q->select('id', 'parent_id', 'stock_product_unit_id')]);
+
+        if ($stock->hasIncompleteGrouping()) {
+            throw new BadRequestHttpException(Stock::INCOMPLETE_GROUPING_MESSAGE);
+        }
 
         return DB::transaction(function () use ($salesOrderDetail, $stock) {
             if ($stock->childs->isNotEmpty()) {

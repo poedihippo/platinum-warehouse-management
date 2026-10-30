@@ -319,10 +319,14 @@ class DeliveryOrderController extends Controller
             return response()->json(['message' => 'Qty sudah terpenuhi'], 400);
         }
 
-        $stock->load(['childs' => fn ($q) => $q->select('id', 'parent_id')]);
+        $stock->load(['childs' => fn ($q) => $q->select('id', 'parent_id', 'stock_product_unit_id')]);
         $stockChilds = $stock->childs;
         $totalChilds = $stockChilds->count();
         if ($totalChilds > 0) {
+            if ($stock->hasIncompleteGrouping()) {
+                return response()->json(['message' => Stock::INCOMPLETE_GROUPING_MESSAGE], 400);
+            }
+
             $stockIds = $salesOrderDetail->salesOrderItems()
                 ->where('delivery_order_detail_id', $deliveryOrderDetail->id)
                 ->whereIn('stock_id', $stockChilds->pluck('id'))

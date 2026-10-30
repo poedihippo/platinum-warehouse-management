@@ -17,6 +17,8 @@ class Stock extends Model
 {
     use HasUlids, SoftDeletes;
 
+    public const INCOMPLETE_GROUPING_MESSAGE = 'Stock grouping tidak lengkap. Terdapat child stock yang berada di product unit / warehouse berbeda dari parent-nya';
+
     protected $guarded = [];
 
     protected $casts = [
@@ -54,6 +56,13 @@ class Stock extends Model
     public function childs(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id', 'id');
+    }
+
+    public function hasIncompleteGrouping(): bool
+    {
+        return $this->childs->contains(
+            fn ($child) => $child->stock_product_unit_id != $this->stock_product_unit_id
+        );
     }
 
     public function salesOrderItems(): HasMany

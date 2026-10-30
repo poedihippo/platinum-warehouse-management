@@ -93,6 +93,14 @@ class TransferStockRequest extends FormRequest
             $validator->errors()->add('stock_ids', 'Stock tidak ditemukan: '.implode(', ', $missingIds));
         }
 
+        $groupedIds = $stocks->whereNotNull('parent_id')->pluck('id');
+
+        if ($groupedIds->isNotEmpty()) {
+            $validator->errors()->add('stock_ids', 'Stock berikut masih di dalam grouping: '.$groupedIds->implode(', ').'. Lakukan ungroup terlebih dahulu');
+
+            return;
+        }
+
         foreach ($stocks as $stock) {
             if ($stock->stock_product_unit_id != $fromSpuId) {
                 $validator->errors()->add('stock_ids', 'Stock "'.$stock->id.'" tidak sesuai dengan product unit asal');
