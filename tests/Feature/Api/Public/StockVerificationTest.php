@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class StockVerificationTest extends TestCase
@@ -122,9 +123,7 @@ class StockVerificationTest extends TestCase
             ]);
     }
 
-    /**
-     * @dataProvider invalidUlidProvider
-     */
+    #[DataProvider('invalidUlidProvider')]
     public function test_returns_404_for_invalid_ulid_shapes(string $rawPathSegment): void
     {
         $response = $this->getJson($this->url($rawPathSegment));
