@@ -12,6 +12,14 @@ use Symfony\Component\Mailer\Bridge\Brevo\Transport\BrevoApiTransport;
 class AppServiceProvider extends ServiceProvider
 {
     /**
+     * Service and repository interface bindings.
+     *
+     * @var array<class-string, class-string>
+     */
+    public $singletons = [
+    ];
+
+    /**
      * Register any application services.
      *
      * @return void
