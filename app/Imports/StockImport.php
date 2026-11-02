@@ -5,6 +5,7 @@ namespace App\Imports;
 use App\Jobs\GenerateStockQrcode;
 use App\Models\ProductUnit;
 use App\Models\StockProductUnit;
+use Illuminate\Database\Eloquent\Model;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
@@ -12,14 +13,12 @@ class StockImport implements ToModel, WithHeadingRow
 {
     // use Queueable;
 
-    public function __construct(public int $warehouse_id)
-    {
-    }
+    public function __construct(public int $warehouse_id) {}
 
     /**
-     * @return \Illuminate\Database\Eloquent\Model|null
+     * @return Model|null
      */
-    public function model(array $row)
+    public function model(array $row): Model|array|null
     {
         $qty = isset($row['stock']) && is_numeric($row['stock']) && $row['stock'] > 0 ? (int) $row['stock'] : 0;
         $qty = round($qty);
@@ -70,6 +69,8 @@ class StockImport implements ToModel, WithHeadingRow
                 ]);
             }
         }
+
+        return null;
     }
 
     // public function chunkSize(): int

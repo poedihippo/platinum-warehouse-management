@@ -5,6 +5,7 @@ namespace App\Imports;
 use App\Enums\BatchSource;
 use App\Models\Voucher;
 use App\Models\VoucherGenerateBatch;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
@@ -23,14 +24,13 @@ class VoucherImport implements SkipsEmptyRows, SkipsOnFailure, ToCollection, Wit
     public function __construct(
         private string $voucherCategoryId,
         private string $description = '',
-    ) {
-    }
+    ) {}
 
     /**
      * @param  array  $row
-     * @return \Illuminate\Database\Eloquent\Model|null
+     * @return Model|null
      */
-    public function collection(Collection $rows)
+    public function collection(Collection $rows): void
     {
         $batch = null;
         foreach ($rows as $row) {
@@ -60,9 +60,7 @@ class VoucherImport implements SkipsEmptyRows, SkipsOnFailure, ToCollection, Wit
         ];
     }
 
-    public function onFailure(Failure ...$failures)
-    {
-    }
+    public function onFailure(Failure ...$failures): void {}
 
     public function getTotalInserted(): int
     {

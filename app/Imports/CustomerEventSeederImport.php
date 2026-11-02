@@ -4,15 +4,16 @@ namespace App\Imports;
 
 use App\Enums\UserType;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class CustomerEventSeederImport implements ToModel, WithHeadingRow
 {
     /**
-     * @return \Illuminate\Database\Eloquent\Model|null
+     * @return Model|null
      */
-    public function model(array $row)
+    public function model(array $row): Model|array|null
     {
         $name = empty($row['name']) ? null : trim($row['name']);
         $email = empty($row['email']) ? null : trim($row['email']);
@@ -34,5 +35,7 @@ class CustomerEventSeederImport implements ToModel, WithHeadingRow
                 ]);
             }
         }
+
+        return null;
     }
 }

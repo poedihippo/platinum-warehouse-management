@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use App\Models\Voucher;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Enumerable;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
@@ -15,9 +16,9 @@ class VoucherExport implements FromCollection, WithHeadings
     ];
 
     /**
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
-    public function collection()
+    public function collection(): Enumerable
     {
         return Voucher::all();
     }

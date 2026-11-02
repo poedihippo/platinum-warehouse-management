@@ -5,6 +5,7 @@ namespace App\Imports;
 use App\Models\Product;
 use App\Models\ProductUnit;
 use App\Models\Uom;
+use Illuminate\Database\Eloquent\Model;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
@@ -12,9 +13,9 @@ use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 class ProductUnitSeederImport implements ToModel, WithHeadingRow
 {
     /**
-     * @return \Illuminate\Database\Eloquent\Model|null
+     * @return Model|null
      */
-    public function model(array $row)
+    public function model(array $row): Model|array|null
     {
         // dd($row);
         $productUnitName = trim($row['product_unit_name']);
@@ -45,5 +46,7 @@ class ProductUnitSeederImport implements ToModel, WithHeadingRow
                 'price' => $price,
             ]);
         }
+
+        return null;
     }
 }

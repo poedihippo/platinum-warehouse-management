@@ -3,15 +3,16 @@
 namespace App\Imports;
 
 use App\Models\Supplier;
+use Illuminate\Database\Eloquent\Model;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class SupplierSeederImport implements ToModel, WithHeadingRow
 {
     /**
-     * @return \Illuminate\Database\Eloquent\Model|null
+     * @return Model|null
      */
-    public function model(array $row)
+    public function model(array $row): Model|array|null
     {
         return new Supplier([
             'code' => trim($row['code']),
