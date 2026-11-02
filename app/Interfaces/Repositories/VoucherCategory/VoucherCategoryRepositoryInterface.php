@@ -7,5 +7,5 @@ use App\Models\VoucherCategory;
 
 interface VoucherCategoryRepositoryInterface extends BaseRepositoryInterface
 {
-    public function findWithTrashedOrFail(int|string $id): VoucherCategory;
+    public function findWithTrashedOrFail(mixed $id): VoucherCategory;
 }

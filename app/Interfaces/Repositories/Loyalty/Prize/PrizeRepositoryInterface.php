@@ -8,11 +8,11 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface PrizeRepositoryInterface extends BaseRepositoryInterface
 {
-    public function paginateCatalog(?string $search, ?string $categoryId, ?string $sort, ?int $maxPointsCost, int $perPage): LengthAwarePaginator;
+    public function paginateCatalog(mixed $search, mixed $categoryId, mixed $sort, mixed $maxPointsCost, int $perPage): LengthAwarePaginator;
 
-    public function findActive(string $id): ?Prize;
+    public function findActive(mixed $id): ?Prize;
 
     public function lockForUpdate(mixed $id): ?Prize;
 
-    public function paginateForAdmin(?bool $isActive, ?string $search, ?string $sort, int $perPage): LengthAwarePaginator;
+    public function paginateForAdmin(mixed $isActive, mixed $search, mixed $sort, int $perPage): LengthAwarePaginator;
 }

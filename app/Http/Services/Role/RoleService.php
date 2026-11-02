@@ -18,7 +18,7 @@ class RoleService extends BaseService implements RoleServiceInterface
         parent::__construct($repository);
     }
 
-    public function createWithPermissions(?string $name, array $permissionIds = []): Role
+    public function createWithPermissions(mixed $name, mixed $permissionIds = []): Role
     {
         $permissionNames = $this->permissionService->getPermissionNames($permissionIds);
         $role = DB::transaction(function () use ($name, $permissionNames) {
@@ -37,7 +37,7 @@ class RoleService extends BaseService implements RoleServiceInterface
         return $role;
     }
 
-    public function updateWithPermissions(Role $role, ?string $name, array $permissionIds = []): Role
+    public function updateWithPermissions(Role $role, mixed $name, mixed $permissionIds = []): Role
     {
         $permissionNames = $this->permissionService->getPermissionNames($permissionIds);
         $role = DB::transaction(function () use ($role, $name, $permissionNames) {

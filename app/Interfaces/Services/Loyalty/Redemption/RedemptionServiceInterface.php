@@ -9,11 +9,11 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface RedemptionServiceInterface extends BaseServiceInterface
 {
-    public function redeem(LoyaltyUser $user, array $input, bool $saveAddress): Redemption;
+    public function redeem(LoyaltyUser $user, mixed $input, mixed $saveAddress): Redemption;
 
-    public function paginateForUser(string $userId, ?string $status, int $perPage): LengthAwarePaginator;
+    public function paginateForUser(mixed $userId, mixed $status, int $perPage): LengthAwarePaginator;
 
-    public function findOwned(string $userId, string $id, bool $withPrize = true): Redemption;
+    public function findOwned(mixed $userId, mixed $id, mixed $withPrize = true): Redemption;
 
-    public function confirmDelivered(string $userId, string $id): Redemption;
+    public function confirmDelivered(mixed $userId, mixed $id): Redemption;
 }

@@ -17,23 +17,23 @@ interface DeliveryOrderServiceInterface extends BaseServiceInterface
 
     public function paginateIndex(int $perPage): LengthAwarePaginator;
 
-    public function findForShow(int|string $id): DeliveryOrder;
+    public function findForShow(mixed $id): DeliveryOrder;
 
     public function findBySalesOrderDetail(mixed $salesOrderDetailId): DeliveryOrderDetail;
 
-    public function createDeliveryOrder(array $data): DeliveryOrder;
+    public function createDeliveryOrder(mixed $data): DeliveryOrder;
 
     public function destroyDeliveryOrder(DeliveryOrder $deliveryOrder): void;
 
-    public function print(int|string $id): mixed;
+    public function print(mixed $id): mixed;
 
-    public function exportXml(int|string $id): mixed;
+    public function exportXml(mixed $id): mixed;
 
-    public function verify(int|string $id, DeliveryOrderDetail $deliveryOrderDetail, mixed $stockId): SalesOrderItem;
+    public function verify(mixed $id, DeliveryOrderDetail $deliveryOrderDetail, mixed $stockId): SalesOrderItem;
 
-    public function setDone(int|string $id, mixed $isDone): DeliveryOrder;
+    public function setDone(mixed $id, mixed $isDone): DeliveryOrder;
 
-    public function returnStocks(int|string $id, mixed $ids, mixed $isDelete): ?BadRequestHttpException;
+    public function returnStocks(mixed $id, mixed $ids, mixed $isDelete): ?BadRequestHttpException;
 
     public function createForSalesOrder(SalesOrder $salesOrder, bool $force = false, ?string $invoiceNo = null): ?DeliveryOrder;
 

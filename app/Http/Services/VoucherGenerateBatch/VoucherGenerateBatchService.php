@@ -24,7 +24,7 @@ class VoucherGenerateBatchService extends BaseService implements VoucherGenerate
     /**
      * Creates the batch and `value` vouchers coded "{batch id}-{index}".
      */
-    public function generate(array $data, mixed $value, mixed $voucherCategoryId, mixed $startDate, mixed $endDate): void
+    public function generate(mixed $data, mixed $value, mixed $voucherCategoryId, mixed $startDate, mixed $endDate): void
     {
         DB::beginTransaction();
         try {

@@ -21,7 +21,7 @@ class DeliveryOrderDetailService implements DeliveryOrderDetailServiceInterface
     ) {
     }
 
-    public function paginate(int $deliveryOrderId, int $perPage): LengthAwarePaginator
+    public function paginate(mixed $deliveryOrderId, int $perPage): LengthAwarePaginator
     {
         $deliveryOrder = $this->deliveryOrderRepository->findTenanted($deliveryOrderId, ['id']);
 
@@ -60,7 +60,7 @@ class DeliveryOrderDetailService implements DeliveryOrderDetailServiceInterface
             ->paginate($perPage);
     }
 
-    public function find(int $deliveryOrderId, int $deliveryOrderDetailId): DeliveryOrderDetail
+    public function find(mixed $deliveryOrderId, mixed $deliveryOrderDetailId): DeliveryOrderDetail
     {
         $deliveryOrder = $this->deliveryOrderRepository->findTenanted($deliveryOrderId);
         $deliveryOrderDetail = $deliveryOrder->details()->where('id', $deliveryOrderDetailId)->firstOrFail();
@@ -68,7 +68,7 @@ class DeliveryOrderDetailService implements DeliveryOrderDetailServiceInterface
         return $this->loadForResource($deliveryOrderDetail);
     }
 
-    public function paginateItems(int $deliveryOrderDetailId, int $perPage): LengthAwarePaginator
+    public function paginateItems(mixed $deliveryOrderDetailId, int $perPage): LengthAwarePaginator
     {
         return QueryBuilder::for(
             SalesOrderItem::query()
@@ -82,7 +82,7 @@ class DeliveryOrderDetailService implements DeliveryOrderDetailServiceInterface
             ->paginate($perPage);
     }
 
-    public function updateQty(int $deliveryOrderId, int $deliveryOrderDetailId, mixed $qty): DeliveryOrderDetail
+    public function updateQty(mixed $deliveryOrderId, mixed $deliveryOrderDetailId, mixed $qty): DeliveryOrderDetail
     {
         $deliveryOrder = $this->deliveryOrderRepository->findTenanted($deliveryOrderId, ['id', 'is_done', 'invoice_no']);
         if ($deliveryOrder->is_done) {
@@ -100,7 +100,7 @@ class DeliveryOrderDetailService implements DeliveryOrderDetailServiceInterface
     /**
      * Known issue kept as is: the DO is loaded with id only, so the done guard never fires.
      */
-    public function deleteDetail(int $deliveryOrderId, int $deliveryOrderDetailId): void
+    public function deleteDetail(mixed $deliveryOrderId, mixed $deliveryOrderDetailId): void
     {
         $deliveryOrder = $this->deliveryOrderRepository->findTenanted($deliveryOrderId, ['id']);
         abort_if(! auth('sanctum')->user()->tokenCan('delivery_order_delete'), 403);
@@ -112,7 +112,7 @@ class DeliveryOrderDetailService implements DeliveryOrderDetailServiceInterface
         $deliveryOrder->details()->where('id', $deliveryOrderDetailId)->delete();
     }
 
-    public function resetVerifiedStock(int $deliveryOrderId, int $deliveryOrderDetailId): string
+    public function resetVerifiedStock(mixed $deliveryOrderId, mixed $deliveryOrderDetailId): string
     {
         $deliveryOrder = $this->deliveryOrderRepository->findTenanted($deliveryOrderId);
         if ($deliveryOrder->is_done) {

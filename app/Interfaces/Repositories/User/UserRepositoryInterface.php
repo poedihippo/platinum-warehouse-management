@@ -12,5 +12,5 @@ interface UserRepositoryInterface extends BaseRepositoryInterface
 
     public function findByEmail(mixed $email): ?User;
 
-    public function findWithTrashedOrFail(int|string $id): User;
+    public function findWithTrashedOrFail(mixed $id): User;
 }

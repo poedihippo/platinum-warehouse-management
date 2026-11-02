@@ -21,7 +21,7 @@ class PointsService extends BaseService implements PointsServiceInterface
      * pending: points sitting in claims that are still under review.
      * approved: spendable balance, earned minus spent from the ledger.
      */
-    public function balance(string $userId): array
+    public function balance(mixed $userId): array
     {
         return [
             'pending' => $this->claimRepository->pendingTotalForUser($userId),
@@ -29,12 +29,12 @@ class PointsService extends BaseService implements PointsServiceInterface
         ];
     }
 
-    public function transactions(string $userId): LengthAwarePaginator
+    public function transactions(mixed $userId): LengthAwarePaginator
     {
         return $this->repository->paginateForUser($userId, 20);
     }
 
-    public function balanceFor(string $userId): int
+    public function balanceFor(mixed $userId): int
     {
         return $this->repository->balanceFor($userId);
     }

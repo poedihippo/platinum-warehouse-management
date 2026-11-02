@@ -59,14 +59,14 @@ class InvoiceService implements InvoiceServiceInterface
         }
     }
 
-    public function createInvoice(array $data, bool $isPreview): SalesOrder
+    public function createInvoice(mixed $data, mixed $isPreview): SalesOrder
     {
         $salesOrder = $this->salesOrderService->createOrder(SalesOrder::make(['raw_source' => $data, 'is_invoice' => true]), $isPreview);
 
         return $salesOrder->loadMissing('vouchers.category');
     }
 
-    public function findForShow(int|string $id): SalesOrder
+    public function findForShow(mixed $id): SalesOrder
     {
         $salesOrder = $this->salesOrderService->show($id, fn ($q) => $q->whereInvoice());
         $salesOrder->id_hash = Crypt::encryptString($salesOrder->id);
@@ -147,7 +147,7 @@ class InvoiceService implements InvoiceServiceInterface
         });
     }
 
-    private function validateScannedStocks(array $item): ?string
+    private function validateScannedStocks(mixed $item): ?string
     {
         $stockProductUnit = StockProductUnit::where('product_unit_id', $item['product_unit_id'])
             ->where('warehouse_id', $item['warehouse_id'])

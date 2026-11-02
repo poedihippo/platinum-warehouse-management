@@ -25,7 +25,7 @@ class ClaimService extends BaseService implements ClaimServiceInterface
      * Photos are written before the transaction, under a directory named
      * after the pre-generated claim id; a failed insert removes them again.
      */
-    public function submit(LoyaltyUser $user, mixed $invoiceNumber, UploadedFile $invoicePhoto, array $productPhotos): Claim
+    public function submit(LoyaltyUser $user, mixed $invoiceNumber, UploadedFile $invoicePhoto, mixed $productPhotos): Claim
     {
         if (! $user->hasVerifiedEmail()) {
             throw new ApiResponseException('Email Anda belum diverifikasi. Verifikasi email sebelum mengajukan klaim.', 403);
@@ -82,12 +82,12 @@ class ClaimService extends BaseService implements ClaimServiceInterface
         return $claim->load('photos');
     }
 
-    public function paginateForUser(string $userId, ?string $status, int $perPage): LengthAwarePaginator
+    public function paginateForUser(mixed $userId, mixed $status, int $perPage): LengthAwarePaginator
     {
         return $this->repository->paginateForUser($userId, $status, $perPage);
     }
 
-    public function findForUser(string $userId, string $id): ?Claim
+    public function findForUser(mixed $userId, mixed $id): ?Claim
     {
         return $this->repository->findForUser($userId, $id);
     }

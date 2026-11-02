@@ -10,9 +10,9 @@ interface PaymentServiceInterface extends BaseServiceInterface
 {
     public function paginateIndex(int $perPage): LengthAwarePaginator;
 
-    public function store(array $data, mixed $isFullPayment, mixed $salesOrderId, ?array $files): Payment;
+    public function store(mixed $data, mixed $isFullPayment, mixed $salesOrderId, mixed $files): Payment;
 
-    public function updatePayment(Payment $payment, array $data, mixed $isFullPayment, mixed $salesOrderId, ?array $files): Payment;
+    public function updatePayment(Payment $payment, mixed $data, mixed $isFullPayment, mixed $salesOrderId, mixed $files): Payment;
 
-    public function findTenantedWithTrashed(int|string $id): Payment;
+    public function findTenantedWithTrashed(mixed $id): Payment;
 }

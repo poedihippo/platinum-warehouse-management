@@ -7,9 +7,9 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface PointsServiceInterface extends BaseServiceInterface
 {
-    public function balance(string $userId): array;
+    public function balance(mixed $userId): array;
 
-    public function transactions(string $userId): LengthAwarePaginator;
+    public function transactions(mixed $userId): LengthAwarePaginator;
 
-    public function balanceFor(string $userId): int;
+    public function balanceFor(mixed $userId): int;
 }

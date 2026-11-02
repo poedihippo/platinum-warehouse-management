@@ -25,7 +25,7 @@ class StockGroupingService implements StockGroupingServiceInterface
      * Groups the scanned stocks under a new parent stock named "{code} GR-{mmyy}{NNN}"
      * unless a name is given.
      */
-    public function groupByScan(array $input): void
+    public function groupByScan(mixed $input): void
     {
         $stockProductUnit = $this->stockProductUnitRepository->findTenanted($input['stock_product_unit_id'] ?? null);
         $totalStock = $stockProductUnit->stocks()->whereNull('parent_id')->doesntHave('childs')->count() ?? 0;
@@ -76,7 +76,7 @@ class StockGroupingService implements StockGroupingServiceInterface
      * Known issue kept as is: the receive order branch never sets the last group
      * sequence, so it fails before writing anything.
      */
-    public function group(array $input): void
+    public function group(mixed $input): void
     {
         $totalQtyGrouping = ($input['total_group'] ?? null) * ($input['qty'] ?? null);
         $receiveOrderDetailId = $input['receive_order_detail_id'] ?? null;
@@ -154,7 +154,7 @@ class StockGroupingService implements StockGroupingServiceInterface
         }
     }
 
-    public function ungroup(string $id): void
+    public function ungroup(mixed $id): void
     {
         $stock = $this->repository->findTenanted($id);
         if ($stock->childs->isEmpty()) {

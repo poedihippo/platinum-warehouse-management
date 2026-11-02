@@ -11,17 +11,17 @@ interface ProductUnitRepositoryInterface extends BaseRepositoryInterface
 {
     public function paginateIndex(int $perPage): LengthAwarePaginator;
 
-    public function findForShow(int|string $id): ProductUnit;
+    public function findForShow(mixed $id): ProductUnit;
 
-    public function countGenerateQr(array $ids): int;
+    public function countGenerateQr(mixed $ids): int;
 
-    public function findGroupingOrFail(int|string $id, int|string $referId): ProductUnit;
+    public function findGroupingOrFail(mixed $id, mixed $referId): ProductUnit;
 
-    public function paginateUserPrices(ProductUnit $productUnit, int $userId, int $perPage): LengthAwarePaginator;
+    public function paginateUserPrices(ProductUnit $productUnit, mixed $userId, int $perPage): LengthAwarePaginator;
 
-    public function findForStockProductUnit(int|string|null $stockProductUnitId): ?ProductUnit;
+    public function findForStockProductUnit(mixed $stockProductUnitId): ?ProductUnit;
 
-    public function paginateLoyaltyPoints(?string $search, int $perPage): LengthAwarePaginator;
+    public function paginateLoyaltyPoints(mixed $search, int $perPage): LengthAwarePaginator;
 
-    public function searchForClaims(?string $term): Collection;
+    public function searchForClaims(mixed $term): Collection;
 }

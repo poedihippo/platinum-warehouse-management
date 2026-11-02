@@ -9,5 +9,5 @@ interface VoucherGenerateBatchServiceInterface extends BaseServiceInterface
 {
     public function paginateIndex(int $perPage): LengthAwarePaginator;
 
-    public function generate(array $data, mixed $value, mixed $voucherCategoryId, mixed $startDate, mixed $endDate): void;
+    public function generate(mixed $data, mixed $value, mixed $voucherCategoryId, mixed $startDate, mixed $endDate): void;
 }

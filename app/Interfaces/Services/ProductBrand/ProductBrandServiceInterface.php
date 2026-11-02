@@ -9,7 +9,7 @@ use Illuminate\Support\Collection;
 
 interface ProductBrandServiceInterface extends BaseServiceInterface
 {
-    public function updateWithLogo(ProductBrand $productBrand, array $data, ?UploadedFile $logo = null): ProductBrand;
+    public function updateWithLogo(ProductBrand $productBrand, mixed $data, ?UploadedFile $logo = null): ProductBrand;
 
     public function listForLoyalty(): Collection;
 

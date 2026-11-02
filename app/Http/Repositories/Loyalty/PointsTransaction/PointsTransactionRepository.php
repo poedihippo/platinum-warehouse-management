@@ -14,7 +14,7 @@ class PointsTransactionRepository extends BaseRepository implements PointsTransa
         parent::__construct($model);
     }
 
-    public function balanceFor(string $userId): int
+    public function balanceFor(mixed $userId): int
     {
         $earned = (int) PointsTransaction::where('loyalty_user_id', $userId)
             ->where('direction', PointsTransaction::DIRECTION_EARN)
@@ -27,7 +27,7 @@ class PointsTransactionRepository extends BaseRepository implements PointsTransa
         return $earned - $spent;
     }
 
-    public function paginateForUser(string $userId, int $perPage): LengthAwarePaginator
+    public function paginateForUser(mixed $userId, int $perPage): LengthAwarePaginator
     {
         return PointsTransaction::where('loyalty_user_id', $userId)
             ->orderByDesc('created_at')

@@ -10,7 +10,7 @@ interface LoyaltyUserRepositoryInterface extends BaseRepositoryInterface
 {
     public function findByEmail(mixed $email): ?LoyaltyUser;
 
-    public function paginateForAdmin(?string $search, ?bool $isActive, ?string $sort, int $perPage): LengthAwarePaginator;
+    public function paginateForAdmin(mixed $search, mixed $isActive, mixed $sort, int $perPage): LengthAwarePaginator;
 
-    public function findWithCounts(string $id): ?LoyaltyUser;
+    public function findWithCounts(mixed $id): ?LoyaltyUser;
 }

@@ -40,12 +40,12 @@ class VoucherRepository extends BaseRepository implements VoucherRepositoryInter
             ->paginate($perPage);
     }
 
-    public function codeExists(string $code): bool
+    public function codeExists(mixed $code): bool
     {
         return Voucher::withoutGlobalScopes()->where('code', $code)->exists();
     }
 
-    public function findWithTrashedOrFail(int|string $id): Voucher
+    public function findWithTrashedOrFail(mixed $id): Voucher
     {
         return Voucher::withTrashed()->findOrFail($id);
     }

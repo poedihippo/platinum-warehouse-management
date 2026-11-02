@@ -13,7 +13,7 @@ class ProductUnitBlacklistService extends BaseService implements ProductUnitBlac
         parent::__construct($repository);
     }
 
-    public function blacklist(array $productUnitIds): int
+    public function blacklist(mixed $productUnitIds): int
     {
         $dataInserted = 0;
         foreach ($productUnitIds as $id) {
@@ -26,7 +26,7 @@ class ProductUnitBlacklistService extends BaseService implements ProductUnitBlac
         return $dataInserted;
     }
 
-    public function deleteByProductUnitId(int|string $productUnitId): void
+    public function deleteByProductUnitId(mixed $productUnitId): void
     {
         $this->repository->deleteByProductUnitId($productUnitId);
     }

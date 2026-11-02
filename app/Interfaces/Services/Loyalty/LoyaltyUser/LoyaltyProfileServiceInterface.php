@@ -6,5 +6,5 @@ use App\Models\Loyalty\LoyaltyUser;
 
 interface LoyaltyProfileServiceInterface
 {
-    public function update(LoyaltyUser $user, array $data): LoyaltyUser;
+    public function update(LoyaltyUser $user, mixed $data): LoyaltyUser;
 }

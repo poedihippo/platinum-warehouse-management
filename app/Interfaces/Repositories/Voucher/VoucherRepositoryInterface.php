@@ -10,7 +10,7 @@ interface VoucherRepositoryInterface extends BaseRepositoryInterface
 {
     public function paginateIndex(int $perPage): LengthAwarePaginator;
 
-    public function codeExists(string $code): bool;
+    public function codeExists(mixed $code): bool;
 
-    public function findWithTrashedOrFail(int|string $id): Voucher;
+    public function findWithTrashedOrFail(mixed $id): Voucher;
 }

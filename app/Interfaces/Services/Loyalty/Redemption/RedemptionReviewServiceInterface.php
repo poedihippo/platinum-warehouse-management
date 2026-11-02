@@ -8,15 +8,15 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface RedemptionReviewServiceInterface extends BaseServiceInterface
 {
-    public function paginate(?string $status, ?string $search, ?string $sort, int $perPage): LengthAwarePaginator;
+    public function paginate(mixed $status, mixed $search, mixed $sort, int $perPage): LengthAwarePaginator;
 
-    public function findForReview(string $id): ?Redemption;
+    public function findForReview(mixed $id): ?Redemption;
 
-    public function approve(string $id, mixed $adminId): Redemption;
+    public function approve(mixed $id, mixed $adminId): Redemption;
 
-    public function reject(string $id, mixed $adminId, mixed $reason): Redemption;
+    public function reject(mixed $id, mixed $adminId, mixed $reason): Redemption;
 
-    public function ship(string $id, mixed $adminId, mixed $trackingNumber, mixed $shippingCarrier): Redemption;
+    public function ship(mixed $id, mixed $adminId, mixed $trackingNumber, mixed $shippingCarrier): Redemption;
 
-    public function deliver(string $id, mixed $adminId): Redemption;
+    public function deliver(mixed $id, mixed $adminId): Redemption;
 }

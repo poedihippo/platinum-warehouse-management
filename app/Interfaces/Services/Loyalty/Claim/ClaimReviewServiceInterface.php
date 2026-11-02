@@ -9,17 +9,17 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface ClaimReviewServiceInterface extends BaseServiceInterface
 {
-    public function paginate(?string $status, ?string $search, ?string $sort, int $perPage): LengthAwarePaginator;
+    public function paginate(mixed $status, mixed $search, mixed $sort, int $perPage): LengthAwarePaginator;
 
-    public function findForReview(string $id): ?Claim;
+    public function findForReview(mixed $id): ?Claim;
 
-    public function addLineItem(string $claimId, mixed $productUnitId, mixed $quantity): ClaimLineItem;
+    public function addLineItem(mixed $claimId, mixed $productUnitId, mixed $quantity): ClaimLineItem;
 
-    public function updateLineItem(string $claimId, string $lineItemId, mixed $quantity): ClaimLineItem;
+    public function updateLineItem(mixed $claimId, mixed $lineItemId, mixed $quantity): ClaimLineItem;
 
-    public function removeLineItem(string $claimId, string $lineItemId): void;
+    public function removeLineItem(mixed $claimId, mixed $lineItemId): void;
 
-    public function approve(string $claimId, mixed $adminId): Claim;
+    public function approve(mixed $claimId, mixed $adminId): Claim;
 
-    public function reject(string $claimId, mixed $adminId, mixed $reason): Claim;
+    public function reject(mixed $claimId, mixed $adminId, mixed $reason): Claim;
 }

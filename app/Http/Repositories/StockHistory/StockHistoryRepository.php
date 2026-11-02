@@ -14,7 +14,7 @@ class StockHistoryRepository extends BaseRepository implements StockHistoryRepos
         parent::__construct($model);
     }
 
-    public function record(Model $subject, array $attributes): StockHistory
+    public function record(Model $subject, mixed $attributes): StockHistory
     {
         return $subject->histories()->create($attributes);
     }

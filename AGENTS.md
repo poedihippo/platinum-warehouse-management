@@ -474,7 +474,7 @@ Queued listeners run without an HTTP request — don't rely on `auth()` / `reque
 | `update(Model $model, array $data)` | updates the **instance** so model hooks fire |
 | `delete/forceDelete/restore(Model $model)` | act on the instance the caller already has (`CustomSoftDeletes` hooks) |
 
-Services are stateless singletons: never read `request()`/`auth()` in a constructor (read them inside the method). Cross-module calls go through interfaces — break cycles by moving shared pieces down (e.g. `countFulfilledQty` lives on `SalesOrderRepository`, IIPE numbers on `InvoiceNumberService`). Every stock change is written through `StockHistoryRepositoryInterface::record($subject, [...])`.
+Services are stateless singletons: never read `request()`/`auth()` in a constructor (read them inside the method). Parameters of service/repository methods that can receive request input are typed `mixed` on purpose, and `findById`/`findByIdOrFail`/`findTenanted` return `mixed`: the old controllers were untyped, so loose input (`null`, `status[]=x`, `"abc"`) must keep behaving as before instead of turning into a `TypeError` 500. Tighten types only together with request validation, as a deliberate behaviour change (`tests/Feature/Api/LooseInputTest` pins the current behaviour). Methods ported from the old static services keep their original signatures. Cross-module calls go through interfaces — break cycles by moving shared pieces down (e.g. `countFulfilledQty` lives on `SalesOrderRepository`, IIPE numbers on `InvoiceNumberService`). Every stock change is written through `StockHistoryRepositoryInterface::record($subject, [...])`.
 
 Notable services (`app/Http/Services/`):
 

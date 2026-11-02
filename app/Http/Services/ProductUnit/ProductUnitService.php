@@ -31,12 +31,12 @@ class ProductUnitService extends BaseService implements ProductUnitServiceInterf
         return $this->repository->paginateIndex($perPage);
     }
 
-    public function findForShow(int|string $id): ProductUnit
+    public function findForShow(mixed $id): ProductUnit
     {
         return $this->repository->findForShow($id);
     }
 
-    public function updateProductUnit(ProductUnit $productUnit, array $data): ProductUnit
+    public function updateProductUnit(ProductUnit $productUnit, mixed $data): ProductUnit
     {
         if ($productUnit->refer_id) {
             throw new BadRequestHttpException('Product Grouping can not update here');
@@ -47,7 +47,7 @@ class ProductUnitService extends BaseService implements ProductUnitServiceInterf
         return $productUnit;
     }
 
-    public function createRelations(ProductUnit $productUnit, array $validated, mixed $relatedProductUnits): void
+    public function createRelations(ProductUnit $productUnit, mixed $validated, mixed $relatedProductUnits): void
     {
         $this->ensureRelatedUnitsAreNotQr($relatedProductUnits);
 
@@ -71,7 +71,7 @@ class ProductUnitService extends BaseService implements ProductUnitServiceInterf
         });
     }
 
-    public function updateRelations(ProductUnit $productUnit, int $id, array $validated, mixed $relatedProductUnits): void
+    public function updateRelations(ProductUnit $productUnit, mixed $id, mixed $validated, mixed $relatedProductUnits): void
     {
         $this->ensureRelatedUnitsAreNotQr($relatedProductUnits);
 
@@ -94,7 +94,7 @@ class ProductUnitService extends BaseService implements ProductUnitServiceInterf
         });
     }
 
-    public function paginateUserPrices(ProductUnit $productUnit, int $userId, int $perPage): LengthAwarePaginator
+    public function paginateUserPrices(ProductUnit $productUnit, mixed $userId, int $perPage): LengthAwarePaginator
     {
         return $this->repository->paginateUserPrices($productUnit, $userId, $perPage);
     }
@@ -104,7 +104,7 @@ class ProductUnitService extends BaseService implements ProductUnitServiceInterf
         Excel::import(new ProductUnitSeederImport, $file);
     }
 
-    public function findByStock(string $stockId): ?ProductUnit
+    public function findByStock(mixed $stockId): ?ProductUnit
     {
         $stock = $this->stockRepository->findForProductLookup($stockId);
         if (! $stock) {
@@ -121,7 +121,7 @@ class ProductUnitService extends BaseService implements ProductUnitServiceInterf
         return $productUnit;
     }
 
-    public function paginateLoyaltyPoints(?string $search, int $perPage): LengthAwarePaginator
+    public function paginateLoyaltyPoints(mixed $search, int $perPage): LengthAwarePaginator
     {
         return $this->repository->paginateLoyaltyPoints($search, $perPage);
     }
@@ -150,7 +150,7 @@ class ProductUnitService extends BaseService implements ProductUnitServiceInterf
         $productUnit->save();
     }
 
-    public function searchForClaims(?string $term): Collection
+    public function searchForClaims(mixed $term): Collection
     {
         return $this->repository->searchForClaims($term);
     }

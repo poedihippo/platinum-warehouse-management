@@ -20,21 +20,21 @@ class ReceiveOrderDetailService extends BaseService implements ReceiveOrderDetai
         parent::__construct($repository);
     }
 
-    public function paginateForReceiveOrder(int $receiveOrderId, int $perPage): LengthAwarePaginator
+    public function paginateForReceiveOrder(mixed $receiveOrderId, int $perPage): LengthAwarePaginator
     {
         $receiveOrder = $this->receiveOrderRepository->findTenanted($receiveOrderId, ['id']);
 
         return $this->repository->paginateForReceiveOrder($receiveOrder->id, $perPage);
     }
 
-    public function findDetail(int $receiveOrderId, mixed $receiveOrderDetailId): ReceiveOrderDetail
+    public function findDetail(mixed $receiveOrderId, mixed $receiveOrderDetailId): ReceiveOrderDetail
     {
         $receiveOrder = $this->receiveOrderRepository->findTenanted($receiveOrderId, ['id']);
 
         return $receiveOrder->details()->where('id', $receiveOrderDetailId)->firstOrFail();
     }
 
-    public function createDetail(int $receiveOrderId, array $data): ReceiveOrderDetail
+    public function createDetail(mixed $receiveOrderId, mixed $data): ReceiveOrderDetail
     {
         $receiveOrder = $this->receiveOrderRepository->findTenanted($receiveOrderId, ['id']);
 
@@ -45,7 +45,7 @@ class ReceiveOrderDetailService extends BaseService implements ReceiveOrderDetai
      * Known issue kept as is: the receive order is loaded with id only, so the
      * is_done guard never fires.
      */
-    public function findForVerify(int $receiveOrderId, mixed $receiveOrderDetailId): ReceiveOrderDetail
+    public function findForVerify(mixed $receiveOrderId, mixed $receiveOrderDetailId): ReceiveOrderDetail
     {
         $receiveOrder = $this->receiveOrderRepository->findTenanted($receiveOrderId, ['id']);
         if ($receiveOrder->is_done) {
@@ -67,7 +67,7 @@ class ReceiveOrderDetailService extends BaseService implements ReceiveOrderDetai
         return $receiveOrderDetail;
     }
 
-    public function ensureDeletable(int $receiveOrderId, ReceiveOrderDetail $receiveOrderDetail): void
+    public function ensureDeletable(mixed $receiveOrderId, ReceiveOrderDetail $receiveOrderDetail): void
     {
         $this->receiveOrderRepository->findTenanted($receiveOrderId, ['id']);
         if ($receiveOrderDetail->is_verified === true) {

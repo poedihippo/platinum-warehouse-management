@@ -21,24 +21,24 @@ class PrizeService extends BaseService implements PrizeServiceInterface
         parent::__construct($repository);
     }
 
-    public function catalog(?string $search, ?string $categoryId, ?string $sort, ?string $affordableForUserId, int $perPage): LengthAwarePaginator
+    public function catalog(mixed $search, mixed $categoryId, mixed $sort, mixed $affordableForUserId, int $perPage): LengthAwarePaginator
     {
         $maxPointsCost = $affordableForUserId !== null ? $this->pointsRepository->balanceFor($affordableForUserId) : null;
 
         return $this->repository->paginateCatalog($search, $categoryId, $sort, $maxPointsCost, $perPage);
     }
 
-    public function findActive(string $id): ?Prize
+    public function findActive(mixed $id): ?Prize
     {
         return $this->repository->findActive($id);
     }
 
-    public function paginateForAdmin(?bool $isActive, ?string $search, ?string $sort, int $perPage): LengthAwarePaginator
+    public function paginateForAdmin(mixed $isActive, mixed $search, mixed $sort, int $perPage): LengthAwarePaginator
     {
         return $this->repository->paginateForAdmin($isActive, $search, $sort, $perPage);
     }
 
-    public function createPrize(array $attributes, ?UploadedFile $photo): Prize
+    public function createPrize(mixed $attributes, ?UploadedFile $photo): Prize
     {
         $prizeId = strtolower((string) Str::ulid());
 
@@ -54,7 +54,7 @@ class PrizeService extends BaseService implements PrizeServiceInterface
         return $prize->load('category')->loadCount('redemptions');
     }
 
-    public function updatePrize(Prize $prize, array $data, ?UploadedFile $photo): Prize
+    public function updatePrize(Prize $prize, mixed $data, ?UploadedFile $photo): Prize
     {
         if ($photo) {
             if ($prize->photo_path) {
@@ -75,7 +75,7 @@ class PrizeService extends BaseService implements PrizeServiceInterface
         return $prize->load('category')->loadCount('redemptions');
     }
 
-    private function storePhoto(UploadedFile $file, string $prizeId): string
+    private function storePhoto(UploadedFile $file, mixed $prizeId): string
     {
         $ext = strtolower($file->getClientOriginalExtension() ?: ($file->extension() ?: 'jpg'));
 

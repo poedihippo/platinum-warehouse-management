@@ -21,7 +21,7 @@ class StockTransferService extends BaseService implements StockTransferServiceIn
         parent::__construct($repository);
     }
 
-    public function transfer(array $input, bool $isQr): void
+    public function transfer(mixed $input, mixed $isQr): void
     {
         if ($isQr) {
             $this->transferQr($input);
@@ -36,7 +36,7 @@ class StockTransferService extends BaseService implements StockTransferServiceIn
      * Moves each stock (with its children) to the destination stock product unit.
      * Relies on the ids merged into the request by TransferRequest.
      */
-    private function transferQr(array $input): void
+    private function transferQr(mixed $input): void
     {
         $stocks = Stock::whereIn('id', $input['stock_ids'] ?? null)->get();
         $fromSpuId = $input['from_stock_product_unit_id'] ?? null;
@@ -122,7 +122,7 @@ class StockTransferService extends BaseService implements StockTransferServiceIn
      * Known issue kept as is: TransferRequest requires stock_ids, so this path
      * cannot be reached through the endpoint.
      */
-    private function transferNonQr(array $input): void
+    private function transferNonQr(mixed $input): void
     {
         $fromSpuId = $input['stock_product_unit_id'] ?? null;
         $productUnitId = $input['product_unit_id'] ?? null;

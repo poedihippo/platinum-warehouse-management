@@ -7,7 +7,7 @@ use Spatie\Permission\Models\Role;
 
 interface RoleServiceInterface extends BaseServiceInterface
 {
-    public function createWithPermissions(?string $name, array $permissionIds = []): Role;
+    public function createWithPermissions(mixed $name, mixed $permissionIds = []): Role;
 
-    public function updateWithPermissions(Role $role, ?string $name, array $permissionIds = []): Role;
+    public function updateWithPermissions(Role $role, mixed $name, mixed $permissionIds = []): Role;
 }

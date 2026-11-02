@@ -13,7 +13,7 @@ class VoucherCategoryRepository extends BaseRepository implements VoucherCategor
         parent::__construct($model);
     }
 
-    public function findWithTrashedOrFail(int|string $id): VoucherCategory
+    public function findWithTrashedOrFail(mixed $id): VoucherCategory
     {
         return VoucherCategory::withTrashed()->findOrFail($id);
     }

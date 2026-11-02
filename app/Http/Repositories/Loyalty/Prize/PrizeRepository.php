@@ -14,7 +14,7 @@ class PrizeRepository extends BaseRepository implements PrizeRepositoryInterface
         parent::__construct($model);
     }
 
-    public function paginateCatalog(?string $search, ?string $categoryId, ?string $sort, ?int $maxPointsCost, int $perPage): LengthAwarePaginator
+    public function paginateCatalog(mixed $search, mixed $categoryId, mixed $sort, mixed $maxPointsCost, int $perPage): LengthAwarePaginator
     {
         $query = Prize::active()->with('category');
 
@@ -48,7 +48,7 @@ class PrizeRepository extends BaseRepository implements PrizeRepositoryInterface
         return $query->paginate($perPage);
     }
 
-    public function findActive(string $id): ?Prize
+    public function findActive(mixed $id): ?Prize
     {
         return Prize::active()->with('category')->find($id);
     }
@@ -58,7 +58,7 @@ class PrizeRepository extends BaseRepository implements PrizeRepositoryInterface
         return Prize::lockForUpdate()->find($id);
     }
 
-    public function paginateForAdmin(?bool $isActive, ?string $search, ?string $sort, int $perPage): LengthAwarePaginator
+    public function paginateForAdmin(mixed $isActive, mixed $search, mixed $sort, int $perPage): LengthAwarePaginator
     {
         $query = Prize::with('category')->withCount('redemptions');
 

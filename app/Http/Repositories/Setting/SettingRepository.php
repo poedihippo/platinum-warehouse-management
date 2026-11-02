@@ -20,7 +20,7 @@ class SettingRepository extends BaseRepository implements SettingRepositoryInter
         return $this->model::all();
     }
 
-    public function valueOf(string $key): mixed
+    public function valueOf(mixed $key): mixed
     {
         return DB::table('settings')->where('key', $key)->first(['value'])->value ?? null;
     }

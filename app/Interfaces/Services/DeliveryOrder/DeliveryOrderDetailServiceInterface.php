@@ -7,15 +7,15 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface DeliveryOrderDetailServiceInterface
 {
-    public function paginate(int $deliveryOrderId, int $perPage): LengthAwarePaginator;
+    public function paginate(mixed $deliveryOrderId, int $perPage): LengthAwarePaginator;
 
-    public function find(int $deliveryOrderId, int $deliveryOrderDetailId): DeliveryOrderDetail;
+    public function find(mixed $deliveryOrderId, mixed $deliveryOrderDetailId): DeliveryOrderDetail;
 
-    public function paginateItems(int $deliveryOrderDetailId, int $perPage): LengthAwarePaginator;
+    public function paginateItems(mixed $deliveryOrderDetailId, int $perPage): LengthAwarePaginator;
 
-    public function updateQty(int $deliveryOrderId, int $deliveryOrderDetailId, mixed $qty): DeliveryOrderDetail;
+    public function updateQty(mixed $deliveryOrderId, mixed $deliveryOrderDetailId, mixed $qty): DeliveryOrderDetail;
 
-    public function deleteDetail(int $deliveryOrderId, int $deliveryOrderDetailId): void;
+    public function deleteDetail(mixed $deliveryOrderId, mixed $deliveryOrderDetailId): void;
 
-    public function resetVerifiedStock(int $deliveryOrderId, int $deliveryOrderDetailId): string;
+    public function resetVerifiedStock(mixed $deliveryOrderId, mixed $deliveryOrderDetailId): string;
 }

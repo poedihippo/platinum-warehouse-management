@@ -29,19 +29,19 @@ class UserDiscountService extends BaseService implements UserDiscountServiceInte
         );
     }
 
-    public function findForUser(User $user, int|string $id): UserDiscount
+    public function findForUser(User $user, mixed $id): UserDiscount
     {
         return $user->userDiscounts()->where('id', $id)->firstOrFail();
     }
 
-    public function createForUser(?User $user, array $data): UserDiscount
+    public function createForUser(?User $user, mixed $data): UserDiscount
     {
         $this->ensureReseller($user);
 
         return $user->userDiscounts()->create($data);
     }
 
-    public function updateForUser(?User $user, int|string $id, array $data): UserDiscount
+    public function updateForUser(?User $user, mixed $id, mixed $data): UserDiscount
     {
         $this->ensureReseller($user);
 

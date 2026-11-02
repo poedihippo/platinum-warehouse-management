@@ -8,9 +8,9 @@ use Illuminate\Support\Collection;
 
 interface DocumentCounterRepositoryInterface extends BaseRepositoryInterface
 {
-    public function forPeriod(string $period): Collection;
+    public function forPeriod(mixed $period): Collection;
 
-    public function lockScope(array $scope): DocumentCounter;
+    public function lockScope(mixed $scope): DocumentCounter;
 
-    public function updateOrCreateScope(array $attributes, array $values): DocumentCounter;
+    public function updateOrCreateScope(mixed $attributes, mixed $values): DocumentCounter;
 }

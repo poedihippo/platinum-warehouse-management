@@ -6,5 +6,5 @@ use App\Interfaces\Services\BaseServiceInterface;
 
 interface StockTransferServiceInterface extends BaseServiceInterface
 {
-    public function transfer(array $input, bool $isQr): void;
+    public function transfer(mixed $input, mixed $isQr): void;
 }

@@ -7,5 +7,5 @@ use App\Models\VoucherCategory;
 
 interface VoucherCategoryServiceInterface extends BaseServiceInterface
 {
-    public function findWithTrashedOrFail(int|string $id): VoucherCategory;
+    public function findWithTrashedOrFail(mixed $id): VoucherCategory;
 }

@@ -28,7 +28,7 @@ class RedemptionService extends BaseService implements RedemptionServiceInterfac
      * The pending check guards against double taps; the balance check under the
      * prize row lock is what prevents overspending.
      */
-    public function redeem(LoyaltyUser $user, array $input, bool $saveAddress): Redemption
+    public function redeem(LoyaltyUser $user, mixed $input, mixed $saveAddress): Redemption
     {
         $prizeId = $input['prize_id'] ?? null;
 
@@ -90,12 +90,12 @@ class RedemptionService extends BaseService implements RedemptionServiceInterfac
         return $result['redemption']->load('prize');
     }
 
-    public function paginateForUser(string $userId, ?string $status, int $perPage): LengthAwarePaginator
+    public function paginateForUser(mixed $userId, mixed $status, int $perPage): LengthAwarePaginator
     {
         return $this->repository->paginateForUser($userId, $status, $perPage);
     }
 
-    public function findOwned(string $userId, string $id, bool $withPrize = true): Redemption
+    public function findOwned(mixed $userId, mixed $id, mixed $withPrize = true): Redemption
     {
         $model = $withPrize ? $this->repository->findWithPrize($id) : $this->repository->findById($id);
 
@@ -110,7 +110,7 @@ class RedemptionService extends BaseService implements RedemptionServiceInterfac
         return $model;
     }
 
-    public function confirmDelivered(string $userId, string $id): Redemption
+    public function confirmDelivered(mixed $userId, mixed $id): Redemption
     {
         $model = $this->findOwned($userId, $id, false);
 

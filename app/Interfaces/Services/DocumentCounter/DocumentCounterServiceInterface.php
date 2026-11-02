@@ -8,7 +8,7 @@ use Illuminate\Support\Collection;
 
 interface DocumentCounterServiceInterface extends BaseServiceInterface
 {
-    public function countersForPeriod(string $period, ?string $company = null, ?string $documentType = null): Collection;
+    public function countersForPeriod(mixed $period, mixed $company = null, mixed $documentType = null): Collection;
 
-    public function setNextSequence(array $validated): DocumentCounter;
+    public function setNextSequence(mixed $validated): DocumentCounter;
 }

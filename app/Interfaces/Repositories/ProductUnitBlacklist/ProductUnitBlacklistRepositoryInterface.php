@@ -6,7 +6,7 @@ use App\Interfaces\Repositories\BaseRepositoryInterface;
 
 interface ProductUnitBlacklistRepositoryInterface extends BaseRepositoryInterface
 {
-    public function existsForProductUnit(int|string $productUnitId): bool;
+    public function existsForProductUnit(mixed $productUnitId): bool;
 
-    public function deleteByProductUnitId(int|string $productUnitId): mixed;
+    public function deleteByProductUnitId(mixed $productUnitId): mixed;
 }

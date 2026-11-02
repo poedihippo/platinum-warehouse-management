@@ -14,7 +14,7 @@ class DocumentCounterRepository extends BaseRepository implements DocumentCounte
         parent::__construct($model);
     }
 
-    public function forPeriod(string $period): Collection
+    public function forPeriod(mixed $period): Collection
     {
         return $this->query()
             ->where('period', $period)
@@ -34,7 +34,7 @@ class DocumentCounterRepository extends BaseRepository implements DocumentCounte
      * correctness comes from the locking read below, which always reads the latest
      * committed sequence, including one committed by a request that raced us.
      */
-    public function lockScope(array $scope): DocumentCounter
+    public function lockScope(mixed $scope): DocumentCounter
     {
         if (! $this->query()->where($scope)->exists()) {
             $now = now();
@@ -52,7 +52,7 @@ class DocumentCounterRepository extends BaseRepository implements DocumentCounte
             ->firstOrFail();
     }
 
-    public function updateOrCreateScope(array $attributes, array $values): DocumentCounter
+    public function updateOrCreateScope(mixed $attributes, mixed $values): DocumentCounter
     {
         return $this->query()->updateOrCreate($attributes, $values);
     }

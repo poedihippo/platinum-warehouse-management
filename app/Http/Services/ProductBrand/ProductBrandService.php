@@ -16,7 +16,7 @@ class ProductBrandService extends BaseService implements ProductBrandServiceInte
         parent::__construct($repository);
     }
 
-    public function updateWithLogo(ProductBrand $productBrand, array $data, ?UploadedFile $logo = null): ProductBrand
+    public function updateWithLogo(ProductBrand $productBrand, mixed $data, ?UploadedFile $logo = null): ProductBrand
     {
         $data = collect($data)->except('logo')->all();
 

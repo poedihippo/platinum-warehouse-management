@@ -11,23 +11,23 @@ interface ProductUnitServiceInterface extends BaseServiceInterface
 {
     public function paginateIndex(int $perPage): LengthAwarePaginator;
 
-    public function findForShow(int|string $id): ProductUnit;
+    public function findForShow(mixed $id): ProductUnit;
 
-    public function updateProductUnit(ProductUnit $productUnit, array $data): ProductUnit;
+    public function updateProductUnit(ProductUnit $productUnit, mixed $data): ProductUnit;
 
-    public function createRelations(ProductUnit $productUnit, array $validated, mixed $relatedProductUnits): void;
+    public function createRelations(ProductUnit $productUnit, mixed $validated, mixed $relatedProductUnits): void;
 
-    public function updateRelations(ProductUnit $productUnit, int $id, array $validated, mixed $relatedProductUnits): void;
+    public function updateRelations(ProductUnit $productUnit, mixed $id, mixed $validated, mixed $relatedProductUnits): void;
 
-    public function paginateUserPrices(ProductUnit $productUnit, int $userId, int $perPage): LengthAwarePaginator;
+    public function paginateUserPrices(ProductUnit $productUnit, mixed $userId, int $perPage): LengthAwarePaginator;
 
     public function import(mixed $file): void;
 
-    public function findByStock(string $stockId): ?ProductUnit;
+    public function findByStock(mixed $stockId): ?ProductUnit;
 
-    public function paginateLoyaltyPoints(?string $search, int $perPage): LengthAwarePaginator;
+    public function paginateLoyaltyPoints(mixed $search, int $perPage): LengthAwarePaginator;
 
     public function applyPoints(ProductUnit $productUnit, mixed $pointsPerUnit): void;
 
-    public function searchForClaims(?string $term): Collection;
+    public function searchForClaims(mixed $term): Collection;
 }

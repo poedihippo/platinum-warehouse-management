@@ -7,7 +7,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface PointsTransactionRepositoryInterface extends BaseRepositoryInterface
 {
-    public function balanceFor(string $userId): int;
+    public function balanceFor(mixed $userId): int;
 
-    public function paginateForUser(string $userId, int $perPage): LengthAwarePaginator;
+    public function paginateForUser(mixed $userId, int $perPage): LengthAwarePaginator;
 }

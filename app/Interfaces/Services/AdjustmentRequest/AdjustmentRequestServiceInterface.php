@@ -7,7 +7,7 @@ use App\Models\AdjustmentRequest;
 
 interface AdjustmentRequestServiceInterface extends BaseServiceInterface
 {
-    public function updateUnlessApproved(AdjustmentRequest $adjustmentRequest, array $data): AdjustmentRequest;
+    public function updateUnlessApproved(AdjustmentRequest $adjustmentRequest, mixed $data): AdjustmentRequest;
 
     public function deleteUnlessApproved(AdjustmentRequest $adjustmentRequest): void;
 

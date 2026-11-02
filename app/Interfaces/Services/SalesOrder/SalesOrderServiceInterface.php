@@ -17,7 +17,7 @@ interface SalesOrderServiceInterface extends BaseServiceInterface
 
     public function releaseScannedStock(SalesOrder $salesOrder): void;
 
-    public function storeOrder(array $validated, bool $isPreview): SalesOrder;
+    public function storeOrder(mixed $validated, mixed $isPreview): SalesOrder;
 
     public function createOrder(SalesOrder $salesOrder, bool $isPerview = false): SalesOrder;
 
@@ -39,9 +39,9 @@ interface SalesOrderServiceInterface extends BaseServiceInterface
 
     public function deleteMergeResult(SalesOrder $salesOrder): void;
 
-    public function findScanableMarketplaceOrder(int $id): SalesOrder;
+    public function findScanableMarketplaceOrder(mixed $id): SalesOrder;
 
-    public function findInvoice(int|string $id): SalesOrder;
+    public function findInvoice(mixed $id): SalesOrder;
 
     public function paginateItems(SalesOrderDetail $salesOrderDetail, int $perPage): LengthAwarePaginator;
 
@@ -49,9 +49,9 @@ interface SalesOrderServiceInterface extends BaseServiceInterface
 
     public function destroySalesOrder(SalesOrder $salesOrder): void;
 
-    public function details(int $salesOrderId): Collection;
+    public function details(mixed $salesOrderId): Collection;
 
-    public function findDetail(int $salesOrderId, mixed $salesOrderDetailId): SalesOrderDetail;
+    public function findDetail(mixed $salesOrderId, mixed $salesOrderDetailId): SalesOrderDetail;
 
     public function scannedStockIds(SalesOrderDetail $salesOrderDetail): Collection;
 

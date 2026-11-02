@@ -12,7 +12,7 @@ class LoyaltyProfileService implements LoyaltyProfileServiceInterface
     {
     }
 
-    public function update(LoyaltyUser $user, array $data): LoyaltyUser
+    public function update(LoyaltyUser $user, mixed $data): LoyaltyUser
     {
         return $this->repository->update($user, $data);
     }

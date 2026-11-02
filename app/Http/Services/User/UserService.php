@@ -40,7 +40,7 @@ class UserService extends BaseService implements UserServiceInterface
         return auth('sanctum')->user()?->load(['roles' => fn ($q) => $q->select('id', 'name')]);
     }
 
-    public function createWithRelations(array $data, mixed $roleIds, mixed $warehouseIds): User
+    public function createWithRelations(mixed $data, mixed $roleIds, mixed $warehouseIds): User
     {
         return DB::transaction(function () use ($data, $roleIds, $warehouseIds) {
             $user = $this->repository->create($data);
@@ -51,7 +51,7 @@ class UserService extends BaseService implements UserServiceInterface
         });
     }
 
-    public function updateWithRelations(User $user, array $data, mixed $roleIds, mixed $warehouseIds): User
+    public function updateWithRelations(User $user, mixed $data, mixed $roleIds, mixed $warehouseIds): User
     {
         $this->repository->update($user, $data);
 
@@ -61,13 +61,13 @@ class UserService extends BaseService implements UserServiceInterface
         return $user;
     }
 
-    public function forceDeleteById(int|string $id): void
+    public function forceDeleteById(mixed $id): void
     {
         $user = $this->repository->findWithTrashedOrFail($id);
         $user->forceDelete();
     }
 
-    public function restoreById(int|string $id): User
+    public function restoreById(mixed $id): User
     {
         $user = $this->repository->findWithTrashedOrFail($id);
         $user->restore();

@@ -194,7 +194,7 @@ class SalesOrderService extends BaseService implements SalesOrderServiceInterfac
      * @param  bool  $isPerview  (optional) Flag indicating whether the order is a preview. Default is false.
      * @return SalesOrder The created sales order.
      */
-    public function storeOrder(array $validated, bool $isPreview): SalesOrder
+    public function storeOrder(mixed $validated, mixed $isPreview): SalesOrder
     {
         return DB::transaction(
             fn () => $this->createOrder(SalesOrder::make(['raw_source' => $validated]), $isPreview),
@@ -759,7 +759,7 @@ class SalesOrderService extends BaseService implements SalesOrderServiceInterfac
         }
     }
 
-    public function findScanableMarketplaceOrder(int $id): SalesOrder
+    public function findScanableMarketplaceOrder(mixed $id): SalesOrder
     {
         $salesOrder = SalesOrder::whereNotNull('marketplace')->findTenanted($id);
 
@@ -774,7 +774,7 @@ class SalesOrderService extends BaseService implements SalesOrderServiceInterfac
         return $salesOrder;
     }
 
-    public function findInvoice(int|string $id): SalesOrder
+    public function findInvoice(mixed $id): SalesOrder
     {
         return SalesOrder::whereInvoice()->findTenanted($id);
     }
@@ -841,7 +841,7 @@ class SalesOrderService extends BaseService implements SalesOrderServiceInterfac
         });
     }
 
-    public function details(int $salesOrderId): Collection
+    public function details(mixed $salesOrderId): Collection
     {
         $salesOrder = $this->repository->findTenanted($salesOrderId, ['id']);
 
@@ -856,7 +856,7 @@ class SalesOrderService extends BaseService implements SalesOrderServiceInterfac
             ])->get();
     }
 
-    public function findDetail(int $salesOrderId, mixed $salesOrderDetailId): SalesOrderDetail
+    public function findDetail(mixed $salesOrderId, mixed $salesOrderDetailId): SalesOrderDetail
     {
         $salesOrder = $this->repository->findTenanted($salesOrderId, ['id']);
         $salesOrderDetail = $salesOrder->details()->where('id', $salesOrderDetailId)->firstOrFail();

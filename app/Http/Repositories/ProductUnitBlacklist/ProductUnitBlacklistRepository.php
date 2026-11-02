@@ -13,12 +13,12 @@ class ProductUnitBlacklistRepository extends BaseRepository implements ProductUn
         parent::__construct($model);
     }
 
-    public function existsForProductUnit(int|string $productUnitId): bool
+    public function existsForProductUnit(mixed $productUnitId): bool
     {
         return $this->query()->where('product_unit_id', $productUnitId)->exists();
     }
 
-    public function deleteByProductUnitId(int|string $productUnitId): mixed
+    public function deleteByProductUnitId(mixed $productUnitId): mixed
     {
         return $this->query()->where('product_unit_id', $productUnitId)->delete();
     }

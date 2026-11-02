@@ -26,7 +26,7 @@ class StockRepackService implements StockRepackServiceInterface
      * Removes one stock and adds qty to another stock product unit through an
      * auto-approved adjustment request. Both history rows may be backdated.
      */
-    public function repack(string $id, mixed $qty, mixed $targetStockProductUnitId, mixed $createdAt): string
+    public function repack(mixed $id, mixed $qty, mixed $targetStockProductUnitId, mixed $createdAt): string
     {
         $stock = $this->repository->findTenanted($id, ['id', 'parent_id', 'stock_product_unit_id']);
         if ($stock->childs?->count() > 0) {

@@ -23,7 +23,7 @@ class LoyaltyAuthService implements LoyaltyAuthServiceInterface
     {
     }
 
-    public function register(array $data): LoyaltyUser
+    public function register(mixed $data): LoyaltyUser
     {
         $user = $this->repository->create($data);
 
@@ -32,7 +32,7 @@ class LoyaltyAuthService implements LoyaltyAuthServiceInterface
         return $user;
     }
 
-    public function verifyEmail(string $id, string $hash): string
+    public function verifyEmail(mixed $id, mixed $hash): string
     {
         $user = $this->repository->findById($id);
 
@@ -83,7 +83,7 @@ class LoyaltyAuthService implements LoyaltyAuthServiceInterface
         }
     }
 
-    public function resetPassword(array $credentials): bool
+    public function resetPassword(mixed $credentials): bool
     {
         $status = Password::broker(self::BROKER)->reset(
             $credentials,

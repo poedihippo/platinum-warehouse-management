@@ -21,12 +21,12 @@ class CustomerManagementService extends BaseService implements CustomerManagemen
         parent::__construct($repository);
     }
 
-    public function paginate(?string $search, ?bool $isActive, ?string $sort, int $perPage): LengthAwarePaginator
+    public function paginate(mixed $search, mixed $isActive, mixed $sort, int $perPage): LengthAwarePaginator
     {
         return $this->repository->paginateForAdmin($search, $isActive, $sort, $perPage);
     }
 
-    public function findWithBalance(string $id): ?LoyaltyUser
+    public function findWithBalance(mixed $id): ?LoyaltyUser
     {
         $model = $this->repository->findWithCounts($id);
 
@@ -42,7 +42,7 @@ class CustomerManagementService extends BaseService implements CustomerManagemen
      * references itself as its source because a manual adjustment has no
      * claim or redemption behind it.
      */
-    public function adjustPoints(LoyaltyUser $customer, int $points, string $reason, mixed $adminId): LoyaltyUser
+    public function adjustPoints(LoyaltyUser $customer, mixed $points, mixed $reason, mixed $adminId): LoyaltyUser
     {
         $currentBalance = $this->pointsRepository->balanceFor($customer->id);
 

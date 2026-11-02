@@ -6,5 +6,5 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 interface ExportServiceInterface
 {
-    public function sample(string $importType): ?BinaryFileResponse;
+    public function sample(mixed $importType): ?BinaryFileResponse;
 }

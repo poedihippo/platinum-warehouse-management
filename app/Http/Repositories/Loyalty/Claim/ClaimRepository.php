@@ -16,21 +16,21 @@ class ClaimRepository extends BaseRepository implements ClaimRepositoryInterface
         parent::__construct($model);
     }
 
-    public function existsForUserInvoice(string $userId, mixed $invoiceNumber): bool
+    public function existsForUserInvoice(mixed $userId, mixed $invoiceNumber): bool
     {
         return Claim::where('loyalty_user_id', $userId)
             ->where('invoice_number', $invoiceNumber)
             ->exists();
     }
 
-    public function pendingTotalForUser(string $userId): int
+    public function pendingTotalForUser(mixed $userId): int
     {
         return (int) Claim::where('loyalty_user_id', $userId)
             ->where('status', 'pending')
             ->sum('total_points');
     }
 
-    public function paginateForUser(string $userId, ?string $status, int $perPage): LengthAwarePaginator
+    public function paginateForUser(mixed $userId, mixed $status, int $perPage): LengthAwarePaginator
     {
         $query = Claim::where('loyalty_user_id', $userId)
             ->orderByDesc('submitted_at');
@@ -42,7 +42,7 @@ class ClaimRepository extends BaseRepository implements ClaimRepositoryInterface
         return $query->paginate($perPage);
     }
 
-    public function findForUser(string $userId, string $id): ?Claim
+    public function findForUser(mixed $userId, mixed $id): ?Claim
     {
         return Claim::with(['photos', 'lineItems'])
             ->where('loyalty_user_id', $userId)
@@ -66,7 +66,7 @@ class ClaimRepository extends BaseRepository implements ClaimRepositoryInterface
         ];
     }
 
-    public function paginateForReview(?string $status, ?string $search, ?string $sort, int $perPage): LengthAwarePaginator
+    public function paginateForReview(mixed $status, mixed $search, mixed $sort, int $perPage): LengthAwarePaginator
     {
         $query = Claim::with($this->reviewEagerLoad())
             ->withCount(['photos', 'lineItems']);
@@ -94,7 +94,7 @@ class ClaimRepository extends BaseRepository implements ClaimRepositoryInterface
         return $query->paginate($perPage);
     }
 
-    public function findForReview(string $id): ?Claim
+    public function findForReview(mixed $id): ?Claim
     {
         return Claim::with(array_merge($this->reviewEagerLoad(), [
             'photos',

@@ -27,4 +27,9 @@ class PermissionRepository extends BaseRepository implements PermissionRepositor
             ->orderBy('id', 'DESC')
             ->paginate($perPage);
     }
+
+    public function findIdAndName(mixed $id): mixed
+    {
+        return Permission::find($id, ['id', 'name']);
+    }
 }

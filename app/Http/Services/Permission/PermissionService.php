@@ -31,7 +31,7 @@ class PermissionService extends BaseService implements PermissionServiceInterfac
         }
 
         foreach ($permissionIds as $id) {
-            $permission = $this->repository->findById($id, fn ($query) => $query->select(['id', 'name']));
+            $permission = $this->repository->findIdAndName($id);
             if ($permission) {
                 $pids[] = $permission->name;
 

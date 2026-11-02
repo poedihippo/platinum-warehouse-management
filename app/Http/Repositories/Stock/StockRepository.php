@@ -18,12 +18,12 @@ class StockRepository extends BaseRepository implements StockRepositoryInterface
         parent::__construct($model);
     }
 
-    public function findForProductLookup(string $id): ?Stock
+    public function findForProductLookup(mixed $id): ?Stock
     {
         return $this->query()->select('id', 'stock_product_unit_id', 'expired_date')->find($id);
     }
 
-    public function deleteAvailable(int|string $stockProductUnitId, int $limit): mixed
+    public function deleteAvailable(mixed $stockProductUnitId, mixed $limit): mixed
     {
         return Stock::whereAvailableStock()->where('stock_product_unit_id', $stockProductUnitId)->limit($limit)->delete();
     }
@@ -71,7 +71,7 @@ class StockRepository extends BaseRepository implements StockRepositoryInterface
             ->paginate($perPage);
     }
 
-    public function findForShow(string $id, string $include): Stock
+    public function findForShow(mixed $id, mixed $include): Stock
     {
         $includeChilds = str_contains($include, 'childs');
         $includeReceiveOrder = str_contains($include, 'receiveOrder');
@@ -109,7 +109,7 @@ class StockRepository extends BaseRepository implements StockRepositoryInterface
         ]);
     }
 
-    public function updateWithChildren(Stock $stock, array $data): int
+    public function updateWithChildren(Stock $stock, mixed $data): int
     {
         return Stock::where('parent_id', $stock->id)->orWhere('id', $stock->id)->update($data);
     }
@@ -119,12 +119,12 @@ class StockRepository extends BaseRepository implements StockRepositoryInterface
         return Stock::whereIn('id', $ids)->orWhereIn('parent_id', $ids)->delete();
     }
 
-    public function updateWithChildrenIn(array $ids, array $data): int
+    public function updateWithChildrenIn(mixed $ids, mixed $data): int
     {
         return Stock::whereIn('id', $ids)->orWhereIn('parent_id', $ids)->update($data);
     }
 
-    public function updateIn(array $ids, array $data): int
+    public function updateIn(mixed $ids, mixed $data): int
     {
         return Stock::whereIn('id', $ids)->update($data);
     }
@@ -175,7 +175,7 @@ class StockRepository extends BaseRepository implements StockRepositoryInterface
             ->get();
     }
 
-    public function findForPublicVerification(string $ulid): ?Stock
+    public function findForPublicVerification(mixed $ulid): ?Stock
     {
         return Stock::with([
             'stockProductUnit:id,product_unit_id',
@@ -189,7 +189,7 @@ class StockRepository extends BaseRepository implements StockRepositoryInterface
             ->find($ulid);
     }
 
-    public function findPrintedForPreview(array $ids): Collection
+    public function findPrintedForPreview(mixed $ids): Collection
     {
         return Stock::with(['stockProductUnit' => fn ($q) => $q->select('id', 'product_unit_id')->with('productUnit', fn ($q) => $q->select('id', 'name'))])
             ->whereIn('id', $ids)->whereNotNull('printed_at')->get(['id', 'printed_at', 'stock_product_unit_id']);

@@ -64,7 +64,7 @@ class DeliveryOrderService extends BaseService implements DeliveryOrderServiceIn
             ->paginate($perPage);
     }
 
-    public function findForShow(int|string $id): DeliveryOrder
+    public function findForShow(mixed $id): DeliveryOrder
     {
         $deliveryOrder = $this->repository->findTenanted($id);
         $deliveryOrder->load([
@@ -85,7 +85,7 @@ class DeliveryOrderService extends BaseService implements DeliveryOrderServiceIn
     /**
      * Retried because the document number is reserved in the creating hook.
      */
-    public function createDeliveryOrder(array $data): DeliveryOrder
+    public function createDeliveryOrder(mixed $data): DeliveryOrder
     {
         return DB::transaction(
             fn () => $this->repository->create($data),
@@ -144,7 +144,7 @@ class DeliveryOrderService extends BaseService implements DeliveryOrderServiceIn
         }
     }
 
-    public function print(int|string $id): mixed
+    public function print(mixed $id): mixed
     {
         $deliveryOrder = DeliveryOrder::with([
             'reseller' => fn ($q) => $q->select('id', 'name', 'address'),
@@ -167,7 +167,7 @@ class DeliveryOrderService extends BaseService implements DeliveryOrderServiceIn
         return $pdf->download('delivery-order-'.$deliveryOrder->code.'.pdf');
     }
 
-    public function exportXml(int|string $id): mixed
+    public function exportXml(mixed $id): mixed
     {
         $productUnitColumns = ['id', 'uom_id', 'refer_id', 'refer_qty', 'code', 'name', 'price'];
         $uomColumns = 'uom:id,name';
@@ -199,7 +199,7 @@ class DeliveryOrderService extends BaseService implements DeliveryOrderServiceIn
      * Scans one stock into a DO detail. A group parent brings its children along and
      * replaces children of that group scanned on their own before.
      */
-    public function verify(int|string $id, DeliveryOrderDetail $deliveryOrderDetail, mixed $stockId): SalesOrderItem
+    public function verify(mixed $id, DeliveryOrderDetail $deliveryOrderDetail, mixed $stockId): SalesOrderItem
     {
         $deliveryOrder = $this->repository->findTenanted($id, ['id', 'is_done']);
         if ($deliveryOrder->is_done) {
@@ -299,7 +299,7 @@ class DeliveryOrderService extends BaseService implements DeliveryOrderServiceIn
      * Done records the stock leaving (and decrements non-QR bundle components);
      * undone records it coming back.
      */
-    public function setDone(int|string $id, mixed $isDone): DeliveryOrder
+    public function setDone(mixed $id, mixed $isDone): DeliveryOrder
     {
         $deliveryOrder = $this->repository->findTenanted($id, ['id', 'is_done', 'invoice_no']);
         if ($isDone == $deliveryOrder->is_done) {
@@ -352,7 +352,7 @@ class DeliveryOrderService extends BaseService implements DeliveryOrderServiceIn
      * Known issue kept as is: the guards hand back the exception instead of throwing
      * it, so the endpoint answers 200 with the exception text.
      */
-    public function returnStocks(int|string $id, mixed $ids, mixed $isDelete): ?BadRequestHttpException
+    public function returnStocks(mixed $id, mixed $ids, mixed $isDelete): ?BadRequestHttpException
     {
         $userId = auth()->id();
         $ip = request()->ip();
@@ -449,7 +449,7 @@ class DeliveryOrderService extends BaseService implements DeliveryOrderServiceIn
      * Bundle units also move their non-QR components (e.g. packaging), copying the
      * parent history row.
      */
-    private function moveRelatedUnits(SalesOrderDetail $salesOrderDetail, $history, bool $increment): void
+    private function moveRelatedUnits(SalesOrderDetail $salesOrderDetail, $history, mixed $increment): void
     {
         if ($salesOrderDetail->productUnit->refer_id && $salesOrderDetail->productUnit->relations->count()) {
             $multiply = floor($salesOrderDetail->qty / $salesOrderDetail->productUnit->refer_qty);

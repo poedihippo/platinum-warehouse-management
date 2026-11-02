@@ -9,5 +9,5 @@ interface SettingRepositoryInterface extends BaseRepositoryInterface
 {
     public function all(): Collection;
 
-    public function valueOf(string $key): mixed;
+    public function valueOf(mixed $key): mixed;
 }

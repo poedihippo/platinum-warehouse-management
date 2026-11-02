@@ -9,15 +9,15 @@ use Illuminate\Http\UploadedFile;
 
 interface PrizeServiceInterface extends BaseServiceInterface
 {
-    public function catalog(?string $search, ?string $categoryId, ?string $sort, ?string $affordableForUserId, int $perPage): LengthAwarePaginator;
+    public function catalog(mixed $search, mixed $categoryId, mixed $sort, mixed $affordableForUserId, int $perPage): LengthAwarePaginator;
 
-    public function findActive(string $id): ?Prize;
+    public function findActive(mixed $id): ?Prize;
 
-    public function paginateForAdmin(?bool $isActive, ?string $search, ?string $sort, int $perPage): LengthAwarePaginator;
+    public function paginateForAdmin(mixed $isActive, mixed $search, mixed $sort, int $perPage): LengthAwarePaginator;
 
-    public function createPrize(array $attributes, ?UploadedFile $photo): Prize;
+    public function createPrize(mixed $attributes, ?UploadedFile $photo): Prize;
 
-    public function updatePrize(Prize $prize, array $data, ?UploadedFile $photo): Prize;
+    public function updatePrize(Prize $prize, mixed $data, ?UploadedFile $photo): Prize;
 
     public function toggleActive(Prize $prize): Prize;
 }

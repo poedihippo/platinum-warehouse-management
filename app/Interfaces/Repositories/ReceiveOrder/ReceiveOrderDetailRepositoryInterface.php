@@ -7,5 +7,5 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface ReceiveOrderDetailRepositoryInterface extends BaseRepositoryInterface
 {
-    public function paginateForReceiveOrder(int $receiveOrderId, int $perPage): LengthAwarePaginator;
+    public function paginateForReceiveOrder(mixed $receiveOrderId, int $perPage): LengthAwarePaginator;
 }

@@ -16,37 +16,37 @@ abstract class BaseService implements BaseServiceInterface
     {
     }
 
-    public function findAllPaginate(int $perPage = 15, ?Closure $query = null, ?array $allowedFilters = [], ?array $allowedIncludes = [], ?array $allowedSorts = [], ?array $allowedFields = [], bool $isSimplePaginate = false): LengthAwarePaginator|Paginator
+    public function findAllPaginate(int $perPage = 15, ?Closure $query = null, mixed $allowedFilters = [], mixed $allowedIncludes = [], mixed $allowedSorts = [], mixed $allowedFields = [], mixed $isSimplePaginate = false): LengthAwarePaginator|Paginator
     {
         return $this->baseRepository->findAllPaginate($perPage, $query, $allowedFilters, $allowedIncludes, $allowedSorts, $allowedFields, $isSimplePaginate);
     }
 
-    public function findAll(?Closure $query = null, ?array $allowedFilters = [], ?array $allowedIncludes = [], ?array $allowedSorts = [], ?array $allowedFields = []): Collection
+    public function findAll(?Closure $query = null, mixed $allowedFilters = [], mixed $allowedIncludes = [], mixed $allowedSorts = [], mixed $allowedFields = []): Collection
     {
         return $this->baseRepository->findAll($query, $allowedFilters, $allowedIncludes, $allowedSorts, $allowedFields);
     }
 
-    public function findById(int|string $id, ?Closure $query = null, ?array $load = []): ?Model
+    public function findById(mixed $id, ?Closure $query = null, mixed $load = []): mixed
     {
         return $this->baseRepository->findById($id, $query, $load);
     }
 
-    public function findByIdOrFail(int|string $id, ?Closure $query = null, ?array $load = []): Model
+    public function findByIdOrFail(mixed $id, ?Closure $query = null, mixed $load = []): mixed
     {
         return $this->baseRepository->findByIdOrFail($id, $query, $load);
     }
 
-    public function findTenanted(int|string $id, array $columns = ['*'], bool $fail = true, ?Closure $query = null): ?Model
+    public function findTenanted(mixed $id, mixed $columns = ['*'], mixed $fail = true, ?Closure $query = null): mixed
     {
         return $this->baseRepository->findTenanted($id, $columns, $fail, $query);
     }
 
-    public function create(array $data): Model
+    public function create(mixed $data): Model
     {
         return $this->baseRepository->create($data);
     }
 
-    public function update(Model $model, array $data): Model
+    public function update(Model $model, mixed $data): Model
     {
         return $this->baseRepository->update($model, $data);
     }

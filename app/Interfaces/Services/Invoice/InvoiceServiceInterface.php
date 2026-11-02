@@ -10,9 +10,9 @@ interface InvoiceServiceInterface
 {
     public function ensureStockAvailable(mixed $items): void;
 
-    public function createInvoice(array $data, bool $isPreview): SalesOrder;
+    public function createInvoice(mixed $data, mixed $isPreview): SalesOrder;
 
-    public function findForShow(int|string $id): SalesOrder;
+    public function findForShow(mixed $id): SalesOrder;
 
     public function ensureUpdatable(SalesOrder $salesOrder): void;
 

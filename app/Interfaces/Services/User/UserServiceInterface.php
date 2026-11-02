@@ -13,13 +13,13 @@ interface UserServiceInterface extends BaseServiceInterface
 
     public function me(): ?User;
 
-    public function createWithRelations(array $data, mixed $roleIds, mixed $warehouseIds): User;
+    public function createWithRelations(mixed $data, mixed $roleIds, mixed $warehouseIds): User;
 
-    public function updateWithRelations(User $user, array $data, mixed $roleIds, mixed $warehouseIds): User;
+    public function updateWithRelations(User $user, mixed $data, mixed $roleIds, mixed $warehouseIds): User;
 
-    public function forceDeleteById(int|string $id): void;
+    public function forceDeleteById(mixed $id): void;
 
-    public function restoreById(int|string $id): User;
+    public function restoreById(mixed $id): User;
 
     public function loyaltyAdminProfile(Authenticatable $user): array;
 }

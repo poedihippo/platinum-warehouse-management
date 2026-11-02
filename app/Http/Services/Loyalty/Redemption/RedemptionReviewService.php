@@ -28,17 +28,17 @@ class RedemptionReviewService extends BaseService implements RedemptionReviewSer
         parent::__construct($repository);
     }
 
-    public function paginate(?string $status, ?string $search, ?string $sort, int $perPage): LengthAwarePaginator
+    public function paginate(mixed $status, mixed $search, mixed $sort, int $perPage): LengthAwarePaginator
     {
         return $this->repository->paginateForReview($status, $search, $sort, $perPage);
     }
 
-    public function findForReview(string $id): ?Redemption
+    public function findForReview(mixed $id): ?Redemption
     {
         return $this->repository->findForReview($id);
     }
 
-    public function approve(string $id, mixed $adminId): Redemption
+    public function approve(mixed $id, mixed $adminId): Redemption
     {
         $model = $this->findOrFail($id);
         if (! $model->canBeReviewed()) {
@@ -69,7 +69,7 @@ class RedemptionReviewService extends BaseService implements RedemptionReviewSer
      * Rejecting restores the prize stock and refunds the points as an earn
      * entry sourced from the redemption.
      */
-    public function reject(string $id, mixed $adminId, mixed $reason): Redemption
+    public function reject(mixed $id, mixed $adminId, mixed $reason): Redemption
     {
         $model = $this->findOrFail($id);
         if (! $model->canBeReviewed()) {
@@ -114,7 +114,7 @@ class RedemptionReviewService extends BaseService implements RedemptionReviewSer
         return $model->load(RedemptionRepositoryInterface::REVIEW_EAGER_LOAD);
     }
 
-    public function ship(string $id, mixed $adminId, mixed $trackingNumber, mixed $shippingCarrier): Redemption
+    public function ship(mixed $id, mixed $adminId, mixed $trackingNumber, mixed $shippingCarrier): Redemption
     {
         $model = $this->findOrFail($id);
         if (! $model->canBeShipped()) {
@@ -144,7 +144,7 @@ class RedemptionReviewService extends BaseService implements RedemptionReviewSer
         return $model->load(RedemptionRepositoryInterface::REVIEW_EAGER_LOAD);
     }
 
-    public function deliver(string $id, mixed $adminId): Redemption
+    public function deliver(mixed $id, mixed $adminId): Redemption
     {
         $model = $this->findOrFail($id);
         if (! $model->canBeDelivered()) {
@@ -164,7 +164,7 @@ class RedemptionReviewService extends BaseService implements RedemptionReviewSer
         return $model->load(RedemptionRepositoryInterface::REVIEW_EAGER_LOAD);
     }
 
-    private function findOrFail(string $id): Redemption
+    private function findOrFail(mixed $id): Redemption
     {
         $model = $this->repository->findById($id);
         abort_if(! $model, 404, 'Penukaran tidak ditemukan.');

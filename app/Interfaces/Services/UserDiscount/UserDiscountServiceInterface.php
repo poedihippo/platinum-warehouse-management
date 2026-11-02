@@ -11,9 +11,9 @@ interface UserDiscountServiceInterface extends BaseServiceInterface
 {
     public function paginateForUser(User $user, int $perPage): LengthAwarePaginator;
 
-    public function findForUser(User $user, int|string $id): UserDiscount;
+    public function findForUser(User $user, mixed $id): UserDiscount;
 
-    public function createForUser(?User $user, array $data): UserDiscount;
+    public function createForUser(?User $user, mixed $data): UserDiscount;
 
-    public function updateForUser(?User $user, int|string $id, array $data): UserDiscount;
+    public function updateForUser(?User $user, mixed $id, mixed $data): UserDiscount;
 }

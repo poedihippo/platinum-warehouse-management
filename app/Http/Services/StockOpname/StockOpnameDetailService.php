@@ -19,7 +19,7 @@ class StockOpnameDetailService implements StockOpnameDetailServiceInterface
     ) {
     }
 
-    public function paginate(int $stockOpnameId, int $perPage): LengthAwarePaginator
+    public function paginate(mixed $stockOpnameId, int $perPage): LengthAwarePaginator
     {
         $stockOpname = $this->stockOpnameRepository->findTenanted($stockOpnameId, ['id']);
 
@@ -36,7 +36,7 @@ class StockOpnameDetailService implements StockOpnameDetailServiceInterface
             ->paginate($perPage);
     }
 
-    public function find(int $stockOpnameId, mixed $stockOpnameDetailId): StockOpnameDetail
+    public function find(mixed $stockOpnameId, mixed $stockOpnameDetailId): StockOpnameDetail
     {
         $stockOpname = $this->stockOpnameRepository->findTenanted($stockOpnameId, ['id']);
 
@@ -49,7 +49,7 @@ class StockOpnameDetailService implements StockOpnameDetailServiceInterface
             ->firstOrFail();
     }
 
-    public function create(int $stockOpnameId, mixed $productUnitId): StockOpnameDetail
+    public function create(mixed $stockOpnameId, mixed $productUnitId): StockOpnameDetail
     {
         $stockOpname = $this->stockOpnameRepository->findTenanted($stockOpnameId, ['id', 'warehouse_id']);
         $stockProductUnit = $this->stockProductUnitRepository->query()->select('id')
@@ -63,7 +63,7 @@ class StockOpnameDetailService implements StockOpnameDetailServiceInterface
         ]);
     }
 
-    public function updateDetail(int $stockOpnameId, mixed $id, array $data): mixed
+    public function updateDetail(mixed $stockOpnameId, mixed $id, mixed $data): mixed
     {
         $stockOpname = $this->stockOpnameRepository->findTenanted($stockOpnameId, ['id']);
 
@@ -73,7 +73,7 @@ class StockOpnameDetailService implements StockOpnameDetailServiceInterface
     /**
      * Scanning a group parent also marks its children's items as scanned.
      */
-    public function scan(int $stockOpnameId, mixed $stockOpnameDetailId, mixed $stockId, mixed $isScanned): string
+    public function scan(mixed $stockOpnameId, mixed $stockOpnameDetailId, mixed $stockId, mixed $isScanned): string
     {
         $stockOpname = $this->stockOpnameRepository->findTenanted($stockOpnameId, ['id']);
         $stockOpnameDetail = $stockOpname->details()->where('id', $stockOpnameDetailId)->first();
@@ -104,7 +104,7 @@ class StockOpnameDetailService implements StockOpnameDetailServiceInterface
         return $message;
     }
 
-    public function setDone(int $stockOpnameId, mixed $id, mixed $isDone): StockOpnameDetail
+    public function setDone(mixed $stockOpnameId, mixed $id, mixed $isDone): StockOpnameDetail
     {
         $stockOpname = $this->stockOpnameRepository->findTenanted($stockOpnameId, ['id']);
         $stockOpnameDetail = $stockOpname->details()->where('id', $id)->first();

@@ -20,7 +20,7 @@ class LoyaltyUserRepository extends BaseRepository implements LoyaltyUserReposit
         return LoyaltyUser::where('email', $email)->first();
     }
 
-    public function paginateForAdmin(?string $search, ?bool $isActive, ?string $sort, int $perPage): LengthAwarePaginator
+    public function paginateForAdmin(mixed $search, mixed $isActive, mixed $sort, int $perPage): LengthAwarePaginator
     {
         $query = LoyaltyUser::query()->addSelect([
             'points_balance' => PointsTransaction::selectRaw(
@@ -51,7 +51,7 @@ class LoyaltyUserRepository extends BaseRepository implements LoyaltyUserReposit
         return $query->paginate($perPage);
     }
 
-    public function findWithCounts(string $id): ?LoyaltyUser
+    public function findWithCounts(mixed $id): ?LoyaltyUser
     {
         return LoyaltyUser::withCount(['claims', 'redemptions'])->find($id);
     }

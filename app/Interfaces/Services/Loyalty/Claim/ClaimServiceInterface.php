@@ -10,9 +10,9 @@ use Illuminate\Http\UploadedFile;
 
 interface ClaimServiceInterface extends BaseServiceInterface
 {
-    public function submit(LoyaltyUser $user, mixed $invoiceNumber, UploadedFile $invoicePhoto, array $productPhotos): Claim;
+    public function submit(LoyaltyUser $user, mixed $invoiceNumber, UploadedFile $invoicePhoto, mixed $productPhotos): Claim;
 
-    public function paginateForUser(string $userId, ?string $status, int $perPage): LengthAwarePaginator;
+    public function paginateForUser(mixed $userId, mixed $status, int $perPage): LengthAwarePaginator;
 
-    public function findForUser(string $userId, string $id): ?Claim;
+    public function findForUser(mixed $userId, mixed $id): ?Claim;
 }

@@ -37,12 +37,12 @@ class StockService extends BaseService implements StockServiceInterface
         return $this->repository->paginateDetails($filter, $perPage);
     }
 
-    public function findForShow(string $id, string $include): Stock
+    public function findForShow(mixed $id, mixed $include): Stock
     {
         return $this->repository->findForShow($id, $include);
     }
 
-    public function updateWithChildren(Stock $stock, array $data): void
+    public function updateWithChildren(Stock $stock, mixed $data): void
     {
         $this->repository->updateWithChildren($stock, $data);
     }
@@ -127,7 +127,7 @@ class StockService extends BaseService implements StockServiceInterface
         Excel::import(new StockImport($warehouseId ?? 1), $file);
     }
 
-    public function setTempel(array $ids, mixed $isTempel): void
+    public function setTempel(mixed $ids, mixed $isTempel): void
     {
         DB::beginTransaction();
         try {
@@ -144,7 +144,7 @@ class StockService extends BaseService implements StockServiceInterface
         return Excel::download(new StockExport, 'stock-'.date('Y-m-d H:i').'.xlsx');
     }
 
-    public function setToPrinted(array $ids): void
+    public function setToPrinted(mixed $ids): void
     {
         $this->repository->updateIn($ids, [
             'printed_at' => now(),
@@ -152,7 +152,7 @@ class StockService extends BaseService implements StockServiceInterface
         ]);
     }
 
-    public function setToPrintingQueue(array $ids, mixed $printerId, mixed $expiredDate): void
+    public function setToPrintingQueue(mixed $ids, mixed $printerId, mixed $expiredDate): void
     {
         $data = [
             'printer_id' => $printerId,
@@ -167,19 +167,19 @@ class StockService extends BaseService implements StockServiceInterface
         $this->repository->updateIn($ids, $data);
     }
 
-    public function findPrintedForPreview(array $ids): Collection
+    public function findPrintedForPreview(mixed $ids): Collection
     {
         return $this->repository->findPrintedForPreview($ids);
     }
 
-    public function setIsStock(array $ids, mixed $isAdd): void
+    public function setIsStock(mixed $ids, mixed $isAdd): void
     {
         $this->repository->updateIn($ids, [
             'is_stock' => $isAdd,
         ]);
     }
 
-    public function idsAsText(array $ids): string
+    public function idsAsText(mixed $ids): string
     {
         $content = implode("\n", $ids);
         if (strlen($content) > 0 && substr($content, -1) !== "\n") {
@@ -189,7 +189,7 @@ class StockService extends BaseService implements StockServiceInterface
         return $content;
     }
 
-    public function findForPublicVerification(string $ulid): ?Stock
+    public function findForPublicVerification(mixed $ulid): ?Stock
     {
         return $this->repository->findForPublicVerification($ulid);
     }

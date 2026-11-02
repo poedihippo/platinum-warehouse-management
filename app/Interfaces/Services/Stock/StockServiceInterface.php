@@ -14,9 +14,9 @@ interface StockServiceInterface extends BaseServiceInterface
 
     public function paginateDetails(mixed $filter, int $perPage): LengthAwarePaginator;
 
-    public function findForShow(string $id, string $include): Stock;
+    public function findForShow(mixed $id, mixed $include): Stock;
 
-    public function updateWithChildren(Stock $stock, array $data): void;
+    public function updateWithChildren(Stock $stock, mixed $data): void;
 
     public function deleteSingle(Stock $stock): void;
 
@@ -28,19 +28,19 @@ interface StockServiceInterface extends BaseServiceInterface
 
     public function import(mixed $file, mixed $warehouseId): void;
 
-    public function setTempel(array $ids, mixed $isTempel): void;
+    public function setTempel(mixed $ids, mixed $isTempel): void;
 
     public function export(): BinaryFileResponse;
 
-    public function setToPrinted(array $ids): void;
+    public function setToPrinted(mixed $ids): void;
 
-    public function setToPrintingQueue(array $ids, mixed $printerId, mixed $expiredDate): void;
+    public function setToPrintingQueue(mixed $ids, mixed $printerId, mixed $expiredDate): void;
 
-    public function findPrintedForPreview(array $ids): Collection;
+    public function findPrintedForPreview(mixed $ids): Collection;
 
-    public function setIsStock(array $ids, mixed $isAdd): void;
+    public function setIsStock(mixed $ids, mixed $isAdd): void;
 
-    public function idsAsText(array $ids): string;
+    public function idsAsText(mixed $ids): string;
 
-    public function findForPublicVerification(string $ulid): ?Stock;
+    public function findForPublicVerification(mixed $ulid): ?Stock;
 }

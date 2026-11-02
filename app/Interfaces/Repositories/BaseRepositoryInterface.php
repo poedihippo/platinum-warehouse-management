@@ -15,19 +15,19 @@ interface BaseRepositoryInterface
 
     public function tenanted(): Builder;
 
-    public function findAllPaginate(int $perPage = 15, ?Closure $query = null, ?array $allowedFilters = [], ?array $allowedIncludes = [], ?array $allowedSorts = [], ?array $allowedFields = [], bool $isSimplePaginate = false): LengthAwarePaginator|Paginator;
+    public function findAllPaginate(int $perPage = 15, ?Closure $query = null, mixed $allowedFilters = [], mixed $allowedIncludes = [], mixed $allowedSorts = [], mixed $allowedFields = [], mixed $isSimplePaginate = false): LengthAwarePaginator|Paginator;
 
-    public function findAll(?Closure $query = null, ?array $allowedFilters = [], ?array $allowedIncludes = [], ?array $allowedSorts = [], ?array $allowedFields = []): Collection;
+    public function findAll(?Closure $query = null, mixed $allowedFilters = [], mixed $allowedIncludes = [], mixed $allowedSorts = [], mixed $allowedFields = []): Collection;
 
-    public function findById(int|string $id, ?Closure $query = null, ?array $load = []): ?Model;
+    public function findById(mixed $id, ?Closure $query = null, mixed $load = []): mixed;
 
-    public function findByIdOrFail(int|string $id, ?Closure $query = null, ?array $load = []): Model;
+    public function findByIdOrFail(mixed $id, ?Closure $query = null, mixed $load = []): mixed;
 
-    public function findTenanted(int|string $id, array $columns = ['*'], bool $fail = true, ?Closure $query = null): ?Model;
+    public function findTenanted(mixed $id, mixed $columns = ['*'], mixed $fail = true, ?Closure $query = null): mixed;
 
-    public function create(array $data): Model;
+    public function create(mixed $data): Model;
 
-    public function update(Model $model, array $data): Model;
+    public function update(Model $model, mixed $data): Model;
 
     public function delete(Model $model): ?bool;
 

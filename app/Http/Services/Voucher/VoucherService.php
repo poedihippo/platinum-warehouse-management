@@ -24,7 +24,7 @@ class VoucherService extends BaseService implements VoucherServiceInterface
         return $this->repository->paginateIndex($perPage);
     }
 
-    public function createVoucher(array $data): Voucher
+    public function createVoucher(mixed $data): Voucher
     {
         if (empty($data['code'])) {
             $data['code'] = $this->generateUniqueCode();
@@ -37,7 +37,7 @@ class VoucherService extends BaseService implements VoucherServiceInterface
      * Sales orders store the applied codes in raw_source, so a code change is
      * written back to every sales order using the voucher.
      */
-    public function updateVoucher(Voucher $voucher, array $data): Voucher
+    public function updateVoucher(Voucher $voucher, mixed $data): Voucher
     {
         $oldCode = $voucher->code;
         $voucher->update($data);
@@ -60,7 +60,7 @@ class VoucherService extends BaseService implements VoucherServiceInterface
         $voucher->delete();
     }
 
-    public function forceDeleteUnlessUsed(int|string $id): void
+    public function forceDeleteUnlessUsed(mixed $id): void
     {
         $voucher = $this->repository->findWithTrashedOrFail($id);
         $this->ensureNotUsed($voucher);
@@ -68,7 +68,7 @@ class VoucherService extends BaseService implements VoucherServiceInterface
         $voucher->forceDelete();
     }
 
-    public function restoreById(int|string $id): Voucher
+    public function restoreById(mixed $id): Voucher
     {
         $voucher = $this->repository->findWithTrashedOrFail($id);
         $voucher->restore();

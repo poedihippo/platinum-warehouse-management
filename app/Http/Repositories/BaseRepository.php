@@ -27,7 +27,7 @@ abstract class BaseRepository implements BaseRepositoryInterface
         return $this->model->newQuery()->tenanted();
     }
 
-    public function findAllPaginate(int $perPage = 15, ?Closure $query = null, ?array $allowedFilters = [], ?array $allowedIncludes = [], ?array $allowedSorts = [], ?array $allowedFields = [], bool $isSimplePaginate = false): LengthAwarePaginator|Paginator
+    public function findAllPaginate(int $perPage = 15, ?Closure $query = null, mixed $allowedFilters = [], mixed $allowedIncludes = [], mixed $allowedSorts = [], mixed $allowedFields = [], mixed $isSimplePaginate = false): LengthAwarePaginator|Paginator
     {
         $builder = $this->queryBuilder($query, $allowedFilters, $allowedIncludes, $allowedSorts, $allowedFields);
 
@@ -38,12 +38,12 @@ abstract class BaseRepository implements BaseRepositoryInterface
         return $builder->paginate($perPage);
     }
 
-    public function findAll(?Closure $query = null, ?array $allowedFilters = [], ?array $allowedIncludes = [], ?array $allowedSorts = [], ?array $allowedFields = []): Collection
+    public function findAll(?Closure $query = null, mixed $allowedFilters = [], mixed $allowedIncludes = [], mixed $allowedSorts = [], mixed $allowedFields = []): Collection
     {
         return $this->queryBuilder($query, $allowedFilters, $allowedIncludes, $allowedSorts, $allowedFields)->get();
     }
 
-    public function findById(int|string $id, ?Closure $query = null, ?array $load = []): ?Model
+    public function findById(mixed $id, ?Closure $query = null, mixed $load = []): mixed
     {
         $data = $this->applyQuery($this->query(), $query)->find($id);
 
@@ -54,7 +54,7 @@ abstract class BaseRepository implements BaseRepositoryInterface
         return $data;
     }
 
-    public function findByIdOrFail(int|string $id, ?Closure $query = null, ?array $load = []): Model
+    public function findByIdOrFail(mixed $id, ?Closure $query = null, mixed $load = []): mixed
     {
         $data = $this->applyQuery($this->query(), $query)->findOrFail($id);
 
@@ -65,17 +65,17 @@ abstract class BaseRepository implements BaseRepositoryInterface
         return $data;
     }
 
-    public function findTenanted(int|string $id, array $columns = ['*'], bool $fail = true, ?Closure $query = null): ?Model
+    public function findTenanted(mixed $id, mixed $columns = ['*'], mixed $fail = true, ?Closure $query = null): mixed
     {
         return $this->applyQuery($this->query(), $query)->findTenanted($id, $columns, $fail);
     }
 
-    public function create(array $data): Model
+    public function create(mixed $data): Model
     {
         return $this->model::create($data);
     }
 
-    public function update(Model $model, array $data): Model
+    public function update(Model $model, mixed $data): Model
     {
         $model->update($data);
 
@@ -106,7 +106,7 @@ abstract class BaseRepository implements BaseRepositoryInterface
         return $builder;
     }
 
-    protected function queryBuilder(?Closure $query = null, ?array $allowedFilters = [], ?array $allowedIncludes = [], ?array $allowedSorts = [], ?array $allowedFields = []): QueryBuilder
+    protected function queryBuilder(?Closure $query = null, mixed $allowedFilters = [], mixed $allowedIncludes = [], mixed $allowedSorts = [], mixed $allowedFields = []): QueryBuilder
     {
         $builder = QueryBuilder::for($this->applyQuery($this->query(), $query));
 

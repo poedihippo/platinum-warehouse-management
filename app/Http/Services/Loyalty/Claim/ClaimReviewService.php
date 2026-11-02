@@ -28,12 +28,12 @@ class ClaimReviewService extends BaseService implements ClaimReviewServiceInterf
         parent::__construct($repository);
     }
 
-    public function paginate(?string $status, ?string $search, ?string $sort, int $perPage): LengthAwarePaginator
+    public function paginate(mixed $status, mixed $search, mixed $sort, int $perPage): LengthAwarePaginator
     {
         return $this->repository->paginateForReview($status, $search, $sort, $perPage);
     }
 
-    public function findForReview(string $id): ?Claim
+    public function findForReview(mixed $id): ?Claim
     {
         $model = $this->repository->findForReview($id);
 
@@ -44,7 +44,7 @@ class ClaimReviewService extends BaseService implements ClaimReviewServiceInterf
         return $model;
     }
 
-    public function addLineItem(string $claimId, mixed $productUnitId, mixed $quantity): ClaimLineItem
+    public function addLineItem(mixed $claimId, mixed $productUnitId, mixed $quantity): ClaimLineItem
     {
         $model = $this->findOrFail($claimId);
         $this->ensurePending($model);
@@ -61,7 +61,7 @@ class ClaimReviewService extends BaseService implements ClaimReviewServiceInterf
         ]);
     }
 
-    public function updateLineItem(string $claimId, string $lineItemId, mixed $quantity): ClaimLineItem
+    public function updateLineItem(mixed $claimId, mixed $lineItemId, mixed $quantity): ClaimLineItem
     {
         $model = $this->findOrFail($claimId);
         $this->ensurePending($model);
@@ -79,7 +79,7 @@ class ClaimReviewService extends BaseService implements ClaimReviewServiceInterf
         return $item;
     }
 
-    public function removeLineItem(string $claimId, string $lineItemId): void
+    public function removeLineItem(mixed $claimId, mixed $lineItemId): void
     {
         $model = $this->findOrFail($claimId);
         $this->ensurePending($model);
@@ -91,7 +91,7 @@ class ClaimReviewService extends BaseService implements ClaimReviewServiceInterf
      * Points are recomputed from the live points_per_unit under a row lock, so a
      * concurrent second approval sees the claim as already reviewed.
      */
-    public function approve(string $claimId, mixed $adminId): Claim
+    public function approve(mixed $claimId, mixed $adminId): Claim
     {
         $model = $this->findOrFail($claimId);
         $this->ensurePending($model, 409);
@@ -154,7 +154,7 @@ class ClaimReviewService extends BaseService implements ClaimReviewServiceInterf
         return $claimModel->load(array_merge($this->repository->reviewEagerLoad(), ['photos', 'lineItems.productUnit']));
     }
 
-    public function reject(string $claimId, mixed $adminId, mixed $reason): Claim
+    public function reject(mixed $claimId, mixed $adminId, mixed $reason): Claim
     {
         $model = $this->findOrFail($claimId);
         $this->ensurePending($model, 409);
@@ -181,7 +181,7 @@ class ClaimReviewService extends BaseService implements ClaimReviewServiceInterf
         return $model->load(array_merge($this->repository->reviewEagerLoad(), ['photos', 'lineItems.productUnit']));
     }
 
-    private function findOrFail(string $claimId): Claim
+    private function findOrFail(mixed $claimId): Claim
     {
         $model = $this->repository->findById($claimId);
         abort_if(! $model, 404, 'Klaim tidak ditemukan.');
@@ -189,7 +189,7 @@ class ClaimReviewService extends BaseService implements ClaimReviewServiceInterf
         return $model;
     }
 
-    private function findLineItem(Claim $claim, string $lineItemId): ClaimLineItem
+    private function findLineItem(Claim $claim, mixed $lineItemId): ClaimLineItem
     {
         $item = $claim->lineItems()->where('id', $lineItemId)->first();
 
@@ -200,7 +200,7 @@ class ClaimReviewService extends BaseService implements ClaimReviewServiceInterf
         return $item;
     }
 
-    private function ensurePending(Claim $claim, int $code = 422): void
+    private function ensurePending(Claim $claim, mixed $code = 422): void
     {
         if ($claim->status === 'pending') {
             return;

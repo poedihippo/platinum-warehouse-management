@@ -21,7 +21,7 @@ class AdjustmentRequestService extends BaseService implements AdjustmentRequestS
         parent::__construct($repository);
     }
 
-    public function updateUnlessApproved(AdjustmentRequest $adjustmentRequest, array $data): AdjustmentRequest
+    public function updateUnlessApproved(AdjustmentRequest $adjustmentRequest, mixed $data): AdjustmentRequest
     {
         if ($adjustmentRequest->is_approved) {
             throw new ApiResponseException('Tidak dapat update data jika sudah di approved', 400);

@@ -8,11 +8,11 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface CustomerManagementServiceInterface extends BaseServiceInterface
 {
-    public function paginate(?string $search, ?bool $isActive, ?string $sort, int $perPage): LengthAwarePaginator;
+    public function paginate(mixed $search, mixed $isActive, mixed $sort, int $perPage): LengthAwarePaginator;
 
-    public function findWithBalance(string $id): ?LoyaltyUser;
+    public function findWithBalance(mixed $id): ?LoyaltyUser;
 
-    public function adjustPoints(LoyaltyUser $customer, int $points, string $reason, mixed $adminId): LoyaltyUser;
+    public function adjustPoints(LoyaltyUser $customer, mixed $points, mixed $reason, mixed $adminId): LoyaltyUser;
 
     public function toggleActive(LoyaltyUser $customer): LoyaltyUser;
 }

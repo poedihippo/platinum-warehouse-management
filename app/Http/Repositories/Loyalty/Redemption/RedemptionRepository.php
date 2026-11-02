@@ -14,7 +14,7 @@ class RedemptionRepository extends BaseRepository implements RedemptionRepositor
         parent::__construct($model);
     }
 
-    public function hasPending(string $userId, mixed $prizeId): bool
+    public function hasPending(mixed $userId, mixed $prizeId): bool
     {
         return Redemption::where('loyalty_user_id', $userId)
             ->where('prize_id', $prizeId)
@@ -22,7 +22,7 @@ class RedemptionRepository extends BaseRepository implements RedemptionRepositor
             ->exists();
     }
 
-    public function paginateForUser(string $userId, ?string $status, int $perPage): LengthAwarePaginator
+    public function paginateForUser(mixed $userId, mixed $status, int $perPage): LengthAwarePaginator
     {
         $query = Redemption::with('prize')
             ->where('loyalty_user_id', $userId)
@@ -35,12 +35,12 @@ class RedemptionRepository extends BaseRepository implements RedemptionRepositor
         return $query->paginate($perPage);
     }
 
-    public function findWithPrize(string $id): ?Redemption
+    public function findWithPrize(mixed $id): ?Redemption
     {
         return Redemption::with('prize')->find($id);
     }
 
-    public function paginateForReview(?string $status, ?string $search, ?string $sort, int $perPage): LengthAwarePaginator
+    public function paginateForReview(mixed $status, mixed $search, mixed $sort, int $perPage): LengthAwarePaginator
     {
         $query = Redemption::with(self::REVIEW_EAGER_LOAD);
 
@@ -67,7 +67,7 @@ class RedemptionRepository extends BaseRepository implements RedemptionRepositor
         return $query->paginate($perPage);
     }
 
-    public function findForReview(string $id): ?Redemption
+    public function findForReview(mixed $id): ?Redemption
     {
         return Redemption::with(self::REVIEW_EAGER_LOAD)->find($id);
     }

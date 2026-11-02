@@ -39,7 +39,7 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
         return $this->query()->where('email', $email)->first();
     }
 
-    public function findWithTrashedOrFail(int|string $id): User
+    public function findWithTrashedOrFail(mixed $id): User
     {
         return $this->query()->withTrashed()->findOrFail($id);
     }

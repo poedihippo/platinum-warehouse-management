@@ -28,7 +28,7 @@ class PaymentService extends BaseService implements PaymentServiceInterface
     /**
      * A full payment takes its amount from the sales order price.
      */
-    public function store(array $data, mixed $isFullPayment, mixed $salesOrderId, ?array $files): Payment
+    public function store(mixed $data, mixed $isFullPayment, mixed $salesOrderId, mixed $files): Payment
     {
         DB::beginTransaction();
         try {
@@ -50,7 +50,7 @@ class PaymentService extends BaseService implements PaymentServiceInterface
         return $payment;
     }
 
-    public function updatePayment(Payment $payment, array $data, mixed $isFullPayment, mixed $salesOrderId, ?array $files): Payment
+    public function updatePayment(Payment $payment, mixed $data, mixed $isFullPayment, mixed $salesOrderId, mixed $files): Payment
     {
         DB::beginTransaction();
         try {
@@ -72,12 +72,12 @@ class PaymentService extends BaseService implements PaymentServiceInterface
         return $payment;
     }
 
-    public function findTenantedWithTrashed(int|string $id): Payment
+    public function findTenantedWithTrashed(mixed $id): Payment
     {
         return Payment::withTrashed()->findTenanted($id);
     }
 
-    private function attachFiles(Payment $payment, ?array $files): void
+    private function attachFiles(Payment $payment, mixed $files): void
     {
         if ($files) {
             foreach ($files as $file) {

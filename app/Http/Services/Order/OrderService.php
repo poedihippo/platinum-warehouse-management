@@ -65,7 +65,7 @@ class OrderService implements OrderServiceInterface
         );
     }
 
-    public function store(array $rawSource, mixed $isPreview): SalesOrder
+    public function store(mixed $rawSource, mixed $isPreview): SalesOrder
     {
         $rawSource['invoice_no'] = '';
 
@@ -84,7 +84,7 @@ class OrderService implements OrderServiceInterface
     /**
      * Known quirk kept as is: $isPreview is true when the request is NOT a preview.
      */
-    public function convert(SalesOrder $order, array $rawSource, mixed $isPreview): SalesOrder
+    public function convert(SalesOrder $order, mixed $rawSource, mixed $isPreview): SalesOrder
     {
         $user = auth('sanctum')->user();
         if ($user->type->is(UserType::Spg)) {

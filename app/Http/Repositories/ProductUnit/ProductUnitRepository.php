@@ -46,7 +46,7 @@ class ProductUnitRepository extends BaseRepository implements ProductUnitReposit
             ->paginate($perPage);
     }
 
-    public function findForShow(int|string $id): ProductUnit
+    public function findForShow(mixed $id): ProductUnit
     {
         return ProductUnit::with([
             'uom' => fn ($q) => $q->select('id', 'name'),
@@ -59,17 +59,17 @@ class ProductUnitRepository extends BaseRepository implements ProductUnitReposit
         ])->has('product')->findOrFail($id);
     }
 
-    public function countGenerateQr(array $ids): int
+    public function countGenerateQr(mixed $ids): int
     {
         return $this->query()->whereIn('id', $ids)->where('is_generate_qr', 1)->count();
     }
 
-    public function findGroupingOrFail(int|string $id, int|string $referId): ProductUnit
+    public function findGroupingOrFail(mixed $id, mixed $referId): ProductUnit
     {
         return $this->query()->where('id', $id)->where('refer_id', $referId)->firstOrFail();
     }
 
-    public function paginateUserPrices(ProductUnit $productUnit, int $userId, int $perPage): LengthAwarePaginator
+    public function paginateUserPrices(ProductUnit $productUnit, mixed $userId, int $perPage): LengthAwarePaginator
     {
         return QueryBuilder::for(SalesOrderDetail::select('id', 'product_unit_id', 'warehouse_id', 'unit_price', 'created_at'))
             ->with([
@@ -82,7 +82,7 @@ class ProductUnitRepository extends BaseRepository implements ProductUnitReposit
             ->paginate($perPage);
     }
 
-    public function findForStockProductUnit(int|string|null $stockProductUnitId): ?ProductUnit
+    public function findForStockProductUnit(mixed $stockProductUnitId): ?ProductUnit
     {
         return ProductUnit::select('id', 'product_id', 'uom_id', 'name', 'price', 'code')
             ->with([
@@ -93,7 +93,7 @@ class ProductUnitRepository extends BaseRepository implements ProductUnitReposit
             ->first();
     }
 
-    public function paginateLoyaltyPoints(?string $search, int $perPage): LengthAwarePaginator
+    public function paginateLoyaltyPoints(mixed $search, int $perPage): LengthAwarePaginator
     {
         $query = ProductUnit::with(['product:id,name', 'uom:id,name'])
             ->where(function ($q) {
@@ -110,7 +110,7 @@ class ProductUnitRepository extends BaseRepository implements ProductUnitReposit
         return $query->paginate($perPage);
     }
 
-    public function searchForClaims(?string $term): Collection
+    public function searchForClaims(mixed $term): Collection
     {
         $query = ProductUnit::with('product:id,name')
             ->where('points_per_unit', '>', 0);
@@ -134,7 +134,7 @@ class ProductUnitRepository extends BaseRepository implements ProductUnitReposit
      *
      * Not ProductUnit::scopeSearch, which the points screen also uses.
      */
-    private function applyTokenSearch(Builder $query, string $term): void
+    private function applyTokenSearch(Builder $query, mixed $term): void
     {
         $tokens = preg_split('/\s+/', $term, -1, PREG_SPLIT_NO_EMPTY) ?: [];
 

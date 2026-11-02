@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ExportService implements ExportServiceInterface
 {
-    public function sample(string $importType): ?BinaryFileResponse
+    public function sample(mixed $importType): ?BinaryFileResponse
     {
         $importType = ImportType::coerce($importType);
         if (! $importType) {

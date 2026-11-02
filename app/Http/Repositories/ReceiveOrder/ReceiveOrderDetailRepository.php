@@ -17,7 +17,7 @@ class ReceiveOrderDetailRepository extends BaseRepository implements ReceiveOrde
         parent::__construct($model);
     }
 
-    public function paginateForReceiveOrder(int $receiveOrderId, int $perPage): LengthAwarePaginator
+    public function paginateForReceiveOrder(mixed $receiveOrderId, int $perPage): LengthAwarePaginator
     {
         return QueryBuilder::for(ReceiveOrderDetail::where('receive_order_id', $receiveOrderId))
             ->allowedFilters([

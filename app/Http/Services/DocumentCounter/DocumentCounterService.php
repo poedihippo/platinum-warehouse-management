@@ -36,7 +36,7 @@ class DocumentCounterService extends BaseService implements DocumentCounterServi
      * immediately sees 1 as the number of the next document. The response stays free of
      * write side effects: a counter is only persisted once somebody saves it.
      */
-    public function countersForPeriod(string $period, ?string $company = null, ?string $documentType = null): Collection
+    public function countersForPeriod(mixed $period, mixed $company = null, mixed $documentType = null): Collection
     {
         $stored = $this->repository->forPeriod($period)
             ->keyBy(fn (DocumentCounter $counter) => $this->scopeKey($counter->company->value, $counter->document_type->value));
@@ -59,7 +59,7 @@ class DocumentCounterService extends BaseService implements DocumentCounterServi
      * numbering of a period before any document has been issued in it. The response
      * therefore carries 201 for a newly created counter and 200 for an updated one.
      */
-    public function setNextSequence(array $validated): DocumentCounter
+    public function setNextSequence(mixed $validated): DocumentCounter
     {
         return $this->repository->updateOrCreateScope(
             [
@@ -76,7 +76,7 @@ class DocumentCounterService extends BaseService implements DocumentCounterServi
     /**
      * Build the unique lookup key of a counter scope.
      */
-    private function scopeKey(string $company, string $documentType): string
+    private function scopeKey(mixed $company, mixed $documentType): string
     {
         return $company.'|'.$documentType;
     }

@@ -14,7 +14,7 @@ class VoucherCategoryService extends BaseService implements VoucherCategoryServi
         parent::__construct($repository);
     }
 
-    public function findWithTrashedOrFail(int|string $id): VoucherCategory
+    public function findWithTrashedOrFail(mixed $id): VoucherCategory
     {
         return $this->repository->findWithTrashedOrFail($id);
     }
