@@ -59,16 +59,17 @@ class Thing extends Model
 
 ## Rules
 
+- Models carry relations, casts, scopes and hooks only — endpoint queries live in the module repository (`app/Http/Repositories/`). Hooks that need a service resolve it with `app(XInterface::class)`.
 - Hooks go in `booted()` (not `boot()`); there are no observers. If a hook fires an event, register it in `EventServiceProvider::$listen` (event discovery is off). Heavy listeners `implements ShouldQueue` and must not depend on `auth()`/`request()` — pass what they need through the event.
 - **Tenancy**:
   - Model has a `warehouse_id` → `use Tenanted` (gives `scopeTenanted` + `scopeFindTenanted`; Spatie role `admin` bypasses).
   - Child model without `warehouse_id` → copy the pattern used by `Stock` / `ReceiveOrderDetail`: define `scopeTenanted` via `whereHas('<parent>', fn ($q) => $q->tenanted())` and a matching `scopeFindTenanted`.
   - Note `SalesOrder` overrides `scopeTenanted` (SPG-only filter, no warehouse scoping) — don't copy that by accident.
-- **Enums**: bensampo enums from `app/Enums/` (`CompanyEnum`, `DocumentType`, `UserType`, `SalesOrderType`, `Marketplace`, `PaymentType`, `DiscountType`, …). Compare with `$model->type->is(UserType::Spg)`; never hardcode the string.
+- **Enums**: native backed enums from `app/Enums/` using the `BaseEnum` trait (`CompanyEnum`, `DocumentType`, `UserType`, `SalesOrderType`, `Marketplace`, `PaymentType`, `DiscountType`, …). Compare with `$model->type->is(UserType::Spg)` or `===`; use `UserType::Spg->value` where a string is needed; never hardcode the string. New enum: `enum Thing: string { use BaseEnum; case Foo = 'foo'; }`; validate with `new App\Rules\EnumValue(Thing::class)`.
 - **Soft deletes**: use `SoftDeletes` for new business entities; `CustomSoftDeletes` (records `deleted_by`) is available. Existing `SalesOrder`, `DeliveryOrder`, `ReceiveOrder` do not soft-delete.
 - **ULID** (`HasUlids`) only for `stocks` and loyalty tables. Lowercase ULIDs are the DB convention.
-- **Sequential numbers**: never compute "max + 1". Use `NumberingService::next(CompanyEnum, DocumentType)` in a `creating` hook guarded by `NumberingService::enabled()` (see `SalesOrder::booted()` / `DeliveryOrder::booted()`), or a `lockForUpdate` counter row.
-- **Stock**: models that change stock expose `histories()` (`morphMany(StockHistory::class, 'model')`) and write a history row for every change; branch on `productUnit->is_generate_qr` (QR rows vs `StockProductUnit.qty`).
+- **Sequential numbers**: never compute "max + 1". Use `app(NumberingServiceInterface::class)->next(CompanyEnum, DocumentType)` in a `creating` hook guarded by `->enabled()` (see `SalesOrder::booted()` / `DeliveryOrder::booted()`), or a `lockForUpdate` counter row.
+- **Stock**: models that change stock expose `histories()` (`morphMany(StockHistory::class, 'model')`) and write a history row for every change through `StockHistoryRepositoryInterface::record($model, [...])`; branch on `productUnit->is_generate_qr` (QR rows vs `StockProductUnit.qty`).
 - **Factories**: most models don't `use HasFactory`; a factory in `database/factories/` is still welcome — tests call `ThingFactory::new()`.
 - Never hardcode warehouse IDs.
 

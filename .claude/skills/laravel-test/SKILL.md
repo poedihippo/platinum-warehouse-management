@@ -19,12 +19,14 @@ Environment (`phpunit.xml`): MySQL database `platinum_event_test` is **forced** 
 
 ## Layout
 
-- `tests/Feature/Api/` — warehouse endpoints (`DocumentCounterTest`, `InvoiceScanTest`, `ManualInvoiceNumberTest`, `ProductBrandUpdateTest`, `Public/StockVerificationTest`)
+- `tests/Feature/Api/` — warehouse endpoints, one characterization test per module (`MasterDataTest`, `StockTest`, `ReceiveOrderTest`, `StockOpnameTest`, `DeliveryOrderTest`, `SalesTest`, `AccessTest`, …) plus `DocumentCounterTest`, `InvoiceScanTest`, `ManualInvoiceNumberTest`, `Public/StockVerificationTest`
 - `tests/Feature/Loyalty/` (+ `Admin/`) — loyalty customer and admin flows
 - `tests/Feature/Security/`, `DangerousRoutesRemovedTest`, `NumberingTest`
-- `tests/Unit/` — pure logic (e.g. `Pipes/CalculateAutoDiscountTest` builds orders with `SalesOrder::make()`, no DB)
+- `tests/Unit/` — pure logic (e.g. `Pipes/CalculateAutoDiscountTest` builds orders with `SalesOrder::make()`, no DB), `BaseEnumTest`, and `ContainerBindingsTest` (resolves every `AppServiceProvider::$singletons` binding)
 
-No shared helper traits — each test class defines private helpers like `actingAsAdmin()`.
+Shared fixtures: `use Tests\Support\InteractsWithWarehouse;` gives `makeUser`, `actingAsAdmin()` (Spatie role `admin` + `['warehouse']` token), `actingAsStaff($permissions, $warehouses, $attrs)`, `makeWarehouse`, `makeProduct`, `makeProductUnit($qr)`, `spu($unit, $warehouse)`, `makeStocks`, `makeGroupedStock`, `makeSalesOrder`, `makeDeliveryOrder`, `histories($model)`, `assertHistory($model, [...])`. Keep fixtures small — tests run on the isolated `platinum_event_test` DB, never on real data.
+
+Behaviour that is a known bug is pinned in a `test_known_quirk_*` test with its exact status/body. Don't "fix" these during a refactor; change the test only when fixing the bug on purpose.
 
 ## Warehouse endpoint test
 

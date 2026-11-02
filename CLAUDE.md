@@ -50,7 +50,7 @@ Do not run `./vendor/bin/pint` on the whole repo — ~20 existing files are not 
 
 - Project skills in `.claude/skills/`: `laravel-controller`, `laravel-model`, `laravel-migration`, `laravel-test`, `db-schema`. Use them when adding endpoints, models, migrations, tests, or inspecting the schema.
 - MCP server `mysql` (`.mcp.json`, read-only by default) — export `MYSQL_PASS` (and `MYSQL_USER`/`MYSQL_DB` if not `root`/`platinum_event`) in your shell before starting Claude Code.
-- Use context7 for current docs of Laravel 10 and the Spatie / maatwebsite / bensampo packages.
+- Use context7 for current docs of Laravel 10 and the Spatie / maatwebsite packages.
 - `.opencode/` and `opencode.json` belong to OpenCode — leave them alone unless asked.
 
 ### Conventions not covered above
