@@ -2,6 +2,12 @@
 
 namespace App\Providers;
 
+use App\Events\Loyalty\LoyaltyUserRegistered;
+use App\Events\ProductUnits\ProductUnitCreated;
+use App\Events\Stocks\StockOpnameCreated;
+use App\Events\Stocks\StockOpnameDetailCreated;
+use App\Events\UnverifiedROEvent;
+use App\Events\VerifiedROEvent;
 use App\Http\Repositories\AdjustmentRequest\AdjustmentRequestRepository;
 use App\Http\Repositories\DeliveryOrder\DeliveryOrderRepository;
 use App\Http\Repositories\DocumentCounter\DocumentCounterRepository;
@@ -170,8 +176,19 @@ use App\Interfaces\Services\Voucher\VoucherServiceInterface;
 use App\Interfaces\Services\VoucherCategory\VoucherCategoryServiceInterface;
 use App\Interfaces\Services\VoucherGenerateBatch\VoucherGenerateBatchServiceInterface;
 use App\Interfaces\Services\Warehouse\WarehouseServiceInterface;
+use App\Listeners\CreateStockROListener;
+use App\Listeners\DeleteStockROListener;
+use App\Listeners\Loyalty\SendLoyaltyVerificationEmail;
+use App\Listeners\ProductUnits\CreateStockProductUnit;
+use App\Listeners\Stocks\CreateStockOpnameDetail;
+use App\Listeners\Stocks\CreateStockOpnameItems;
 use App\Models\PersonalAccessToken;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Sanctum\Sanctum;
 use Symfony\Component\HttpClient\HttpClient;
@@ -299,6 +316,27 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        Gate::before(function ($user, $ability) {
+            return $user->hasRole('admin') ? true : null;
+        });
+
+        RateLimiter::for('api', function (Request $request) {
+            return Limit::perMinute(200)->by($request->user()?->id ?: $request->ip());
+        });
+
+        RateLimiter::for('loyalty-claims', function (Request $request) {
+            return Limit::perDay(5)->by(
+                'loyalty-claims:'.($request->user()?->getKey() ?: $request->ip())
+            );
+        });
+
+        Event::listen(LoyaltyUserRegistered::class, SendLoyaltyVerificationEmail::class);
+        Event::listen(VerifiedROEvent::class, CreateStockROListener::class);
+        Event::listen(UnverifiedROEvent::class, DeleteStockROListener::class);
+        Event::listen(ProductUnitCreated::class, CreateStockProductUnit::class);
+        Event::listen(StockOpnameCreated::class, CreateStockOpnameDetail::class);
+        Event::listen(StockOpnameDetailCreated::class, CreateStockOpnameItems::class);
+
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
 
         Mail::extend('brevo', function () {
