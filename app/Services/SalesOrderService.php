@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Helpers\ContentDispositionHelper;
 use App\Http\Resources\SalesOrderResource;
+use App\Interfaces\Repositories\SalesOrder\SalesOrderRepositoryInterface;
+use App\Interfaces\Services\DeliveryOrder\DeliveryOrderServiceInterface;
 use App\Interfaces\Services\DocumentCounter\NumberingServiceInterface;
 use App\Models\DeliveryOrder;
 use App\Models\DeliveryOrderDetail;
@@ -71,18 +73,7 @@ class SalesOrderService
      */
     public static function countFulfilledQty(SalesOrderDetail|int $salesOrderDetail): void
     {
-        if (! $salesOrderDetail instanceof SalesOrderDetail) {
-            $salesOrderDetail = SalesOrderDetail::find($salesOrderDetail);
-            if (! $salesOrderDetail) {
-                return;
-            }
-        }
-
-        $salesOrderDetail->refresh();
-
-        $salesOrderDetail->update([
-            'fulfilled_qty' => $salesOrderDetail->salesOrderItems()->where('is_parent', 0)->where('is_returned', 0)->count(),
-        ]);
+        app(SalesOrderRepositoryInterface::class)->countFulfilledQty($salesOrderDetail);
     }
 
     /**
@@ -582,7 +573,7 @@ class SalesOrderService
             $mergedSalesOrder = static::createOrder(SalesOrder::make(['raw_source' => $rawSource]));
 
             $deliveryOrder = DeliveryOrder::where('sales_order_id', $mergedSalesOrder->id)->first()
-                ?? DeliveryOrderService::createForSalesOrder($mergedSalesOrder, true, $manualDeliveryOrderInvoiceNo);
+                ?? app(DeliveryOrderServiceInterface::class)->createForSalesOrder($mergedSalesOrder, true, $manualDeliveryOrderInvoiceNo);
 
             static::copyVerifiedStockItems($mergedSalesOrder, $deliveryOrder, $sourceIds->all());
 
@@ -610,7 +601,7 @@ class SalesOrderService
             DeliveryOrder::whereIn('id', $deliveryOrderIds)
                 ->lockForUpdate()
                 ->get()
-                ->each(fn (DeliveryOrder $deliveryOrder) => DeliveryOrderService::deleteDeliveryOrder($deliveryOrder));
+                ->each(fn (DeliveryOrder $deliveryOrder) => app(DeliveryOrderServiceInterface::class)->deleteDeliveryOrder($deliveryOrder));
 
             $salesOrder->mergedSalesOrders()->update(['merged_into_sales_order_id' => null]);
 

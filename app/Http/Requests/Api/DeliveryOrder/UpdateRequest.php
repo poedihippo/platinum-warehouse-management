@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Api;
+namespace App\Http\Requests\Api\DeliveryOrder;
 
 use App\Enums\CompanyEnum;
 use App\Interfaces\Services\DocumentCounter\NumberingServiceInterface;
@@ -12,7 +12,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
-class DeliveryOrderUpdateRequest extends FormRequest
+class UpdateRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.

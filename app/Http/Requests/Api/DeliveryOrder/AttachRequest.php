@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Requests\Api;
+namespace App\Http\Requests\Api\DeliveryOrder;
 
 use App\Models\DeliveryOrderDetail;
 use App\Models\SalesOrderDetail;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 
-class DeliveryOrderAttachRequest extends FormRequest
+class AttachRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.

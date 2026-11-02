@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Requests\Api;
+namespace App\Http\Requests\Api\DeliveryOrder;
 
 use App\Models\DeliveryOrderDetail;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 
-class DeliveryOrderDetailUpdateRequest extends FormRequest
+class DetailUpdateRequest extends FormRequest
 {
     public function rules()
     {

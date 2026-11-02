@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\DeliveryOrder;
 
+use App\Http\Resources\SalesOrderDetailResource;
+use App\Http\Resources\SalesOrderItemResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class DeliveryOrderDetailResource extends JsonResource

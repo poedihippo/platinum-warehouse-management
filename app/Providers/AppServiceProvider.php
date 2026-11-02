@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Http\Repositories\AdjustmentRequest\AdjustmentRequestRepository;
+use App\Http\Repositories\DeliveryOrder\DeliveryOrderRepository;
 use App\Http\Repositories\DocumentCounter\DocumentCounterRepository;
 use App\Http\Repositories\Loyalty\Claim\ClaimRepository;
 use App\Http\Repositories\Loyalty\LoyaltyUser\LoyaltyUserRepository;
@@ -19,6 +20,7 @@ use App\Http\Repositories\ProductUnitBlacklist\ProductUnitBlacklistRepository;
 use App\Http\Repositories\ReceiveOrder\ReceiveOrderDetailRepository;
 use App\Http\Repositories\ReceiveOrder\ReceiveOrderRepository;
 use App\Http\Repositories\Role\RoleRepository;
+use App\Http\Repositories\SalesOrder\SalesOrderRepository;
 use App\Http\Repositories\Setting\SettingRepository;
 use App\Http\Repositories\Stock\StockRepository;
 use App\Http\Repositories\StockHistory\StockHistoryRepository;
@@ -33,6 +35,8 @@ use App\Http\Repositories\UserDiscount\UserDiscountRepository;
 use App\Http\Repositories\Warehouse\WarehouseRepository;
 use App\Http\Services\AdjustmentRequest\AdjustmentRequestService;
 use App\Http\Services\Auth\AuthService;
+use App\Http\Services\DeliveryOrder\DeliveryOrderDetailService;
+use App\Http\Services\DeliveryOrder\DeliveryOrderService;
 use App\Http\Services\DocumentCounter\DocumentCounterService;
 use App\Http\Services\DocumentCounter\NumberingService;
 use App\Http\Services\Export\ExportService;
@@ -55,6 +59,7 @@ use App\Http\Services\ProductUnitBlacklist\ProductUnitBlacklistService;
 use App\Http\Services\ReceiveOrder\ReceiveOrderDetailService;
 use App\Http\Services\ReceiveOrder\ReceiveOrderService;
 use App\Http\Services\Role\RoleService;
+use App\Http\Services\SalesOrder\SalesOrderService;
 use App\Http\Services\Setting\SettingService;
 use App\Http\Services\Stock\StockGroupingService;
 use App\Http\Services\Stock\StockRepackService;
@@ -71,6 +76,7 @@ use App\Http\Services\User\UserService;
 use App\Http\Services\UserDiscount\UserDiscountService;
 use App\Http\Services\Warehouse\WarehouseService;
 use App\Interfaces\Repositories\AdjustmentRequest\AdjustmentRequestRepositoryInterface;
+use App\Interfaces\Repositories\DeliveryOrder\DeliveryOrderRepositoryInterface;
 use App\Interfaces\Repositories\DocumentCounter\DocumentCounterRepositoryInterface;
 use App\Interfaces\Repositories\Loyalty\Claim\ClaimRepositoryInterface;
 use App\Interfaces\Repositories\Loyalty\LoyaltyUser\LoyaltyUserRepositoryInterface;
@@ -87,6 +93,7 @@ use App\Interfaces\Repositories\ProductUnitBlacklist\ProductUnitBlacklistReposit
 use App\Interfaces\Repositories\ReceiveOrder\ReceiveOrderDetailRepositoryInterface;
 use App\Interfaces\Repositories\ReceiveOrder\ReceiveOrderRepositoryInterface;
 use App\Interfaces\Repositories\Role\RoleRepositoryInterface;
+use App\Interfaces\Repositories\SalesOrder\SalesOrderRepositoryInterface;
 use App\Interfaces\Repositories\Setting\SettingRepositoryInterface;
 use App\Interfaces\Repositories\Stock\StockRepositoryInterface;
 use App\Interfaces\Repositories\StockHistory\StockHistoryRepositoryInterface;
@@ -101,6 +108,8 @@ use App\Interfaces\Repositories\UserDiscount\UserDiscountRepositoryInterface;
 use App\Interfaces\Repositories\Warehouse\WarehouseRepositoryInterface;
 use App\Interfaces\Services\AdjustmentRequest\AdjustmentRequestServiceInterface;
 use App\Interfaces\Services\Auth\AuthServiceInterface;
+use App\Interfaces\Services\DeliveryOrder\DeliveryOrderDetailServiceInterface;
+use App\Interfaces\Services\DeliveryOrder\DeliveryOrderServiceInterface;
 use App\Interfaces\Services\DocumentCounter\DocumentCounterServiceInterface;
 use App\Interfaces\Services\DocumentCounter\NumberingServiceInterface;
 use App\Interfaces\Services\Export\ExportServiceInterface;
@@ -123,6 +132,7 @@ use App\Interfaces\Services\ProductUnitBlacklist\ProductUnitBlacklistServiceInte
 use App\Interfaces\Services\ReceiveOrder\ReceiveOrderDetailServiceInterface;
 use App\Interfaces\Services\ReceiveOrder\ReceiveOrderServiceInterface;
 use App\Interfaces\Services\Role\RoleServiceInterface;
+use App\Interfaces\Services\SalesOrder\SalesOrderServiceInterface;
 use App\Interfaces\Services\Setting\SettingServiceInterface;
 use App\Interfaces\Services\Stock\StockGroupingServiceInterface;
 use App\Interfaces\Services\Stock\StockRepackServiceInterface;
@@ -229,6 +239,12 @@ class AppServiceProvider extends ServiceProvider
         StockOpnameRepositoryInterface::class => StockOpnameRepository::class,
         StockOpnameServiceInterface::class => StockOpnameService::class,
         StockOpnameDetailServiceInterface::class => StockOpnameDetailService::class,
+
+        DeliveryOrderRepositoryInterface::class => DeliveryOrderRepository::class,
+        DeliveryOrderServiceInterface::class => DeliveryOrderService::class,
+        SalesOrderRepositoryInterface::class => SalesOrderRepository::class,
+        SalesOrderServiceInterface::class => SalesOrderService::class,
+        DeliveryOrderDetailServiceInterface::class => DeliveryOrderDetailService::class,
     ];
 
     /**
