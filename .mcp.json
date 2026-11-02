@@ -1,0 +1,16 @@
+{
+    "mcpServers": {
+        "mysql": {
+            "command": "npx",
+            "args": ["-y", "--prefer-offline", "@benborla29/mcp-server-mysql"],
+            "env": {
+                "NODE_OPTIONS": "--dns-result-order=ipv4first",
+                "MYSQL_HOST": "${MYSQL_HOST:-127.0.0.1}",
+                "MYSQL_PORT": "${MYSQL_PORT:-3306}",
+                "MYSQL_USER": "${MYSQL_USER:-root}",
+                "MYSQL_PASS": "${MYSQL_PASS:-}",
+                "MYSQL_DB": "${MYSQL_DB:-platinum_event}"
+            }
+        }
+    }
+}

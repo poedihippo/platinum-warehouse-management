@@ -1,6 +1,6 @@
 # AGENTS.md — AI Agent Guide for BEJO Warehouse Management
 
-> **Purpose:** This file instructs AI agents (OpenCode) on how to understand, navigate, and contribute to this codebase. Read this file before making any changes.
+> **Purpose:** Shared guide for AI agents (OpenCode reads it directly; Claude Code imports it from `CLAUDE.md`). Read it before making changes. It describes the code **as it is**, including known quirks — when the code and this file disagree, trust the code and update this file.
 
 ---
 
@@ -9,11 +9,12 @@
 | Field | Value |
 |-------|-------|
 | **App Name** | BEJO |
-| **Company** | Platinum Adi Sentosa |
+| **Company** | Platinum Adi Sentosa (two legal entities: `pas`, `pa`) |
 | **Industry** | Feed/pakan distributor |
-| **Type** | Warehouse Management System (WMS) |
-| **Frontend** | Separate repos (Vercel deployments) |
-| **Backend** | This repo — Laravel 10 REST API |
+| **Type** | Warehouse Management System (WMS) + customer Loyalty program |
+| **Frontend** | Separate repos (Vercel deployments): BEJO admin app, and the customer "verify" app (QR check + loyalty) |
+| **Backend** | This repo — Laravel 10 REST API (`routes/api.php`, prefix `/api`) |
+| **Language** | User-facing messages (validation, errors) are in Indonesian |
 
 ---
 
@@ -23,10 +24,9 @@
 |-------|-----------|
 | Framework | Laravel 10 (`laravel/framework: ^10.0`) |
 | PHP | `^8.0.2` |
-| Database | MySQL |
-| Cache | File-based (`CACHE_DRIVER=file`) |
-| Session | File-based (`SESSION_DRIVER=file`) |
-| Queue | Redis (`QUEUE_CONNECTION=redis`) |
+| Database | MySQL (migrations contain MySQL-only SQL — no SQLite) |
+| Cache / Session | File-based |
+| Queue | Redis (`QUEUE_CONNECTION=redis`); `sync` in tests |
 | Auth | Laravel Sanctum 3.2 (Bearer personal access tokens) |
 | RBAC | `spatie/laravel-permission` 5.10 |
 | Query Builder | `spatie/laravel-query-builder` 5.2 |
@@ -37,8 +37,8 @@
 | Enums | `bensampo/laravel-enum` 6.3 |
 | OAuth | `laravel/socialite` 5.6 |
 | File Storage | AWS S3 (`league/flysystem-aws-s3-v3`) |
-| Number to Words | `kwn/number-to-words` 2.7 |
 | Email | Brevo (`symfony/brevo-mailer`) |
+| Timezone | `Asia/Jakarta` |
 
 ---
 
@@ -47,246 +47,212 @@
 ### 3.1 High-Level Pattern
 
 ```
-┌─────────────┐     ┌──────────────┐     ┌──────────────┐
-│   Routes     │────▶│  Controllers │────▶│   Services   │
-│  (api.php)   │     │              │     │ (Pipeline)   │
-└─────────────┘     └──────────────┘     └──────────────┘
-                           │                     │
-                           ▼                     ▼
-                    ┌──────────────┐     ┌──────────────┐
-                    │   Models     │     │   Pipes      │
-                    │ (Eloquent)   │     │ (Order flow) │
-                    └──────────────┘     └──────────────┘
-                           │
-                           ▼
-                    ┌──────────────┐     ┌──────────────┐
-                    │  Events &    │     │   Traits     │
-                    │  Listeners   │     │ (Tenanted,   │
-                    │              │     │  SoftDeletes)│
-                    └──────────────┘     └──────────────┘
+routes/api.php ──▶ Controller (permission middleware in __construct)
+                      │
+                      ├──▶ Form Request (app/Http/Requests/Api/...)
+                      ├──▶ Service (static methods) ──▶ Pipeline of Pipes (sales orders)
+                      ├──▶ Eloquent Model ──▶ booted() hooks ──▶ Events ──▶ (queued) Listeners
+                      └──▶ API Resource / response()->json
 ```
 
 ### 3.2 Key Architectural Patterns
 
 | Pattern | Location | Purpose |
 |---------|----------|---------|
-| **Pipeline** | `app/Pipes/Order/` | Sales order processing (9 sequential steps) |
-| **Event-Driven** | `app/Events/`, `app/Listeners/` | Stock creation, opname, RO verification |
-| **Tenancy** | `app/Traits/Tenanted.php` | Warehouse-scoped data access |
-| **Dual Auth** | `config/auth.php` | `users` (staff) + `loyalty_users` (customers) |
-| **Custom Soft Deletes** | `app/Traits/CustomSoftDeletes.php` | Tracks `deleted_by` user |
-| **Auto-Numbering** | Model `boot()` methods | SO/DO sequential numbers with `lockForUpdate` |
+| **Pipeline** | `app/Pipes/Order/`, `app/Pipes/Order/Spg/` | Sales order create/update (10 steps), SPG order flow |
+| **Event-Driven** | `app/Events/`, `app/Listeners/` | Stock slot creation, RO stock in/out, opname details/items |
+| **Model hooks** | `booted()` in models | Auto-numbering, defaults, firing events, scan propagation |
+| **Tenancy** | `app/Traits/Tenanted.php` + per-model overrides | Warehouse-scoped data access (see §6 — not uniform!) |
+| **Dual Auth** | `config/auth.php` | `users` (staff, Sanctum) + `loyalty_users` (customers, `loyalty` guard) |
+| **Custom Soft Deletes** | `app/Traits/CustomSoftDeletes.php` | Soft delete + `deleted_by` (used by `Payment` only) |
+| **Document numbering** | `app/Services/NumberingService.php` | SO/DO numbers via `document_counters` + `lockForUpdate` (feature-flagged) |
 
 ---
 
 ## 4. Database Schema Reference
 
-### 4.1 Table Count: 55 tables across 17 groups
+### 4.1 Tables
 
-| Group | Tables | Key Tables |
-|-------|--------|------------|
-| Auth & RBAC | 9 | `users`, `roles`, `permissions`, `personal_access_tokens` |
-| Tenant & Supply Chain | 4 | `warehouses`, `suppliers`, `user_warehouses`, `tenants` |
-| Product Management | 7 | `products`, `product_units`, `product_brands`, `product_categories`, `uoms` |
-| Stock/Inventory | 6 | `stocks` (ULID), `stock_product_units`, `stock_histories`, `temporary_stocks` |
-| Receive Orders | 2 | `receive_orders`, `receive_order_details` |
-| Sales Orders | 3 | `sales_orders`, `sales_order_details`, `sales_order_items` |
-| Delivery Orders | 2 | `delivery_orders`, `delivery_order_details` |
-| Orders (New) | 2 | `orders`, `order_details` |
-| Stock Opname | 3 | `stock_opnames`, `stock_opname_details`, `stock_opname_items` |
-| Adjustments | 1 | `adjustment_requests` |
-| Payments | 1 | `payments` |
-| Vouchers | 3 | `vouchers`, `voucher_categories`, `voucher_generate_batches` |
-| User Discounts | 1 | `user_discounts` |
-| Settings | 1 | `settings` |
-| Media | 1 | `media` (Spatie) |
-| Queue | 1 | `jobs` |
-| Loyalty | 8 | `loyalty_users`, `claims`, `points_transactions`, `prizes`, `redemptions` |
+~53 tables from `database/migrations/` (85 migration files) plus the Spatie permission tables. Inspect live schema with the MySQL MCP or read migrations; key groups:
+
+| Group | Key Tables |
+|-------|------------|
+| Auth & RBAC | `users`, `roles`, `permissions`, `model_has_*`, `personal_access_tokens` (has extra `plain_text_token`) |
+| Tenant & Supply Chain | `warehouses`, `suppliers`, `user_warehouses` |
+| Product | `products`, `product_units`, `product_unit_relations`, `product_unit_blacklists`, `product_brands`, `product_categories`, `uoms` |
+| Stock | `stocks` (ULID), `stock_product_units`, `stock_histories`, `stock_transfers`, `temporary_stocks` |
+| Receive Orders | `receive_orders`, `receive_order_details` |
+| Sales Orders | `sales_orders`, `sales_order_details`, `sales_order_items`, `sales_order_vouchers` (pivot) |
+| Delivery Orders | `delivery_orders` (has `sales_order_id`), `delivery_order_details` |
+| Stock Opname | `stock_opnames`, `stock_opname_details`, `stock_opname_items` |
+| Adjustments | `adjustment_requests` |
+| Payments / Vouchers | `payments`, `vouchers`, `voucher_categories`, `voucher_generate_batches` |
+| Misc | `user_discounts`, `settings`, `document_counters`, `media`, `jobs` |
+| Loyalty | `loyalty_users`, `claims`, `claim_line_items`, `claim_photos`, `points_transactions`, `prizes`, `prize_categories`, `redemptions` |
+| Legacy / unused | `orders`, `order_details` (see §5.9), `packages`, `package_details`, `tenants` |
+
+Several columns exist in production but were added retroactively by guarded migrations (`2026_10_23_000000_add_production_only_columns_...`). New alter migrations should use `Schema::hasColumn` guards the same way.
 
 ### 4.2 Core Entity Relationships
 
 ```
 ProductCategory ──┐
-                   ├──▶ Product ──▶ ProductUnit ──┬──▶ StockProductUnit ──▶ Stock (ULID)
-ProductBrand ─────┘                               │         │                    │
-                                                  │         │                    ├──▶ parent_id (grouping)
-                                                  │         │                    ├──▶ SalesOrderItem
-                                                  │         │                    └──▶ StockOpnameItem
-                                                  │         │
-                                                  │         └──▶ ProductUnitRelation (self-ref)
-                                                  │
-                                                  └──▶ UOM
+                   ├──▶ Product ──▶ ProductUnit ──┬──▶ StockProductUnit (ProductUnit × Warehouse, qty) ──▶ Stock (ULID)
+ProductBrand ─────┘                               │                                                        ├──▶ parent_id (grouping)
+                                                  │                                                        ├──▶ SalesOrderItem
+                                                  │                                                        └──▶ StockOpnameItem
+                                                  ├──▶ refer_id / refer_qty (bundle unit → base unit)
+                                                  ├──▶ ProductUnitRelation (bundle → non-QR components, qty)
+                                                  └──▶ Uom
 
-Warehouse ──▶ StockProductUnit (junction: ProductUnit × Warehouse)
-           ──▶ SalesOrder
-           ──▶ DeliveryOrder
-           ──▶ ReceiveOrder
-           ──▶ StockOpname
+User ──▶ SalesOrder (user_id creator, reseller_id, spg_id)
+      ──▶ user_warehouses (pivot) ──▶ Warehouse
 
-User ──▶ SalesOrder (creator, reseller, spg)
-      ──▶ DeliveryOrder
-      ──▶ ReceiveOrder
-      ──▶ user_warehouses (pivot)
+ReceiveOrder ──▶ ReceiveOrderDetail ──(RO done)──▶ Stock rows / SPU.qty
 
-ReceiveOrder ──▶ ReceiveOrderDetail ──▶ verified → creates Stock rows
+SalesOrder ──▶ SalesOrderDetail ──▶ SalesOrderItem (scanned Stock) ──▶ delivery_order_detail_id
+           ──▶ sales_order_vouchers ──▶ Voucher
+           ──▶ merged_into_sales_order_id (marketplace merge)
 
-SalesOrder ──▶ SalesOrderDetail ──▶ SalesOrderItem
-                                   ──▶ DeliveryOrderDetail
-
-DeliveryOrder ──▶ DeliveryOrderDetail ──▶ SalesOrderItem (stock assignment)
+DeliveryOrder (sales_order_id) ──▶ DeliveryOrderDetail ──▶ SalesOrderDetail
 ```
 
 ### 4.3 Key ID Strategies
 
 | Table | PK Type | Reason |
 |-------|---------|--------|
-| `stocks` | ULID (26-char) | Used as QR code payload / serial number |
-| `loyalty_users` | ULID | Separate auth system |
-| `claims`, `redemptions`, `prizes`, `points_transactions` | ULID | Loyalty system consistency |
+| `stocks` | ULID (26-char) | QR code payload / serial number |
+| `temporary_stocks` | stock ULID | Scan log keyed by stock |
+| `loyalty_users`, `claims`, `redemptions`, `prizes`, `points_transactions`, ... | ULID | Loyalty system |
 | All others | bigint auto-increment | Standard Laravel |
 
 ---
 
 ## 5. Core Business Flows
 
-### 5.1 Product Creation → Stock Slot Auto-Creation
+### 5.1 ProductUnit Creation → Stock Slot Auto-Creation
 
 ```
-1. Admin creates ProductUnit (refer_id = null)
-2. boot('created') dispatches ProductUnitCreated event
-3. CreateStockProductUnit listener runs (queued)
-4. For EVERY warehouse (including soft-deleted):
-   → Creates StockProductUnit record (qty = 0)
-5. Result: New product unit has a stock slot in every warehouse
+1. ProductUnit created with refer_id = null
+2. booted() created → ProductUnitCreated::dispatchIf(is_null(refer_id))
+3. CreateStockProductUnit listener (queued)
+4. For every Warehouse::withTrashed() → StockProductUnit (qty = 0)
 ```
+Bundle units (`refer_id` set, created via `POST product-units/{id}/create-relations`) get **no** SPU from this event.
 
 ### 5.2 Warehouse Creation → Stock Slot Auto-Creation
 
 ```
-1. Admin creates Warehouse
-2. boot('created') runs
-3. For EVERY ProductUnit (including soft-deleted):
-   → Creates StockProductUnit record (qty = 0)
-4. Result: New warehouse has a stock slot for every product unit
+1. Warehouse created
+2. booted() created runs SYNCHRONOUSLY: ProductUnit::get() (excludes soft-deleted units,
+   INCLUDES bundle units with refer_id) → StockProductUnit (qty = 0) for each
 ```
 
 ### 5.3 Receive Order (Inbound Stock)
 
 ```
-1. Admin creates ReceiveOrder → ReceiveOrderDetail(s)
-2. Admin verifies each detail (is_verified = 1)
-3. Admin marks RO as done (is_done = true)
-4. boot('updated') fires VerifiedROEvent
-5. CreateStockROListener (queued) processes:
-   ├─ QR products (is_generate_qr = true):
-   │   → Creates N individual Stock records (ULID PKs)
-   │   → Each Stock linked to StockProductUnit
-   └─ Non-QR products:
-       → Increments StockProductUnit.qty
-6. StockHistory record created (increment)
+1. POST receive-orders uploads an Accurate-style XML file (TRANSACTIONS.RECIEVEITEM);
+   details are parsed from it; blacklisted product units (product_unit_blacklists) are skipped
+2. Staff verifies each detail (is_verified) and sets adjust_qty
+3. PUT receive-orders/{id}/done — requires every detail verified and adjust_qty > 0
+4. booted() updated + isDirty('is_done') → VerifiedROEvent (captures auth user in constructor)
+5. CreateStockROListener (queued), per detail using adjust_qty:
+   ├─ is_generate_qr = true  → creates adjust_qty Stock rows (ULID)
+   └─ is_generate_qr = false → increments StockProductUnit.qty
+   + StockHistory (increment) on the ReceiveOrderDetail
 ```
-
-**Unverify/Delete flow:**
-```
-1. is_done changed to false → UnverifiedROEvent
-2. DeleteStockROListener (queued):
-   → Force-deletes Stock records
-   → Decrements StockProductUnit.qty (non-QR)
-   → Deletes QR code files from S3
-   → Creates StockHistory (decrement)
-```
+Undo: `is_done` → false, or RO delete → `UnverifiedROEvent` → `DeleteStockROListener` (queued). See §13 for known bugs in this listener.
 
 ### 5.4 Sales Order Processing
 
+`SalesOrderController@store` → `DB::transaction(fn () => SalesOrderService::createOrder(SalesOrder::make(['raw_source' => $validated]), (bool) $request->is_preview), 3)`.
+`SalesOrderService` methods are **static**.
+
 ```
-1. Request hits SalesOrderController@store
-2. SalesOrderService::createOrder() runs Pipeline:
-   ┌─ Step 1: FillOrderAttributes
-   │    Maps raw_source fields to SalesOrder model
-   ├─ Step 2: FillOrderRecords
-   │    Snapshots reseller data into records JSON
-   ├─ Step 3: MakeOrderDetails
-   │    Builds SalesOrderDetail collection from items
-   │    Resolves ProductUnits, calculates prices
-   │    Checks available stock per item
-   ├─ Step 4: CalculateAutoDiscount
-   │    Applies threshold-based percentage discount
-   ├─ Step 5: CalculateVoucher
-   │    Looks up voucher, applies NOMINAL or PERCENTAGE
-   ├─ Step 6: CalculateAdditionalDiscount
-   │    Applies additional discount (% or nominal)
-   ├─ Step 7: CalculateAdditionalFees
-   │    Adds shipment_fee to price
-   ├─ Step 8: CheckExpectedOrderPrice
-   │    Validates price matches expected (if provided)
-   └─ Step 9: SaveOrder
-       Persists order + details in transaction
-       If is_invoice=true: reserves Stock items via SalesOrderItem
-       Auto-generates invoice_no: PAS/SO/MM/YY/NN
+Create pipeline (SalesOrderService::createOrder):
+  1. FillOrderAttributes          raw_source → model attributes
+  2. FillOrderRecords             snapshot reseller etc. into `records` JSON
+  3. NormalizeLockedOrderItems    keep lines that already have scanned stock locked
+  4. MakeOrderDetails             build SalesOrderDetail collection, resolve ProductUnits, prices
+                                  (does NOT check or reserve stock)
+  5. CalculateAutoDiscount        tiers in config('app.min_trx_auto_discount') — currently all
+                                  commented out (effectively 0); skipped if is_auto_discount_enabled=false
+  6. CalculateVoucher             voucher_codes[] applied in sequence, each capped at current price;
+                                  stored in sales_order_vouchers pivot with discount_amount
+  7. CalculateAdditionalDiscount  % or nominal
+  8. CalculateAdditionalFees      shipment_fee
+  9. CheckExpectedOrderPrice      throws Exception('Harga tidak cocok') on mismatch with FE total
+ 10. SaveOrder                    only when NOT preview; persists order + details.
+                                  Stock reservation code is commented out — stock is attached
+                                  later by scanning (DO verification / invoice verification).
+
+Update pipeline (SalesOrderService::updateOrder): same steps 1–9, ending in UpdateOrder.
+  Marketplace SO: edits lines in place; lines with scanned stock are locked.
+  Other SO: fails if DO lines exist, otherwise deletes + recreates lines.
 ```
 
 ### 5.5 Delivery Order (Partial Shipment)
 
 ```
-1. Admin creates DeliveryOrder linked to SalesOrder
-2. DeliveryOrderDetail specifies which SalesOrderDetail + qty
-3. Admin verifies: attaches specific Stock items to SalesOrderItem
-4. SalesOrderDetail.fulfilled_qty tracks shipped quantity
-5. One SO can have multiple DOs (partial shipments)
-6. Auto-generates invoice_no: PAS/DO/MM/YY/NN
+1. Create DeliveryOrder (has sales_order_id)
+2. POST delivery-orders/{id}/attach — DeliveryOrderService::attachDetails links SO detail lines
+   with a remaining-qty check
+3. POST delivery-orders/{id}/verification/{deliveryOrderDetail} — scan Stock ULIDs:
+   matches warehouse + product unit (or its refer_id for bundle units); a group parent creates a
+   parent item plus child items; incomplete groupings are rejected (Stock::hasIncompleteGrouping)
+4. PUT delivery-orders/{id}/done — StockHistory decrement (value = fulfilled_qty); for bundle units
+   also decrements related non-QR SPUs by relation.qty × floor(qty / refer_qty). Undone reverses.
+5. POST delivery-orders/{id}/return — sets is_returned; deletes stocks or creates an auto-approved
+   AdjustmentRequest
 ```
+`fulfilled_qty` = count of non-parent, non-returned SalesOrderItems. One SO can have many DOs.
+Shared scan logic: `SalesOrderService::verifyStockItem()`.
 
 ### 5.6 Stock Opname (Physical Count)
 
 ```
-1. Admin creates StockOpname for a warehouse
-2. boot('created') fires StockOpnameCreated
-3. Creates StockOpnameDetail for every StockProductUnit in warehouse
-4. Each detail auto-creates StockOpnameItem for every available Stock
-5. Staff scans QR codes → is_scanned = true
-6. Parent→child propagation: scanning parent scans all children
-7. When done (is_done = true):
-   → Un-scanned Stock records get SOFT-DELETED
-   → StockHistory records created (decrement)
-8. Can be reverted (is_done = false):
-   → Soft-deleted Stock records get RESTORED
-   → StockHistory records created (increment)
+1. StockOpname created → StockOpnameCreated → CreateStockOpnameDetail (queued):
+   a StockOpnameDetail per StockProductUnit in the warehouse
+2. StockOpnameDetail created → StockOpnameDetailCreated → CreateStockOpnameItems (queued):
+   a StockOpnameItem per available Stock
+3. Scan (StockOpnameDetailController::scan) → is_scanned; parent→child propagation
+   (both in the scan action and in StockOpnameItem updated hook)
+4. PUT stock-opnames/{id}/done requires every detail is_done:
+   un-scanned Stock rows are SOFT-DELETED + StockHistory decrement per detail
+5. Revert (is_done = false): restores them + StockHistory increment
 ```
+Only QR stock is counted; non-QR `qty` is untouched.
 
 ### 5.7 Stock Adjustment
 
-```
-1. Admin creates AdjustmentRequest (is_increment, value, stock_product_unit_id)
-2. Admin approves → creates Stock records (increment) or deletes (decrement)
-3. StockHistory record created
-```
+`AdjustmentRequestController::approve` takes `is_approved` true/false (also used to reject).
+- Increment, QR: creates N `Stock` rows directly (`is_stock = productUnit.is_auto_stock`)
+- Decrement, QR: force-deletes stocks created by this adjustment + soft-deletes `value` more available stocks
+- Non-QR: adjusts `StockProductUnit.qty`
+- StockHistory written. DO return and stock repack also create AdjustmentRequests.
 
-### 5.8 Loyalty Program Flow
+### 5.8 Loyalty Program
 
-```
-Customer Signup:
-1. POST /loyalty/auth/register → creates LoyaltyUser
-2. Email verification (signed URL, 24h expiry)
+- **Signup**: `POST loyalty/auth/register` → LoyaltyUser → `LoyaltyUserRegistered` → verification mail (sent **synchronously**); link built from `config('loyalty.frontend_url')` (`LOYALTY_FRONTEND_URL`), signed via `loyalty.signed` middleware.
+- **Claims**: customer uploads invoice + product photos; `pending → approved | rejected` (both final; deciding twice → 409). Rate limit 5/day (`throttle:loyalty-claims`). Approve locks the row, recomputes `sum(qty × product_units.points_per_unit)`, writes a PointsTransaction `earn`, sends mail.
+- **Redemptions**: `pending → approved → shipped → delivered`, or `pending → rejected`. Redeem locks the prize, checks stock + balance, decrements prize stock, writes `spend`. Reject restocks and refunds with `earn` (source `redemption`). Second pending redemption of the same prize → 409.
+- **Balance** is never stored: `sum(earn) − sum(spend)` from `points_transactions` (computed in `PointsController::balance` and private `balanceFor` copies). Sources: `claim`, `redemption`, `manual_adjustment`.
+- Statuses are plain string constants on the models, not enums. No loyalty service class — logic lives in controllers.
 
-Claim Submission:
-1. Customer uploads invoice photo + product photos + invoice number
-2. Claim created (status = pending, submitted_at = now)
-3. Rate limited: 5 claims/day per user
+### 5.9 SPG Orders, Invoices, Marketplace
 
-Admin Review:
-1. Admin views claim queue
-2. Adds line items (product_unit × quantity)
-3. Points calculated: sum(quantity × product_units.points_per_unit)
-4. Approve → PointsTransaction(earn) created, Claim status = approved
-5. Reject → Claim status = rejected, rejection_reason set
+- **`/orders` (SPG quotations)** — `OrderController` works on **`SalesOrder`** rows with `is_invoice = true` and `invoice_no = ''`, using its own pipeline ending in `Pipes\Order\Spg\SaveOrder`. `PUT orders/{order}/convert-so` runs `Spg\ConvertToSO` (assigns `getSoNumber()`, writes StockHistory decrements). The `orders`/`order_details` tables and `Order`/`OrderDetail` models + `OrderDetailController` are legacy and broken — don't build on them.
+- **`/invoices` (IIPE)** — `InvoiceController` on `SalesOrder::whereInvoice()` (`is_invoice = true`). Store pre-checks available stock but reserves nothing; scanning via `verification` → `verifyStockItem`. Numbers from `SalesOrderService::getSoNumber()` (see §11.2). `GET invoices/{id}/print` is a **web** route.
+- **Marketplace** (`Marketplace` enum: blibli/shopee/tokopedia) — `POST sales-orders/merge` (`SalesOrderService::mergeMarketplaceOrders`) merges orders into one SO (`merged_into_sales_order_id`) and auto-creates its DO via `DeliveryOrderService`.
 
-Redemption:
-1. Customer browses Prize catalog
-2. Submits redemption (recipient_name, phone, address)
-3. Points deducted → PointsTransaction(spend) created
-4. Admin approves → ships → customer confirms delivery
-5. Status flow: pending → approved → shipped → delivered
-```
+### 5.10 Other Stock Features
+
+- **Grouping**: a group parent is itself a `Stock` row with `description = "{code} GR-{mmyy}{NNN}"`; children point to it with `parent_id`. Groups are excluded from counts by `description IS NULL`. Endpoints: `stocks/grouping`, `stocks/grouping-by-scan`, `stocks/{stock}/ungrouping` (force-deletes the parent). Most stock operations cascade to children.
+- **Transfer**: `POST stocks/transfer` (`StockTransferController` + `TransferStockRequest`) — QR moves `stock_product_unit_id` of the stock and its children; non-QR moves `qty`; one `StockTransfer` row + two histories. Group children are rejected. Spec: `docs/tasks/stock/stock-transfer/backend-flow-v3.md`.
+- **Bundle units**: `refer_id`/`refer_qty` + `ProductUnitRelation` (components must be non-QR). Selling one scans the referenced unit's stock.
+- **Other**: repack (`stocks/{stock}/repack`), printing queue / tempel / `add-to-stock` (`stocks.is_stock`), `stocks/record`, `stocks/export-txt`, `stocks/import` (`StockImport` → `GenerateStockQrcode` job), `temporary-stocks` scan log.
+- **Public QR verification**: `GET api/public/stocks/{ulid}` (no auth, `throttle:30,1`) — `Public\StockVerificationController`.
+- Stock scopes on `Stock`: `whereAvailableStock` (no unreturned SalesOrderItem), `whereCountableStock` (available + `is_stock` + `description IS NULL`).
 
 ---
 
@@ -294,29 +260,29 @@ Redemption:
 
 ### 6.1 The Tenanted Trait
 
-Located at `app/Traits/Tenanted.php`. Used by: `SalesOrder`, `DeliveryOrder`, `ReceiveOrder`, `StockProductUnit`, `StockOpname`.
+`app/Traits/Tenanted.php`:
+- `scopeTenanted(Builder $q, ?User $user = null)` — user defaults to `auth('sanctum')->user()`; Spatie role `admin` → unfiltered; otherwise `whereIn('warehouse_id', $user->warehouses()->pluck('warehouse_id'))`.
+- `scopeFindTenanted($q, $id, $columns = ['*'], $fail = true)` → `firstOrFail()` / `first()`.
 
-```php
-// How it works:
-// 1. Non-admin users are scoped to their assigned warehouses
-// 2. Admin users (hasRole('admin')) see ALL data
-// 3. Queries use user->warehouses() pivot to filter
+Used by `ReceiveOrder`, `DeliveryOrder`, `StockProductUnit`, `StockOpname`, and `SalesOrder` (overridden — below).
 
-// Usage in controllers:
-SalesOrder::tenanted()->get();        // Scoped to user's warehouses
-SalesOrder::findTenanted($id);       // Find with tenancy check
-```
+### 6.2 Overrides and Relation-Based Scopes
 
-### 6.2 SPG Override
+| Model | Behavior |
+|-------|----------|
+| `SalesOrder` | **Overrides** `scopeTenanted`: SPG users (`UserType::Spg`) → `where('spg_id', $user->id)`; everyone else → **no filter** (warehouse scoping commented out) |
+| `Warehouse` | Own `scopeTenanted` that returns the query unfiltered |
+| `Payment` | Scoped via `whereHas('salesOrder', tenanted)` |
+| `ReceiveOrderDetail` | Via `receiveOrder` |
+| `Stock`, `StockHistory` | Via `stockProductUnit` |
 
-SPG users have special tenancy: they see only orders where `spg_id` matches their user ID, NOT warehouse-based scoping.
+SPG rules also live in `OrderController` (SPG can't convert to SO; can only delete own orders) and `OrderStoreRequest` (forces `spg_id`).
 
-### 6.3 Key Rules
+### 6.3 Rules
 
-- **Always use `Tenanted` trait** on new model queries that should be warehouse-scoped
-- **Admin bypass**: Admin role sees all data regardless of warehouse assignment
-- **Warehouse assignment**: Via `user_warehouses` pivot table
-- **Never hardcode warehouse IDs** in queries or logic
+- Query warehouse-scoped models through `::tenanted()` / `::findTenanted($id)` (not route-model binding alone).
+- Validate incoming warehouse/related IDs with `App\Rules\TenantedRule` (checks the ID exists within `Model::tenanted()`, default `Warehouse`).
+- Warehouse assignment is the `user_warehouses` pivot (`User::warehouses()`). Never hardcode warehouse IDs.
 
 ---
 
@@ -324,143 +290,160 @@ SPG users have special tenancy: they see only orders where `spg_id` matches thei
 
 ### 7.1 Dual Auth System
 
-| System | Model | Guard | Table | PK |
-|--------|-------|-------|-------|----|
-| Staff/Admin | `App\Models\User` | `sanctum` | `users` | bigint |
-| Customer | `App\Models\Loyalty\LoyaltyUser` | `loyalty` | `loyalty_users` | ULID |
+| System | Model | Guard | PK |
+|--------|-------|-------|----|
+| Staff/Admin | `App\Models\User` | `sanctum` (Sanctum's built-in guard, `provider = null`; `config/sanctum.php` guard `['web']`) | bigint |
+| Customer | `App\Models\Loyalty\LoyaltyUser` | `loyalty` (driver `sanctum`, provider `loyalty_users`) | ULID |
 
-### 7.2 Token Abilities
+Login: `POST api/auth/token` → `createToken($device, $user->tokenAbilities())`, response `{"data":{"token": ...}}`. `User::createToken` is overridden and also stores `plain_text_token` (custom `App\Models\PersonalAccessToken`). Socialite login mints tokens the same way.
 
-| Token Type | Abilities | Access |
-|------------|-----------|--------|
-| Warehouse staff | `['*']` | All warehouse endpoints |
-| Loyalty-only staff | `['loyalty']` | Only loyalty admin endpoints |
-| Loyalty customer | `['loyalty']` | Only loyalty customer endpoints |
+### 7.2 Token Abilities & Route Groups (`routes/api.php`)
 
-### 7.3 Permission Structure
+| Group | Middleware | Who |
+|-------|-----------|-----|
+| Public | none / `throttle` | `auth/token`, `public/stocks/{ulid}`, loyalty `auth/*` |
+| `users/me` | `auth:sanctum` | Any staff token (shared by BEJO + verify) |
+| Loyalty customer (`loyalty/*`) | `auth:loyalty`, `loyalty.active` | LoyaltyUser tokens (`['loyalty']`) |
+| Loyalty admin (`admin/loyalty/*`) | `auth:sanctum` only — **no ability check** | Any staff token; each controller enforces its permission |
+| Warehouse (everything else) | `auth:sanctum`, `ability:warehouse` | Tokens with `['*']` |
 
-19 top-level permission groups (defined in `app/Helpers/PermissionsHelper.php`):
+`User::tokenAbilities()`: `['loyalty']` if every role the user holds is in `User::LOYALTY_ONLY_ROLES` (loyalty manager / reviewer / prize manager / fulfillment), else `['*']`. No token is ever minted with a literal `warehouse` ability — `['*']` satisfies `ability:warehouse`.
+
+Custom middleware aliases: `loyalty.signed` (`ValidateLoyaltySignature`), `loyalty.active` (`EnsureLoyaltyAccountActive`, 403 "Akun dinonaktifkan."). Rate limiters (`RouteServiceProvider`): `api` 200/min, `loyalty-claims` 5/day.
+
+### 7.3 Warehouse Permissions
+
+Defined in `PermissionsHelper::adminPermissions()` as `parent_access => [children]` — **25 groups**:
 
 ```
-user_access, user_discount_access, role_access, permission_access
-product_access, product_category_access, product_brand_access, product_unit_access
-supplier_access, warehouse_access, uom_access
-receive_order_access, sales_order_access, invoice_access, order_access
-delivery_order_access, stock_access, stock_opname_access, stock_history_access
-adjustment_request_access, product_unit_blacklist_access, setting_access
-payment_access, voucher_access
+user_access, user_discount_access, role_access, permission_access,
+product_access, product_category_access, product_brand_access, product_unit_access,
+supplier_access, warehouse_access, uom_access,
+receive_order_access, sales_order_access, invoice_access, order_access,
+delivery_order_access, stock_access, stock_opname_access, stock_history_access,
+adjustment_request_access, product_unit_blacklist_access, setting_access,
+payment_access, voucher_access, document_counter_access
 ```
 
-Each group has sub-permissions: `create`, `read`, `update`, `delete` (e.g., `sales_order_access.create`).
+Children use **underscores**: `{x}_read`, `{x}_create`, `{x}_edit`, `{x}_delete`, plus extras such as `receive_order_done`, `sales_order_print`, `sales_order_export_xml`, `stock_grouping`, `stock_print`, `stock_transfer`, `adjustment_request_approve`, `voucher_import`, `invoice_export_xml`. All use guard `web`. Seeded by `PermissionSeeder` (`firstOrCreate`, `parent_id` tree).
 
-### 7.4 Related Permissions
+`getMyPermissions()` returns a nested boolean map exposed on `GET users/me` (`UserResource`).
 
-Granting certain permissions auto-includes others:
-- `sales_order_access` → also grants `user_access`, `payment_access`, `invoice_access`, `order_access` and their sub-permissions
-- See `PermissionsHelper::getRelatedPermissions()` for full mapping
+**Adding a permission**: add it to `adminPermissions()`, run `php artisan db:seed --class=PermissionSeeder`, then reference it in the controller middleware.
 
-### 7.5 Admin Override
+### 7.4 Enforcement
 
-In `AuthServiceProvider::boot()`:
+Warehouse controllers declare Spatie middleware in `__construct()` (after `parent::__construct()`):
+
 ```php
-Gate::before(function ($user, $ability) {
-    if ($user->hasRole('admin')) return true;
-});
+$this->middleware('permission:receive_order_read', ['only' => ['index', 'show']]);
+$this->middleware('permission:receive_order_create', ['only' => 'store']);
+```
+
+There are no policies, no `$this->authorize()`, no `can:` route middleware. `abort_if(!tokenCan(...))` calls that remain are no-ops (all warehouse tokens are `['*']`).
+
+Gaps (protected only by `ability:warehouse`): `SalesOrderController` (all middleware commented out), `SalesOrderItemController`, `StockOpnameItemController`, `TemporaryStockController`, `ExportController`, `StockHistoryController`, `OrderDetailController`; several controllers guard only writes, not `index`/`show`. See `SECURITY_FINDINGS.md`.
+
+### 7.5 Related Permissions
+
+When a role is saved, `RoleController` → `PermissionService::getPermissionNames($ids)` adds `PermissionsHelper::getRelatedPermissions()` (e.g. `sales_order_access` → `product_unit_read`, `warehouse_read`, `user_access`, payment/invoice/order groups; `delivery_order_access` → `sales_order_read` + payment; `user_access` → `role_read`) then `syncPermissions()` and `cache()->flush()`.
+
+### 7.6 Admin Override
+
+```php
+// AuthServiceProvider::boot()
+Gate::before(fn ($user, $ability) => $user->hasRole('admin') ? true : null);
+```
+Admin = Spatie role `admin` (seeded by `AdminSeeder`), which also bypasses `Tenanted`. The `UserType::Admin` type alone does not grant this.
+
+### 7.7 Loyalty Admin Permissions
+
+Separate, space-separated names from `LoyaltyPermissionSeeder`: `manage loyalty points`, `manage prizes`, `review redemptions`, `manage brands`, `manage customers`, `review claims`; roles `loyalty manager`, `loyalty reviewer`, `loyalty prize manager`, `loyalty fulfillment`. Controllers under `Api/Admin/Loyalty/` use:
+
+```php
+private const PERMISSION = 'manage prizes';
+// first line of every action:
+if ($denied = $this->denyUnlessAuthorized($request)) return $denied;
 ```
 
 ---
 
-## 8. Enums (bensampo/laravel-enum)
+## 8. Enums (bensampo/laravel-enum, `app/Enums/`)
 
-**Always use these enums, never hardcode string values.**
+**Always use these enums, never hardcode string values.** Constants are PascalCase or UPPER (e.g. `UserType::Spg`, `CompanyEnum::PAS`); compare with `->is(...)`.
 
-| Enum | Values | Used In |
-|------|--------|---------|
-| `CompanyEnum` | `pas`, `pa` | Product, SalesOrder, DeliveryOrder |
-| `UserType` | `admin`, `reseller`, `customer`, `dealer`, `customer_event`, `spg` | User |
-| `SalesOrderType` | `default`, `delivery`, `pickup`, `free` | SalesOrder, Order |
-| `PaymentType` | `cash`, `transfer`, `credit_card`, `qris` | Payment |
-| `DiscountType` | `nominal`, `percentage` | VoucherCategory, SalesOrder |
-| `SettingEnum` | `so_number`, `do_number`, `tax_value`, `bank_name`, `bank_holder`, `bank_account` | Setting |
+| Enum | Values | Notes |
+|------|--------|-------|
+| `CompanyEnum` | `pas`, `pa` | `invoiceNumberFormat()` |
+| `DocumentType` | `so`, `do` | Numbering scope |
+| `UserType` | `admin`, `reseller`, `customer`, `dealer`, `customer_event`, `spg` | Resellers get a `UserDiscount` per brand on create |
+| `SalesOrderType` | `default`, `delivery`, `pickup`, `free` | |
+| `Marketplace` | `blibli`, `shopee`, `tokopedia` | Marketplace SOs / merge |
+| `PaymentType` | `cash`, `transfer`, `credit_card`, `qris` | |
+| `DiscountType` | `nominal`, `percentage` | |
+| `SettingEnum` | `so_number`, `do_number`, `tax_value`, `bank_name`, `bank_holder`, `bank_account` | `getValueType()` |
 | `BatchSource` | `upload`, `import` | VoucherGenerateBatch |
-| `ImportType` | `voucher` | Import routing |
+| `ImportType` | `voucher` | `getImporter()`, `getExporter()`, `getModel()` |
 
 ---
 
 ## 9. Coding Conventions
 
-### 9.1 Model Patterns
+### 9.1 Models
 
 ```php
-// Typical model structure:
 class SalesOrder extends Model
 {
-    use HasFactory, SoftDeletes, Tenanted, FilterStartEndDate;
+    use FilterStartEndDate, Tenanted;          // SalesOrder/DeliveryOrder/ReceiveOrder have no SoftDeletes
 
     protected $casts = [
-        'type' => SalesOrderType::class,  // Enum casting
-        'raw_source' => 'array',           // JSON casting
+        'type' => SalesOrderType::class,
+        'raw_source' => 'array',
     ];
 
-    // boot() for side effects (auto-numbering, defaults)
-    protected static function boot() { ... }
-
-    // Relationships
-    public function details() { return $this->hasMany(SalesOrderDetail::class); }
-
-    // Scopes
-    public function scopeTenanted($query) { ... }
-}
-```
-
-### 9.2 Controller Patterns
-
-```php
-// apiResource for standard CRUD
-Route::apiResource('sales-orders', SalesOrderController::class);
-
-// Nested resources for related entities
-Route::get('receive-orders/{receiveOrder}/details', ...);
-Route::post('receive-orders/{receiveOrder}/details', ...);
-
-// Custom actions as separate routes
-Route::put('receive-orders/{receiveOrder}/done', ...);
-Route::post('delivery-orders/{deliveryOrder}/verification/{deliveryOrderDetail}', ...);
-```
-
-### 9.3 Request Validation
-
-- Use Form Request classes in `app/Http/Requests/Api/`
-- Nested request classes for complex validation
-- `RequestToBoolean` trait for boolean conversion
-
-### 9.4 Event/Listener Pattern
-
-```php
-// Event (simple class with public properties)
-class VerifiedROEvent { public function __construct(public ReceiveOrder $receiveOrder) {} }
-
-// Listener (queued for heavy operations)
-class CreateStockROListener implements ShouldQueue { ... }
-
-// Registration in EventServiceProvider::$listen
-```
-
-### 9.5 Service Pattern
-
-```php
-// Services in app/Services/
-class SalesOrderService
-{
-    public function createOrder(array $data): SalesOrder
+    protected static function booted(): void   // hooks live in booted(), not boot()
     {
-        return app(Pipeline::class)
-            ->send(new SalesOrder)
-            ->through([...pipes])
-            ->thenReturn();
+        static::creating(function (self $model) { /* defaults, user_id, numbering */ });
     }
 }
 ```
+- Only `User`, `SocialAccount`, `TemporaryStock` and `Loyalty/*` models use `HasFactory`; factories for other models exist and are used via `XFactory::new()`.
+- Event discovery is off — register new events in `EventServiceProvider::$listen`.
+
+### 9.2 Controllers
+
+- Extend `App\Http\Controllers\Controller`, call `parent::__construct()`. It provides `$this->per_page` (`?per_page`, default 15) and `createdResponse()`, `updatedResponse()`, `deletedResponse()`, `errorResponse($msg, $data, $code = 500)`.
+- Index endpoints: `QueryBuilder::for(Model::tenanted()->...)->allowedFilters([...])->allowedSorts([...])->allowedIncludes([...])->paginate($this->per_page)` → `XResource::collection(...)`. Date range via `AllowedFilter::scope('start_date')` (`FilterStartEndDate`).
+- Responses: API Resources (`app/Http/Resources/`, generic passthrough `DefaultResource`) or `response()->json(...)`. Business-rule errors: `response()->json(['message' => '...'], 400)` in Indonesian.
+- Routes: `apiResource` for CRUD, nested `{parent}/details` groups, custom actions as separate routes (`done`, `verify`, `verification`, `attach`, `print`, `export-xml`, `restore`, `force-delete`). Custom routes are declared **before** the `apiResource` line when they share a prefix.
+- Exceptions (`app/Exceptions/Handler.php`, JSON requests): `ModelNotFoundException` → 404 "Data tidak ditemukan!", 403 → `{"message": ...}`, 401 "Unauthenticated.", validation → default 422.
+
+### 9.3 Request Validation
+
+- Form Requests in `app/Http/Requests/Api/`. Flat files: `{Entity}{Action}Request` (`SalesOrderStoreRequest`); domain subfolders use generic names (`Payment/StoreRequest`, `Voucher/StoreRequest`, `VoucherGenerateBatch/StoreRequest`); loyalty: `Loyalty/Loyalty*Request`, `Loyalty/Admin/{Verb}{Noun}Request`.
+- `authorize()` returns `true` or is omitted — authorization is the controller middleware's job.
+- Booleans: `use RequestToBoolean` (`app/Traits/Requests/RequestToBoolean.php`) and normalize in `prepareForValidation()` with `$this->merge([... => $this->toBoolean(...)])`.
+- Custom rules in `app/Rules/`: `TenantedRule`, `UniqueInvoiceNumber` (ignores soft-deleted, supports ignore id), `PhoneRule`, `StringRule`. Enum validation via bensampo `EnumValue`.
+
+### 9.4 Events / Listeners
+
+```php
+class VerifiedROEvent { public function __construct(public ReceiveOrder $receiveOrder) { /* also captures auth user */ } }
+class CreateStockROListener implements ShouldQueue { ... }
+```
+Queued listeners run without an HTTP request — don't rely on `auth()` / `request()` inside them; capture what you need in the event.
+
+### 9.5 Services
+
+`app/Services/` classes use **static** methods:
+
+| Service | Purpose |
+|---------|---------|
+| `SalesOrderService` | `createOrder`/`updateOrder` pipelines, `index`/`show`, `verifyStockItem`, `releaseScannedStock`, `countFulfilledQty`, `print`, `exportXml`, `getSoNumber` (IIPE), marketplace merge |
+| `DeliveryOrderService` | Marketplace DO creation, `attachDetails`, locking lines with scanned stock, DO delete with items |
+| `NumberingService` | `enabled()`, `next(CompanyEnum, DocumentType)`, `format()` |
+| `PermissionService` | Permission IDs → names incl. related permissions |
+| `SettingService` | `bankTransferInfo()` |
 
 ---
 
@@ -468,94 +451,54 @@ class SalesOrderService
 
 ### 10.1 Models
 
-| Model | Path |
-|-------|------|
-| User | `app/Models/User.php` |
-| Warehouse | `app/Models/Warehouse.php` |
-| Product | `app/Models/Product.php` |
-| ProductUnit | `app/Models/ProductUnit.php` |
-| StockProductUnit | `app/Models/StockProductUnit.php` |
-| Stock | `app/Models/Stock.php` |
-| StockHistory | `app/Models/StockHistory.php` |
-| ReceiveOrder | `app/Models/ReceiveOrder.php` |
-| ReceiveOrderDetail | `app/Models/ReceiveOrderDetail.php` |
-| SalesOrder | `app/Models/SalesOrder.php` |
-| SalesOrderDetail | `app/Models/SalesOrderDetail.php` |
-| SalesOrderItem | `app/Models/SalesOrderItem.php` |
-| DeliveryOrder | `app/Models/DeliveryOrder.php` |
-| DeliveryOrderDetail | `app/Models/DeliveryOrderDetail.php` |
-| StockOpname | `app/Models/StockOpname.php` |
-| AdjustmentRequest | `app/Models/AdjustmentRequest.php` |
-| Payment | `app/Models/Payment.php` |
-| Voucher | `app/Models/Voucher.php` |
-| LoyaltyUser | `app/Models/Loyalty/LoyaltyUser.php` |
-| Claim | `app/Models/Loyalty/Claim.php` |
-| Prize | `app/Models/Loyalty/Prize.php` |
-| Redemption | `app/Models/Loyalty/Redemption.php` |
-| PointsTransaction | `app/Models/Loyalty/PointsTransaction.php` |
+`app/Models/` (warehouse) and `app/Models/Loyalty/` (LoyaltyUser, Claim, ClaimLineItem, ClaimPhoto, PointsTransaction, Prize, PrizeCategory, Redemption).
 
 ### 10.2 Controllers
 
-All API controllers: `app/Http/Controllers/Api/`
+| Folder | Contents |
+|--------|----------|
+| `app/Http/Controllers/Api/` | Warehouse controllers |
+| `Api/Admin/` | `ProductUnitPointsController` |
+| `Api/Admin/Loyalty/` | Loyalty admin: `ClaimReview`, `RedemptionReview`, `PrizeManagement`, `PrizeCategoryManagement`, `CustomerManagement`, `BrandManagement`, `ProductUnitSearch`, `Me` |
+| `Api/Loyalty/`, `Api/Loyalty/Auth/` | Loyalty customer endpoints (several single-action `__invoke`) |
+| `Api/Public/` | `StockVerificationController` |
 
-Key controllers:
-- `SalesOrderController.php` — SO CRUD + print + export
-- `DeliveryOrderController.php` — DO CRUD + verification + return + print
-- `ReceiveOrderController.php` — RO CRUD + done
-- `ReceiveOrderDetailController.php` — RO detail CRUD + verify
-- `StockController.php` — Stock management (15+ custom actions)
-- `StockOpnameController.php` — Opname CRUD + scan + done
-- `AdjustmentRequestController.php` — Adjustment CRUD + approve
-- `InvoiceController.php` — Invoice export + bill + PDF
-- `PaymentController.php` — Payment CRUD
+Notable action owners:
+- `SalesOrderController` — CRUD, `merge`, `productUnits`/`productUnitsNew`, `items`, `verification`, `print`, `exportXml`
+- `DeliveryOrderController` — CRUD, `attach`, `verification`, `done`, `return`, `print`, `exportXml`, `getDoBySoDetail`
+- `ReceiveOrderController` (`done`), `ReceiveOrderDetailController` (`verify`)
+- `StockController` — 15+ stock actions; `StockTransferController` — `transfer`
+- `StockOpnameController` (`done`, `setDone`), `StockOpnameDetailController` (`scan`)
+- `AdjustmentRequestController` (`approve`), `InvoiceController`, `OrderController` (`convertSalesOrder`), `PaymentController` (`restore`, `forceDelete`), `DocumentCounterController`
 
-### 10.3 Services & Pipes
+### 10.3 Pipes
 
-| File | Purpose |
-|------|---------|
-| `app/Services/SalesOrderService.php` | SO creation/update pipeline orchestration |
-| `app/Services/PermissionService.php` | Permission resolution |
-| `app/Services/SettingService.php` | Bank transfer info |
-| `app/Pipes/Order/FillOrderAttributes.php` | Pipeline step 1 |
-| `app/Pipes/Order/FillOrderRecords.php` | Pipeline step 2 |
-| `app/Pipes/Order/MakeOrderDetails.php` | Pipeline step 3 |
-| `app/Pipes/Order/CalculateAutoDiscount.php` | Pipeline step 4 |
-| `app/Pipes/Order/CalculateVoucher.php` | Pipeline step 5 |
-| `app/Pipes/Order/CalculateAdditionalDiscount.php` | Pipeline step 6 |
-| `app/Pipes/Order/CalculateAdditionalFees.php` | Pipeline step 7 |
-| `app/Pipes/Order/CheckExpectedOrderPrice.php` | Pipeline step 8 |
-| `app/Pipes/Order/SaveOrder.php` | Pipeline step 9 |
-| `app/Pipes/Order/UpdateOrder.php` | Update pipeline step 9 |
+`app/Pipes/Order/`: `FillOrderAttributes`, `FillOrderRecords`, `NormalizeLockedOrderItems`, `MakeOrderDetails`, `CalculateAutoDiscount`, `CalculateVoucher`, `CalculateAdditionalDiscount`, `CalculateAdditionalFees`, `CheckExpectedOrderPrice`, `SaveOrder`, `UpdateOrder`. `app/Pipes/Order/Spg/`: `SaveOrder`, `ConvertToSO`.
 
-### 10.4 Events & Listeners
+### 10.4 Events & Listeners (`EventServiceProvider::$listen`)
 
-| Event | Listener | Trigger |
-|-------|----------|---------|
-| `VerifiedROEvent` | `CreateStockROListener` | ReceiveOrder is_done → true |
-| `UnverifiedROEvent` | `DeleteStockROListener` | ReceiveOrder is_done → false / delete |
-| `ProductUnitCreated` | `CreateStockProductUnit` | ProductUnit created (refer_id = null) |
-| `StockOpnameCreated` | `CreateStockOpnameDetail` | StockOpname created |
-| `StockOpnameDetailCreated` | `CreateStockOpnameItems` | StockOpnameDetail created |
-| `LoyaltyUserRegistered` | `SendLoyaltyVerificationEmail` | LoyaltyUser created |
+| Event | Listener | Queued | Trigger |
+|-------|----------|--------|---------|
+| `VerifiedROEvent` | `CreateStockROListener` | yes | ReceiveOrder `is_done` → true |
+| `UnverifiedROEvent` | `DeleteStockROListener` | yes | ReceiveOrder `is_done` → false / deleting |
+| `ProductUnitCreated` | `ProductUnits\CreateStockProductUnit` | yes | ProductUnit created (`refer_id` null) |
+| `StockOpnameCreated` | `Stocks\CreateStockOpnameDetail` | yes | StockOpname created |
+| `StockOpnameDetailCreated` | `Stocks\CreateStockOpnameItems` | yes | StockOpnameDetail created |
+| `LoyaltyUserRegistered` | `Loyalty\SendLoyaltyVerificationEmail` | **no** | LoyaltyUser registered |
 
-### 10.5 Enums
+No observers. Loyalty mails (`app/Mail/Loyalty/`) are sent synchronously.
 
-All enums: `app/Enums/`
+### 10.5 Other
 
-### 10.6 Traits
-
-| Trait | Path | Purpose |
-|-------|------|---------|
-| Tenanted | `app/Traits/Tenanted.php` | Warehouse-scoped queries |
-| CustomSoftDeletes | `app/Traits/CustomSoftDeletes.php` | Soft deletes with `deleted_by` |
-| FilterStartEndDate | `app/Traits/FilterStartEndDate.php` | Date range filtering |
-
-### 10.7 Helpers
-
-| Helper | Path | Purpose |
-|--------|------|---------|
-| Helper | `app/Helpers/Helper.php` | `rupiah()` formatting |
-| PermissionsHelper | `app/Helpers/PermissionsHelper.php` | Permission tree, related permissions |
+| What | Where |
+|------|-------|
+| Traits | `app/Traits/` — `Tenanted`, `CustomSoftDeletes`, `FilterStartEndDate`, `Requests/RequestToBoolean` |
+| Helpers | `app/Helpers/` — `Helper::rupiah()`, `PermissionsHelper`, `ContentDispositionHelper` (export filenames) |
+| Rules | `app/Rules/` |
+| Jobs | `app/Jobs/GenerateStockQrcode` (creates Stock rows; QR image generation commented out) |
+| Exports / Imports | `app/Exports/`, `app/Imports/` (`StockImport`, `VoucherImport`, seeder imports) |
+| Loyalty support | `app/Support/Loyalty/LoyaltySignedUrl`, `config/loyalty.php` |
+| Console | No custom artisan commands; schedule is empty |
 
 ---
 
@@ -563,55 +506,46 @@ All enums: `app/Enums/`
 
 ### 11.1 QR/ULID System
 
-- `stocks.id` is a ULID (26-character Crockford base32)
-- This ULID IS the QR code payload / serial number
-- QR code PNG generation to S3 is currently commented out
-- QR images appear to be rendered client-side
-- Stock grouping: parent-child via `stocks.parent_id`
+- `stocks.id` is a ULID — it is the QR payload / serial number. QR images are rendered client-side (S3 QR generation is commented out).
+- Grouping via `stocks.parent_id` (see §5.10).
 
-### 11.2 Auto-Numbering
+### 11.2 Document Numbering
 
-Gated by `config('app.enable_document_counter')` (`ENABLE_DOCUMENT_COUNTER`), read through
-`NumberingService::enabled()`.
+Gated by `config('app.enable_document_counter')` (`ENABLE_DOCUMENT_COUNTER`, default `false`), read through `NumberingService::enabled()`. Baked into config cache — run `php artisan config:cache` after changing it.
 
-| Document | Format | Example | Counter |
-|----------|--------|---------|---------|
-| Sales Order | `PAS/SO/MM/YY/NN` | `PAS/SO/05/26/01` | `document_counters` (`pas/so`, `pa/so`) |
-| Delivery Order | `PAS/DO/MM/YY/NN` | `PAS/DO/05/26/01` | `document_counters` (`pas/do`, `pa/do`) |
+| Company | SO | DO |
+|---------|----|----|
+| `pas` | `PAS/SO/MM/YY/NN` | `PAS/DO/MM/YY/NN` |
+| `pa` | `SO/PA/MM/YY/NN` (type first) | `DO/PA/MM/YY/NN` |
 
-- **Flag on**: numbers are reserved in `SalesOrder` / `DeliveryOrder` `creating` hooks via
-  `NumberingService::next()`; counter row is locked with `lockForUpdate`, sequence resets monthly.
-- **Flag off**: numbers are entered manually and `invoice_no` becomes **required** on store
-  (422 when missing); `GET`/`PUT /document-counters` return **404**.
-- Marketplace merge takes both numbers manually when the flag is off (`invoice_no` +
-  `delivery_order_invoice_no`, must differ) and ignores them when the flag is on.
-- The `/invoices` (IIPE) path is separate and always uses `getSoNumber()`.
-- Default is `false`, and the value is baked into the config cache — changing it needs
-  `php artisan config:cache`.
+- Counter row in `document_counters`, scoped per company + document type + period `Y-m` (resets monthly), upsert + `lockForUpdate` inside a transaction; sequence padded to ≥ 2 digits.
+- **Flag on**: reserved in `SalesOrder` (only when `!is_invoice`, `invoice_no` empty, `company` set) and `DeliveryOrder` `creating` hooks.
+- **Flag off**: `invoice_no` is entered manually and **required** on store (422 when missing); `GET`/`PUT /document-counters` return 404.
+- Marketplace merge takes both numbers manually when the flag is off (`invoice_no` + `delivery_order_invoice_no`, must differ) and ignores them when on.
+- **IIPE** (`/invoices`, SPG convert-so): `SalesOrderService::getSoNumber()` — `FORMAT_INVOICE_NO` (`IIPE-%s/%s/%s/%s/%s` = Y/m/d/NNNN/warehouse code), daily per warehouse, starting at `START_INVOICE_NO`. **No lock** (race-prone).
 
 ### 11.3 Stock Tracking Dual Model
 
-| Type | Flag | Tracking Method |
-|------|------|----------------|
-| QR items | `is_generate_qr = true` | Individual `Stock` rows (count available stocks) |
-| Non-QR items | `is_generate_qr = false` | `StockProductUnit.qty` integer |
+| Type | Flag | Tracking |
+|------|------|----------|
+| QR items | `is_generate_qr = true` | Individual `Stock` rows |
+| Non-QR items | `is_generate_qr = false` | `StockProductUnit.qty` |
+
+Every stock change writes a polymorphic `StockHistory` explicitly via `$model->histories()->create([...])` (`model_type`/`model_id` = ReceiveOrderDetail, SalesOrderDetail, StockOpnameDetail, AdjustmentRequest, StockTransfer, StockProductUnit).
 
 ### 11.4 File Storage
 
-- AWS S3 for all file uploads
-- Used by: Payment media, Brand logos, Loyalty claim photos, Prize photos
-- Spatie Media Library for payment attachments
+S3 (`FILESYSTEM_DISK=s3`) for payment media (Spatie Media Library), brand logos, prize photos, and loyalty claim photos (default disk, under `loyalty/claims/{ulid}/`). Tests fake these with `Storage::fake('s3')` / `Storage::fake('local')`.
 
-### 11.5 Price Calculation Rules
+### 11.5 Price Calculation
 
-1. Base price = sum of (unit_price × qty) across all details
-2. Auto discount: percentage applied if order exceeds threshold
-3. Voucher discount: NOMINAL (fixed) or PERCENTAGE
-4. Additional discount: percentage or nominal
-5. Price floor: all discounts use `max(..., 0)` to prevent negatives
-6. Shipment fee: added last
-7. Tax: 11% PPN per-item when `is_ppn = true`
-8. Total price validation: BE recalculates and compares to FE-submitted total
+1. Base price = sum of FE-submitted line totals (`MakeOrderDetails`)
+2. Auto discount (tiers currently empty)
+3. Vouchers (`voucher_codes[]`, sequential, NOMINAL or PERCENTAGE, each capped at current price)
+4. Additional discount (% or nominal); all discounts floor at 0
+5. Shipment fee added last
+6. `tax` stored per line (11 or 0 when `is_ppn`) but **not** added to `price` by the pipeline
+7. `CheckExpectedOrderPrice` compares against the FE total when provided
 
 ---
 
@@ -619,77 +553,80 @@ Gated by `config('app.enable_document_counter')` (`ENABLE_DOCUMENT_COUNTER`), re
 
 ### Do's
 
-- **DO** use the `Tenanted` trait on any new model that should be warehouse-scoped
-- **DO** use enum classes (`CompanyEnum`, `UserType`, etc.) instead of hardcoded strings
-- **DO** use `lockForUpdate` when generating sequential numbers
-- **DO** check `is_generate_qr` before stock operations
-- **DO** use SoftDeletes on new business entity models
-- **DO** create Form Request classes for validation
-- **DO** use Spatie Query Builder for filtering/sorting in index endpoints
-- **DO** use events/listeners for side effects (stock creation, notifications)
-- **DO** check existing patterns in nearby files before writing new code
+- **DO** read nearby code for the flow you're touching — conventions vary between older and newer modules.
+- **DO** query warehouse-scoped data through `tenanted()` / `findTenanted()` and validate IDs with `TenantedRule`.
+- **DO** use enum classes instead of hardcoded strings.
+- **DO** use `NumberingService` (or `lockForUpdate`) for any sequential number.
+- **DO** branch on `is_generate_qr` for every stock operation and write a `StockHistory` row for every stock change.
+- **DO** add permissions to `PermissionsHelper::adminPermissions()` and guard new controller actions with `permission:` middleware.
+- **DO** create Form Request classes for validation and Spatie Query Builder for index endpoints.
+- **DO** use `Schema::hasColumn` / `hasTable` guards in alter migrations.
+- **DO** write user-facing messages in Indonesian, matching existing ones.
 
 ### Don'ts
 
-- **DON'T** hardcode warehouse IDs in queries or logic
-- **DON'T** hardcode string values for enum fields
-- **DON'T** skip the `Tenanted` trait on warehouse-scoped queries
-- **DON'T** create Stock records directly — use events/listeners
-- **DON'T** store points balance — always compute from `points_transactions`
-- **DON'T** use `loyalty_users` table for warehouse staff or vice versa
-- **DON'T** commit secrets or API keys
-- **DON'T** add comments unless explicitly asked
-- **DON'T** create new files without checking existing patterns first
+- **DON'T** hardcode warehouse IDs or enum string values.
+- **DON'T** invent a new stock-mutation path — reuse the existing one for the flow (RO listeners, adjustment approve, DO verification/done, transfer, opname).
+- **DON'T** store loyalty points balance — compute from `points_transactions`.
+- **DON'T** mix `loyalty_users` and `users`.
+- **DON'T** build on `Order`/`OrderDetail` models or the `orders` table.
+- **DON'T** run `migrate:fresh` / `db:wipe` against the dev database, or enable lines in `DatabaseSeeder` (intentionally empty — seed with `--class`).
+- **DON'T** commit secrets or API keys.
+- **DON'T** add comments unless explicitly asked.
 
 ---
 
-## 13. Existing Documentation
+## 13. Known Code Issues (don't rely on these; fix only when asked)
 
-| File | Content |
-|------|---------|
-| `BACKEND_AUDIT.md` | Comprehensive technical audit (782 lines) — tech stack, database schema, API surface, QR/serial format, operational status |
-| `LOYALTY_SPEC.md` | Loyalty program specification (597 lines) — user stories, data model, state machines, API endpoints, fraud rules, phasing |
-| `SECURITY_FINDINGS.md` | Security findings (111 lines) — permission bypasses, middleware mismatches, plaintext tokens, unscoped OAuth |
-| `task.md` | Original project description (Indonesian) requesting this file's creation |
+- `POST api/auth/register` (`AuthController::register`) is unauthenticated and currently soft-deletes every ProductUnit without stock, then `exit()`s.
+- `AuthController::token` accepts `config('app.bypass_password')` as a master password.
+- `DeleteStockROListener`: decrements `qty` only when `is_generate_qr` is true (inverted), deletes QR dir without the `qrcode/` prefix; the RO `deleting` hook queues an event for a model that is about to disappear.
+- `TransferStockRequest`: `stock_ids` is `required`, which blocks the non-QR transfer path.
+- `DeliveryOrderDetailController` middleware lists `'reset'` but the method is `resetVerifiedStock`; `PaymentController`/`VoucherCategoryController` `['only' => 'destroy', 'forceDelete', 'restore']` protects only `destroy`.
+- `getSoNumber()` (IIPE) has no lock.
+- `Feature/ExampleTest` fails (`/` redirects to the company site).
+- Full list of security items: `SECURITY_FINDINGS.md`.
 
 ---
 
 ## 14. Running the Application
 
 ```bash
-# Install dependencies
 composer install
-npm install
-
-# Environment setup
-cp .env.example .env
-php artisan key:generate
-
-# Database
+cp .env.example .env && php artisan key:generate
 php artisan migrate
-php artisan db:seed
+php artisan db:seed --class=PermissionSeeder        # DatabaseSeeder is intentionally empty
+php artisan db:seed --class=AdminSeeder
+php artisan db:seed --class=LoyaltyPermissionSeeder
 
-# Development
-php artisan serve          # Start dev server
-php artisan queue:work     # Process queued jobs (Redis)
-php artisan queue:listen   # Alternative queue worker
+php artisan serve
+php artisan queue:work            # Redis; listeners for RO/opname/product units are queued
 
-# Testing
-php artisan test           # Run PHPUnit tests
+php artisan test                                   # needs MySQL DB `platinum_event_test` (forced in phpunit.xml)
+php artisan test --filter=NumberingTest            # single class
+php artisan test --filter='NumberingTest::test_x'  # single method
+php artisan test tests/Feature/Loyalty             # directory
 
-# Code style
-./vendor/bin/pint          # Laravel Pint (code formatting)
-
-# Build
-npm run build              # Vite build
+./vendor/bin/pint path/to/File.php   # format only files you touched (some files are not Pint-clean)
+./vendor/bin/pint --dirty            # or all uncommitted changes
 ```
 
 ---
 
-## 15. Frontend CORS Allowlist
+## 15. Frontend CORS Allowlist (`config/cors.php`)
 
-The following frontend domains are allowed:
-- `bejo.platinumadisentosa.com` (production)
-- `platinum-warehouse.vercel.app`
-- `platinum-warehouse-beta.vercel.app`
-- `bejo-platinum-product-verify.vercel.app` (QR verification)
+Hardcoded: `bejo.platinumadisentosa.com`, `platinum-warehouse.vercel.app`, `platinum-warehouse-beta.vercel.app`, `bejo-platinum-product-verify.vercel.app`, `platinum-verify-frontend.vercel.app`, `verify.platinumadisentosa.com`, `localhost`/`127.0.0.1` on ports 8000 and 3000. Env-driven: `CORS_VERIFY_ORIGIN_1`, `CORS_VERIFY_ORIGIN_2` (e.g. `cek.platinumadisentosa.com`). Exposes `Content-Disposition`.
+
+---
+
+## 16. Existing Documentation
+
+| File | Content |
+|------|---------|
+| `PRD.md` | Full product requirements (WMS + Loyalty v1) |
+| `BACKEND_AUDIT.md` | Technical audit — stack, schema, API surface, QR/serial format, public verify endpoint |
+| `LOYALTY_SPEC.md` | Loyalty spec — user stories, data model, state machines, endpoints, fraud rules |
+| `SECURITY_FINDINGS.md` | Logged-but-unfixed security findings |
+| `docs/tasks/invoices/**` | Invoice QR scan PRD, auto-discount, voucher flow/PRDs (multiple vouchers) |
+| `docs/tasks/stock/stock-transfer/**` | Stock transfer FE PRD + backend flow v1–v3 (v3 current) |
+| `task.md` | Original project brief (Indonesian) |
