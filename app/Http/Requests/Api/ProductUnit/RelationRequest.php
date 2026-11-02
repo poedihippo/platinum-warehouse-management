@@ -4,7 +4,7 @@ namespace App\Http\Requests\Api\ProductUnit;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ProductUnitRelationRequest extends FormRequest
+class RelationRequest extends FormRequest
 {
     /**
      * Prepare inputs for validation.

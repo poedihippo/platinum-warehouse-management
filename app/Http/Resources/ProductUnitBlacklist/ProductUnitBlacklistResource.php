@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources\ProductUnitBlacklist;
 
-use App\Http\Resources\ProductUnitResource;
+use App\Http\Resources\ProductUnit\ProductUnitResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class ProductUnitBlacklistResource extends JsonResource

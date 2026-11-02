@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Api;
+namespace App\Http\Requests\Api\ProductUnit;
 
 use App\Enums\CompanyEnum;
 use App\Models\Product;
@@ -8,7 +8,7 @@ use App\Rules\EnumValue;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 
-class ProductUnitChangeProductRequest extends FormRequest
+class ChangeProductRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.

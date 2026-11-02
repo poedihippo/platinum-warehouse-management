@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\ProductUnit\ProductUnitResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class ProductUnitStockResourceBackup extends JsonResource

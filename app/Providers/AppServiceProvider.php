@@ -7,9 +7,11 @@ use App\Http\Repositories\Permission\PermissionRepository;
 use App\Http\Repositories\Product\ProductRepository;
 use App\Http\Repositories\ProductBrand\ProductBrandRepository;
 use App\Http\Repositories\ProductCategory\ProductCategoryRepository;
+use App\Http\Repositories\ProductUnit\ProductUnitRepository;
 use App\Http\Repositories\ProductUnitBlacklist\ProductUnitBlacklistRepository;
 use App\Http\Repositories\Role\RoleRepository;
 use App\Http\Repositories\Setting\SettingRepository;
+use App\Http\Repositories\Stock\StockRepository;
 use App\Http\Repositories\Supplier\SupplierRepository;
 use App\Http\Repositories\Uom\UomRepository;
 use App\Http\Repositories\User\UserRepository;
@@ -23,9 +25,11 @@ use App\Http\Services\Permission\PermissionService;
 use App\Http\Services\Product\ProductService;
 use App\Http\Services\ProductBrand\ProductBrandService;
 use App\Http\Services\ProductCategory\ProductCategoryService;
+use App\Http\Services\ProductUnit\ProductUnitService;
 use App\Http\Services\ProductUnitBlacklist\ProductUnitBlacklistService;
 use App\Http\Services\Role\RoleService;
 use App\Http\Services\Setting\SettingService;
+use App\Http\Services\Stock\StockService;
 use App\Http\Services\Supplier\SupplierService;
 use App\Http\Services\Uom\UomService;
 use App\Http\Services\User\UserService;
@@ -36,9 +40,11 @@ use App\Interfaces\Repositories\Permission\PermissionRepositoryInterface;
 use App\Interfaces\Repositories\Product\ProductRepositoryInterface;
 use App\Interfaces\Repositories\ProductBrand\ProductBrandRepositoryInterface;
 use App\Interfaces\Repositories\ProductCategory\ProductCategoryRepositoryInterface;
+use App\Interfaces\Repositories\ProductUnit\ProductUnitRepositoryInterface;
 use App\Interfaces\Repositories\ProductUnitBlacklist\ProductUnitBlacklistRepositoryInterface;
 use App\Interfaces\Repositories\Role\RoleRepositoryInterface;
 use App\Interfaces\Repositories\Setting\SettingRepositoryInterface;
+use App\Interfaces\Repositories\Stock\StockRepositoryInterface;
 use App\Interfaces\Repositories\Supplier\SupplierRepositoryInterface;
 use App\Interfaces\Repositories\Uom\UomRepositoryInterface;
 use App\Interfaces\Repositories\User\UserRepositoryInterface;
@@ -52,9 +58,11 @@ use App\Interfaces\Services\Permission\PermissionServiceInterface;
 use App\Interfaces\Services\Product\ProductServiceInterface;
 use App\Interfaces\Services\ProductBrand\ProductBrandServiceInterface;
 use App\Interfaces\Services\ProductCategory\ProductCategoryServiceInterface;
+use App\Interfaces\Services\ProductUnit\ProductUnitServiceInterface;
 use App\Interfaces\Services\ProductUnitBlacklist\ProductUnitBlacklistServiceInterface;
 use App\Interfaces\Services\Role\RoleServiceInterface;
 use App\Interfaces\Services\Setting\SettingServiceInterface;
+use App\Interfaces\Services\Stock\StockServiceInterface;
 use App\Interfaces\Services\Supplier\SupplierServiceInterface;
 use App\Interfaces\Services\Uom\UomServiceInterface;
 use App\Interfaces\Services\User\UserServiceInterface;
@@ -105,6 +113,11 @@ class AppServiceProvider extends ServiceProvider
         DocumentCounterRepositoryInterface::class => DocumentCounterRepository::class,
         DocumentCounterServiceInterface::class => DocumentCounterService::class,
         NumberingServiceInterface::class => NumberingService::class,
+
+        ProductUnitRepositoryInterface::class => ProductUnitRepository::class,
+        ProductUnitServiceInterface::class => ProductUnitService::class,
+        StockRepositoryInterface::class => StockRepository::class,
+        StockServiceInterface::class => StockService::class,
     ];
 
     /**

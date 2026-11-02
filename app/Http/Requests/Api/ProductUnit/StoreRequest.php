@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Requests\Api;
+namespace App\Http\Requests\Api\ProductUnit;
 
 use App\Traits\Requests\RequestToBoolean;
 use Illuminate\Foundation\Http\FormRequest;
 
-class ProductUnitUpdateRequest extends FormRequest
+class StoreRequest extends FormRequest
 {
     use RequestToBoolean;
 
@@ -16,18 +16,12 @@ class ProductUnitUpdateRequest extends FormRequest
      */
     protected function prepareForValidation()
     {
-        $data = [
+        $this->merge([
             'is_generate_qr' => isset($this->is_generate_qr) ? $this->toBoolean($this->is_generate_qr) : null,
             'is_ppn' => isset($this->is_ppn) ? $this->toBoolean($this->is_ppn) : null,
             'is_auto_stock' => isset($this->is_auto_stock) ? $this->toBoolean($this->is_auto_stock) : null,
             // 'is_auto_tempel' => $this->toBoolean($this->is_auto_tempel ?? 1),
-        ];
-
-        // if ($this->is_auto_stock) {
-        // // $data['is_auto_stock'] = $this->toBoolean($this->is_auto_stock);
-        // }
-
-        $this->merge($data);
+        ]);
     }
 
     /**
@@ -38,7 +32,7 @@ class ProductUnitUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'code' => 'required|unique:product_units,code,'.$this->product_unit?->id,
+            'code' => 'required|unique:product_units,code',
             'uom_id' => 'required|exists:uoms,id',
             'name' => 'required',
             // 'description' => 'required',

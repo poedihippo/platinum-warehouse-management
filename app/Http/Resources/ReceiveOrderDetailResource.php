@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\ProductUnit\ProductUnitResource;
 use App\Http\Resources\Uom\UomResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 

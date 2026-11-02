@@ -2,15 +2,22 @@
 
 namespace App\Http\Controllers\Api\Admin\Loyalty;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseController;
 use App\Http\Resources\Loyalty\AdminProductUnitSearchResource;
-use App\Models\ProductUnit;
-use Illuminate\Database\Eloquent\Builder;
+use App\Interfaces\Services\ProductUnit\ProductUnitServiceInterface;
+use App\Traits\Controllers\DeniesUnlessCan;
 use Illuminate\Http\Request;
 
-class ProductUnitSearchController extends Controller
+class ProductUnitSearchController extends BaseController
 {
+    use DeniesUnlessCan;
+
     private const PERMISSION = 'review claims';
+
+    public function __construct(private ProductUnitServiceInterface $service)
+    {
+        parent::__construct();
+    }
 
     /**
      * GET /api/admin/loyalty/product-units?q=...
@@ -22,66 +29,12 @@ class ProductUnitSearchController extends Controller
      */
     public function index(Request $request)
     {
-        if ($denied = $this->denyUnlessAuthorized($request)) {
+        if ($denied = $this->denyUnlessCan($request, self::PERMISSION, 'Anda tidak memiliki izin untuk meninjau klaim.')) {
             return $denied;
         }
 
-        $query = ProductUnit::with('product:id,name')
-            ->where('points_per_unit', '>', 0);
-
-        if ($request->filled('q')) {
-            $this->applyTokenSearch($query, $request->input('q'));
-        }
-
-        $units = $query->orderBy('name')->limit(20)->get();
+        $units = $this->service->searchForClaims($request->filled('q') ? $request->input('q') : null);
 
         return AdminProductUnitSearchResource::collection($units);
-    }
-
-    /**
-     * Matches the way admins actually read a product: the UI shows
-     * "{product.name} - {unit.name}", a string that exists in no single
-     * column, so a plain LIKE on the unit alone misses it.
-     *
-     * Every whitespace-separated token must match somewhere in
-     * (product.name OR unit.name OR unit.code) — an AND of ORs. That makes
-     * "CZ Aqua - CZ Bacta Extrem", "Bacta Extrem" and "CZM014" all land on
-     * the same row without special-casing the joined display string.
-     *
-     * Not ProductUnit::scopeSearch, which the points screen also uses.
-     */
-    private function applyTokenSearch(Builder $query, string $term): void
-    {
-        $tokens = preg_split('/\s+/', $term, -1, PREG_SPLIT_NO_EMPTY) ?: [];
-
-        foreach ($tokens as $token) {
-            // The separator in "CZ Aqua - CZ Bacta Extrem" is its own token
-            // and matches nothing, which would AND the whole result to empty.
-            if (! preg_match('/[\p{L}\p{N}]/u', $token)) {
-                continue;
-            }
-
-            $like = '%'.$token.'%';
-
-            $query->where(fn (Builder $q) => $q
-                ->where('product_units.name', 'like', $like)
-                ->orWhere('product_units.code', 'like', $like)
-                ->orWhereHas('product', fn (Builder $p) => $p->where('name', 'like', $like)));
-        }
-    }
-
-    /**
-     * Returns a 403 JSON response when the admin lacks the claims-review
-     * permission, else null. Mirrors ClaimReviewController.
-     */
-    private function denyUnlessAuthorized(Request $request)
-    {
-        if ($request->user()?->can(self::PERMISSION)) {
-            return null;
-        }
-
-        return response()->json([
-            'message' => 'Anda tidak memiliki izin untuk meninjau klaim.',
-        ], 403);
     }
 }

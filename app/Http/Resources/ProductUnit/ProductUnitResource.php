@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\ProductUnit;
 
+use App\Http\Resources\DefaultResource;
 use App\Http\Resources\Product\ProductResource;
 use App\Http\Resources\Uom\UomResource;
 use Illuminate\Http\Resources\Json\JsonResource;
