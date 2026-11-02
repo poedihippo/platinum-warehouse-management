@@ -2,12 +2,16 @@
 
 namespace Tests\Support;
 
+use App\Models\DeliveryOrder;
+use App\Models\DeliveryOrderDetail;
 use App\Models\Permission;
 use App\Models\Product;
 use App\Models\ProductBrand;
 use App\Models\ProductCategory;
 use App\Models\ProductUnit;
 use App\Models\Role;
+use App\Models\SalesOrder;
+use App\Models\SalesOrderDetail;
 use App\Models\Stock;
 use App\Models\StockHistory;
 use App\Models\StockProductUnit;
@@ -120,6 +124,62 @@ trait InteractsWithWarehouse
         $this->makeStocks($stockProductUnit, $children, ['parent_id' => $parent->id]);
 
         return $parent;
+    }
+
+    protected function makeSalesOrder(Warehouse $warehouse, array $lines, array $attributes = []): SalesOrder
+    {
+        $reseller = $this->makeUser(['type' => 'reseller', 'company' => 'pas']);
+        $salesOrder = SalesOrder::create(array_merge([
+            'is_invoice' => false,
+            'invoice_no' => 'SO/'.uniqid(),
+            'company' => 'pas',
+            'type' => 'default',
+            'user_id' => $reseller->id,
+            'reseller_id' => $reseller->id,
+            'warehouse_id' => $warehouse->id,
+            'transaction_date' => now(),
+            'shipment_estimation_datetime' => now(),
+            'price' => 0,
+            'additional_discount' => 0,
+            'auto_discount' => 0,
+            'shipment_fee' => 0,
+        ], $attributes));
+
+        foreach ($lines as [$productUnit, $qty]) {
+            SalesOrderDetail::create([
+                'sales_order_id' => $salesOrder->id,
+                'product_unit_id' => $productUnit->id,
+                'warehouse_id' => $warehouse->id,
+                'qty' => $qty,
+                'unit_price' => 1000,
+                'total_price' => 1000 * $qty,
+            ]);
+        }
+
+        return $salesOrder->load('details');
+    }
+
+    protected function makeDeliveryOrder(SalesOrder $salesOrder, array $attributes = []): DeliveryOrder
+    {
+        $deliveryOrder = DeliveryOrder::create(array_merge([
+            'invoice_no' => 'DO/'.uniqid(),
+            'company' => 'pas',
+            'warehouse_id' => $salesOrder->warehouse_id,
+            'reseller_id' => $salesOrder->reseller_id,
+            'sales_order_id' => $salesOrder->id,
+            'transaction_date' => now(),
+            'shipment_estimation_datetime' => now(),
+        ], $attributes));
+
+        foreach ($salesOrder->details as $detail) {
+            DeliveryOrderDetail::create([
+                'delivery_order_id' => $deliveryOrder->id,
+                'sales_order_detail_id' => $detail->id,
+                'qty' => $detail->qty,
+            ]);
+        }
+
+        return $deliveryOrder->load('details');
     }
 
     protected function histories(Model $subject): Collection
