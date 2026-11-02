@@ -33,7 +33,7 @@ class StockProductUnitRepository extends BaseRepository implements StockProductU
                 ]),
             ])
             ->withCount(['stocks' => fn ($q) => $q->whereCountableStock()]))
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::exact('id'),
                 AllowedFilter::exact('warehouse_id'),
                 AllowedFilter::exact('product_unit_id'),
@@ -44,11 +44,11 @@ class StockProductUnitRepository extends BaseRepository implements StockProductU
                         ? $q->whereProductUnitQr(1)
                         : $q->whereProductUnitQr(0);
                 }),
-            ])
-            ->allowedSorts([
+            )
+            ->allowedSorts(
                 'id',
                 'created_at',
-            ])
+            )
             ->paginate($perPage);
     }
 }

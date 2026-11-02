@@ -52,11 +52,11 @@ class DeliveryOrderDetailService implements DeliveryOrderDetailServiceInterface
                         ]),
                 ])->where('delivery_order_id', $deliveryOrder->id)
         )
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::exact('delivery_order_id'),
                 AllowedFilter::exact('sales_order_detail_id'),
-            ])
-            ->allowedSorts(['id', 'delivery_order_id', 'sales_order_detail_id', 'created_at'])
+            )
+            ->allowedSorts('id', 'delivery_order_id', 'sales_order_detail_id', 'created_at')
             ->paginate($perPage);
     }
 
@@ -75,10 +75,10 @@ class DeliveryOrderDetailService implements DeliveryOrderDetailServiceInterface
                 ->where('delivery_order_detail_id', $deliveryOrderDetailId)
                 ->select(SalesOrderItem::SELECT_COLUMNS)
         )
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::exact('is_returned'),
                 AllowedFilter::exact('is_parent'),
-            ])
+            )
             ->paginate($perPage);
     }
 

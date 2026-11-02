@@ -23,14 +23,14 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
             ->allowedIncludes(AllowedInclude::callback('warehouses', function ($query) {
                 $query->select('id', 'code', 'name');
             }))
-            ->allowedFilters([
+            ->allowedFilters(
                 'email',
                 'phone',
                 'type',
                 AllowedFilter::exact('company'),
                 AllowedFilter::callback('name', fn ($q, $value) => $q->where(fn ($q) => $q->where('name', 'like', '%'.$value.'%')->orWhere('phone', 'like', '%'.$value.'%')->orWhere('code', 'like', '%'.$value.'%'))),
-            ])
-            ->allowedSorts(['name', 'email', 'phone', 'type'])
+            )
+            ->allowedSorts('name', 'email', 'phone', 'type')
             ->paginate($perPage);
     }
 

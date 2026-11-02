@@ -19,11 +19,11 @@ class VoucherGenerateBatchRepository extends BaseRepository implements VoucherGe
     public function paginateIndex(int $perPage): LengthAwarePaginator
     {
         return QueryBuilder::for(VoucherGenerateBatch::class)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::exact('user_id'),
-            ])
+            )
             ->allowedIncludes('user')
-            ->allowedSorts(['id', 'user_id', 'created_at'])
+            ->allowedSorts('id', 'user_id', 'created_at')
             ->paginate($perPage);
     }
 }

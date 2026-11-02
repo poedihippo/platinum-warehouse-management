@@ -20,7 +20,7 @@ class ReceiveOrderDetailRepository extends BaseRepository implements ReceiveOrde
     public function paginateForReceiveOrder(mixed $receiveOrderId, int $perPage): LengthAwarePaginator
     {
         return QueryBuilder::for(ReceiveOrderDetail::where('receive_order_id', $receiveOrderId))
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::scope('product_unit'),
                 AllowedFilter::callback('product_brand_id', function (Builder $query, $value) {
                     $query->whereHas('productUnit.product', fn ($q) => $q->where('product_brand_id', $value));
@@ -28,7 +28,7 @@ class ReceiveOrderDetailRepository extends BaseRepository implements ReceiveOrde
                 AllowedFilter::callback('product_category_id', function (Builder $query, $value) {
                     $query->whereHas('productUnit.product', fn ($q) => $q->where('product_category_id', $value));
                 }),
-            ])
+            )
             ->paginate($perPage);
     }
 }

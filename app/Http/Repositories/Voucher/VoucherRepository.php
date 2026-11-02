@@ -20,14 +20,14 @@ class VoucherRepository extends BaseRepository implements VoucherRepositoryInter
     public function paginateIndex(int $perPage): LengthAwarePaginator
     {
         return QueryBuilder::for(Voucher::class)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::exact('voucher_generate_batch_id'),
                 AllowedFilter::exact('voucher_category_id'),
                 'code',
                 AllowedFilter::callback('start_date', fn ($q, $v) => $q->where('start_date', '<=', $v)),
                 AllowedFilter::callback('end_date', fn ($q, $v) => $q->where('end_date', '>=', $v)),
-            ])
-            ->allowedIncludes([
+            )
+            ->allowedIncludes(
                 'voucherGenerateBatch',
                 AllowedInclude::callback('category', function ($query) {
                     $query->select('id', 'name', 'discount_type', 'discount_amount');
@@ -35,8 +35,8 @@ class VoucherRepository extends BaseRepository implements VoucherRepositoryInter
                 AllowedInclude::callback('salesOrders', function ($query) {
                     $query->select('id', 'invoice_no');
                 }),
-            ])
-            ->allowedSorts(['id', 'voucher_category_id', 'name', 'code', 'created_at'])
+            )
+            ->allowedSorts('id', 'voucher_category_id', 'name', 'code', 'created_at')
             ->paginate($perPage);
     }
 

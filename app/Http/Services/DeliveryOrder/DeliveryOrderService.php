@@ -46,7 +46,7 @@ class DeliveryOrderService extends BaseService implements DeliveryOrderServiceIn
                 ->withCount('details')
                 ->withCount('mergedSalesOrders')
         )
-            ->allowedFilters([
+            ->allowedFilters(
                 'invoice_no',
                 AllowedFilter::scope('search'),
                 AllowedFilter::exact('reseller_id'),
@@ -59,8 +59,8 @@ class DeliveryOrderService extends BaseService implements DeliveryOrderServiceIn
                 }),
                 AllowedFilter::scope('start_date'),
                 AllowedFilter::scope('end_date'),
-            ])
-            ->allowedSorts(['id', 'invoice_no', 'user_id', 'reseller_id', 'company', 'is_done', 'created_at'])
+            )
+            ->allowedSorts('id', 'invoice_no', 'user_id', 'reseller_id', 'company', 'is_done', 'created_at')
             ->paginate($perPage);
     }
 

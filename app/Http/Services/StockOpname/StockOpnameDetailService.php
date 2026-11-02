@@ -31,7 +31,7 @@ class StockOpnameDetailService implements StockOpnameDetailServiceInterface
             ]);
 
         return QueryBuilder::for($query)
-            ->allowedSorts(['id', 'created_at'])
+            ->allowedSorts('id', 'created_at')
             ->allowedIncludes('stockOpname')
             ->paginate($perPage);
     }

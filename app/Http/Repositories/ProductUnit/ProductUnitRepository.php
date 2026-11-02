@@ -24,7 +24,7 @@ class ProductUnitRepository extends BaseRepository implements ProductUnitReposit
     public function paginateIndex(int $perPage): LengthAwarePaginator
     {
         return QueryBuilder::for(ProductUnit::with('product')->has('product')->orderBy('id'))
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::exact('product_id'),
                 AllowedFilter::exact('is_generate_qr'),
                 AllowedFilter::exact('is_ppn'),
@@ -32,8 +32,8 @@ class ProductUnitRepository extends BaseRepository implements ProductUnitReposit
                 AllowedFilter::scope('product_brand_id', 'whereProductBrandId'),
                 AllowedFilter::scope('product_category_id', 'whereProductCategoryId'),
                 AllowedFilter::scope('company', 'whereCompany'),
-            ])
-            ->allowedIncludes([
+            )
+            ->allowedIncludes(
                 AllowedInclude::callback('relations', fn ($q) => $q->with('relatedProductUnit', fn ($q) => $q->select('id', 'name'))),
                 AllowedInclude::callback('refer', fn ($q) => $q->select('id', 'name')),
                 AllowedInclude::callback('product', fn ($q) => $q->select('id', 'name', 'product_category_id', 'product_brand_id')->with([
@@ -41,8 +41,8 @@ class ProductUnitRepository extends BaseRepository implements ProductUnitReposit
                     'productBrand' => fn ($q) => $q->select('id', 'name'),
                 ])),
                 AllowedInclude::callback('uom', fn ($q) => $q->select('id', 'name')),
-            ])
-            ->allowedSorts(['id', 'product_id', 'name', 'price', 'created_at'])
+            )
+            ->allowedSorts('id', 'product_id', 'name', 'price', 'created_at')
             ->paginate($perPage);
     }
 
@@ -78,7 +78,7 @@ class ProductUnitRepository extends BaseRepository implements ProductUnitReposit
             ])
             ->where('product_unit_id', $productUnit->id)
             ->whereHas('salesOrder', fn ($q) => $q->where('reseller_id', $userId))
-            ->allowedSorts(['id', 'created_at'])
+            ->allowedSorts('id', 'created_at')
             ->paginate($perPage);
     }
 

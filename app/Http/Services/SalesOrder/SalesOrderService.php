@@ -299,7 +299,7 @@ class SalesOrderService extends BaseService implements SalesOrderServiceInterfac
                 'mergedSalesOrders',
             ])->when($query, $query)
         )
-            ->allowedFilters([
+            ->allowedFilters(
                 'invoice_no',
                 'is_invoice',
                 AllowedFilter::exact('user_id'),
@@ -321,9 +321,9 @@ class SalesOrderService extends BaseService implements SalesOrderServiceInterfac
                 AllowedFilter::scope('has_remaining_do', 'hasRemainingDo'),
                 AllowedFilter::scope('is_mergeable', 'mergeable'),
                 AllowedFilter::scope('search'),
-            ])
-            ->allowedSorts(['id', 'invoice_no', 'user_id', 'reseller_id', 'warehouse_id', 'transaction_date', 'shipment_estimation_datetime', 'created_at'])
-            ->allowedIncludes([
+            )
+            ->allowedSorts('id', 'invoice_no', 'user_id', 'reseller_id', 'warehouse_id', 'transaction_date', 'shipment_estimation_datetime', 'created_at')
+            ->allowedIncludes(
                 'details',
                 'warehouse',
                 'user',
@@ -331,7 +331,7 @@ class SalesOrderService extends BaseService implements SalesOrderServiceInterfac
                 'payments',
                 'vouchers.category',
                 AllowedInclude::callback('deliveryOrders', fn ($q) => $q->select('id', 'sales_order_id', 'invoice_no', 'is_done')),
-            ])
+            )
             ->paginate($perPage);
 
         return $salesOrders;
@@ -787,10 +787,10 @@ class SalesOrderService extends BaseService implements SalesOrderServiceInterfac
                 ->select(SalesOrderItem::SELECT_COLUMNS)
                 ->with('stock')
         )
-            ->allowedFilters([
+            ->allowedFilters(
                 'is_returned',
                 'is_parent',
-            ])
+            )
             ->paginate($perPage);
     }
 
@@ -851,9 +851,9 @@ class SalesOrderService extends BaseService implements SalesOrderServiceInterfac
         ]);
 
         return QueryBuilder::for($query)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::scope('has_delivery_order'),
-            ])->get();
+            )->get();
     }
 
     public function findDetail(mixed $salesOrderId, mixed $salesOrderDetailId): SalesOrderDetail
@@ -921,11 +921,11 @@ class SalesOrderService extends BaseService implements SalesOrderServiceInterfac
             ->orderBy('id');
 
         return QueryBuilder::for($query)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::callback('warehouse_id', fn ($q) => $q),
                 AllowedFilter::scope('product_unit', 'search'),
                 AllowedFilter::scope('company', 'whereCompany'),
-            ])
+            )
             ->paginate($perPage)
             ->through(function (ProductUnit $productUnit) {
                 $productUnit->price_discount = $productUnit->price;
@@ -961,11 +961,11 @@ class SalesOrderService extends BaseService implements SalesOrderServiceInterfac
             ]);
 
         return QueryBuilder::for($query)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::exact('warehouse_id'),
                 AllowedFilter::scope('product_unit'),
                 AllowedFilter::scope('company', 'whereCompany'),
-            ])
+            )
             ->paginate($perPage)
             ->through(function ($stockProductUnit) {
                 $productUnit = $stockProductUnit->productUnit;

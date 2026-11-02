@@ -25,9 +25,9 @@ class OrderDetailController extends BaseController
             'warehouse' => fn ($q) => $q->select('id', 'code', 'name'),
         ]);
         $orderDetails = QueryBuilder::for($query)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::scope('has_delivery_order'),
-            ])->get();
+            )->get();
 
         return DefaultResource::collection($orderDetails);
     }

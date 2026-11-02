@@ -111,19 +111,19 @@ abstract class BaseRepository implements BaseRepositoryInterface
         $builder = QueryBuilder::for($this->applyQuery($this->query(), $query));
 
         if (count($allowedFields ?? [])) {
-            $builder->allowedFields($allowedFields);
+            $builder->allowedFields(...$allowedFields);
         }
 
         if (count($allowedFilters ?? [])) {
-            $builder->allowedFilters($allowedFilters);
+            $builder->allowedFilters(...$allowedFilters);
         }
 
         if (count($allowedSorts ?? [])) {
-            $builder->allowedSorts($allowedSorts);
+            $builder->allowedSorts(...$allowedSorts);
         }
 
         if (count($allowedIncludes ?? [])) {
-            $builder->allowedIncludes($allowedIncludes);
+            $builder->allowedIncludes(...$allowedIncludes);
         }
 
         return $builder;

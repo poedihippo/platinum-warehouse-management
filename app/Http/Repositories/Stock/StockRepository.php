@@ -43,7 +43,7 @@ class StockRepository extends BaseRepository implements StockRepositoryInterface
         }
 
         return QueryBuilder::for($query)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::exact('id'),
                 AllowedFilter::exact('printer_id'),
                 AllowedFilter::exact('parent_id'),
@@ -59,15 +59,15 @@ class StockRepository extends BaseRepository implements StockRepositoryInterface
                     }
                 }),
                 'in_printing_queue',
-            ])
-            ->allowedSorts([
+            )
+            ->allowedSorts(
                 'id',
                 'in_printing_queue',
                 'printed_at',
                 'scanned_count',
                 'scanned_datetime',
                 'created_at',
-            ])
+            )
             ->paginate($perPage);
     }
 
@@ -170,8 +170,8 @@ class StockRepository extends BaseRepository implements StockRepositoryInterface
         }
 
         return QueryBuilder::for($query)
-            ->allowedFilters(['id', 'receive_order_detail_id', 'stock_product_unit_id', 'parent_id'])
-            ->allowedSorts(['created_at'])
+            ->allowedFilters('id', 'receive_order_detail_id', 'stock_product_unit_id', 'parent_id')
+            ->allowedSorts('created_at')
             ->get();
     }
 

@@ -19,11 +19,11 @@ class PermissionRepository extends BaseRepository implements PermissionRepositor
     public function paginateIndex(mixed $perPage): LengthAwarePaginator
     {
         return QueryBuilder::for(Permission::class)
-            ->allowedFilters([
+            ->allowedFilters(
                 'name',
                 AllowedFilter::scope('role_id', 'whereRoleId'),
-            ])
-            ->allowedSorts(['id', 'name', 'created_at'])
+            )
+            ->allowedSorts('id', 'name', 'created_at')
             ->orderBy('id', 'DESC')
             ->paginate($perPage);
     }

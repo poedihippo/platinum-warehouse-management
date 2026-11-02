@@ -20,18 +20,18 @@ class PaymentRepository extends BaseRepository implements PaymentRepositoryInter
     public function paginateIndex(int $perPage): LengthAwarePaginator
     {
         return QueryBuilder::for(Payment::tenanted())
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::exact('user_id'),
                 AllowedFilter::exact('sales_order_id'),
                 'type',
-            ])
-            ->allowedIncludes([
+            )
+            ->allowedIncludes(
                 AllowedInclude::callback('user', function ($query) {
                     $query->select('id', 'name');
                 }),
                 'salesOrder',
-            ])
-            ->allowedSorts(['id', 'sales_order_id', 'user_id', 'type', 'created_at'])
+            )
+            ->allowedSorts('id', 'sales_order_id', 'user_id', 'type', 'created_at')
             ->paginate($perPage);
     }
 }
