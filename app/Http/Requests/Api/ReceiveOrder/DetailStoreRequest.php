@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Api;
+namespace App\Http\Requests\Api\ReceiveOrder;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ReceiveOrderDetailStoreRequest extends FormRequest
+class DetailStoreRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.

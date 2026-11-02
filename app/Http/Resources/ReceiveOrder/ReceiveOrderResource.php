@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\ReceiveOrder;
 
+use App\Http\Resources\DefaultResource;
 use App\Http\Resources\Supplier\SupplierResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 

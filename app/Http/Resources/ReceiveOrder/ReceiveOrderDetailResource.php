@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\ReceiveOrder;
 
 use App\Http\Resources\ProductUnit\ProductUnitResource;
 use App\Http\Resources\Uom\UomResource;

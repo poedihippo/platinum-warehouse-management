@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Api;
+namespace App\Http\Requests\Api\ReceiveOrder;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ReceiveOrderStoreRequest extends FormRequest
+class UpdateRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.
@@ -14,8 +14,7 @@ class ReceiveOrderStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'receive_datetime' => 'required|date_format:Y-m-d H:i:s',
-            'file' => 'required|mimes:xml',
+            'name' => 'required|unique:uoms,name,'.$this->uom?->id,
         ];
     }
 }

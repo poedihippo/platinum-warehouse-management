@@ -2,22 +2,17 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\ReceiveOrderDetailStoreRequest;
-use App\Http\Requests\Api\ReceiveOrderDetailUpdateRequest;
-use App\Http\Resources\ReceiveOrderDetailResource;
-use App\Models\ReceiveOrder;
+use App\Http\Requests\Api\ReceiveOrder\DetailStoreRequest;
+use App\Http\Requests\Api\ReceiveOrder\DetailUpdateRequest;
+use App\Http\Resources\ReceiveOrder\ReceiveOrderDetailResource;
+use App\Interfaces\Services\ReceiveOrder\ReceiveOrderDetailServiceInterface;
 use App\Models\ReceiveOrderDetail;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\DB;
-use Spatie\QueryBuilder\AllowedFilter;
-use Spatie\QueryBuilder\QueryBuilder;
 
-class ReceiveOrderDetailController extends Controller
+class ReceiveOrderDetailController extends BaseController
 {
-    public function __construct()
+    public function __construct(private ReceiveOrderDetailServiceInterface $service)
     {
         parent::__construct();
         $this->middleware('permission:receive_order_access', ['only' => ['index', 'show']]);
@@ -29,102 +24,47 @@ class ReceiveOrderDetailController extends Controller
 
     public function index(int $receiveOrderId)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('receive_order_access'), 403);
-        $receiveOrder = ReceiveOrder::findTenanted($receiveOrderId, ['id']);
-
-        $receiveOrderDetails = QueryBuilder::for(ReceiveOrderDetail::where('receive_order_id', $receiveOrder->id))
-            ->allowedFilters([
-                AllowedFilter::scope('product_unit'),
-                AllowedFilter::callback('product_brand_id', function (Builder $query, $value) {
-                    $query->whereHas('productUnit.product', fn ($q) => $q->where('product_brand_id', $value));
-                }),
-                AllowedFilter::callback('product_category_id', function (Builder $query, $value) {
-                    $query->whereHas('productUnit.product', fn ($q) => $q->where('product_category_id', $value));
-                }),
-            ])
-            // ->allowedSorts(['id', 'invoice_no', 'user_id', 'supplier_id', 'warehouse_id', 'created_at'])
-            ->paginate($this->per_page);
-
-        return ReceiveOrderDetailResource::collection($receiveOrderDetails);
+        return ReceiveOrderDetailResource::collection($this->service->paginateForReceiveOrder($receiveOrderId, $this->per_page));
     }
 
     public function show(int $receiveOrderId, int $receiveOrderDetailId)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('receive_order_access'), 403);
-
-        $receiveOrder = ReceiveOrder::findTenanted($receiveOrderId, ['id']);
-        $receiveOrderDetail = $receiveOrder->details()->where('id', $receiveOrderDetailId)->firstOrFail();
-
-        return new ReceiveOrderDetailResource($receiveOrderDetail);
+        return new ReceiveOrderDetailResource($this->service->findDetail($receiveOrderId, $receiveOrderDetailId));
     }
 
-    /**
-     * manual create RO detail
-     */
-    public function store(int $receiveOrderId, ReceiveOrderDetailStoreRequest $request)
+    public function store(int $receiveOrderId, DetailStoreRequest $request)
     {
-        $receiveOrder = ReceiveOrder::findTenanted($receiveOrderId, ['id']);
-        $receiveOrderDetail = $receiveOrder->details()->create($request->validated());
-
-        return new ReceiveOrderDetailResource($receiveOrderDetail);
+        return new ReceiveOrderDetailResource($this->service->createDetail($receiveOrderId, $request->validated()));
     }
 
-    /**
-     * adjust qty RO detail
-     */
-    public function update(int $receiveOrderId, $receiveOrderDetailId, ReceiveOrderDetailUpdateRequest $request)
+    public function update(int $receiveOrderId, $receiveOrderDetailId, DetailUpdateRequest $request)
     {
-        $receiveOrder = ReceiveOrder::findTenanted($receiveOrderId, ['id']);
-        $receiveOrderDetail = $receiveOrder->details()->where('id', $receiveOrderDetailId)->firstOrFail();
-
-        $receiveOrderDetail->update($request->validated());
+        $receiveOrderDetail = $this->service->findDetail($receiveOrderId, $receiveOrderDetailId);
+        $this->service->update($receiveOrderDetail, $request->validated());
 
         return (new ReceiveOrderDetailResource($receiveOrderDetail))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
-    /**
-     * verify RO detail and insert to stocks
-     */
     public function verify(int $receiveOrderId, $receiveOrderDetailId, Request $request)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('receive_order_verify_access'), 403);
-
-        $receiveOrder = ReceiveOrder::findTenanted($receiveOrderId, ['id']);
-        if ($receiveOrder->is_done) {
-            return response()->json(['message' => 'Delivery order sudah diverifikasi. Tidak dapat mengubah detail'], 400);
-        }
-
-        $receiveOrderDetail = $receiveOrder->details()->where('id', $receiveOrderDetailId)->firstOrFail();
+        $receiveOrderDetail = $this->service->findForVerify($receiveOrderId, $receiveOrderDetailId);
 
         $request->validate([
             'is_verified' => 'required|boolean',
         ]);
 
-        $receiveOrderDetail->is_verified = boolval($request->is_verified);
-        if ($receiveOrderDetail->isDirty('is_verified') === false) {
-            return response()->json(['message' => 'Tidak dapat memperbarui dengan status yang sama'], 400);
-        }
-        $receiveOrderDetail->save();
+        $this->service->verify($receiveOrderDetail, $request->is_verified);
 
         return (new ReceiveOrderDetailResource($receiveOrderDetail))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
     public function destroy(int $receiveOrderId, ReceiveOrderDetail $receiveOrderDetail)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('receive_order_delete'), 403);
+        $this->service->ensureDeletable($receiveOrderId, $receiveOrderDetail);
 
-        $receiveOrder = ReceiveOrder::findTenanted($receiveOrderId, ['id']);
-        if ($receiveOrderDetail->is_verified === true) {
-            return response()->json(['message' => 'Data harus tidak diverifikasi']);
-        }
-
-        DB::beginTransaction();
         try {
-            $receiveOrderDetail->delete();
-            DB::commit();
+            $this->service->deleteDetail($receiveOrderDetail);
         } catch (\Throwable $th) {
-            DB::rollBack();
-
             return response()->json($th, 500);
         }
 

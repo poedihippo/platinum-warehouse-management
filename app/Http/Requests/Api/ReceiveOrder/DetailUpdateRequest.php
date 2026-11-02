@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Requests\Api;
+namespace App\Http\Requests\Api\ReceiveOrder;
 
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 
-class ReceiveOrderDetailUpdateRequest extends FormRequest
+class DetailUpdateRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.

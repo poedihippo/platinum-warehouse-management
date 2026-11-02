@@ -17,6 +17,7 @@ use App\Http\Repositories\ProductCategory\ProductCategoryRepository;
 use App\Http\Repositories\ProductUnit\ProductUnitRepository;
 use App\Http\Repositories\ProductUnitBlacklist\ProductUnitBlacklistRepository;
 use App\Http\Repositories\ReceiveOrder\ReceiveOrderDetailRepository;
+use App\Http\Repositories\ReceiveOrder\ReceiveOrderRepository;
 use App\Http\Repositories\Role\RoleRepository;
 use App\Http\Repositories\Setting\SettingRepository;
 use App\Http\Repositories\Stock\StockRepository;
@@ -50,6 +51,8 @@ use App\Http\Services\ProductBrand\ProductBrandService;
 use App\Http\Services\ProductCategory\ProductCategoryService;
 use App\Http\Services\ProductUnit\ProductUnitService;
 use App\Http\Services\ProductUnitBlacklist\ProductUnitBlacklistService;
+use App\Http\Services\ReceiveOrder\ReceiveOrderDetailService;
+use App\Http\Services\ReceiveOrder\ReceiveOrderService;
 use App\Http\Services\Role\RoleService;
 use App\Http\Services\Setting\SettingService;
 use App\Http\Services\Stock\StockGroupingService;
@@ -79,6 +82,7 @@ use App\Interfaces\Repositories\ProductCategory\ProductCategoryRepositoryInterfa
 use App\Interfaces\Repositories\ProductUnit\ProductUnitRepositoryInterface;
 use App\Interfaces\Repositories\ProductUnitBlacklist\ProductUnitBlacklistRepositoryInterface;
 use App\Interfaces\Repositories\ReceiveOrder\ReceiveOrderDetailRepositoryInterface;
+use App\Interfaces\Repositories\ReceiveOrder\ReceiveOrderRepositoryInterface;
 use App\Interfaces\Repositories\Role\RoleRepositoryInterface;
 use App\Interfaces\Repositories\Setting\SettingRepositoryInterface;
 use App\Interfaces\Repositories\Stock\StockRepositoryInterface;
@@ -112,6 +116,8 @@ use App\Interfaces\Services\ProductBrand\ProductBrandServiceInterface;
 use App\Interfaces\Services\ProductCategory\ProductCategoryServiceInterface;
 use App\Interfaces\Services\ProductUnit\ProductUnitServiceInterface;
 use App\Interfaces\Services\ProductUnitBlacklist\ProductUnitBlacklistServiceInterface;
+use App\Interfaces\Services\ReceiveOrder\ReceiveOrderDetailServiceInterface;
+use App\Interfaces\Services\ReceiveOrder\ReceiveOrderServiceInterface;
 use App\Interfaces\Services\Role\RoleServiceInterface;
 use App\Interfaces\Services\Setting\SettingServiceInterface;
 use App\Interfaces\Services\Stock\StockGroupingServiceInterface;
@@ -209,6 +215,10 @@ class AppServiceProvider extends ServiceProvider
         StockRepackServiceInterface::class => StockRepackService::class,
 
         ReceiveOrderDetailRepositoryInterface::class => ReceiveOrderDetailRepository::class,
+
+        ReceiveOrderRepositoryInterface::class => ReceiveOrderRepository::class,
+        ReceiveOrderServiceInterface::class => ReceiveOrderService::class,
+        ReceiveOrderDetailServiceInterface::class => ReceiveOrderDetailService::class,
     ];
 
     /**

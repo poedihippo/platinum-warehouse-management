@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources\Stocks;
 
-use App\Http\Resources\ReceiveOrderDetailResource;
+use App\Http\Resources\ReceiveOrder\ReceiveOrderDetailResource;
 use App\Http\Resources\StockProductUnitResource as ResourcesStockProductUnitResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 

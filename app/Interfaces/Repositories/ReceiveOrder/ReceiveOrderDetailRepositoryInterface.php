@@ -3,7 +3,9 @@
 namespace App\Interfaces\Repositories\ReceiveOrder;
 
 use App\Interfaces\Repositories\BaseRepositoryInterface;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface ReceiveOrderDetailRepositoryInterface extends BaseRepositoryInterface
 {
+    public function paginateForReceiveOrder(int $receiveOrderId, int $perPage): LengthAwarePaginator;
 }

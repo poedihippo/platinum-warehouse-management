@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\UnverifiedROEvent;
+use App\Interfaces\Repositories\StockHistory\StockHistoryRepositoryInterface;
 use App\Models\StockProductUnit;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Storage;
@@ -14,9 +15,8 @@ class DeleteStockROListener implements ShouldQueue
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(protected StockHistoryRepositoryInterface $stockHistoryRepository)
     {
-        //
     }
 
     /**
@@ -43,7 +43,7 @@ class DeleteStockROListener implements ShouldQueue
                 }
 
                 // create history
-                $receiveOrderDetail->histories()->create([
+                $this->stockHistoryRepository->record($receiveOrderDetail, [
                     'user_id' => $user->id,
                     'stock_product_unit_id' => $stockProductUnit->id,
                     'value' => $qty,
