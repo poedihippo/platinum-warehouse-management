@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Requests\Api;
+namespace App\Http\Requests\Api\StockOpname;
 
+use App\Rules\TenantedRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StockOpnameDetailStoreRequest extends FormRequest
+class StoreRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.
@@ -14,7 +15,8 @@ class StockOpnameDetailStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'product_unit_id' => 'required|exists:product_units,id',
+            'warehouse_id' => ['required', new TenantedRule()],
+            'description' => 'required',
         ];
     }
 }

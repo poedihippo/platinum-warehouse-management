@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\StockOpname;
 
+use App\Http\Resources\StockProductUnitResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class StockOpnameDetailResource extends JsonResource

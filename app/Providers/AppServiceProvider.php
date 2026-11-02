@@ -22,6 +22,7 @@ use App\Http\Repositories\Role\RoleRepository;
 use App\Http\Repositories\Setting\SettingRepository;
 use App\Http\Repositories\Stock\StockRepository;
 use App\Http\Repositories\StockHistory\StockHistoryRepository;
+use App\Http\Repositories\StockOpname\StockOpnameRepository;
 use App\Http\Repositories\StockProductUnit\StockProductUnitRepository;
 use App\Http\Repositories\StockTransfer\StockTransferRepository;
 use App\Http\Repositories\Supplier\SupplierRepository;
@@ -59,6 +60,8 @@ use App\Http\Services\Stock\StockGroupingService;
 use App\Http\Services\Stock\StockRepackService;
 use App\Http\Services\Stock\StockService;
 use App\Http\Services\StockHistory\StockHistoryService;
+use App\Http\Services\StockOpname\StockOpnameDetailService;
+use App\Http\Services\StockOpname\StockOpnameService;
 use App\Http\Services\StockProductUnit\StockProductUnitService;
 use App\Http\Services\StockTransfer\StockTransferService;
 use App\Http\Services\Supplier\SupplierService;
@@ -87,6 +90,7 @@ use App\Interfaces\Repositories\Role\RoleRepositoryInterface;
 use App\Interfaces\Repositories\Setting\SettingRepositoryInterface;
 use App\Interfaces\Repositories\Stock\StockRepositoryInterface;
 use App\Interfaces\Repositories\StockHistory\StockHistoryRepositoryInterface;
+use App\Interfaces\Repositories\StockOpname\StockOpnameRepositoryInterface;
 use App\Interfaces\Repositories\StockProductUnit\StockProductUnitRepositoryInterface;
 use App\Interfaces\Repositories\StockTransfer\StockTransferRepositoryInterface;
 use App\Interfaces\Repositories\Supplier\SupplierRepositoryInterface;
@@ -124,6 +128,8 @@ use App\Interfaces\Services\Stock\StockGroupingServiceInterface;
 use App\Interfaces\Services\Stock\StockRepackServiceInterface;
 use App\Interfaces\Services\Stock\StockServiceInterface;
 use App\Interfaces\Services\StockHistory\StockHistoryServiceInterface;
+use App\Interfaces\Services\StockOpname\StockOpnameDetailServiceInterface;
+use App\Interfaces\Services\StockOpname\StockOpnameServiceInterface;
 use App\Interfaces\Services\StockProductUnit\StockProductUnitServiceInterface;
 use App\Interfaces\Services\StockTransfer\StockTransferServiceInterface;
 use App\Interfaces\Services\Supplier\SupplierServiceInterface;
@@ -219,6 +225,10 @@ class AppServiceProvider extends ServiceProvider
         ReceiveOrderRepositoryInterface::class => ReceiveOrderRepository::class,
         ReceiveOrderServiceInterface::class => ReceiveOrderService::class,
         ReceiveOrderDetailServiceInterface::class => ReceiveOrderDetailService::class,
+
+        StockOpnameRepositoryInterface::class => StockOpnameRepository::class,
+        StockOpnameServiceInterface::class => StockOpnameService::class,
+        StockOpnameDetailServiceInterface::class => StockOpnameDetailService::class,
     ];
 
     /**
