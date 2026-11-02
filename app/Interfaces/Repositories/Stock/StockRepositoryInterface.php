@@ -8,4 +8,6 @@ use App\Models\Stock;
 interface StockRepositoryInterface extends BaseRepositoryInterface
 {
     public function findForProductLookup(string $id): ?Stock;
+
+    public function deleteAvailable(int|string $stockProductUnitId, int $limit): mixed;
 }

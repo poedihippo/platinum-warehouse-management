@@ -17,4 +17,9 @@ class StockRepository extends BaseRepository implements StockRepositoryInterface
     {
         return $this->query()->select('id', 'stock_product_unit_id', 'expired_date')->find($id);
     }
+
+    public function deleteAvailable(int|string $stockProductUnitId, int $limit): mixed
+    {
+        return Stock::whereAvailableStock()->where('stock_product_unit_id', $stockProductUnitId)->limit($limit)->delete();
+    }
 }

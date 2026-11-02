@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Requests\Api;
+namespace App\Http\Requests\Api\AdjustmentRequest;
 
 use App\Models\StockProductUnit;
 use App\Rules\TenantedRule;
 use App\Traits\Requests\RequestToBoolean;
 use Illuminate\Foundation\Http\FormRequest;
 
-class AdjustmentRequestStoreRequest extends FormRequest
+class StoreRequest extends FormRequest
 {
     use RequestToBoolean;
 

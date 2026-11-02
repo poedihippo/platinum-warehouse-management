@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\Repositories\AdjustmentRequest\AdjustmentRequestRepository;
 use App\Http\Repositories\DocumentCounter\DocumentCounterRepository;
 use App\Http\Repositories\Loyalty\Claim\ClaimRepository;
 use App\Http\Repositories\Loyalty\LoyaltyUser\LoyaltyUserRepository;
@@ -18,11 +19,13 @@ use App\Http\Repositories\ProductUnitBlacklist\ProductUnitBlacklistRepository;
 use App\Http\Repositories\Role\RoleRepository;
 use App\Http\Repositories\Setting\SettingRepository;
 use App\Http\Repositories\Stock\StockRepository;
+use App\Http\Repositories\StockHistory\StockHistoryRepository;
 use App\Http\Repositories\Supplier\SupplierRepository;
 use App\Http\Repositories\Uom\UomRepository;
 use App\Http\Repositories\User\UserRepository;
 use App\Http\Repositories\UserDiscount\UserDiscountRepository;
 use App\Http\Repositories\Warehouse\WarehouseRepository;
+use App\Http\Services\AdjustmentRequest\AdjustmentRequestService;
 use App\Http\Services\Auth\AuthService;
 use App\Http\Services\DocumentCounter\DocumentCounterService;
 use App\Http\Services\DocumentCounter\NumberingService;
@@ -46,11 +49,13 @@ use App\Http\Services\ProductUnitBlacklist\ProductUnitBlacklistService;
 use App\Http\Services\Role\RoleService;
 use App\Http\Services\Setting\SettingService;
 use App\Http\Services\Stock\StockService;
+use App\Http\Services\StockHistory\StockHistoryService;
 use App\Http\Services\Supplier\SupplierService;
 use App\Http\Services\Uom\UomService;
 use App\Http\Services\User\UserService;
 use App\Http\Services\UserDiscount\UserDiscountService;
 use App\Http\Services\Warehouse\WarehouseService;
+use App\Interfaces\Repositories\AdjustmentRequest\AdjustmentRequestRepositoryInterface;
 use App\Interfaces\Repositories\DocumentCounter\DocumentCounterRepositoryInterface;
 use App\Interfaces\Repositories\Loyalty\Claim\ClaimRepositoryInterface;
 use App\Interfaces\Repositories\Loyalty\LoyaltyUser\LoyaltyUserRepositoryInterface;
@@ -67,11 +72,13 @@ use App\Interfaces\Repositories\ProductUnitBlacklist\ProductUnitBlacklistReposit
 use App\Interfaces\Repositories\Role\RoleRepositoryInterface;
 use App\Interfaces\Repositories\Setting\SettingRepositoryInterface;
 use App\Interfaces\Repositories\Stock\StockRepositoryInterface;
+use App\Interfaces\Repositories\StockHistory\StockHistoryRepositoryInterface;
 use App\Interfaces\Repositories\Supplier\SupplierRepositoryInterface;
 use App\Interfaces\Repositories\Uom\UomRepositoryInterface;
 use App\Interfaces\Repositories\User\UserRepositoryInterface;
 use App\Interfaces\Repositories\UserDiscount\UserDiscountRepositoryInterface;
 use App\Interfaces\Repositories\Warehouse\WarehouseRepositoryInterface;
+use App\Interfaces\Services\AdjustmentRequest\AdjustmentRequestServiceInterface;
 use App\Interfaces\Services\Auth\AuthServiceInterface;
 use App\Interfaces\Services\DocumentCounter\DocumentCounterServiceInterface;
 use App\Interfaces\Services\DocumentCounter\NumberingServiceInterface;
@@ -95,6 +102,7 @@ use App\Interfaces\Services\ProductUnitBlacklist\ProductUnitBlacklistServiceInte
 use App\Interfaces\Services\Role\RoleServiceInterface;
 use App\Interfaces\Services\Setting\SettingServiceInterface;
 use App\Interfaces\Services\Stock\StockServiceInterface;
+use App\Interfaces\Services\StockHistory\StockHistoryServiceInterface;
 use App\Interfaces\Services\Supplier\SupplierServiceInterface;
 use App\Interfaces\Services\Uom\UomServiceInterface;
 use App\Interfaces\Services\User\UserServiceInterface;
@@ -167,6 +175,11 @@ class AppServiceProvider extends ServiceProvider
         PrizeServiceInterface::class => PrizeService::class,
         PrizeCategoryServiceInterface::class => PrizeCategoryService::class,
         PointsServiceInterface::class => PointsService::class,
+
+        AdjustmentRequestRepositoryInterface::class => AdjustmentRequestRepository::class,
+        AdjustmentRequestServiceInterface::class => AdjustmentRequestService::class,
+        StockHistoryRepositoryInterface::class => StockHistoryRepository::class,
+        StockHistoryServiceInterface::class => StockHistoryService::class,
     ];
 
     /**
