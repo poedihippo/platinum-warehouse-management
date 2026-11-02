@@ -17,6 +17,8 @@ interface SalesOrderServiceInterface extends BaseServiceInterface
 
     public function releaseScannedStock(SalesOrder $salesOrder): void;
 
+    public function storeOrder(array $validated, bool $isPreview): SalesOrder;
+
     public function createOrder(SalesOrder $salesOrder, bool $isPerview = false): SalesOrder;
 
     public function updateOrder(SalesOrder $salesOrder, bool $isPerview = false): SalesOrder;

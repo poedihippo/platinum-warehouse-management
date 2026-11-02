@@ -13,7 +13,6 @@ use App\Models\SalesOrder;
 use App\Models\SalesOrderDetail;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\DB;
 
 class SalesOrderController extends BaseController
 {
@@ -57,13 +56,7 @@ class SalesOrderController extends BaseController
 
     public function store(StoreRequest $request)
     {
-        $salesOrder = DB::transaction(
-            fn () => $this->service->createOrder(
-                SalesOrder::make(['raw_source' => $request->validated()]),
-                (bool) $request->is_preview
-            ),
-            3
-        );
+        $salesOrder = $this->service->storeOrder($request->validated(), (bool) $request->is_preview);
 
         return new SalesOrderResource($this->loadMarketplaceDeliveryOrder($salesOrder));
     }

@@ -194,6 +194,14 @@ class SalesOrderService extends BaseService implements SalesOrderServiceInterfac
      * @param  bool  $isPerview  (optional) Flag indicating whether the order is a preview. Default is false.
      * @return SalesOrder The created sales order.
      */
+    public function storeOrder(array $validated, bool $isPreview): SalesOrder
+    {
+        return DB::transaction(
+            fn () => $this->createOrder(SalesOrder::make(['raw_source' => $validated]), $isPreview),
+            3
+        );
+    }
+
     public function createOrder(SalesOrder $salesOrder, bool $isPerview = false): SalesOrder
     {
         $pipes = [
