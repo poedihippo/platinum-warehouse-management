@@ -2,34 +2,31 @@
 
 namespace App\Http\Controllers\Api\Loyalty\Auth;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\Loyalty\LoyaltyLoginRequest;
+use App\Http\Controllers\Api\BaseController;
+use App\Http\Requests\Api\Loyalty\Auth\LoginRequest;
 use App\Http\Resources\Loyalty\LoyaltyUserResource;
-use App\Models\Loyalty\LoyaltyUser;
-use Illuminate\Support\Facades\Hash;
+use App\Interfaces\Services\Loyalty\LoyaltyUser\LoyaltyAuthServiceInterface;
 
-class LoginController extends Controller
+class LoginController extends BaseController
 {
-    public function __invoke(LoyaltyLoginRequest $request)
+    public function __construct(private LoyaltyAuthServiceInterface $service)
     {
-        $user = LoyaltyUser::where('email', $request->email)->first();
+        parent::__construct();
+    }
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Email atau kata sandi salah.'], 422);
-        }
-
-        if (! $user->is_active) {
-            return response()->json(['message' => 'Akun dinonaktifkan.'], 403);
-        }
-
-        // Token is scoped to the 'loyalty' ability so it can never act
-        // on warehouse/admin endpoints even if presented there.
-        $token = $user->createToken('loyalty', ['loyalty'])->plainTextToken;
+    /**
+     * POST /api/loyalty/auth/login
+     *
+     * Issues a Sanctum token scoped to the loyalty ability only.
+     */
+    public function __invoke(LoginRequest $request)
+    {
+        $result = $this->service->login($request->email, $request->password);
 
         return response()->json([
-            'token' => $token,
+            'token' => $result['token'],
             'token_type' => 'Bearer',
-            'data' => new LoyaltyUserResource($user),
+            'data' => new LoyaltyUserResource($result['user']),
         ]);
     }
 }

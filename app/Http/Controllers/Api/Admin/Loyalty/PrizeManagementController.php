@@ -2,53 +2,46 @@
 
 namespace App\Http\Controllers\Api\Admin\Loyalty;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\Loyalty\Admin\StorePrizeRequest;
-use App\Http\Requests\Api\Loyalty\Admin\UpdatePrizeRequest;
+use App\Http\Controllers\Api\BaseController;
+use App\Http\Requests\Api\Loyalty\Prize\StoreRequest;
+use App\Http\Requests\Api\Loyalty\Prize\UpdateRequest;
 use App\Http\Resources\Loyalty\AdminPrizeResource;
-use App\Models\Loyalty\Prize;
+use App\Interfaces\Services\Loyalty\Prize\PrizeServiceInterface;
+use App\Traits\Controllers\ClampsLoyaltyPerPage;
+use App\Traits\Controllers\DeniesUnlessCan;
 use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
-class PrizeManagementController extends Controller
+class PrizeManagementController extends BaseController
 {
+    use ClampsLoyaltyPerPage;
+    use DeniesUnlessCan;
+
     private const PERMISSION = 'manage prizes';
 
+    private const DENIED_MESSAGE = 'Anda tidak memiliki izin untuk mengelola hadiah.';
+
+    public function __construct(private PrizeServiceInterface $service)
+    {
+        parent::__construct();
+    }
+
     /**
-     * GET /api/admin/loyalty/prizes?q=&sort=name_asc
-     * Includes inactive prizes by default. Newest first unless sorted.
+     * GET /api/admin/loyalty/prizes
      */
     public function index(Request $request)
     {
-        if ($denied = $this->denyUnlessAuthorized($request)) {
+        if ($denied = $this->denyUnlessCan($request, self::PERMISSION, self::DENIED_MESSAGE)) {
             return $denied;
         }
 
-        $query = Prize::with('category')->withCount('redemptions');
+        $prizes = $this->service->paginateForAdmin(
+            $request->filled('is_active') ? $request->boolean('is_active') : null,
+            $request->filled('q') ? $request->input('q') : null,
+            $request->input('sort'),
+            $this->loyaltyPerPage($request),
+        );
 
-        if ($request->filled('is_active')) {
-            $query->where('is_active', $request->boolean('is_active'));
-        }
-
-        if ($request->filled('q')) {
-            $value = $request->input('q');
-            $query->where(fn ($q) => $q->where('name', 'like', "%$value%"));
-        }
-
-        match ($request->input('sort')) {
-            'name_asc' => $query->orderBy('name'),
-            'name_desc' => $query->orderByDesc('name'),
-            'points_asc' => $query->orderBy('points_cost'),
-            'points_desc' => $query->orderByDesc('points_cost'),
-            default => $query->orderByDesc('created_at'),
-        };
-
-        $perPage = (int) $request->input('per_page', 15);
-        $perPage = $perPage > 0 && $perPage <= 100 ? $perPage : 15;
-
-        return AdminPrizeResource::collection($query->paginate($perPage));
+        return AdminPrizeResource::collection($prizes);
     }
 
     /**
@@ -56,11 +49,12 @@ class PrizeManagementController extends Controller
      */
     public function show(Request $request, string $prize)
     {
-        if ($denied = $this->denyUnlessAuthorized($request)) {
+        if ($denied = $this->denyUnlessCan($request, self::PERMISSION, self::DENIED_MESSAGE)) {
             return $denied;
         }
 
-        $model = Prize::find($prize);
+        $model = $this->service->findById($prize);
+
         if (! $model) {
             return response()->json(['message' => 'Hadiah tidak ditemukan.'], 404);
         }
@@ -71,36 +65,23 @@ class PrizeManagementController extends Controller
     /**
      * POST /api/admin/loyalty/prizes
      */
-    public function store(StorePrizeRequest $request)
+    public function store(StoreRequest $request)
     {
-        if ($denied = $this->denyUnlessAuthorized($request)) {
+        if ($denied = $this->denyUnlessCan($request, self::PERMISSION, self::DENIED_MESSAGE)) {
             return $denied;
         }
 
-        // Pre-generate the ULID so it can key the S3 photo path.
-        $prizeId = strtolower((string) Str::ulid());
-
-        $photoPath = null;
-        if ($request->hasFile('photo')) {
-            $photoPath = $this->storePhoto($request->file('photo'), $prizeId);
-        }
-
-        // Set the key directly (not via mass-assignment) so it matches the
-        // ULID used for the photo path; HasUlids leaves a preset id alone.
-        $prize = new Prize([
+        $prize = $this->service->createPrize([
             'name' => $request->input('name'),
             'description' => $request->input('description'),
             'points_cost' => (int) $request->input('points_cost'),
             'stock' => (int) $request->input('stock'),
             'is_active' => $request->boolean('is_active', true),
-            'photo_path' => $photoPath,
             'product_url' => $request->input('product_url'),
             'prize_category_id' => $request->input('prize_category_id'),
-        ]);
-        $prize->id = $prizeId;
-        $prize->save();
+        ], $request->hasFile('photo') ? $request->file('photo') : null);
 
-        return (new AdminPrizeResource($prize->load('category')->loadCount('redemptions')))
+        return (new AdminPrizeResource($prize))
             ->response()
             ->setStatusCode(201);
     }
@@ -108,30 +89,25 @@ class PrizeManagementController extends Controller
     /**
      * PATCH /api/admin/loyalty/prizes/{prize}
      */
-    public function update(UpdatePrizeRequest $request, string $prize)
+    public function update(UpdateRequest $request, string $prize)
     {
-        if ($denied = $this->denyUnlessAuthorized($request)) {
+        if ($denied = $this->denyUnlessCan($request, self::PERMISSION, self::DENIED_MESSAGE)) {
             return $denied;
         }
 
-        $model = Prize::find($prize);
+        $model = $this->service->findById($prize);
+
         if (! $model) {
             return response()->json(['message' => 'Hadiah tidak ditemukan.'], 404);
         }
 
-        $data = $request->only(['name', 'description', 'points_cost', 'stock', 'is_active', 'product_url', 'prize_category_id']);
+        $model = $this->service->updatePrize(
+            $model,
+            $request->only(['name', 'description', 'points_cost', 'stock', 'is_active', 'product_url', 'prize_category_id']),
+            $request->hasFile('photo') ? $request->file('photo') : null,
+        );
 
-        if ($request->hasFile('photo')) {
-            // Replace the existing photo on S3 (delete old, upload new).
-            if ($model->photo_path) {
-                Storage::disk('s3')->delete($model->photo_path);
-            }
-            $data['photo_path'] = $this->storePhoto($request->file('photo'), $model->id);
-        }
-
-        $model->update($data);
-
-        return new AdminPrizeResource($model->load('category')->loadCount('redemptions'));
+        return new AdminPrizeResource($model);
     }
 
     /**
@@ -139,39 +115,16 @@ class PrizeManagementController extends Controller
      */
     public function toggleActive(Request $request, string $prize)
     {
-        if ($denied = $this->denyUnlessAuthorized($request)) {
+        if ($denied = $this->denyUnlessCan($request, self::PERMISSION, self::DENIED_MESSAGE)) {
             return $denied;
         }
 
-        $model = Prize::find($prize);
+        $model = $this->service->findById($prize);
+
         if (! $model) {
             return response()->json(['message' => 'Hadiah tidak ditemukan.'], 404);
         }
 
-        $model->update(['is_active' => ! $model->is_active]);
-
-        return new AdminPrizeResource($model->load('category')->loadCount('redemptions'));
-    }
-
-    private function storePhoto(UploadedFile $file, string $prizeId): string
-    {
-        $ext = strtolower($file->getClientOriginalExtension() ?: ($file->extension() ?: 'jpg'));
-
-        return $file->storeAs("loyalty/prizes/{$prizeId}", "main.{$ext}", 's3');
-    }
-
-    /**
-     * Returns a 403 JSON response when the admin lacks the prize-management
-     * permission, else null. Mirrors ProductUnitPointsController.
-     */
-    private function denyUnlessAuthorized(Request $request)
-    {
-        if ($request->user()?->can(self::PERMISSION)) {
-            return null;
-        }
-
-        return response()->json([
-            'message' => 'Anda tidak memiliki izin untuk mengelola hadiah.',
-        ], 403);
+        return new AdminPrizeResource($this->service->toggleActive($model));
     }
 }

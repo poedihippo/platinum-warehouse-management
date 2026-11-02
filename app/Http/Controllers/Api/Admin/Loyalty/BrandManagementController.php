@@ -2,61 +2,50 @@
 
 namespace App\Http\Controllers\Api\Admin\Loyalty;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\Loyalty\Admin\UploadBrandLogoRequest;
+use App\Http\Controllers\Api\BaseController;
+use App\Http\Requests\Api\ProductBrand\UploadLogoRequest;
 use App\Http\Resources\Loyalty\AdminBrandResource;
+use App\Interfaces\Services\ProductBrand\ProductBrandServiceInterface;
 use App\Models\ProductBrand;
+use App\Traits\Controllers\DeniesUnlessCan;
 use Illuminate\Http\Request;
 
-class BrandManagementController extends Controller
+class BrandManagementController extends BaseController
 {
+    use DeniesUnlessCan;
+
     private const PERMISSION = 'manage brands';
+
+    private const DENIED_MESSAGE = 'Anda tidak memiliki izin untuk mengelola brand.';
+
+    public function __construct(private ProductBrandServiceInterface $service)
+    {
+        parent::__construct();
+    }
 
     /**
      * GET /api/admin/loyalty/brands
-     * All brands (~16, not paginated) for the logo-management screen.
      */
     public function index(Request $request)
     {
-        if ($denied = $this->denyUnlessAuthorized($request)) {
+        if ($denied = $this->denyUnlessCan($request, self::PERMISSION, self::DENIED_MESSAGE)) {
             return $denied;
         }
 
-        $brands = ProductBrand::orderBy('name')->get(['id', 'name', 'logo_path']);
-
-        return AdminBrandResource::collection($brands);
+        return AdminBrandResource::collection($this->service->listForLoyalty());
     }
 
     /**
      * POST /api/admin/loyalty/brands/{productBrand}/logo
-     * Dedicated upload-only endpoint — POST, not PATCH, so a multipart
-     * body never needs Laravel's _method spoofing.
      */
-    public function uploadLogo(UploadBrandLogoRequest $request, ProductBrand $productBrand)
+    public function uploadLogo(UploadLogoRequest $request, ProductBrand $productBrand)
     {
-        if ($denied = $this->denyUnlessAuthorized($request)) {
+        if ($denied = $this->denyUnlessCan($request, self::PERMISSION, self::DENIED_MESSAGE)) {
             return $denied;
         }
 
-        if ($request->hasFile('logo')) {
-            $productBrand->update(['logo_path' => $productBrand->storeLogo($request->file('logo'))]);
-        }
+        $productBrand = $this->service->uploadLogo($productBrand, $request->hasFile('logo') ? $request->file('logo') : null);
 
         return new AdminBrandResource($productBrand);
-    }
-
-    /**
-     * Returns a 403 JSON response when the admin lacks the brand-management
-     * permission, else null. Mirrors PrizeManagementController.
-     */
-    private function denyUnlessAuthorized(Request $request)
-    {
-        if ($request->user()?->can(self::PERMISSION)) {
-            return null;
-        }
-
-        return response()->json([
-            'message' => 'Anda tidak memiliki izin untuk mengelola brand.',
-        ], 403);
     }
 }

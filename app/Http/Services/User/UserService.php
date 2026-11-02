@@ -6,11 +6,25 @@ use App\Http\Services\BaseService;
 use App\Interfaces\Repositories\User\UserRepositoryInterface;
 use App\Interfaces\Services\User\UserServiceInterface;
 use App\Models\User;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
 class UserService extends BaseService implements UserServiceInterface
 {
+    /**
+     * Loyalty permissions the admin SPA knows about. Kept in sync with
+     * LoyaltyPermissionSeeder.
+     */
+    private const LOYALTY_PERMISSIONS = [
+        'manage prizes',
+        'review redemptions',
+        'manage loyalty points',
+        'review claims',
+        'manage brands',
+        'manage customers',
+    ];
+
     public function __construct(protected UserRepositoryInterface $repository)
     {
         parent::__construct($repository);
@@ -59,5 +73,23 @@ class UserService extends BaseService implements UserServiceInterface
         $user->restore();
 
         return $user;
+    }
+
+    /**
+     * Checked through can() so the admin role's Gate::before bypass is reflected.
+     */
+    public function loyaltyAdminProfile(Authenticatable $user): array
+    {
+        $permissions = collect(self::LOYALTY_PERMISSIONS)
+            ->filter(fn (string $permission) => $user->can($permission))
+            ->values();
+
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'roles' => $user->roles->pluck('name'),
+            'permissions' => $permissions,
+        ];
     }
 }

@@ -2,31 +2,25 @@
 
 namespace App\Http\Controllers\Api\Loyalty\Auth;
 
-use App\Http\Controllers\Controller;
-use App\Models\Loyalty\LoyaltyUser;
+use App\Http\Controllers\Api\BaseController;
+use App\Interfaces\Services\Loyalty\LoyaltyUser\LoyaltyAuthServiceInterface;
 use Illuminate\Http\Request;
 
-class VerifyEmailController extends Controller
+class VerifyEmailController extends BaseController
 {
+    public function __construct(private LoyaltyAuthServiceInterface $service)
+    {
+        parent::__construct();
+    }
+
     /**
-     * Signature + expiry are already validated by the 'signed'
-     * middleware on the route. We additionally check the email hash so
-     * a link is invalidated if the user changes their email.
+     * GET /api/loyalty/auth/verify-email/{id}/{hash}
+     *
+     * The signature is checked by the loyalty.signed middleware; the hash
+     * ties the link to the email it was sent to.
      */
     public function __invoke(Request $request, string $id, string $hash)
     {
-        $user = LoyaltyUser::find($id);
-
-        if (! $user || ! hash_equals(sha1($user->email), (string) $hash)) {
-            return response()->json(['message' => 'Tautan verifikasi tidak valid.'], 403);
-        }
-
-        if ($user->hasVerifiedEmail()) {
-            return response()->json(['message' => 'Email sudah diverifikasi sebelumnya.']);
-        }
-
-        $user->forceFill(['email_verified_at' => now()])->save();
-
-        return response()->json(['message' => 'Email berhasil diverifikasi.']);
+        return response()->json(['message' => $this->service->verifyEmail($id, $hash)]);
     }
 }

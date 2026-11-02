@@ -2,21 +2,26 @@
 
 namespace App\Http\Controllers\Api\Loyalty\Auth;
 
-use App\Events\Loyalty\LoyaltyUserRegistered;
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\Loyalty\LoyaltyRegisterRequest;
+use App\Http\Controllers\Api\BaseController;
+use App\Http\Requests\Api\Loyalty\Auth\RegisterRequest;
 use App\Http\Resources\Loyalty\LoyaltyUserResource;
-use App\Models\Loyalty\LoyaltyUser;
+use App\Interfaces\Services\Loyalty\LoyaltyUser\LoyaltyAuthServiceInterface;
 
-class RegisterController extends Controller
+class RegisterController extends BaseController
 {
-    public function __invoke(LoyaltyRegisterRequest $request)
+    public function __construct(private LoyaltyAuthServiceInterface $service)
     {
-        // Password is hashed by the model's password mutator.
-        $user = LoyaltyUser::create($request->only('name', 'email', 'password'));
+        parent::__construct();
+    }
 
-        // Listener sends the 24h signed verification email.
-        event(new LoyaltyUserRegistered($user));
+    /**
+     * POST /api/loyalty/auth/register
+     *
+     * The verification email is sent by the LoyaltyUserRegistered listener.
+     */
+    public function __invoke(RegisterRequest $request)
+    {
+        $user = $this->service->register($request->only('name', 'email', 'password'));
 
         return response()->json([
             'message' => 'Registrasi berhasil. Silakan cek email Anda untuk verifikasi.',

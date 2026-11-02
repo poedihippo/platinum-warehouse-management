@@ -2,13 +2,19 @@
 
 namespace App\Http\Controllers\Api\Loyalty;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\Loyalty\LoyaltyProfileUpdateRequest;
+use App\Http\Controllers\Api\BaseController;
+use App\Http\Requests\Api\Loyalty\Profile\UpdateRequest;
 use App\Http\Resources\Loyalty\LoyaltyProfileResource;
+use App\Interfaces\Services\Loyalty\LoyaltyUser\LoyaltyProfileServiceInterface;
 use Illuminate\Http\Request;
 
-class ProfileController extends Controller
+class ProfileController extends BaseController
 {
+    public function __construct(private LoyaltyProfileServiceInterface $service)
+    {
+        parent::__construct();
+    }
+
     /**
      * GET /api/loyalty/profile
      */
@@ -19,16 +25,10 @@ class ProfileController extends Controller
 
     /**
      * PATCH /api/loyalty/profile
-     *
-     * Only phone/address are updatable here. Email is the login identifier
-     * (unique, verified) and name comes from registration — neither is
-     * accepted by LoyaltyProfileUpdateRequest, so they're silently ignored
-     * even if sent.
      */
-    public function update(LoyaltyProfileUpdateRequest $request)
+    public function update(UpdateRequest $request)
     {
-        $user = $request->user();
-        $user->update($request->validated());
+        $user = $this->service->update($request->user(), $request->validated());
 
         return new LoyaltyProfileResource($user);
     }

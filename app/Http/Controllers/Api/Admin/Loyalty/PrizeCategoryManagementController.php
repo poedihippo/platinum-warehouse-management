@@ -2,42 +2,49 @@
 
 namespace App\Http\Controllers\Api\Admin\Loyalty;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\Loyalty\Admin\StorePrizeCategoryRequest;
-use App\Http\Requests\Api\Loyalty\Admin\UpdatePrizeCategoryRequest;
+use App\Http\Controllers\Api\BaseController;
+use App\Http\Requests\Api\Loyalty\PrizeCategory\StoreRequest;
+use App\Http\Requests\Api\Loyalty\PrizeCategory\UpdateRequest;
 use App\Http\Resources\Loyalty\AdminPrizeCategoryResource;
-use App\Models\Loyalty\PrizeCategory;
+use App\Interfaces\Services\Loyalty\PrizeCategory\PrizeCategoryServiceInterface;
+use App\Traits\Controllers\DeniesUnlessCan;
 use Illuminate\Http\Request;
 
-class PrizeCategoryManagementController extends Controller
+class PrizeCategoryManagementController extends BaseController
 {
+    use DeniesUnlessCan;
+
     private const PERMISSION = 'manage prizes';
+
+    private const DENIED_MESSAGE = 'Anda tidak memiliki izin untuk mengelola kategori hadiah.';
+
+    public function __construct(private PrizeCategoryServiceInterface $service)
+    {
+        parent::__construct();
+    }
 
     /**
      * GET /api/admin/loyalty/prize-categories
-     * All categories (small set, not paginated) for the management screen.
      */
     public function index(Request $request)
     {
-        if ($denied = $this->denyUnlessAuthorized($request)) {
+        if ($denied = $this->denyUnlessCan($request, self::PERMISSION, self::DENIED_MESSAGE)) {
             return $denied;
         }
 
-        $categories = PrizeCategory::withCount('prizes')->orderBy('name')->get();
-
-        return AdminPrizeCategoryResource::collection($categories);
+        return AdminPrizeCategoryResource::collection($this->service->listWithPrizeCount());
     }
 
     /**
      * POST /api/admin/loyalty/prize-categories
      */
-    public function store(StorePrizeCategoryRequest $request)
+    public function store(StoreRequest $request)
     {
-        if ($denied = $this->denyUnlessAuthorized($request)) {
+        if ($denied = $this->denyUnlessCan($request, self::PERMISSION, self::DENIED_MESSAGE)) {
             return $denied;
         }
 
-        $category = PrizeCategory::create($request->validated());
+        $category = $this->service->create($request->validated());
 
         return (new AdminPrizeCategoryResource($category->loadCount('prizes')))
             ->response()
@@ -47,58 +54,40 @@ class PrizeCategoryManagementController extends Controller
     /**
      * PATCH /api/admin/loyalty/prize-categories/{prizeCategory}
      */
-    public function update(UpdatePrizeCategoryRequest $request, string $prizeCategory)
+    public function update(UpdateRequest $request, string $prizeCategory)
     {
-        if ($denied = $this->denyUnlessAuthorized($request)) {
+        if ($denied = $this->denyUnlessCan($request, self::PERMISSION, self::DENIED_MESSAGE)) {
             return $denied;
         }
 
-        $model = PrizeCategory::find($prizeCategory);
+        $model = $this->service->findById($prizeCategory);
+
         if (! $model) {
             return response()->json(['message' => 'Kategori hadiah tidak ditemukan.'], 404);
         }
 
-        $model->update($request->validated());
+        $this->service->update($model, $request->validated());
 
         return new AdminPrizeCategoryResource($model->loadCount('prizes'));
     }
 
     /**
      * DELETE /api/admin/loyalty/prize-categories/{prizeCategory}
-     * Soft delete. Prizes referencing this category are not touched here —
-     * the category simply stops resolving via Prize::category() (soft-delete
-     * global scope), which the customer-facing side treats as uncategorized.
      */
     public function destroy(Request $request, string $prizeCategory)
     {
-        if ($denied = $this->denyUnlessAuthorized($request)) {
+        if ($denied = $this->denyUnlessCan($request, self::PERMISSION, self::DENIED_MESSAGE)) {
             return $denied;
         }
 
-        $model = PrizeCategory::find($prizeCategory);
+        $model = $this->service->findById($prizeCategory);
+
         if (! $model) {
             return response()->json(['message' => 'Kategori hadiah tidak ditemukan.'], 404);
         }
 
-        $model->delete();
+        $this->service->delete($model);
 
         return response()->json(null, 204);
-    }
-
-    /**
-     * Returns a 403 JSON response when the admin lacks the prize-management
-     * permission, else null. Mirrors PrizeManagementController — categories
-     * are managed under the same 'manage prizes' permission, not a separate
-     * one, since they only exist to organize prizes.
-     */
-    private function denyUnlessAuthorized(Request $request)
-    {
-        if ($request->user()?->can(self::PERMISSION)) {
-            return null;
-        }
-
-        return response()->json([
-            'message' => 'Anda tidak memiliki izin untuk mengelola kategori hadiah.',
-        ], 403);
     }
 }
