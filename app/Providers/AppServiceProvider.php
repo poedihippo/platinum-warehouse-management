@@ -183,12 +183,16 @@ use App\Listeners\ProductUnits\CreateStockProductUnit;
 use App\Listeners\Stocks\CreateStockOpnameDetail;
 use App\Listeners\Stocks\CreateStockOpnameItems;
 use App\Models\PersonalAccessToken;
+use App\Pagination\LengthAwarePaginator;
+use App\Validation\Validator as LegacyValidator;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator as BaseLengthAwarePaginator;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Sanctum\Sanctum;
 use Symfony\Component\HttpClient\HttpClient;
@@ -306,7 +310,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        $this->app->bind(BaseLengthAwarePaginator::class, LengthAwarePaginator::class);
     }
 
     /**
@@ -328,6 +332,10 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perDay(5)->by(
                 'loyalty-claims:'.($request->user()?->getKey() ?: $request->ip())
             );
+        });
+
+        Validator::resolver(function ($translator, $data, $rules, $messages, $attributes) {
+            return new LegacyValidator($translator, $data, $rules, $messages, $attributes);
         });
 
         Event::listen(LoyaltyUserRegistered::class, SendLoyaltyVerificationEmail::class);

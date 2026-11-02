@@ -18,6 +18,6 @@ class ExportService implements ExportServiceInterface
             return null;
         }
 
-        return Excel::download(new ImportSampleExport($importType), $importType->getDescription().'.csv', ExcelWriter::CSV);
+        return Excel::download(new ImportSampleExport($importType), $importType->getDescription().'.csv', ExcelWriter::CSV, ['Content-Type' => 'text/csv']);
     }
 }

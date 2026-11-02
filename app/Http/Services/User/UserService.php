@@ -45,6 +45,7 @@ class UserService extends BaseService implements UserServiceInterface
         return DB::transaction(function () use ($data, $roleIds, $warehouseIds) {
             $user = $this->repository->create($data);
             $user->syncRoles($roleIds);
+            $user->load('roles');
             $user->warehouses()->sync($warehouseIds);
 
             return $user;
@@ -56,6 +57,7 @@ class UserService extends BaseService implements UserServiceInterface
         $this->repository->update($user, $data);
 
         $user->syncRoles($roleIds);
+        $user->load('roles');
         $user->warehouses()->sync($warehouseIds);
 
         return $user;

@@ -415,7 +415,13 @@ class SalesOrderService extends BaseService implements SalesOrderServiceInterfac
             ]);
         }
 
-        return $pdf->download($filename);
+        $output = $pdf->output();
+
+        return response($output, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+            'Content-Length' => strlen($output),
+        ]);
     }
 
     public function exportXml($id, ?callable $query = null)

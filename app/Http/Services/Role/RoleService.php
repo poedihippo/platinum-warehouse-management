@@ -28,6 +28,7 @@ class RoleService extends BaseService implements RoleServiceInterface
             $role->save();
 
             $role->syncPermissions($permissionNames ?? []);
+            $role->load('permissions');
 
             return $role;
         });
@@ -45,6 +46,7 @@ class RoleService extends BaseService implements RoleServiceInterface
             $role->save();
 
             $role->syncPermissions($permissionNames ?? []);
+            $role->load('permissions');
 
             return $role;
         });

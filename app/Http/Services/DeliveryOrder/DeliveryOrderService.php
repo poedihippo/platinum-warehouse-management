@@ -164,7 +164,13 @@ class DeliveryOrderService extends BaseService implements DeliveryOrderServiceIn
             ->setOption('defaultFont', 'Arial')
             ->loadView($view, ['deliveryOrder' => $deliveryOrder, 'deliveryOrderDetailsChunk' => $deliveryOrderDetailsChunk]);
 
-        return $pdf->download('delivery-order-'.$deliveryOrder->code.'.pdf');
+        $output = $pdf->output();
+
+        return response($output, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="delivery-order-'.$deliveryOrder->code.'.pdf"',
+            'Content-Length' => strlen($output),
+        ]);
     }
 
     public function exportXml(mixed $id): mixed
