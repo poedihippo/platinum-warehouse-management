@@ -13,7 +13,7 @@
 | **Industry** | Feed/pakan distributor |
 | **Type** | Warehouse Management System (WMS) + customer Loyalty program |
 | **Frontend** | Separate repos (Vercel deployments): BEJO admin app, and the customer "verify" app (QR check + loyalty) |
-| **Backend** | This repo — Laravel 10 REST API (`routes/api.php`, prefix `/api`) |
+| **Backend** | This repo — Laravel 13 REST API (`routes/api.php`, prefix `/api`) |
 | **Language** | User-facing messages (validation, errors) are in Indonesian |
 
 ---
@@ -22,20 +22,21 @@
 
 | Layer | Technology |
 |-------|-----------|
-| Framework | Laravel 10 (`laravel/framework: ^10.0`) |
-| PHP | `^8.1` (native enums). Next target: Laravel 13 + PHP 8.5 — write explicit nullable types (`?Type $x = null`) |
+| Framework | Laravel 13 (`laravel/framework: ^13.17`), Laravel 13 app structure (`bootstrap/app.php`) — see §17 |
+| PHP | Runtime **8.5** locally and in production (`composer.json` `^8.4`); the default CLI on the dev machine is still 8.3, so call `php8.5` explicitly |
 | Database | MySQL (migrations contain MySQL-only SQL — no SQLite) |
 | Cache / Session | File-based |
 | Queue | Redis (`QUEUE_CONNECTION=redis`); `sync` in tests |
-| Auth | Laravel Sanctum 3.2 (Bearer personal access tokens) |
-| RBAC | `spatie/laravel-permission` 5.10 |
-| Query Builder | `spatie/laravel-query-builder` 5.2 |
+| Auth | Laravel Sanctum 4 (Bearer personal access tokens) |
+| RBAC | `spatie/laravel-permission` 6 |
+| Query Builder | `spatie/laravel-query-builder` 7 (variadic `allowed*()`) |
 | Media Library | `spatie/laravel-medialibrary` 11 |
-| Excel/CSV | `maatwebsite/excel` 3.1 |
-| PDF | `barryvdh/laravel-dompdf` 2.0 |
+| Excel/CSV | `maatwebsite/excel` 4 (PhpSpreadsheet 5) |
+| PDF | `barryvdh/laravel-dompdf` 3 |
 | QR Code | `simplesoftwareio/simple-qrcode` ~4 |
 | Enums | Native PHP backed enums + `App\Enums\BaseEnum` trait (BenSampo removed) |
-| OAuth | `laravel/socialite` 5.6 |
+| OAuth | `laravel/socialite` 5 |
+| Dates | Carbon 3 (no `diffIn*` in the code base — if you add one, pass `true` and cast, see §17) |
 | File Storage | AWS S3 (`league/flysystem-aws-s3-v3`) |
 | Email | Brevo (`symfony/brevo-mailer`) |
 | Timezone | `Asia/Jakarta` |
@@ -325,7 +326,7 @@ Login: `POST api/auth/token` → `createToken($device, $user->tokenAbilities())`
 
 `User::tokenAbilities()`: `['loyalty']` if every role the user holds is in `User::LOYALTY_ONLY_ROLES` (loyalty manager / reviewer / prize manager / fulfillment), else `['*']`. No token is ever minted with a literal `warehouse` ability — `['*']` satisfies `ability:warehouse`.
 
-Custom middleware aliases: `loyalty.signed` (`ValidateLoyaltySignature`), `loyalty.active` (`EnsureLoyaltyAccountActive`, 403 "Akun dinonaktifkan."). Rate limiters (`RouteServiceProvider`): `api` 200/min, `loyalty-claims` 5/day.
+Custom middleware aliases: `loyalty.signed` (`ValidateLoyaltySignature`), `loyalty.active` (`EnsureLoyaltyAccountActive`, 403 "Akun dinonaktifkan."). Rate limiters (`AppServiceProvider::boot()`): `api` 200/min, `loyalty-claims` 5/day. Guests always get JSON 401 `{"message":"Unauthenticated."}` (`redirectGuestsTo(null)` in `bootstrap/app.php` — there is no `login` route).
 
 ### 7.3 Warehouse Permissions
 
@@ -367,7 +368,7 @@ When a role is saved, `RoleController` → `PermissionService::getPermissionName
 ### 7.6 Admin Override
 
 ```php
-// AuthServiceProvider::boot()
+// AppServiceProvider::boot()
 Gate::before(fn ($user, $ability) => $user->hasRole('admin') ? true : null);
 ```
 Admin = Spatie role `admin` (seeded by `AdminSeeder`), which also bypasses `Tenanted`. The `UserType::Admin` type alone does not grant this.
@@ -429,7 +430,7 @@ class SalesOrder extends Model
 ```
 - Models hold relations, casts, scopes and hooks only — no query logic for endpoints (that belongs in a repository). Hooks that need a service resolve it with `app(XServiceInterface::class)` (e.g. numbering in `SalesOrder`/`DeliveryOrder` `creating`, `StockOpname` `saved` → `StockHistoryRepositoryInterface`).
 - Only `User`, `SocialAccount`, `TemporaryStock` and `Loyalty/*` models use `HasFactory`; factories for other models exist and are used via `XFactory::new()`.
-- Event discovery is off — register new events in `EventServiceProvider::$listen`.
+- Event discovery is off (`withEvents(discover: false)`) — register new listeners with `Event::listen()` in `AppServiceProvider::boot()`.
 
 ### 9.2 Controllers
 
@@ -447,7 +448,7 @@ class SalesOrder extends Model
 - Index endpoints: `$this->service->findAllPaginate($this->per_page, fn ($q) => $q->tenanted(), allowedFilters: [...], allowedIncludes: [...], allowedSorts: [...])` → `XResource::collection(...)`. Any chain that differs (`->through()`, `withCount`, raw `response()->json($paginator)`, different `allowed*` order) gets a named repository method copying it verbatim. Date range via `AllowedFilter::scope('start_date')` (`FilterStartEndDate`).
 - Responses: API Resources (`app/Http/Resources/`, generic passthrough `DefaultResource`) or `response()->json(...)`. Business-rule errors: `response()->json(['message' => '...'], 400)` in Indonesian.
 - Routes: `apiResource` for CRUD, nested `{parent}/details` groups, custom actions as separate routes (`done`, `verify`, `verification`, `attach`, `print`, `export-xml`, `restore`, `force-delete`). Custom routes are declared **before** the `apiResource` line when they share a prefix.
-- Exceptions (`app/Exceptions/Handler.php`, JSON requests): `ModelNotFoundException` → 404 "Data tidak ditemukan!", 403 → `{"message": ...}`, 401 "Unauthenticated.", validation → default 422.
+- Exceptions (`withExceptions()` in `bootstrap/app.php`, JSON requests): `ModelNotFoundException` → 404 "Data tidak ditemukan!", 403 → `{"message": ...}`, 401 "Unauthenticated.", validation → default 422.
 
 ### 9.3 Request Validation
 
@@ -527,7 +528,7 @@ Notable action owners:
 
 `app/Pipes/Order/`: `FillOrderAttributes`, `FillOrderRecords`, `NormalizeLockedOrderItems`, `MakeOrderDetails`, `CalculateAutoDiscount`, `CalculateVoucher`, `CalculateAdditionalDiscount`, `CalculateAdditionalFees`, `CheckExpectedOrderPrice`, `SaveOrder`, `UpdateOrder`. `app/Pipes/Order/Spg/`: `SaveOrder`, `ConvertToSO`.
 
-### 10.4 Events & Listeners (`EventServiceProvider::$listen`)
+### 10.4 Events & Listeners (`Event::listen()` in `AppServiceProvider::boot()`)
 
 | Event | Listener | Queued | Trigger |
 |-------|----------|--------|---------|
@@ -550,7 +551,7 @@ No observers. Loyalty mails (`app/Mail/Loyalty/`) are sent synchronously.
 | Jobs | `app/Jobs/GenerateStockQrcode` (creates Stock rows; QR image generation commented out) |
 | Exports / Imports | `app/Exports/`, `app/Imports/` (`StockImport`, `VoucherImport`, seeder imports) |
 | Loyalty support | `app/Support/Loyalty/LoyaltySignedUrl`, `config/loyalty.php` |
-| Console | No custom artisan commands; schedule is empty |
+| Console | No custom artisan commands; no schedule (`routes/console.php` only has `inspire`) |
 
 ---
 
@@ -646,7 +647,7 @@ S3 (`FILESYSTEM_DISK=s3`) for payment media (Spatie Media Library), brand logos,
 - `POST delivery-orders/{id}/return` answers **200** with the exception text when it fails.
 - `per_page` is read in the controller constructor; a controller instance is reused within one app instance (matters for tests / Octane).
 - `SalesOrderController` has all permission middleware commented out; `SocialiteController` routes are commented out.
-- `php artisan route:list` crashes unless `ENABLE_DOCUMENT_COUNTER=true` (DocumentCounterController aborts in its constructor).
+- `php8.5 artisan route:list` crashes unless `ENABLE_DOCUMENT_COUNTER=true` (DocumentCounterController aborts in its constructor).
 - These are pinned by `test_known_quirk_*` tests — fixing one means updating its test on purpose.
 - `Feature/ExampleTest` fails (`/` redirects to the company site).
 - Full list of security items: `SECURITY_FINDINGS.md`.
@@ -655,24 +656,26 @@ S3 (`FILESYSTEM_DISK=s3`) for payment media (Spatie Media Library), brand logos,
 
 ## 14. Running the Application
 
+PHP 8.5 is required (`composer.json` needs ≥ 8.4). The dev machine's default `php` is still 8.3, so call `php8.5` (and `php8.5 $(which composer)`) explicitly.
+
 ```bash
-composer install
-cp .env.example .env && php artisan key:generate
-php artisan migrate
-php artisan db:seed --class=PermissionSeeder        # DatabaseSeeder is intentionally empty
-php artisan db:seed --class=AdminSeeder
-php artisan db:seed --class=LoyaltyPermissionSeeder
+php8.5 $(which composer) install
+cp .env.example .env && php8.5 artisan key:generate
+php8.5 artisan migrate
+php8.5 artisan db:seed --class=PermissionSeeder        # DatabaseSeeder is intentionally empty
+php8.5 artisan db:seed --class=AdminSeeder
+php8.5 artisan db:seed --class=LoyaltyPermissionSeeder
 
-php artisan serve
-php artisan queue:work            # Redis; listeners for RO/opname/product units are queued
+php8.5 artisan serve
+php8.5 artisan queue:work            # Redis; listeners for RO/opname/product units are queued
 
-php artisan test                                   # needs MySQL DB `platinum_event_test` (forced in phpunit.xml)
-php artisan test --filter=NumberingTest            # single class
-php artisan test --filter='NumberingTest::test_x'  # single method
-php artisan test tests/Feature/Loyalty             # directory
+php8.5 artisan test                                   # needs MySQL DB `platinum_event_test` (forced in phpunit.xml)
+php8.5 artisan test --filter=NumberingTest            # single class
+php8.5 artisan test --filter='NumberingTest::test_x'  # single method
+php8.5 artisan test tests/Feature/Loyalty             # directory
 
-./vendor/bin/pint path/to/File.php   # format only files you touched (some files are not Pint-clean)
-./vendor/bin/pint --dirty            # or all uncommitted changes
+php8.5 vendor/bin/pint path/to/File.php   # format only files you touched (some files are not Pint-clean)
+php8.5 vendor/bin/pint --dirty            # or all uncommitted changes
 ```
 
 ---
@@ -694,3 +697,33 @@ Hardcoded: `bejo.platinumadisentosa.com`, `platinum-warehouse.vercel.app`, `plat
 | `docs/tasks/invoices/**` | Invoice QR scan PRD, auto-discount, voucher flow/PRDs (multiple vouchers) |
 | `docs/tasks/stock/stock-transfer/**` | Stock transfer FE PRD + backend flow v1–v3 (v3 current) |
 | `task.md` | Original project brief (Indonesian) |
+| `docs/tasks/architecture/laravel-13-upgrade.md` | Laravel 10 → 13 upgrade ledger (batches, baseline) |
+| `docs/documentation/architecture/laravel-13-upgrade.md` | What changed in the upgrade, intended behaviour differences, deploy steps |
+
+---
+
+## 17. Laravel 13 Structure and Compatibility Rules
+
+The app was rebuilt on a fresh Laravel 13 skeleton (Laravel 10 → 13, PHP 8.3 → 8.5). Behaviour was kept identical to Laravel 10; these rules keep it that way.
+
+**Structure.** Everything that used to live in `Http/Kernel`, `Console/Kernel`, `Exceptions/Handler` and the Route/Auth/Event/Broadcast service providers is in `bootstrap/app.php` (`withRouting(using:)` with the `api` prefix and no `/up` route, `withMiddleware()`, `withExceptions()`, `withEvents(discover: false)`) and `AppServiceProvider::boot()` (rate limiters, `Gate::before`, `Event::listen`, paginator / validator compat). Providers: `bootstrap/providers.php` (`AppServiceProvider`, `SchemaServiceProvider`). Don't add those classes back. Controllers still extend `Illuminate\Routing\Controller`, so `$this->middleware()` in constructors keeps working.
+
+**Config.** Laravel 13 defaults that would change behaviour are locked to the Laravel 10 values (mysql, file cache/session, sync queue default, smtp default mailer, underscore cache/redis/cookie prefixes, `session.serialization=php`, `cache.serializable_classes=null`, `local` disk at `storage/app`, `hashing.rehash_on_login=false`, `excel.imports.csv.input_encoding=UTF-8`, `dompdf.enable_remote=true`, Sanctum stateful stack without `AuthenticateSession`). Old env names keep working as fallbacks (`CACHE_DRIVER`, `DATABASE_URL`, `BROADCAST_DRIVER`, `POSTMARK_TOKEN`). Changing any of these is a separate decision.
+
+**Migrations.** Old migrations keep the Laravel 10 DDL: `legacyDouble($column, $total = 8, $places = 2)` (macro in `SchemaServiceProvider`) replaces `float(T,P)` / `unsignedFloat()`. New migrations use `decimal()` for money and the normal Laravel 13 API. The test schema must stay identical to production.
+
+**Response compat layers (don't remove without a frontend change):**
+- `App\Pagination\LengthAwarePaginator` drops the `page` key Laravel 12 added to paginator `links`.
+- `App\Validation\Validator` keeps the Laravel 10 `image` rule (SVG allowed, no avif/heic/heif).
+- `RoleService` / `UserService` call `load('permissions')` / `load('roles')` after `syncPermissions()` / `syncRoles()` — permission 6 no longer loads the relation.
+- `App\Models\Permission::bootHasRoles()` keeps the permission 5 delete hook (permissions created through the API have guard `sanctum`, which has no user provider).
+- Sales order / delivery order PDFs are returned with the dompdf 2 headers (`attachment; filename="..."`, document numbers contain `/`), not `$pdf->download()`.
+- The import sample CSV is sent with an explicit `text/csv` content type.
+
+**Package APIs.**
+- query-builder 7: `allowedFilters/Sorts/Includes/Fields(...)` are variadic — pass items, spread dynamic arrays (`...$filters`). `findAllPaginate(..., allowedFilters: [...])` still takes arrays (the repository spreads them).
+- Excel 4: concern methods have native return types (`collection(): Enumerable`, `model(array $row): Model|array|null`, `collection(Collection $rows): void`). A `model()` that can skip a row must end with `return null;` — falling off the end of a nullable-typed method is a `TypeError`.
+- Carbon 3: `diffIn*()` returns signed floats. For the Carbon 2 result use `(int) $a->diffInDays($b, true)`.
+- PHPUnit 12: use attributes (`#[DataProvider('...')]`), not docblock annotations.
+
+**Intended differences from Laravel 10** (documented in `docs/documentation/architecture/laravel-13-upgrade.md`): `charset=utf-8` in lower case, debug-only error texts (`QueryException` now names host/port/database), framework HTML error pages, two new global middleware (`ValidatePathEncoding`, `InvokeDeferredCallbacks`), body input wins over an uploaded file with the same key, PDF metadata (`Producer: dompdf 3`).

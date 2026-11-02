@@ -8,14 +8,14 @@ description: Use when running tests, writing new PHPUnit feature/unit tests, or 
 ## Running
 
 ```bash
-php artisan test                                        # everything
-php artisan test --filter=DocumentCounterTest           # one class
-php artisan test --filter='NumberingTest::test_name'    # one method
-php artisan test tests/Feature/Loyalty                  # one directory
-php artisan test --testsuite=Unit
+php8.5 artisan test                                        # everything
+php8.5 artisan test --filter=DocumentCounterTest           # one class
+php8.5 artisan test --filter='NumberingTest::test_name'    # one method
+php8.5 artisan test tests/Feature/Loyalty                  # one directory
+php8.5 artisan test --testsuite=Unit
 ```
 
-Environment (`phpunit.xml`): MySQL database `platinum_event_test` is **forced** (create it once, same credentials as `.env`); `QUEUE_CONNECTION=sync` (queued listeners run inline); cache/session/mail are `array`. SQLite won't work. `tests/Feature/ExampleTest` fails by design (`/` redirects).
+Environment (`phpunit.xml`): MySQL database `platinum_event_test` is **forced** (create it once, same credentials as `.env`); `QUEUE_CONNECTION=sync` (queued listeners run inline); cache/session/mail are `array`. SQLite won't work. `tests/TestCase.php` refuses any connection that is not MySQL with a database name ending in `_test`. `tests/Feature/ExampleTest` fails by design (`/` redirects). PHPUnit 12: data providers and other metadata are attributes (`#[DataProvider('provider')]`), docblock annotations are ignored. Laravel 13 / PHP 8.5: run with `php8.5`.
 
 ## Layout
 
@@ -120,4 +120,4 @@ Alternatively create records with `Model::create([...])` directly (as `Numbering
 ## After writing tests
 
 1. Run the specific test, then the related directory.
-2. `./vendor/bin/pint` on the files you changed.
+2. `php8.5 vendor/bin/pint` on the files you changed.

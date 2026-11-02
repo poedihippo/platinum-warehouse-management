@@ -32,9 +32,9 @@ The dev DB may differ from migrations (some production columns were added retroa
 ## 2. Artisan
 
 ```bash
-php artisan migrate:status
-php artisan db:table stocks          # Laravel 10: columns, indexes, FKs (needs doctrine/dbal, installed)
-php artisan db:show                  # tables overview
+php8.5 artisan migrate:status
+php8.5 artisan db:table stocks          # columns, indexes, FKs (native in Laravel 13, no doctrine/dbal)
+php8.5 artisan db:show                  # tables overview
 ```
 
 ## 3. Migrations

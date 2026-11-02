@@ -122,6 +122,8 @@ class ThingController extends BaseController
 Rules:
 - Always `parent::__construct()` — `Api\BaseController` sets `$this->per_page` (`?per_page`, default 15, no cap).
 - Controllers stay thin: no `QueryBuilder::for`, `DB::`, `Model::create/where`. Queries go in the repository (named method when the chain is non-standard), rules and transactions in the service.
+- `findAllPaginate()` takes arrays and spreads them. When a repository builds its own chain, spatie/laravel-query-builder 7 is variadic: `->allowedFilters('name', AllowedFilter::exact('warehouse_id'))`, `->allowedSorts('id', 'created_at')`, dynamic lists with `...$filters` — never an array argument.
+- PDF downloads whose name contains a document number (with `/`) are returned as `response($pdf->output(), 200, ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'attachment; filename="..."', 'Content-Length' => ...])`, not `$pdf->download()` (dompdf 3 rejects `/` in the name).
 - Services return the model/paginator as-is (no `fresh()` — keeps the implicit 201 from `wasRecentlyCreated`). Business-rule errors: `throw new ApiResponseException($message, $status, $extra)` → `{"message": ..., ...$extra}`. Never `abort()` for these.
 - Cross-module needs: inject the other module's **interface** (service or repository). Stock changes → `StockHistoryRepositoryInterface::record($subject, [...])`.
 - Permission middleware in the constructor is the **only** authorization layer (no policies, no `$this->authorize()`). For `['only' => ...]` with several methods, pass an **array** — `['only' => 'a', 'b']` silently protects only `a`. Method names must match exactly.
@@ -133,7 +135,7 @@ Rules:
 
 1. Add the group/children to `PermissionsHelper::adminPermissions()` (`app/Helpers/PermissionsHelper.php`) — names use underscores: `thing_access` → `thing_read`, `thing_create`, `thing_edit`, `thing_delete`, plus extras like `thing_done`.
 2. If granting it should imply others, extend `getRelatedPermissions()`.
-3. Seed: `php artisan db:seed --class=PermissionSeeder` (ask the user before running against their DB).
+3. Seed: `php8.5 artisan db:seed --class=PermissionSeeder` (ask the user before running against their DB).
 
 ## Routes
 
@@ -172,5 +174,5 @@ Loyalty permission names are space-separated (`review claims`, `manage prizes`, 
 
 1. Form Requests in `app/Http/Requests/Api/Thing/` (`StoreRequest`, `UpdateRequest`; `authorize()` returns true or is omitted; use `RequestToBoolean` + `prepareForValidation()` for flags; `TenantedRule` for warehouse-scoped IDs).
 2. Resource in `app/Http/Resources/Thing/`; interface + implementation bindings in `AppServiceProvider::$singletons`.
-3. Routes + permissions as above; check with `php artisan route:list --path=api/things`.
-4. Feature test (see the `laravel-test` skill), then `./vendor/bin/pint` on the changed files.
+3. Routes + permissions as above; check with `ENABLE_DOCUMENT_COUNTER=true php8.5 artisan route:list --path=api/things`.
+4. Feature test (see the `laravel-test` skill), then `php8.5 vendor/bin/pint` on the changed files.

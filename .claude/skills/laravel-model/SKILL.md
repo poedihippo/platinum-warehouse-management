@@ -60,7 +60,7 @@ class Thing extends Model
 ## Rules
 
 - Models carry relations, casts, scopes and hooks only — endpoint queries live in the module repository (`app/Http/Repositories/`). Hooks that need a service resolve it with `app(XInterface::class)`.
-- Hooks go in `booted()` (not `boot()`); there are no observers. If a hook fires an event, register it in `EventServiceProvider::$listen` (event discovery is off). Heavy listeners `implements ShouldQueue` and must not depend on `auth()`/`request()` — pass what they need through the event.
+- Hooks go in `booted()` (not `boot()`); there are no observers. If a hook fires an event, register its listener with `Event::listen()` in `AppServiceProvider::boot()` (event discovery is off). Heavy listeners `implements ShouldQueue` and must not depend on `auth()`/`request()` — pass what they need through the event.
 - **Tenancy**:
   - Model has a `warehouse_id` → `use Tenanted` (gives `scopeTenanted` + `scopeFindTenanted`; Spatie role `admin` bypasses).
   - Child model without `warehouse_id` → copy the pattern used by `Stock` / `ReceiveOrderDetail`: define `scopeTenanted` via `whereHas('<parent>', fn ($q) => $q->tenanted())` and a matching `scopeFindTenanted`.

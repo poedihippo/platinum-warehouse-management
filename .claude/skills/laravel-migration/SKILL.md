@@ -8,6 +8,7 @@ description: Use when creating database migrations, adding or altering columns, 
 ## Conventions
 - Location: `database/migrations/`, anonymous class (`return new class extends Migration`), `up(): void` / `down(): void`.
 - Names: `YYYY_MM_DD_HHMMSS_create_{table}_table.php`, `..._add_{column}_to_{table}_table.php`. When two migrations on the same day depend on each other, order them with `_000001`, `_000002` suffixes.
+- Laravel 13 Schema API. Money columns: `decimal(total, places)`. Never edit old migrations' DDL: they use `legacyDouble($col, T, P)` (macro in `SchemaServiceProvider`) to keep the Laravel 10 `double(T,P)` columns production has; `float()`/`double()` no longer take total/places and `unsignedFloat()`/`unsignedDecimal()` are gone. `->change()` must restate every attribute (nullable, default, comment) or Laravel drops it.
 - MySQL only. Raw MySQL SQL (`UPDATE ... JOIN`, `ALTER ... MODIFY`) is acceptable; guard driver-specific statements with `DB::getDriverName() === 'mysql'` when practical.
 
 ## Create table
@@ -62,6 +63,6 @@ Use `Schema::hasTable` the same way for create migrations that may already exist
 Backfills go in their own migration (examples: `2026_08_05_133028_...` backfills `sales_order_items.delivery_order_detail_id`; `2026_09_03_000001_...` moves `sales_orders.voucher_id` into the `sales_order_vouchers` pivot). Make them re-runnable and keep `down()` safe.
 
 ## After creating a migration
-1. Ask the user before running `php artisan migrate` against their database.
+1. Ask the user before running `php8.5 artisan migrate` against their database.
 2. Update the model (`$fillable`, `$casts`, relations).
-3. Tests run `RefreshDatabase` on `platinum_event_test`, so `php artisan test` exercises the migration from scratch.
+3. Tests run `RefreshDatabase` on `platinum_event_test`, so `php8.5 artisan test` exercises the migration from scratch.

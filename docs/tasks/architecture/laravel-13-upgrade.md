@@ -1,6 +1,6 @@
 # Upgrade ke Laravel 13 + PHP 8.5 (skeleton fresh, code dipindah per batch)
 
-**Status:** in progress · **Branch:** `upgrade/laravel-13` (dari `main` + merge `refactor/solid`) · **Created:** 2026-11-02
+**Status:** in review (belum di-push / merge) · **Branch:** `upgrade/laravel-13` (dari `main` + merge `refactor/solid`) · **Created:** 2026-11-02
 
 ## Tujuan
 
@@ -33,7 +33,7 @@ Perilaku tidak boleh berubah. Frontend BEJO dan verify sudah di production, jadi
 |---|---|
 | Controller `$this->middleware()` di constructor | base `Controller` tetap extend `Illuminate\Routing\Controller` (masih ada di L13), sehingga quirk `per_page` dan DocumentCounter di constructor tetap sama |
 | `float()` di migration (`voucher_categories.discount_amount` 11,2; `sales_orders.auto_discount`) | L11 mengubah DDL float/double |
-| `unsignedDecimal()` (user_discounts, payments) | dihapus di L11 |
+| `unsignedFloat()` (user_discounts, payments) | dihapus di L11 |
 | 5 migration `->change()` | L11 men-drop atribut yang tidak disebut ulang |
 | `getDoctrineConnection()` di `reshape_redemptions_table_for_phase4` | dihapus di L11 (dibungkus `try/catch`) |
 | Sanctum 3 → 4 | config middleware, custom `PersonalAccessToken` + `User::createToken` |
@@ -62,15 +62,15 @@ Perilaku tidak boleh berubah. Frontend BEJO dan verify sudah di production, jadi
 ## Checklist (satu commit per batch)
 
 - [x] 0. Ledger + baseline L10 / PHP 8.3
-- [ ] 1. Skeleton L13 + `bootstrap/app.php` + dependency target
-- [ ] 2. Config: skeleton L13 + kustomisasi + fallback env lama
-- [ ] 3. Migration: DDL tetap L10, skema test identik
-- [ ] 4. Sanctum 4 + permission 6
-- [ ] 5. spatie/laravel-query-builder 7
-- [ ] 6. Excel 4 / PhpSpreadsheet 5 + dompdf 3
-- [ ] 7. Test suite: PHPUnit 12, full suite PHP 8.5 = baseline
-- [ ] 8. Golden master L10 vs L13 (normal + fuzz)
-- [ ] 9. Dokumentasi + langkah deploy
+- [x] 1. Skeleton L13 + `bootstrap/app.php` + dependency target
+- [x] 2. Config: skeleton L13 + kustomisasi + fallback env lama
+- [x] 3. Migration: DDL tetap L10, skema test identik
+- [x] 4. Sanctum 4 + permission 6
+- [x] 5. spatie/laravel-query-builder 7
+- [x] 6. Excel 4 / PhpSpreadsheet 5 + dompdf 3
+- [x] 7. Test suite: PHPUnit 12, full suite PHP 8.5 = baseline
+- [x] 8. Golden master L10 vs L13 (normal + fuzz)
+- [x] 9. Dokumentasi + langkah deploy
 
 ## Baseline L10 / PHP 8.3 (2026-11-02, `refactor/solid` `c9bcb4e`)
 
@@ -92,3 +92,25 @@ Perilaku tidak boleh berubah. Frontend BEJO dan verify sudah di production, jadi
   - `route:list` dengan `ENABLE_DOCUMENT_COUNTER=false` tetap gagal (quirk).
 - Skema `platinum_event_test` (MySQL 8.4): 59 tabel, 533 kolom, 185 baris index, 75 baris FK, 85 migration.
 - Golden master (harness di luar repo, DB `platinum_event_snapshot`): 1.698 request. Ada 3 record yang memang tidak deterministik, jadi tidak dihitung sebagai regresi: nama file export dengan timestamp menit, dan satu test loyalty yang memakai faker tanpa seed.
+
+## Hasil (2026-11-02)
+
+Commit `76fe35b` … `c463c9b`, ditambah commit dokumentasi. Detail lengkap, perbedaan perilaku, dan langkah deploy ada di `docs/documentation/architecture/laravel-13-upgrade.md`.
+
+- **Suite L13 / PHP 8.5:** 246 test, 14 failure. Ke-14 failure itu sama per nama dan penyebab dengan baseline. Tambahan 12 test regresi: `ExcelImportTest` (3) dan `Laravel10CompatibilityTest` (9).
+- **Skema test:** identik dengan baseline.
+- **Snapshot aplikasi:** route, middleware final, listener, `Gate::before`, rate limiter, dan priority identik; tidak ada command yang hilang.
+- **Golden master:** semua perbedaan yang tersisa terdokumentasi.
+  - normal: 59 dari 1.698 berbeda;
+  - fuzz: 76 dari 5.746 berbeda.
+- **Regresi yang ditemukan dan sudah diperbaiki (masing-masing dengan test yang merah sebelum fix):**
+  - print SO 500 untuk nomor ber-`/` (dompdf 3);
+  - import Excel 500 (`TypeError` karena return type native);
+  - delete permission 500 (permission 6);
+  - response roles/users kehilangan relasi (permission 6);
+  - key `page` di link paginator (L12);
+  - rule `image` (L12);
+  - guest non-JSON 500 (`redirectGuestsTo` default L13);
+  - Content-Type CSV.
+- Fakta di prompt yang ternyata tidak akurat: migration memakai `unsignedFloat()`, bukan `unsignedDecimal()`; dan `refactor/solid` sudah ada di origin.
+
