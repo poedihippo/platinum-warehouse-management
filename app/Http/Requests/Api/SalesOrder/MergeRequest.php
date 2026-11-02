@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Api;
+namespace App\Http\Requests\Api\SalesOrder;
 
 use App\Enums\Marketplace;
 use App\Enums\UserType;
@@ -11,7 +11,7 @@ use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
 
-class SalesOrderMergeRequest extends FormRequest
+class MergeRequest extends FormRequest
 {
     /**
      * Prepare the data for validation.

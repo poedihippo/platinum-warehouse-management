@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Api;
+namespace App\Http\Requests\Api\Invoice;
 
 use App\Enums\SalesOrderType;
 use App\Models\SalesOrder;
@@ -12,7 +12,7 @@ use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
 
-class InvoiceUpdateRequest extends FormRequest
+class UpdateRequest extends FormRequest
 {
     use RequestToBoolean;
 

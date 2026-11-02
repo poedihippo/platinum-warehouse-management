@@ -44,6 +44,8 @@ use App\Http\Services\DeliveryOrder\DeliveryOrderService;
 use App\Http\Services\DocumentCounter\DocumentCounterService;
 use App\Http\Services\DocumentCounter\NumberingService;
 use App\Http\Services\Export\ExportService;
+use App\Http\Services\Invoice\InvoiceNumberService;
+use App\Http\Services\Invoice\InvoiceService;
 use App\Http\Services\Loyalty\Claim\ClaimReviewService;
 use App\Http\Services\Loyalty\Claim\ClaimService;
 use App\Http\Services\Loyalty\LoyaltyUser\CustomerManagementService;
@@ -54,6 +56,7 @@ use App\Http\Services\Loyalty\Prize\PrizeService;
 use App\Http\Services\Loyalty\PrizeCategory\PrizeCategoryService;
 use App\Http\Services\Loyalty\Redemption\RedemptionReviewService;
 use App\Http\Services\Loyalty\Redemption\RedemptionService;
+use App\Http\Services\Order\OrderService;
 use App\Http\Services\Payment\PaymentService;
 use App\Http\Services\Permission\PermissionService;
 use App\Http\Services\Product\ProductService;
@@ -125,6 +128,8 @@ use App\Interfaces\Services\DeliveryOrder\DeliveryOrderServiceInterface;
 use App\Interfaces\Services\DocumentCounter\DocumentCounterServiceInterface;
 use App\Interfaces\Services\DocumentCounter\NumberingServiceInterface;
 use App\Interfaces\Services\Export\ExportServiceInterface;
+use App\Interfaces\Services\Invoice\InvoiceNumberServiceInterface;
+use App\Interfaces\Services\Invoice\InvoiceServiceInterface;
 use App\Interfaces\Services\Loyalty\Claim\ClaimReviewServiceInterface;
 use App\Interfaces\Services\Loyalty\Claim\ClaimServiceInterface;
 use App\Interfaces\Services\Loyalty\LoyaltyUser\CustomerManagementServiceInterface;
@@ -135,6 +140,7 @@ use App\Interfaces\Services\Loyalty\Prize\PrizeServiceInterface;
 use App\Interfaces\Services\Loyalty\PrizeCategory\PrizeCategoryServiceInterface;
 use App\Interfaces\Services\Loyalty\Redemption\RedemptionReviewServiceInterface;
 use App\Interfaces\Services\Loyalty\Redemption\RedemptionServiceInterface;
+use App\Interfaces\Services\Order\OrderServiceInterface;
 use App\Interfaces\Services\Payment\PaymentServiceInterface;
 use App\Interfaces\Services\Permission\PermissionServiceInterface;
 use App\Interfaces\Services\Product\ProductServiceInterface;
@@ -270,6 +276,10 @@ class AppServiceProvider extends ServiceProvider
         VoucherCategoryServiceInterface::class => VoucherCategoryService::class,
         VoucherGenerateBatchRepositoryInterface::class => VoucherGenerateBatchRepository::class,
         VoucherGenerateBatchServiceInterface::class => VoucherGenerateBatchService::class,
+
+        InvoiceNumberServiceInterface::class => InvoiceNumberService::class,
+        InvoiceServiceInterface::class => InvoiceService::class,
+        OrderServiceInterface::class => OrderService::class,
     ];
 
     /**

@@ -6,10 +6,10 @@ use App\Http\Requests\Api\DeliveryOrder\AttachRequest;
 use App\Http\Requests\Api\DeliveryOrder\ReturnRequest;
 use App\Http\Requests\Api\DeliveryOrder\StoreRequest;
 use App\Http\Requests\Api\DeliveryOrder\UpdateRequest;
-use App\Http\Requests\Api\SalesOrderItemStoreRequest;
+use App\Http\Requests\Api\SalesOrder\ItemStoreRequest;
 use App\Http\Resources\DefaultResource;
 use App\Http\Resources\DeliveryOrder\DeliveryOrderResource;
-use App\Http\Resources\SalesOrderItemResource;
+use App\Http\Resources\SalesOrder\SalesOrderItemResource;
 use App\Interfaces\Services\DeliveryOrder\DeliveryOrderServiceInterface;
 use App\Models\DeliveryOrderDetail;
 use Illuminate\Http\Request;
@@ -76,7 +76,7 @@ class DeliveryOrderController extends BaseController
         return $this->service->exportXml($id);
     }
 
-    public function verification(SalesOrderItemStoreRequest $request, int $id, DeliveryOrderDetail $deliveryOrderDetail)
+    public function verification(ItemStoreRequest $request, int $id, DeliveryOrderDetail $deliveryOrderDetail)
     {
         return new SalesOrderItemResource($this->service->verify($id, $deliveryOrderDetail, $request->stock_id));
     }

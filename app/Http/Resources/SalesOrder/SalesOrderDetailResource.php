@@ -1,10 +1,12 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\SalesOrder;
 
 use App\Http\Resources\ProductUnit\ProductUnitResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+use App\Http\Resources\SalesOrder\SalesOrderResource;
+use App\Http\Resources\DefaultResource;
 class SalesOrderDetailResource extends JsonResource
 {
     /**

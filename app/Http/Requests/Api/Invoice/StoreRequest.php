@@ -1,9 +1,11 @@
 <?php
 
-namespace App\Http\Requests\Api\Order;
+namespace App\Http\Requests\Api\Invoice;
 
 use App\Enums\SalesOrderType;
 use App\Models\Voucher;
+use App\Rules\TenantedRule;
+use App\Rules\UniqueInvoiceNumber;
 use App\Traits\Requests\RequestToBoolean;
 use App\Rules\EnumValue;
 use Closure;
@@ -11,7 +13,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
-class OrderStoreRequest extends FormRequest
+class StoreRequest extends FormRequest
 {
     use RequestToBoolean;
 
@@ -21,34 +23,19 @@ class OrderStoreRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $items = collect($this->items)->map(function ($item) {
-            if (! isset($item['unit_price']) && empty($item['unit_price'])) {
-                $productUnitPrice = DB::table('product_units')->where('id', $item['product_unit_id'])->first(['price'])?->price ?? 0;
-            } else {
-                $productUnitPrice = (int) $item['unit_price'];
-            }
-
-            $tax = $item['tax'] ?? 0;
-            $totalPrice = $productUnitPrice * ($item['qty'] ?? 1);
-            if ($tax == true) {
-                $totalPrice += $totalPrice * 0.11;
-            }
-
             return [
                 ...$item,
-                'tax' => $item['tax'] ?? 0,
-                'unit_price' => $productUnitPrice,
-                'total_price' => $totalPrice,
+                'warehouse_id' => $this->warehouse_id ?? null,
             ];
         })->all();
 
         $this->merge([
+            'is_auto_discount_enabled' => $this->toBoolean($this->is_auto_discount_enabled ?? true),
             'shipment_fee' => $this->shipment_fee ? (int) $this->shipment_fee : 0,
             'additional_discount' => $this->additional_discount ? (int) $this->additional_discount : 0,
             'is_additional_discount_percentage' => $this->toBoolean($this->is_additional_discount_percentage ?? true),
-            'spg_id' => auth('sanctum')->id(),
-            'transaction_date' => $this->transaction_date ?? date('Y-m-d H:i:s'),
-            'shipment_estimation_datetime' => $this->shipment_estimation_datetime ?? date('Y-m-d H:i:s'),
             'items' => $items,
+            // 'is_additional_discount_percentage' => isset($this->is_additional_discount_percentage) && !is_null($this->is_additional_discount_percentage) ? $this->toBoolean($this->is_additional_discount_percentage) : true,
         ]);
     }
 
@@ -60,9 +47,11 @@ class OrderStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'spg_id' => 'required|exists:users,id',
-            'expected_price' => 'nullable|integer',
-            'is_additional_discount_percentage' => 'required|boolean',
+            'user_id' => ['nullable', 'integer', 'exists:users,id'],
+            // 'company' => ['required', new EnumValue(CompanyEnum::class)],
+            'expected_price' => ['nullable', 'integer'],
+            'is_auto_discount_enabled' => ['required', 'boolean'],
+            'is_additional_discount_percentage' => ['required', 'boolean'],
             'type' => ['required', new EnumValue(SalesOrderType::class)],
             'reseller_id' => [
                 Rule::requiredIf(empty($this->customer_name) && empty($this->customer_phone)),
@@ -72,7 +61,8 @@ class OrderStoreRequest extends FormRequest
                     }
                 },
             ],
-            'customer_name' => 'required_without:reseller_id',
+            'cashier_name' => ['nullable', 'string'],
+            'customer_name' => ['required_without:reseller_id'],
             'customer_phone' => [
                 'required_without:reseller_id',
                 function (string $attribute, mixed $value, Closure $fail) {
@@ -83,20 +73,13 @@ class OrderStoreRequest extends FormRequest
                     }
                 },
             ],
-            'customer_address' => 'nullable|string',
-            // 'invoice_no' => [
-            //     'nullable',
-            //     function (string $attribute, mixed $value, Closure $fail) {
-            //         if (DB::table('sales_orders')->whereNull('deleted_at')->where('invoice_no', trim($value))->exists()) {
-            //             $fail('Invoice number sudah digunakan');
-            //         }
-            //     }
-            // ],
-            // 'warehouse_id' => ['required', new TenantedRule()],
+            'customer_address' => ['nullable', 'string'],
+            'invoice_no' => ['nullable', new UniqueInvoiceNumber('sales_orders')],
+            'warehouse_id' => ['required', new TenantedRule()],
             'transaction_date' => 'required|date_format:Y-m-d H:i:s',
             'shipment_estimation_datetime' => 'required|date_format:Y-m-d H:i:s',
-            'shipment_fee' => 'required|integer',
-            // 'additional_discount' => 'required|integer',
+            'shipment_fee' => ['required', 'integer'],
+            'additional_discount' => ['required', 'integer'],
             'voucher_codes' => ['nullable', 'array'],
             'voucher_codes.*' => ['required', 'string', function (string $attribute, mixed $value, Closure $fail) {
                 $voucher = Voucher::where('code', $value)->first();
@@ -110,7 +93,7 @@ class OrderStoreRequest extends FormRequest
                     return $fail('Voucher tidak valid atau sudah kedaluwarsa!');
                 }
             }],
-            'description' => 'nullable|string',
+            'description' => ['nullable', 'string'],
             'items' => [
                 'required',
                 'array',
@@ -120,20 +103,15 @@ class OrderStoreRequest extends FormRequest
                     }
                 },
             ],
-            'items.*.product_unit_id' => 'required|integer|exists:product_units,id',
-            'items.*.qty' => 'required|integer',
-            'items.*.unit_price' => 'required|numeric|min:0',
-            // 'items.*.discount' => 'required|numeric|min:0',
-            'items.*.tax' => 'required|boolean',
-            'items.*.total_price' => 'required|numeric|min:0',
-            // 'items.*.warehouse_id' => ['required'],
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
-            'reseller_id.required' => 'Data customer harus diisi',
+            'items.*.product_unit_id' => ['required', 'integer', 'exists:product_units,id'],
+            'items.*.qty' => ['required', 'integer', 'min:1'],
+            'items.*.unit_price' => ['required', 'numeric', 'min:0'],
+            'items.*.discount' => ['required', 'numeric', 'min:0'],
+            'items.*.tax' => ['required', 'boolean'],
+            'items.*.total_price' => ['required', 'numeric', 'min:0'],
+            'items.*.warehouse_id' => ['required', new TenantedRule()],
+            'items.*.stock_ids' => ['nullable', 'array'],
+            'items.*.stock_ids.*' => ['required', 'exists:stocks,id'],
         ];
     }
 }

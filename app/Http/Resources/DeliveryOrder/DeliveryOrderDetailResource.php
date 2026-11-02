@@ -2,8 +2,8 @@
 
 namespace App\Http\Resources\DeliveryOrder;
 
-use App\Http\Resources\SalesOrderDetailResource;
-use App\Http\Resources\SalesOrderItemResource;
+use App\Http\Resources\SalesOrder\SalesOrderDetailResource;
+use App\Http\Resources\SalesOrder\SalesOrderItemResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class DeliveryOrderDetailResource extends JsonResource

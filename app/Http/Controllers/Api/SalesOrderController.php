@@ -2,27 +2,22 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\SalesOrderItemStoreRequest;
-use App\Http\Requests\Api\SalesOrderMergeRequest;
-use App\Http\Requests\Api\SalesOrderStoreRequest;
-use App\Http\Requests\Api\SalesOrderUpdateRequest;
-use App\Http\Resources\SalesOrderItemResource;
-use App\Http\Resources\SalesOrderResource;
-use App\Models\ProductUnit;
+use App\Http\Requests\Api\SalesOrder\ItemStoreRequest;
+use App\Http\Requests\Api\SalesOrder\MergeRequest;
+use App\Http\Requests\Api\SalesOrder\StoreRequest;
+use App\Http\Requests\Api\SalesOrder\UpdateRequest;
+use App\Http\Resources\SalesOrder\SalesOrderItemResource;
+use App\Http\Resources\SalesOrder\SalesOrderResource;
+use App\Interfaces\Services\SalesOrder\SalesOrderServiceInterface;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderDetail;
-use App\Models\SalesOrderItem;
-use App\Models\StockProductUnit;
-use App\Services\SalesOrderService;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
-use Spatie\QueryBuilder\AllowedFilter;
-use Spatie\QueryBuilder\QueryBuilder;
 
-class SalesOrderController extends Controller
+class SalesOrderController extends BaseController
 {
-    public function __construct()
+    public function __construct(private SalesOrderServiceInterface $service)
     {
         parent::__construct();
         // $this->middleware('permission:sales_order_access', ['only' => ['index', 'show']]);
@@ -36,53 +31,34 @@ class SalesOrderController extends Controller
 
     public function index()
     {
-        return SalesOrderService::index($this->per_page);
+        return SalesOrderResource::collection($this->service->index($this->per_page));
     }
 
     public function show($id)
     {
-        $salesOrder = SalesOrderService::show($id);
-
-        return new SalesOrderResource($salesOrder);
+        return new SalesOrderResource($this->service->show($id));
     }
 
     public function items(int $id, SalesOrderDetail $salesOrderDetail)
     {
-        $salesOrder = $this->findScanableMarketplaceOrder($id);
+        $salesOrder = $this->service->findScanableMarketplaceOrder($id);
         abort_unless($salesOrderDetail->sales_order_id === $salesOrder->id, 404);
 
-        $items = QueryBuilder::for(
-            SalesOrderItem::query()
-                ->where('sales_order_detail_id', $salesOrderDetail->id)
-                ->select(SalesOrderItem::SELECT_COLUMNS)
-                ->with('stock')
-        )
-            ->allowedFilters([
-                'is_returned',
-                'is_parent',
-            ])
-            ->paginate($this->per_page);
-
-        return SalesOrderItemResource::collection($items);
+        return SalesOrderItemResource::collection($this->service->paginateItems($salesOrderDetail, $this->per_page));
     }
 
-    public function verification(SalesOrderItemStoreRequest $request, int $id, SalesOrderDetail $salesOrderDetail)
+    public function verification(ItemStoreRequest $request, int $id, SalesOrderDetail $salesOrderDetail)
     {
-        $salesOrder = $this->findScanableMarketplaceOrder($id);
+        $salesOrder = $this->service->findScanableMarketplaceOrder($id);
         abort_unless($salesOrderDetail->sales_order_id === $salesOrder->id, 404);
 
-        $salesOrderItem = SalesOrderService::verifyStockItem($salesOrderDetail, $request->stock_id);
-
-        return new SalesOrderItemResource($salesOrderItem);
+        return new SalesOrderItemResource($this->service->verifyStockItem($salesOrderDetail, $request->stock_id));
     }
 
-    public function store(SalesOrderStoreRequest $request)
+    public function store(StoreRequest $request)
     {
-        // The whole pipeline runs inside a retryable transaction: a concurrency error (for
-        // example while reserving the document number) rolls everything back, so retrying
-        // rebuilds the order from the request instead of reusing a half processed model.
         $salesOrder = DB::transaction(
-            fn () => SalesOrderService::createOrder(
+            fn () => $this->service->createOrder(
                 SalesOrder::make(['raw_source' => $request->validated()]),
                 (bool) $request->is_preview
             ),
@@ -92,72 +68,34 @@ class SalesOrderController extends Controller
         return new SalesOrderResource($this->loadMarketplaceDeliveryOrder($salesOrder));
     }
 
-    public function merge(SalesOrderMergeRequest $request)
+    public function merge(MergeRequest $request)
     {
-        $salesOrder = SalesOrderService::mergeMarketplaceOrders($request->validated());
+        $salesOrder = $this->service->mergeMarketplaceOrders($request->validated());
         $salesOrder->load('mergedSalesOrders:id,merged_into_sales_order_id,invoice_no');
 
         return new SalesOrderResource($this->loadMarketplaceDeliveryOrder($salesOrder));
     }
 
-    public function update($id, SalesOrderUpdateRequest $request)
+    public function update($id, UpdateRequest $request)
     {
-        $salesOrder = SalesOrder::findTenanted($id);
-
-        if ($salesOrder->isMergeSalesOrder()) {
-            return response()->json(['message' => 'Sales Order sumber merge tidak dapat diubah.'], 400);
-        }
-
-        if ($salesOrder->isMergeResult()) {
-            return response()->json(['message' => 'Sales Order hasil merge tidak dapat diubah. Hapus Sales Order hasil merge untuk membatalkan merge.'], 400);
-        }
-
-        if (
-            ! $salesOrder->marketplace
-            && SalesOrderDetail::where('sales_order_id', $salesOrder->id)->whereHas('deliveryOrderDetails')->exists()
-        ) {
-            return response()->json(['message' => 'DO harus dihapus terlebih dahulu sebelum mengedit SO'], 400);
-        }
+        $salesOrder = $this->service->findTenanted($id);
+        $this->service->ensureEditable($salesOrder);
 
         $salesOrder->raw_source = $request->validated();
-        $salesOrder = SalesOrderService::updateOrder($salesOrder, (bool) $request->is_preview ?? false);
+        $salesOrder = $this->service->updateOrder($salesOrder, (bool) $request->is_preview ?? false);
 
         return (new SalesOrderResource($this->loadMarketplaceDeliveryOrder($salesOrder)))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
     public function destroy($id)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('sales_order_delete'), 403);
-        $salesOrder = SalesOrder::findTenanted($id);
-
-        if ($salesOrder->isMergeSalesOrder()) {
-            return response()->json(['message' => 'Sales Order sumber merge tidak dapat dihapus.'], 400);
-        }
-
-        if ($salesOrder->isMergeResult()) {
-            SalesOrderService::deleteMergeResult($salesOrder);
-
-            return $this->deletedResponse();
-        }
-
-        if ($salesOrder->has_delivery_order) {
-            return response()->json(['message' => 'Tidak dapat menghapus SO yang sudah direlasikan dengan DO'], 400);
-        }
-
-        DB::transaction(function () use ($salesOrder) {
-            if (! $salesOrder->deliveryOrders()->exists()) {
-                SalesOrderService::releaseScannedStock($salesOrder);
-            }
-
-            $salesOrder->delete();
-        });
+        $this->service->destroySalesOrder($this->service->findTenanted($id));
 
         return $this->deletedResponse();
     }
 
-    public function print($id, \Illuminate\Http\Request $request)
+    public function print($id, Request $request)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('sales_order_print'), 403);
         $mode = strtolower($request->query('mode', 'download'));
         $allowedModes = ['download', 'preview', 'inline', 'view'];
 
@@ -165,147 +103,32 @@ class SalesOrderController extends Controller
             $mode = 'download';
         }
 
-        return SalesOrderService::print($id, 'print', null, $mode);
+        return $this->service->print($id, 'print', null, $mode);
     }
 
     public function exportXml($id)
     {
-        return SalesOrderService::exportXml($id);
+        return $this->service->exportXml($id);
     }
 
     public function productUnitsNew()
     {
-        // $userDiscounts = UserDiscount::select('product_brand_id', 'value', 'is_percentage')->where('user_id', $request->customer_id)->get();
-
-        // Sebelumnya: request()->filter['warehouse_id'] ?? null;
-        // Diganti ke input() supaya tidak memicu warning "Trying to access array offset on null"
-        // saat request datang tanpa parameter filter[].
-        $warehouseId = request()->input('filter.warehouse_id');
-
-        /*
-         * CATATAN PERFORMA (2026-10-23)
-         *
-         * stocks_count DIPAKAI frontend: SelectProductListTest mengirim nilainya ke
-         * CounterComponent pada form Create SO (newShipmentTest.tsx / editShipment.tsx).
-         * Jadi withCount() di bawah WAJIB ada, jangan di-comment.
-         *
-         * Biayanya: NOT EXISTS per baris stocks (376rb stocks x 324rb sales_order_items).
-         * Untuk stock_product_unit besar (contoh id 967 = 93rb stock) satu produk saja
-         * ~0,9-1,9 detik. Solusinya index, bukan menghapus count:
-         *  - stocks (stock_product_unit_id, is_stock, deleted_at, description)
-         *  - sales_order_items (stock_id, is_returned)
-         */
-        $stockProductUnitQuery = fn ($q) => $q->select('id', 'warehouse_id', 'product_unit_id')->has('productUnit')->has('warehouse')
-            ->when($warehouseId, fn ($q) => $q->where('warehouse_id', $warehouseId))
-            ->withCount(['stocks' => fn ($q) => $q->whereCountableStock()])
-            ->with([
-                'warehouse' => fn ($q) => $q->select('id', 'code'),
-            ]);
-
-        // ProductUnit::select('id', 'refer_id', 'uom_id', 'product_id', 'name', 'price', 'is_ppn', 'code')
-        // product_id tidak lagi di-select karena relasi 'product' (satu-satunya pemakainya) tidak dipakai frontend.
-        $query = ProductUnit::select('id', 'refer_id', 'uom_id', 'name', 'price', 'is_ppn', 'code')
-            ->where('is_generate_qr', true)
-            ->with([
-                'refer' => fn ($q) => $q->select('id', 'name')->with('stockProductUnit', $stockProductUnitQuery),
-                'uom' => fn ($q) => $q->select('id', 'name'),
-                // 'product' => fn ($q) => $q->select('id', 'name', 'product_brand_id'),
-            ])
-            ->with('stockProductUnit', $stockProductUnitQuery)
-            // Order deterministik supaya pagination tidak menghasilkan baris dobel/hilang.
-            ->orderBy('id');
-
-        $productUnits = QueryBuilder::for($query)
-            ->allowedFilters([
-                AllowedFilter::callback('warehouse_id', fn ($q) => $q),
-                AllowedFilter::scope('product_unit', 'search'),
-                AllowedFilter::scope('company', 'whereCompany'),
-            ])
-            ->paginate($this->per_page)
-            ->through(function (ProductUnit $productUnit) {
-                $productUnit->price_discount = $productUnit->price;
-                $productUnit->discount = 0;
-                $productUnit->is_percentage = 1;
-
-                if ($productUnit->refer && ! $productUnit->stockProductUnit) {
-                    // Sebelumnya: ($productUnit->refer->stockProductUnit->warehouse?->code ?? '')
-                    $productUnit->name = $productUnit->name.' - '.($productUnit->refer->stockProductUnit?->warehouse?->code ?? '');
-                    $productUnit->setRelation('stockProductUnit', $productUnit->refer->stockProductUnit);
-                } else {
-                    // Sebelumnya: ($productUnit->stockProductUnit->warehouse?->code ?? '')
-                    $productUnit->name = $productUnit->name.' - '.($productUnit->stockProductUnit?->warehouse?->code ?? '');
-                }
-                $productUnit->unsetRelation('refer');
-
-                return $productUnit;
-            });
-
-        return response()->json($productUnits);
+        return response()->json($this->service->paginateProductUnitsNew(request()->input('filter.warehouse_id'), $this->per_page));
     }
 
     public function productUnits()
     {
-        // $userDiscounts = UserDiscount::select('product_brand_id', 'value', 'is_percentage')->where('user_id', $request->customer_id)->get();
-
-        $query = StockProductUnit::select('id', 'warehouse_id', 'product_unit_id')->has('productUnit')->has('warehouse')
-            ->withCount(['stocks' => fn ($q) => $q->whereAvailableStock()->whereNull('description')])
-            ->with([
-                'warehouse' => fn ($q) => $q->select('id', 'code'),
-                'productUnit' => function ($q) {
-                    // $q->select('id', 'uom_id', 'product_id', 'name', 'price', 'is_ppn')
-                    $q->select('id', 'uom_id', 'product_id', 'name', 'price', 'is_ppn')
-                        ->with([
-                            'uom' => fn ($q) => $q->select('id', 'name'),
-                            'product' => fn ($q) => $q->select('id', 'name', 'product_brand_id'),
-                        ]);
-                },
-            ]);
-        // ->having('stocks_count', '>', 0);
-
-        $stockProductUnits = QueryBuilder::for($query)
-            ->allowedFilters([
-                AllowedFilter::exact('warehouse_id'),
-                AllowedFilter::scope('product_unit'),
-                AllowedFilter::scope('company', 'whereCompany'),
-            ])
-            ->paginate($this->per_page)
-            ->through(function ($stockProductUnit) {
-                $productUnit = $stockProductUnit->productUnit;
-                $productUnit->name = $productUnit->name.' - '.($stockProductUnit->warehouse?->code ?? '');
-                $productUnit->price_discount = $productUnit->price;
-                $productUnit->discount = 0;
-                $productUnit->is_percentage = 1;
-
-                return $stockProductUnit;
-            });
-
-        return response()->json($stockProductUnits);
+        return response()->json($this->service->paginateProductUnits($this->per_page));
     }
 
+    /**
+     * The DO of a marketplace or merged order is loaded (hidden) so the resource
+     * can expose its reference.
+     */
     private function loadMarketplaceDeliveryOrder(SalesOrder $salesOrder): SalesOrder
     {
         if ($salesOrder->marketplace || $salesOrder->isMergeResult()) {
             $salesOrder->load('deliveryOrders:id,sales_order_id')->makeHidden('deliveryOrders');
-        }
-
-        return $salesOrder;
-    }
-
-    /**
-     * Resolve a marketplace Sales Order that is eligible for stock scanning.
-     *
-     * Merge results and merge sources are rejected, as are orders that already have a Delivery Order.
-     */
-    private function findScanableMarketplaceOrder(int $id): SalesOrder
-    {
-        $salesOrder = SalesOrder::whereNotNull('marketplace')->findTenanted($id);
-
-        if ($salesOrder->isMergeResult() || $salesOrder->isMergeSalesOrder()) {
-            abort(Response::HTTP_BAD_REQUEST, 'Sales Order merge tidak dapat diverifikasi.');
-        }
-
-        if ($salesOrder->deliveryOrders()->exists()) {
-            abort(Response::HTTP_BAD_REQUEST, 'Sales Order sudah memiliki Delivery Order dan tidak dapat diverifikasi.');
         }
 
         return $salesOrder;

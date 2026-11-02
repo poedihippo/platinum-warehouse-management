@@ -10,7 +10,7 @@ use App\Http\Requests\Api\ProductUnit\UpdateRelationRequest;
 use App\Http\Requests\Api\ProductUnit\UpdateRequest;
 use App\Http\Resources\DefaultResource;
 use App\Http\Resources\ProductUnit\ProductUnitResource;
-use App\Http\Resources\SalesOrderDetailResource;
+use App\Http\Resources\SalesOrder\SalesOrderDetailResource;
 use App\Interfaces\Services\ProductUnit\ProductUnitServiceInterface;
 use App\Models\ProductUnit;
 use Illuminate\Http\Response;

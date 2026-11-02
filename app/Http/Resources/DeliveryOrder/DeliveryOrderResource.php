@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources\DeliveryOrder;
 
-use App\Http\Resources\SalesOrderResource;
+use App\Http\Resources\SalesOrder\SalesOrderResource;
 use App\Http\Resources\User\UserResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 

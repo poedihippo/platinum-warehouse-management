@@ -6,6 +6,7 @@ use App\Enums\CompanyEnum;
 use App\Enums\DocumentType;
 use App\Enums\Marketplace;
 use App\Interfaces\Services\DocumentCounter\NumberingServiceInterface;
+use App\Interfaces\Services\SalesOrder\SalesOrderServiceInterface;
 use App\Models\DeliveryOrder;
 use App\Models\DocumentCounter;
 use App\Models\Product;
@@ -17,7 +18,6 @@ use App\Models\StockProductUnit;
 use App\Models\Uom;
 use App\Models\User;
 use App\Models\Warehouse;
-use App\Services\SalesOrderService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -563,7 +563,7 @@ class NumberingTest extends TestCase
 
         $sources = $this->createMergeableMarketplaceOrders($ctx);
 
-        $merged = SalesOrderService::mergeMarketplaceOrders($this->mergePayload($sources, $ctx, [
+        $merged = app(SalesOrderServiceInterface::class)->mergeMarketplaceOrders($this->mergePayload($sources, $ctx, [
             'invoice_no' => 'PAS/SO/MERGE/01',
             'delivery_order_invoice_no' => 'PAS/DO/MERGE/01',
         ]));
@@ -587,7 +587,7 @@ class NumberingTest extends TestCase
 
         $sources = $this->createMergeableMarketplaceOrders($ctx);
 
-        $merged = SalesOrderService::mergeMarketplaceOrders($this->mergePayload($sources, $ctx, [
+        $merged = app(SalesOrderServiceInterface::class)->mergeMarketplaceOrders($this->mergePayload($sources, $ctx, [
             'invoice_no' => 'IGNORED/SO',
             'delivery_order_invoice_no' => 'IGNORED/DO',
         ]));

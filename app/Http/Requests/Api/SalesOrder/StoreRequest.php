@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Requests\Api;
+namespace App\Http\Requests\Api\SalesOrder;
 
 use App\Enums\CompanyEnum;
 use App\Enums\Marketplace;
 use App\Enums\SalesOrderType;
 use App\Interfaces\Services\DocumentCounter\NumberingServiceInterface;
+use App\Models\Voucher;
 use App\Rules\EnumValue;
 use App\Rules\TenantedRule;
 use App\Rules\UniqueInvoiceNumber;
@@ -14,7 +15,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
-class SalesOrderUpdateRequest extends FormRequest
+class StoreRequest extends FormRequest
 {
     /**
      * Prepare the data for validation.
@@ -53,21 +54,38 @@ class SalesOrderUpdateRequest extends FormRequest
                 },
             ],
             'invoice_no' => [
-                'nullable',
                 Rule::requiredIf(fn () => ! app(NumberingServiceInterface::class)->enabled()),
-                new UniqueInvoiceNumber('sales_orders', $this->route('sales_order')),
+                'nullable',
+                new UniqueInvoiceNumber('sales_orders'),
             ],
-            // 'warehouse_id' => ['required', new TenantedRule()],
+            'warehouse_id' => ['required', new TenantedRule()],
             'transaction_date' => ['nullable', 'required_without:marketplace', 'date_format:Y-m-d H:i:s'],
             'shipment_estimation_datetime' => ['nullable', 'required_without:marketplace', 'date_format:Y-m-d H:i:s'],
             'shipment_fee' => 'required|integer',
             'additional_discount' => 'required|integer',
-            'description' => 'nullable|string',
-            'items' => ['required', 'array', function (string $attribute, mixed $value, Closure $fail) {
-                if (count($value) <= 0) {
-                    $fail('items required');
+            'voucher_codes' => ['nullable', 'array'],
+            'voucher_codes.*' => ['required', 'string', function (string $attribute, mixed $value, Closure $fail) {
+                $voucher = Voucher::where('code', $value)->first();
+                if (! $voucher) {
+                    return $fail('Voucher tidak ditemukan!');
+                }
+                if ($voucher->is_used) {
+                    return $fail('Voucher sudah digunakan!');
+                }
+                if (! $voucher->isValid()) {
+                    return $fail('Voucher tidak valid atau sudah kedaluwarsa!');
                 }
             }],
+            'description' => 'nullable|string',
+            'items' => [
+                'required',
+                'array',
+                function (string $attribute, mixed $value, Closure $fail) {
+                    if (count($value) <= 0) {
+                        $fail('items required');
+                    }
+                },
+            ],
             'items.*.product_unit_id' => 'required|integer|exists:product_units,id',
             'items.*.qty' => 'required|integer',
             'items.*.unit_price' => 'required|numeric|min:0',

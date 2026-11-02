@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\SalesOrder;
 
 use App\Http\Resources\Stocks\BaseStockResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+use App\Http\Resources\SalesOrder\SalesOrderDetailResource;
 class SalesOrderItemResource extends JsonResource
 {
     public function toArray($request)

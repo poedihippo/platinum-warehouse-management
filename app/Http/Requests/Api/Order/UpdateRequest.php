@@ -9,7 +9,7 @@ use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
 
-class OrderUpdateRequest extends FormRequest
+class UpdateRequest extends FormRequest
 {
     /**
      * Prepare the data for validation.

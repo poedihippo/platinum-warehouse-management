@@ -4,11 +4,11 @@ namespace Tests\Feature\Api;
 
 use App\Enums\CompanyEnum;
 use App\Enums\UserType;
-use App\Http\Requests\Api\DeliveryOrder\StoreRequest;
-use App\Http\Requests\Api\DeliveryOrder\UpdateRequest;
-use App\Http\Requests\Api\SalesOrderMergeRequest;
-use App\Http\Requests\Api\SalesOrderStoreRequest;
-use App\Http\Requests\Api\SalesOrderUpdateRequest;
+use App\Http\Requests\Api\DeliveryOrder\StoreRequest as DeliveryOrderStoreRequest;
+use App\Http\Requests\Api\DeliveryOrder\UpdateRequest as DeliveryOrderUpdateRequest;
+use App\Http\Requests\Api\SalesOrder\MergeRequest as SalesOrderMergeRequest;
+use App\Http\Requests\Api\SalesOrder\StoreRequest as SalesOrderStoreRequest;
+use App\Http\Requests\Api\SalesOrder\UpdateRequest as SalesOrderUpdateRequest;
 use App\Models\Permission;
 use App\Models\User;
 use Illuminate\Contracts\Validation\Validator;
@@ -121,7 +121,7 @@ class ManualInvoiceNumberTest extends TestCase
 
     public function test_delivery_order_requires_a_manual_number_when_the_counter_is_disabled(): void
     {
-        $errors = $this->validate(StoreRequest::class, $this->deliveryOrderPayload())->errors();
+        $errors = $this->validate(DeliveryOrderStoreRequest::class, $this->deliveryOrderPayload())->errors();
 
         $this->assertTrue($errors->has('invoice_no'));
     }
@@ -130,7 +130,7 @@ class ManualInvoiceNumberTest extends TestCase
     {
         config(['app.enable_document_counter' => true]);
 
-        $errors = $this->validate(StoreRequest::class, $this->deliveryOrderPayload())->errors();
+        $errors = $this->validate(DeliveryOrderStoreRequest::class, $this->deliveryOrderPayload())->errors();
 
         $this->assertFalse($errors->has('invoice_no'));
     }
@@ -189,7 +189,7 @@ class ManualInvoiceNumberTest extends TestCase
 
     public function test_delivery_order_update_requires_a_manual_number_when_the_counter_is_disabled(): void
     {
-        $errors = $this->validate(UpdateRequest::class, $this->deliveryOrderPayload())->errors();
+        $errors = $this->validate(DeliveryOrderUpdateRequest::class, $this->deliveryOrderPayload())->errors();
 
         $this->assertTrue($errors->has('invoice_no'));
     }

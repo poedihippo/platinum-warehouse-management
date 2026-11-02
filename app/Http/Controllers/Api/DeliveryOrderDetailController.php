@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Requests\Api\DeliveryOrder\DetailUpdateRequest;
 use App\Http\Resources\DeliveryOrder\DeliveryOrderDetailResource;
-use App\Http\Resources\SalesOrderItemResource;
+use App\Http\Resources\SalesOrder\SalesOrderItemResource;
 use App\Interfaces\Services\DeliveryOrder\DeliveryOrderDetailServiceInterface;
 
 class DeliveryOrderDetailController extends BaseController

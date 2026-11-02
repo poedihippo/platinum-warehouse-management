@@ -3,13 +3,17 @@
 namespace App\Pipes\Order;
 
 use App\Enums\UserType;
+use App\Interfaces\Services\Invoice\InvoiceNumberServiceInterface;
 use App\Models\SalesOrder;
 use App\Models\User;
-use App\Services\SalesOrderService;
 use Illuminate\Support\Facades\DB;
 
 class SaveOrder
 {
+    public function __construct(protected InvoiceNumberServiceInterface $invoiceNumberService)
+    {
+    }
+
     public function handle(SalesOrder $salesOrder, \Closure $next)
     {
         $salesOrder = DB::transaction(function () use ($salesOrder) {
@@ -33,7 +37,7 @@ class SaveOrder
             unset($salesOrder->details);
 
             if (request()->segment(2) == 'invoices' && request()->method() === 'POST' && $salesOrder->warehouse) {
-                $salesOrder->invoice_no = SalesOrderService::getSoNumber($salesOrder->warehouse);
+                $salesOrder->invoice_no = $this->invoiceNumberService->getSoNumber($salesOrder->warehouse);
             }
 
             $salesOrder->save();
