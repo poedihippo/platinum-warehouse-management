@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->enum('discount_type', ['nominal', 'percentage']);
-            $table->float('discount_amount', 11, 2)->default(0);
+            $table->legacyDouble('discount_amount', 11, 2)->default(0);
             $table->string('description')->nullable();
             $table->timestamps();
 

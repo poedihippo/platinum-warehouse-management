@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->foreignId('product_brand_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
-            $table->unsignedFloat('value', 10, 2)->default(0);
+            $table->legacyDouble('value', 10, 2)->unsigned()->default(0);
             $table->boolean('is_percentage')->default(1);
             $table->timestamps();
         });

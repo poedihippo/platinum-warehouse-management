@@ -18,7 +18,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(SalesOrder::class);
             $table->foreignIdFor(User::class);
-            $table->unsignedFloat('amount', 11, 2)->default(0);
+            $table->legacyDouble('amount', 11, 2)->unsigned()->default(0);
             $table->string('type', 20)->default(PaymentType::CASH);
             $table->text('note')->nullable();
             $table->timestamps();
