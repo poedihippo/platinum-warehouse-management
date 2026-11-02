@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\UomStoreRequest;
-use App\Http\Resources\UomResource;
+use App\Http\Requests\Api\Uom\StoreRequest;
+use App\Http\Resources\Uom\UomResource;
+use App\Interfaces\Services\Uom\UomServiceInterface;
 use App\Models\Uom;
 use Illuminate\Http\Response;
-use Spatie\QueryBuilder\QueryBuilder;
 
-class UomController extends Controller
+class UomController extends BaseController
 {
-    public function __construct()
+    public function __construct(private UomServiceInterface $service)
     {
         parent::__construct();
         // $this->middleware('permission:uom_access', ['only' => ['index', 'show']]);
@@ -23,39 +22,39 @@ class UomController extends Controller
 
     public function index()
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('uom_access'), 403);
-        $uoms = QueryBuilder::for(Uom::class)
-            ->allowedFilters('name')
-            ->allowedSorts(['id', 'name', 'created_at'])
-            ->paginate($this->per_page);
+        $uoms = $this->service->findAllPaginate(
+            $this->per_page,
+            null,
+            ['name'],
+            [],
+            ['id', 'name', 'created_at'],
+        );
 
         return UomResource::collection($uoms);
     }
 
     public function show(Uom $uom)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('uom_access'), 403);
         return new UomResource($uom);
     }
 
-    public function store(UomStoreRequest $request)
+    public function store(StoreRequest $request)
     {
-        $uom = Uom::create($request->validated());
+        $uom = $this->service->create($request->validated());
 
         return new UomResource($uom);
     }
 
-    public function update(Uom $uom, UomStoreRequest $request)
+    public function update(Uom $uom, StoreRequest $request)
     {
-        $uom->update($request->validated());
+        $this->service->update($uom, $request->validated());
 
         return (new UomResource($uom))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
     public function destroy(Uom $uom)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('uom_delete'), 403);
-        $uom->delete();
+        $this->service->delete($uom);
 
         return $this->deletedResponse();
     }

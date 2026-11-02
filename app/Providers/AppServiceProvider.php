@@ -2,6 +2,40 @@
 
 namespace App\Providers;
 
+use App\Http\Repositories\Product\ProductRepository;
+use App\Http\Repositories\ProductBrand\ProductBrandRepository;
+use App\Http\Repositories\ProductCategory\ProductCategoryRepository;
+use App\Http\Repositories\ProductUnitBlacklist\ProductUnitBlacklistRepository;
+use App\Http\Repositories\Setting\SettingRepository;
+use App\Http\Repositories\Supplier\SupplierRepository;
+use App\Http\Repositories\Uom\UomRepository;
+use App\Http\Repositories\Warehouse\WarehouseRepository;
+use App\Http\Services\Export\ExportService;
+use App\Http\Services\Product\ProductService;
+use App\Http\Services\ProductBrand\ProductBrandService;
+use App\Http\Services\ProductCategory\ProductCategoryService;
+use App\Http\Services\ProductUnitBlacklist\ProductUnitBlacklistService;
+use App\Http\Services\Setting\SettingService;
+use App\Http\Services\Supplier\SupplierService;
+use App\Http\Services\Uom\UomService;
+use App\Http\Services\Warehouse\WarehouseService;
+use App\Interfaces\Repositories\Product\ProductRepositoryInterface;
+use App\Interfaces\Repositories\ProductBrand\ProductBrandRepositoryInterface;
+use App\Interfaces\Repositories\ProductCategory\ProductCategoryRepositoryInterface;
+use App\Interfaces\Repositories\ProductUnitBlacklist\ProductUnitBlacklistRepositoryInterface;
+use App\Interfaces\Repositories\Setting\SettingRepositoryInterface;
+use App\Interfaces\Repositories\Supplier\SupplierRepositoryInterface;
+use App\Interfaces\Repositories\Uom\UomRepositoryInterface;
+use App\Interfaces\Repositories\Warehouse\WarehouseRepositoryInterface;
+use App\Interfaces\Services\Export\ExportServiceInterface;
+use App\Interfaces\Services\Product\ProductServiceInterface;
+use App\Interfaces\Services\ProductBrand\ProductBrandServiceInterface;
+use App\Interfaces\Services\ProductCategory\ProductCategoryServiceInterface;
+use App\Interfaces\Services\ProductUnitBlacklist\ProductUnitBlacklistServiceInterface;
+use App\Interfaces\Services\Setting\SettingServiceInterface;
+use App\Interfaces\Services\Supplier\SupplierServiceInterface;
+use App\Interfaces\Services\Uom\UomServiceInterface;
+use App\Interfaces\Services\Warehouse\WarehouseServiceInterface;
 use App\Models\PersonalAccessToken;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\ServiceProvider;
@@ -17,6 +51,23 @@ class AppServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     public $singletons = [
+        UomRepositoryInterface::class => UomRepository::class,
+        UomServiceInterface::class => UomService::class,
+        SupplierRepositoryInterface::class => SupplierRepository::class,
+        SupplierServiceInterface::class => SupplierService::class,
+        ProductCategoryRepositoryInterface::class => ProductCategoryRepository::class,
+        ProductCategoryServiceInterface::class => ProductCategoryService::class,
+        ProductBrandRepositoryInterface::class => ProductBrandRepository::class,
+        ProductBrandServiceInterface::class => ProductBrandService::class,
+        ProductRepositoryInterface::class => ProductRepository::class,
+        ProductServiceInterface::class => ProductService::class,
+        WarehouseRepositoryInterface::class => WarehouseRepository::class,
+        WarehouseServiceInterface::class => WarehouseService::class,
+        ProductUnitBlacklistRepositoryInterface::class => ProductUnitBlacklistRepository::class,
+        ProductUnitBlacklistServiceInterface::class => ProductUnitBlacklistService::class,
+        SettingRepositoryInterface::class => SettingRepository::class,
+        SettingServiceInterface::class => SettingService::class,
+        ExportServiceInterface::class => ExportService::class,
     ];
 
     /**

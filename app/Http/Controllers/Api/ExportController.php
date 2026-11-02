@@ -2,22 +2,24 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Enums\ImportType;
-use App\Exports\ImportSampleExport;
-use App\Http\Controllers\Controller;
+use App\Interfaces\Services\Export\ExportServiceInterface;
 use Illuminate\Http\RedirectResponse;
-use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class ExportController extends Controller
+class ExportController extends BaseController
 {
+    public function __construct(private ExportServiceInterface $service)
+    {
+        parent::__construct();
+    }
+
     public function sample(string $importType): RedirectResponse|BinaryFileResponse
     {
-        $importType = ImportType::coerce($importType);
-        if (! $importType) {
+        $download = $this->service->sample($importType);
+        if (! $download) {
             return redirect()->back()->with('error', 'Data import not found');
         }
 
-        return Excel::download(new ImportSampleExport($importType), $importType->getDescription().'.csv', \Maatwebsite\Excel\Excel::CSV);
+        return $download;
     }
 }

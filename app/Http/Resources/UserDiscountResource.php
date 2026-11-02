@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\ProductBrand\ProductBrandResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class UserDiscountResource extends JsonResource

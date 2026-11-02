@@ -2,19 +2,18 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\SupplierStoreRequest;
-use App\Http\Requests\Api\SupplierUpdateRequest;
-use App\Http\Resources\SupplierResource;
+use App\Http\Requests\Api\Supplier\StoreRequest;
+use App\Http\Requests\Api\Supplier\UpdateRequest;
+use App\Http\Resources\Supplier\SupplierResource;
+use App\Interfaces\Services\Supplier\SupplierServiceInterface;
 use App\Models\Supplier;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Response;
 use Spatie\QueryBuilder\AllowedFilter;
-use Spatie\QueryBuilder\QueryBuilder;
 
-class SupplierController extends Controller
+class SupplierController extends BaseController
 {
-    public function __construct()
+    public function __construct(private SupplierServiceInterface $service)
     {
         parent::__construct();
         // $this->middleware('permission:supplier_access', ['only' => ['index', 'show']]);
@@ -26,45 +25,45 @@ class SupplierController extends Controller
 
     public function index()
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('supplier_access'), 403);
-        $suppliers = QueryBuilder::for(Supplier::class)
-            ->allowedFilters([
+        $suppliers = $this->service->findAllPaginate(
+            $this->per_page,
+            null,
+            [
                 AllowedFilter::callback('search', function (Builder $query, $value) {
                     $query->where('name', 'like', '%'.$value.'%')
                         ->orWhere('email', 'like', '%'.$value.'%')
                         ->orWhere('phone', 'like', '%'.$value.'%');
                 }),
-            ])
-            ->allowedSorts(['id', 'name'])
-            ->paginate($this->per_page);
+            ],
+            [],
+            ['id', 'name'],
+        );
 
         return SupplierResource::collection($suppliers);
     }
 
     public function show(Supplier $supplier)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('supplier_access'), 403);
         return new SupplierResource($supplier);
     }
 
-    public function store(SupplierStoreRequest $request)
+    public function store(StoreRequest $request)
     {
-        $supplier = Supplier::create($request->validated());
+        $supplier = $this->service->create($request->validated());
 
         return new SupplierResource($supplier);
     }
 
-    public function update(Supplier $supplier, SupplierUpdateRequest $request)
+    public function update(Supplier $supplier, UpdateRequest $request)
     {
-        $supplier->update($request->validated());
+        $this->service->update($supplier, $request->validated());
 
         return (new SupplierResource($supplier))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
     public function destroy(Supplier $supplier)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('supplier_delete'), 403);
-        $supplier->delete();
+        $this->service->delete($supplier);
 
         return $this->deletedResponse();
     }

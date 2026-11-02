@@ -2,18 +2,16 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\WarehouseStoreRequest;
-use App\Http\Requests\Api\WarehouseUpdateRequest;
+use App\Http\Requests\Api\Warehouse\StoreRequest;
+use App\Http\Requests\Api\Warehouse\UpdateRequest;
 use App\Http\Resources\DefaultResource;
-use App\Models\Warehouse;
+use App\Interfaces\Services\Warehouse\WarehouseServiceInterface;
 use Illuminate\Http\Response;
 use Spatie\QueryBuilder\AllowedFilter;
-use Spatie\QueryBuilder\QueryBuilder;
 
-class WarehouseController extends Controller
+class WarehouseController extends BaseController
 {
-    public function __construct()
+    public function __construct(private WarehouseServiceInterface $service)
     {
         parent::__construct();
         // $this->middleware('permission:warehouse_access', ['only' => ['index', 'show']]);
@@ -25,46 +23,46 @@ class WarehouseController extends Controller
 
     public function index()
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('warehouse_access'), 403);
-        $warehouses = QueryBuilder::for(Warehouse::tenanted())
-            ->allowedFilters([
+        $warehouses = $this->service->findAllPaginate(
+            $this->per_page,
+            fn ($query) => $query->tenanted(),
+            [
                 'name',
-                AllowedFilter::exact('is_for_marketplace')
-            ])
-            ->allowedSorts(['id', 'name', 'is_for_marketplace', 'created_at'])
-            ->paginate($this->per_page);
+                AllowedFilter::exact('is_for_marketplace'),
+            ],
+            [],
+            ['id', 'name', 'is_for_marketplace', 'created_at'],
+        );
 
         return DefaultResource::collection($warehouses);
     }
 
     public function show($id)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('warehouse_access'), 403);
-        $warehouse = Warehouse::findTenanted($id);
+        $warehouse = $this->service->findTenanted($id);
 
         return new DefaultResource($warehouse);
     }
 
-    public function store(WarehouseStoreRequest $request)
+    public function store(StoreRequest $request)
     {
-        $warehouse = Warehouse::create($request->validated());
+        $warehouse = $this->service->create($request->validated());
 
         return new DefaultResource($warehouse);
     }
 
-    public function update($id, WarehouseUpdateRequest $request)
+    public function update($id, UpdateRequest $request)
     {
-        $warehouse = Warehouse::findTenanted($id);
-        $warehouse->update($request->validated());
+        $warehouse = $this->service->findTenanted($id);
+        $this->service->update($warehouse, $request->validated());
 
         return (new DefaultResource($warehouse))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
     public function destroy($id)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('warehouse_delete'), 403);
-        $warehouse = Warehouse::findTenanted($id);
-        $warehouse->delete();
+        $warehouse = $this->service->findTenanted($id);
+        $this->service->delete($warehouse);
 
         return $this->deletedResponse();
     }

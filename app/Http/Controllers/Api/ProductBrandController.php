@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\ProductBrandStoreRequest;
-use App\Http\Requests\Api\ProductBrandUpdateRequest;
-use App\Http\Resources\ProductBrandResource;
+use App\Http\Requests\Api\ProductBrand\StoreRequest;
+use App\Http\Requests\Api\ProductBrand\UpdateRequest;
+use App\Http\Resources\ProductBrand\ProductBrandResource;
+use App\Interfaces\Services\ProductBrand\ProductBrandServiceInterface;
 use App\Models\ProductBrand;
 use Illuminate\Http\Response;
-use Spatie\QueryBuilder\QueryBuilder;
 
-class ProductBrandController extends Controller
+class ProductBrandController extends BaseController
 {
-    public function __construct()
+    public function __construct(private ProductBrandServiceInterface $service)
     {
         parent::__construct();
         // $this->middleware('permission:product_brand_access', ['only' => ['index', 'show']]);
@@ -24,45 +23,43 @@ class ProductBrandController extends Controller
 
     public function index()
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('product_brand_access'), 403);
-        $productCategories = QueryBuilder::for(ProductBrand::class)
-            ->allowedFilters(['name'])
-            ->allowedSorts(['id', 'name', 'created_at'])
-            ->paginate($this->per_page);
+        $productCategories = $this->service->findAllPaginate(
+            $this->per_page,
+            null,
+            ['name'],
+            [],
+            ['id', 'name', 'created_at'],
+        );
 
         return ProductBrandResource::collection($productCategories);
     }
 
     public function show(ProductBrand $productBrand)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('product_brand_access'), 403);
         return new ProductBrandResource($productBrand);
     }
 
-    public function store(ProductBrandStoreRequest $request)
+    public function store(StoreRequest $request)
     {
-        $productBrand = ProductBrand::create($request->validated());
+        $productBrand = $this->service->create($request->validated());
 
         return new ProductBrandResource($productBrand);
     }
 
-    public function update(ProductBrand $productBrand, ProductBrandUpdateRequest $request)
+    public function update(ProductBrand $productBrand, UpdateRequest $request)
     {
-        $data = collect($request->validated())->except('logo')->all();
-
-        if ($request->hasFile('logo')) {
-            $data['logo_path'] = $productBrand->storeLogo($request->file('logo'));
-        }
-
-        $productBrand->update($data);
+        $this->service->updateWithLogo(
+            $productBrand,
+            $request->validated(),
+            $request->hasFile('logo') ? $request->file('logo') : null,
+        );
 
         return (new ProductBrandResource($productBrand))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
     public function destroy(ProductBrand $productBrand)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('product_brand_delete'), 403);
-        $productBrand->delete();
+        $this->service->delete($productBrand);
 
         return $this->deletedResponse();
     }

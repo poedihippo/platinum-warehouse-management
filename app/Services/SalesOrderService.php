@@ -385,7 +385,7 @@ class SalesOrderService
         $maxProductsBlackSpace = 10;
 
         $spellTotalPrice = \NumberToWords\NumberToWords::transformNumber('en', $salesOrder->price);
-        $bankTransferInfo = \App\Services\SettingService::bankTransferInfo();
+        $bankTransferInfo = app(\App\Interfaces\Services\Setting\SettingServiceInterface::class)->bankTransferInfo();
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::setPaper('a4', 'landscape')->loadView($view, [
             'salesOrder' => $salesOrder,

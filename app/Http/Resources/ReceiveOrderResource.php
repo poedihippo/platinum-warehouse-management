@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\Supplier\SupplierResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class ReceiveOrderResource extends JsonResource
