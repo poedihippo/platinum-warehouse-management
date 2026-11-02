@@ -23,7 +23,7 @@
 | Layer | Technology |
 |-------|-----------|
 | Framework | Laravel 10 (`laravel/framework: ^10.0`) |
-| PHP | `^8.0.2` |
+| PHP | `^8.1` (native enums). Next target: Laravel 13 + PHP 8.5 — write explicit nullable types (`?Type $x = null`) |
 | Database | MySQL (migrations contain MySQL-only SQL — no SQLite) |
 | Cache / Session | File-based |
 | Queue | Redis (`QUEUE_CONNECTION=redis`); `sync` in tests |
@@ -34,7 +34,7 @@
 | Excel/CSV | `maatwebsite/excel` 3.1 |
 | PDF | `barryvdh/laravel-dompdf` 2.0 |
 | QR Code | `simplesoftwareio/simple-qrcode` ~4 |
-| Enums | `bensampo/laravel-enum` 6.3 |
+| Enums | Native PHP backed enums + `App\Enums\BaseEnum` trait (BenSampo removed) |
 | OAuth | `laravel/socialite` 5.6 |
 | File Storage | AWS S3 (`league/flysystem-aws-s3-v3`) |
 | Email | Brevo (`symfony/brevo-mailer`) |
@@ -44,28 +44,45 @@
 
 ## 3. Architecture Overview
 
-### 3.1 High-Level Pattern
+### 3.1 High-Level Pattern (Controller → Service → Repository, HRIS layout)
 
 ```
-routes/api.php ──▶ Controller (permission middleware in __construct)
-                      │
-                      ├──▶ Form Request (app/Http/Requests/Api/...)
-                      ├──▶ Service (static methods) ──▶ Pipeline of Pipes (sales orders)
-                      ├──▶ Eloquent Model ──▶ booted() hooks ──▶ Events ──▶ (queued) Listeners
-                      └──▶ API Resource / response()->json
+routes/api.php ──▶ Api\XController extends Api\BaseController
+                      │   (permission middleware in __construct, Form Request, wraps API Resource / status code)
+                      ▼
+                   XServiceInterface ──▶ Http\Services\X\XService extends BaseService
+                      │   (business rules, transactions, guards → ApiResponseException, pipelines)
+                      ▼
+                   XRepositoryInterface ──▶ Http\Repositories\X\XRepository extends BaseRepository
+                      │   (Eloquent / QueryBuilder only)
+                      ▼
+                   Eloquent Model ──▶ booted() hooks ──▶ Events ──▶ (queued) Listeners
 ```
+
+| Layer | Location |
+|-------|----------|
+| Interfaces | `app/Interfaces/{Repositories,Services}/{Module}/{Name}{Repository,Service}Interface.php` (+ `BaseRepositoryInterface`, `BaseServiceInterface`); loyalty adds one level: `.../Loyalty/{Claim,Redemption,Prize,...}/` |
+| Implementations | `app/Http/{Repositories,Services}/{Module}/...` (+ `BaseRepository`, `BaseService`) |
+| Bindings | `AppServiceProvider::$singletons` (interface → implementation). Every new interface must be added there; `tests/Unit/ContainerBindingsTest` resolves them all |
+| Controllers | Flat in `app/Http/Controllers/Api/` (+ `Admin/`, `Admin/Loyalty/`, `Loyalty/`, `Loyalty/Auth/`, `Public/`), all extend `Api\BaseController` |
+| Requests | `app/Http/Requests/Api/{Module}/StoreRequest.php`, `UpdateRequest.php`, `MergeRequest.php`, ... |
+| Resources | `app/Http/Resources/{Module}/XResource.php` (`DefaultResource` stays at the root) |
+
+Models, Events, Listeners, Jobs, Imports, Exports and Pipes keep their namespaces (class names are stored in `model_type` columns and queued jobs). There is no `app/Services/` anymore — all services are instance classes resolved from the container.
 
 ### 3.2 Key Architectural Patterns
 
 | Pattern | Location | Purpose |
 |---------|----------|---------|
-| **Pipeline** | `app/Pipes/Order/`, `app/Pipes/Order/Spg/` | Sales order create/update (10 steps), SPG order flow |
+| **Service / Repository** | `app/Http/Services`, `app/Http/Repositories` | All business logic and data access, behind interfaces |
+| **Pipeline** | `app/Pipes/Order/`, `app/Pipes/Order/Spg/` | Sales order create/update (10 steps), SPG order flow; pipes get dependencies by constructor injection |
 | **Event-Driven** | `app/Events/`, `app/Listeners/` | Stock slot creation, RO stock in/out, opname details/items |
 | **Model hooks** | `booted()` in models | Auto-numbering, defaults, firing events, scan propagation |
 | **Tenancy** | `app/Traits/Tenanted.php` + per-model overrides | Warehouse-scoped data access (see §6 — not uniform!) |
 | **Dual Auth** | `config/auth.php` | `users` (staff, Sanctum) + `loyalty_users` (customers, `loyalty` guard) |
 | **Custom Soft Deletes** | `app/Traits/CustomSoftDeletes.php` | Soft delete + `deleted_by` (used by `Payment` only) |
-| **Document numbering** | `app/Services/NumberingService.php` | SO/DO numbers via `document_counters` + `lockForUpdate` (feature-flagged) |
+| **Document numbering** | `NumberingServiceInterface` (`Http/Services/DocumentCounter/NumberingService`) | SO/DO numbers via `document_counters` + `lockForUpdate` (feature-flagged) |
+| **API error exception** | `App\Exceptions\ApiResponseException($message, $status, $extra)` | Thrown by services for business-rule errors; renders exactly `{"message": ..., ...$extra}` with `$status` |
 
 ---
 
@@ -165,8 +182,7 @@ Undo: `is_done` → false, or RO delete → `UnverifiedROEvent` → `DeleteStock
 
 ### 5.4 Sales Order Processing
 
-`SalesOrderController@store` → `DB::transaction(fn () => SalesOrderService::createOrder(SalesOrder::make(['raw_source' => $validated]), (bool) $request->is_preview), 3)`.
-`SalesOrderService` methods are **static**.
+`SalesOrderController@store` → `SalesOrderServiceInterface::storeOrder($validated, (bool) $request->is_preview)`, which runs `DB::transaction(fn () => $this->createOrder(SalesOrder::make(['raw_source' => $validated]), $isPreview), 3)`.
 
 ```
 Create pipeline (SalesOrderService::createOrder):
@@ -241,14 +257,14 @@ Only QR stock is counted; non-QR `qty` is untouched.
 
 ### 5.9 SPG Orders, Invoices, Marketplace
 
-- **`/orders` (SPG quotations)** — `OrderController` works on **`SalesOrder`** rows with `is_invoice = true` and `invoice_no = ''`, using its own pipeline ending in `Pipes\Order\Spg\SaveOrder`. `PUT orders/{order}/convert-so` runs `Spg\ConvertToSO` (assigns `getSoNumber()`, writes StockHistory decrements). The `orders`/`order_details` tables and `Order`/`OrderDetail` models + `OrderDetailController` are legacy and broken — don't build on them.
-- **`/invoices` (IIPE)** — `InvoiceController` on `SalesOrder::whereInvoice()` (`is_invoice = true`). Store pre-checks available stock but reserves nothing; scanning via `verification` → `verifyStockItem`. Numbers from `SalesOrderService::getSoNumber()` (see §11.2). `GET invoices/{id}/print` is a **web** route.
-- **Marketplace** (`Marketplace` enum: blibli/shopee/tokopedia) — `POST sales-orders/merge` (`SalesOrderService::mergeMarketplaceOrders`) merges orders into one SO (`merged_into_sales_order_id`) and auto-creates its DO via `DeliveryOrderService`.
+- **`/orders` (SPG quotations)** — `OrderController` → `OrderService` works on **`SalesOrder`** rows with `is_invoice = true` and `invoice_no = ''`, using its own pipeline ending in `Pipes\Order\Spg\SaveOrder`. `PUT orders/{order}/convert-so` runs `Spg\ConvertToSO` (assigns `getSoNumber()`, writes StockHistory decrements). The `orders`/`order_details` tables and `Order`/`OrderDetail` models + `OrderDetailController` are legacy and broken — don't build on them.
+- **`/invoices` (IIPE)** — `InvoiceController` on `SalesOrder::whereInvoice()` (`is_invoice = true`). Store pre-checks available stock but reserves nothing; scanning via `verification` → `verifyStockItem`. Numbers from `InvoiceNumberServiceInterface::getSoNumber()` (see §11.2); logic in `InvoiceService`. `GET invoices/{id}/print` is a **web** route.
+- **Marketplace** (`Marketplace` enum: blibli/shopee/tokopedia) — `POST sales-orders/merge` (`SalesOrderService::mergeMarketplaceOrders`) merges orders into one SO (`merged_into_sales_order_id`) and auto-creates its DO via `DeliveryOrderServiceInterface`.
 
 ### 5.10 Other Stock Features
 
 - **Grouping**: a group parent is itself a `Stock` row with `description = "{code} GR-{mmyy}{NNN}"`; children point to it with `parent_id`. Groups are excluded from counts by `description IS NULL`. Endpoints: `stocks/grouping`, `stocks/grouping-by-scan`, `stocks/{stock}/ungrouping` (force-deletes the parent). Most stock operations cascade to children.
-- **Transfer**: `POST stocks/transfer` (`StockTransferController` + `TransferStockRequest`) — QR moves `stock_product_unit_id` of the stock and its children; non-QR moves `qty`; one `StockTransfer` row + two histories. Group children are rejected. Spec: `docs/tasks/stock/stock-transfer/backend-flow-v3.md`.
+- **Transfer**: `POST stocks/transfer` (`StockTransferController` + `StockTransfer\TransferRequest`) — QR moves `stock_product_unit_id` of the stock and its children; non-QR moves `qty`; one `StockTransfer` row + two histories. Group children are rejected. Spec: `docs/tasks/stock/stock-transfer/backend-flow-v3.md`.
 - **Bundle units**: `refer_id`/`refer_qty` + `ProductUnitRelation` (components must be non-QR). Selling one scans the referenced unit's stock.
 - **Other**: repack (`stocks/{stock}/repack`), printing queue / tempel / `add-to-stock` (`stocks.is_stock`), `stocks/record`, `stocks/export-txt`, `stocks/import` (`StockImport` → `GenerateStockQrcode` job), `temporary-stocks` scan log.
 - **Public QR verification**: `GET api/public/stocks/{ulid}` (no auth, `throttle:30,1`) — `Public\StockVerificationController`.
@@ -361,16 +377,20 @@ Admin = Spatie role `admin` (seeded by `AdminSeeder`), which also bypasses `Tena
 Separate, space-separated names from `LoyaltyPermissionSeeder`: `manage loyalty points`, `manage prizes`, `review redemptions`, `manage brands`, `manage customers`, `review claims`; roles `loyalty manager`, `loyalty reviewer`, `loyalty prize manager`, `loyalty fulfillment`. Controllers under `Api/Admin/Loyalty/` use:
 
 ```php
-private const PERMISSION = 'manage prizes';
-// first line of every action:
-if ($denied = $this->denyUnlessAuthorized($request)) return $denied;
+use DeniesUnlessCan;   // App\Traits\Controllers\DeniesUnlessCan
+
+// first line of every action (after validation, so 422 still wins over 403):
+if ($denied = $this->denyUnlessCan($request, self::PERMISSION, '...')) return $denied;
 ```
+Customer list endpoints clamp `per_page` with `ClampsLoyaltyPerPage::loyaltyPerPage()`.
 
 ---
 
-## 8. Enums (bensampo/laravel-enum, `app/Enums/`)
+## 8. Enums (native PHP backed enums, `app/Enums/`)
 
-**Always use these enums, never hardcode string values.** Constants are PascalCase or UPPER (e.g. `UserType::Spg`, `CompanyEnum::PAS`); compare with `->is(...)`.
+**Always use these enums, never hardcode string values.** Every enum is `enum X: string { use BaseEnum; case ... }`. Case names are PascalCase or UPPER (e.g. `UserType::Spg`, `CompanyEnum::PAS`) — a case is an object, so use `UserType::Spg->value` wherever a string is needed (`create([...])`, `where()`, `in:` rules, string comparisons). Model casts (`'type' => UserType::class`) still serialize to the value.
+
+`App\Enums\BaseEnum` (trait) keeps the BenSampo-style helpers: `is()`, `isNot()`, `in()`, `getValues()`, `getKeys()`, `hasValue()`, `coerce()`, `getValue()`, `all()`, `getDescription()`. Validate with `new App\Rules\EnumValue(X::class)` (same message as BenSampo: "The value you have entered is invalid.").
 
 | Enum | Values | Notes |
 |------|--------|-------|
@@ -407,23 +427,34 @@ class SalesOrder extends Model
     }
 }
 ```
+- Models hold relations, casts, scopes and hooks only — no query logic for endpoints (that belongs in a repository). Hooks that need a service resolve it with `app(XServiceInterface::class)` (e.g. numbering in `SalesOrder`/`DeliveryOrder` `creating`, `StockOpname` `saved` → `StockHistoryRepositoryInterface`).
 - Only `User`, `SocialAccount`, `TemporaryStock` and `Loyalty/*` models use `HasFactory`; factories for other models exist and are used via `XFactory::new()`.
 - Event discovery is off — register new events in `EventServiceProvider::$listen`.
 
 ### 9.2 Controllers
 
-- Extend `App\Http\Controllers\Controller`, call `parent::__construct()`. It provides `$this->per_page` (`?per_page`, default 15) and `createdResponse()`, `updatedResponse()`, `deletedResponse()`, `errorResponse($msg, $data, $code = 500)`.
-- Index endpoints: `QueryBuilder::for(Model::tenanted()->...)->allowedFilters([...])->allowedSorts([...])->allowedIncludes([...])->paginate($this->per_page)` → `XResource::collection(...)`. Date range via `AllowedFilter::scope('start_date')` (`FilterStartEndDate`).
+- Extend `App\Http\Controllers\Api\BaseController`, inject the service interface, call `parent::__construct()`:
+  ```php
+  public function __construct(private UomServiceInterface $service)
+  {
+      parent::__construct();
+      $this->middleware('permission:uom_read', ['only' => ['index', 'show']]);
+  }
+  ```
+  `BaseController` provides `$this->per_page` (`(int) ?per_page`, 15 when ≤ 0, **no upper cap**) and `createdResponse()`, `updatedResponse()`, `deletedResponse()`, `errorResponse($msg, $data, $code = 500)`. The root `App\Http\Controllers\Controller` only carries the framework traits.
+- Controllers stay thin: validate (Form Request), call the service, wrap the result in a Resource / set the status code. No `QueryBuilder::for`, `DB::`, `Model::create/where` in controllers (exceptions: legacy `OrderDetailController`, `AuthController::register`, route-less `SocialiteController`).
+- Services return the model / paginator / collection unchanged (never `fresh()`, so `wasRecentlyCreated` still gives the implicit 201). Services may return PDF/XML/Excel responses. Business-rule errors are thrown as `ApiResponseException` (never `abort()` — debug traces would change the JSON). Inside a transaction, keep the original return-vs-throw semantics.
+- Index endpoints: `$this->service->findAllPaginate($this->per_page, fn ($q) => $q->tenanted(), allowedFilters: [...], allowedIncludes: [...], allowedSorts: [...])` → `XResource::collection(...)`. Any chain that differs (`->through()`, `withCount`, raw `response()->json($paginator)`, different `allowed*` order) gets a named repository method copying it verbatim. Date range via `AllowedFilter::scope('start_date')` (`FilterStartEndDate`).
 - Responses: API Resources (`app/Http/Resources/`, generic passthrough `DefaultResource`) or `response()->json(...)`. Business-rule errors: `response()->json(['message' => '...'], 400)` in Indonesian.
 - Routes: `apiResource` for CRUD, nested `{parent}/details` groups, custom actions as separate routes (`done`, `verify`, `verification`, `attach`, `print`, `export-xml`, `restore`, `force-delete`). Custom routes are declared **before** the `apiResource` line when they share a prefix.
 - Exceptions (`app/Exceptions/Handler.php`, JSON requests): `ModelNotFoundException` → 404 "Data tidak ditemukan!", 403 → `{"message": ...}`, 401 "Unauthenticated.", validation → default 422.
 
 ### 9.3 Request Validation
 
-- Form Requests in `app/Http/Requests/Api/`. Flat files: `{Entity}{Action}Request` (`SalesOrderStoreRequest`); domain subfolders use generic names (`Payment/StoreRequest`, `Voucher/StoreRequest`, `VoucherGenerateBatch/StoreRequest`); loyalty: `Loyalty/Loyalty*Request`, `Loyalty/Admin/{Verb}{Noun}Request`.
+- Form Requests in `app/Http/Requests/Api/{Module}/` with generic names: `StoreRequest`, `UpdateRequest`, plus action names (`SalesOrder/MergeRequest`, `SalesOrder/ItemStoreRequest`, `StockTransfer/TransferRequest`). When a file imports two modules' `StoreRequest`, alias them (`use ...\SalesOrder\StoreRequest as SalesOrderStoreRequest`). A few legacy flat files remain (`ImportByFileRequest`, `UomUpdateRequest`, `UserDiscountUpdateRequest`). Loyalty: `Loyalty/Loyalty*Request`, `Loyalty/Admin/{Verb}{Noun}Request`.
 - `authorize()` returns `true` or is omitted — authorization is the controller middleware's job.
 - Booleans: `use RequestToBoolean` (`app/Traits/Requests/RequestToBoolean.php`) and normalize in `prepareForValidation()` with `$this->merge([... => $this->toBoolean(...)])`.
-- Custom rules in `app/Rules/`: `TenantedRule`, `UniqueInvoiceNumber` (ignores soft-deleted, supports ignore id), `PhoneRule`, `StringRule`. Enum validation via bensampo `EnumValue`.
+- Custom rules in `app/Rules/`: `TenantedRule`, `UniqueInvoiceNumber` (ignores soft-deleted, supports ignore id), `PhoneRule`, `StringRule`. Enum validation via `App\Rules\EnumValue`.
 
 ### 9.4 Events / Listeners
 
@@ -433,12 +464,33 @@ class CreateStockROListener implements ShouldQueue { ... }
 ```
 Queued listeners run without an HTTP request — don't rely on `auth()` / `request()` inside them; capture what you need in the event.
 
-### 9.5 Services
+### 9.5 Services & Repositories
 
-`app/Services/` classes use **static** methods:
+| Base | Notes (deliberate differences from HRIS — keep them) |
+|------|------------------------------------------------------|
+| `BaseRepository::query()` | `newQuery()` — tenancy is **explicit** (`tenanted()`, `findTenanted()`, or a closure), never automatic |
+| `findAllPaginate()` | plain `paginate()` — **no** `withQueryString()` (would change pagination links) |
+| `findByIdOrFail()` | `findOrFail` → `ModelNotFoundException` → 404 "Data tidak ditemukan!" |
+| `update(Model $model, array $data)` | updates the **instance** so model hooks fire |
+| `delete/forceDelete/restore(Model $model)` | act on the instance the caller already has (`CustomSoftDeletes` hooks) |
+
+Services are stateless singletons: never read `request()`/`auth()` in a constructor (read them inside the method). Parameters of service/repository methods that can receive request input are typed `mixed` on purpose, and `findById`/`findByIdOrFail`/`findTenanted` return `mixed`: the old controllers were untyped, so loose input (`null`, `status[]=x`, `"abc"`) must keep behaving as before instead of turning into a `TypeError` 500. Tighten types only together with request validation, as a deliberate behaviour change (`tests/Feature/Api/LooseInputTest` pins the current behaviour). Methods ported from the old static services keep their original signatures. Cross-module calls go through interfaces — break cycles by moving shared pieces down (e.g. `countFulfilledQty` lives on `SalesOrderRepository`, IIPE numbers on `InvoiceNumberService`). Every stock change is written through `StockHistoryRepositoryInterface::record($subject, [...])`.
+
+Notable services (`app/Http/Services/`):
 
 | Service | Purpose |
 |---------|---------|
+| `SalesOrder\SalesOrderService` | `storeOrder`/`createOrder`/`updateOrder` pipelines, `index`/`show`, `verifyStockItem`, `releaseScannedStock`, `print`, `exportXml`, marketplace merge, product-unit pickers |
+| `Invoice\InvoiceService`, `Invoice\InvoiceNumberService` | IIPE invoices; `getSoNumber`/`getDefaultInvoiceNo` |
+| `Order\OrderService` | SPG quotations + convert-to-SO |
+| `DeliveryOrder\DeliveryOrderService` | DO CRUD, marketplace DO creation, `attachDetails`, verification, done/return |
+| `DocumentCounter\NumberingService` | `enabled()`, `next(CompanyEnum, DocumentType)`, `format()` |
+| `Stock\StockService`, `StockGroupingService`, `StockRepackService`, `StockTransfer\StockTransferService` | Stock actions |
+| `Permission\PermissionService` | Permission IDs → names incl. related permissions |
+| `Setting\SettingService` | Settings + `bankTransferInfo()` |
+| `Loyalty\...` | Claims, redemptions, prizes, points (`PointsTransactionRepository::balanceFor`) |
+
+---------|---------|
 | `SalesOrderService` | `createOrder`/`updateOrder` pipelines, `index`/`show`, `verifyStockItem`, `releaseScannedStock`, `countFulfilledQty`, `print`, `exportXml`, `getSoNumber` (IIPE), marketplace merge |
 | `DeliveryOrderService` | Marketplace DO creation, `attachDetails`, locking lines with scanned stock, DO delete with items |
 | `NumberingService` | `enabled()`, `next(CompanyEnum, DocumentType)`, `format()` |
@@ -492,7 +544,7 @@ No observers. Loyalty mails (`app/Mail/Loyalty/`) are sent synchronously.
 
 | What | Where |
 |------|-------|
-| Traits | `app/Traits/` — `Tenanted`, `CustomSoftDeletes`, `FilterStartEndDate`, `Requests/RequestToBoolean` |
+| Traits | `app/Traits/` — `Tenanted`, `CustomSoftDeletes`, `FilterStartEndDate`, `Requests/RequestToBoolean`, `Controllers/DeniesUnlessCan`, `Controllers/ClampsLoyaltyPerPage` |
 | Helpers | `app/Helpers/` — `Helper::rupiah()`, `PermissionsHelper`, `ContentDispositionHelper` (export filenames) |
 | Rules | `app/Rules/` |
 | Jobs | `app/Jobs/GenerateStockQrcode` (creates Stock rows; QR image generation commented out) |
@@ -511,7 +563,7 @@ No observers. Loyalty mails (`app/Mail/Loyalty/`) are sent synchronously.
 
 ### 11.2 Document Numbering
 
-Gated by `config('app.enable_document_counter')` (`ENABLE_DOCUMENT_COUNTER`, default `false`), read through `NumberingService::enabled()`. Baked into config cache — run `php artisan config:cache` after changing it.
+Gated by `config('app.enable_document_counter')` (`ENABLE_DOCUMENT_COUNTER`, default `false`), read through `app(NumberingServiceInterface::class)->enabled()`. Baked into config cache — run `php artisan config:cache` after changing it.
 
 | Company | SO | DO |
 |---------|----|----|
@@ -522,7 +574,7 @@ Gated by `config('app.enable_document_counter')` (`ENABLE_DOCUMENT_COUNTER`, def
 - **Flag on**: reserved in `SalesOrder` (only when `!is_invoice`, `invoice_no` empty, `company` set) and `DeliveryOrder` `creating` hooks.
 - **Flag off**: `invoice_no` is entered manually and **required** on store (422 when missing); `GET`/`PUT /document-counters` return 404.
 - Marketplace merge takes both numbers manually when the flag is off (`invoice_no` + `delivery_order_invoice_no`, must differ) and ignores them when on.
-- **IIPE** (`/invoices`, SPG convert-so): `SalesOrderService::getSoNumber()` — `FORMAT_INVOICE_NO` (`IIPE-%s/%s/%s/%s/%s` = Y/m/d/NNNN/warehouse code), daily per warehouse, starting at `START_INVOICE_NO`. **No lock** (race-prone).
+- **IIPE** (`/invoices`, SPG convert-so): `InvoiceNumberService::getSoNumber()` — `FORMAT_INVOICE_NO` (`IIPE-%s/%s/%s/%s/%s` = Y/m/d/NNNN/warehouse code), daily per warehouse, starting at `START_INVOICE_NO`. **No lock** (race-prone).
 
 ### 11.3 Stock Tracking Dual Model
 
@@ -553,7 +605,9 @@ S3 (`FILESYSTEM_DISK=s3`) for payment media (Spatie Media Library), brand logos,
 
 ### Do's
 
-- **DO** read nearby code for the flow you're touching — conventions vary between older and newer modules.
+- **DO** follow Controller → Service → Repository: new logic goes in a service behind an interface, new queries in a repository, and every new interface is bound in `AppServiceProvider::$singletons`.
+- **DO** keep API responses byte-compatible — the BEJO and verify frontends are in production. Pin behaviour with a feature test (`tests/Support/InteractsWithWarehouse`) before refactoring an endpoint.
+- **DO** read nearby code for the flow you're touching.
 - **DO** query warehouse-scoped data through `tenanted()` / `findTenanted()` and validate IDs with `TenantedRule`.
 - **DO** use enum classes instead of hardcoded strings.
 - **DO** use `NumberingService` (or `lockForUpdate`) for any sequential number.
@@ -566,6 +620,7 @@ S3 (`FILESYSTEM_DISK=s3`) for payment media (Spatie Media Library), brand logos,
 ### Don'ts
 
 - **DON'T** hardcode warehouse IDs or enum string values.
+- **DON'T** add static service classes or put `QueryBuilder`/`DB::`/`Model::create` in controllers.
 - **DON'T** invent a new stock-mutation path — reuse the existing one for the flow (RO listeners, adjustment approve, DO verification/done, transfer, opname).
 - **DON'T** store loyalty points balance — compute from `points_transactions`.
 - **DON'T** mix `loyalty_users` and `users`.
@@ -581,9 +636,18 @@ S3 (`FILESYSTEM_DISK=s3`) for payment media (Spatie Media Library), brand logos,
 - `POST api/auth/register` (`AuthController::register`) is unauthenticated and currently soft-deletes every ProductUnit without stock, then `exit()`s.
 - `AuthController::token` accepts `config('app.bypass_password')` as a master password.
 - `DeleteStockROListener`: decrements `qty` only when `is_generate_qr` is true (inverted), deletes QR dir without the `qrcode/` prefix; the RO `deleting` hook queues an event for a model that is about to disappear.
-- `TransferStockRequest`: `stock_ids` is `required`, which blocks the non-QR transfer path.
+- `StockTransfer\TransferRequest`: `stock_ids` is `required`, which blocks the non-QR transfer path.
 - `DeliveryOrderDetailController` middleware lists `'reset'` but the method is `resetVerifiedStock`; `PaymentController`/`VoucherCategoryController` `['only' => 'destroy', 'forceDelete', 'restore']` protects only `destroy`.
 - `getSoNumber()` (IIPE) has no lock.
+- `Permission\UpdateRequest` unique rule is missing a comma → `PUT permissions/{id}` answers 500.
+- `PUT receive-orders/{id}/details/{detail}` → 500 (request calls `details()` on a route string); `PUT receive-orders/{id}` still contains `dd()`; `PUT receive-orders/{id}/done` with `is_done=false` → 500 (`DeleteStockROListener`).
+- `POST stocks/grouping` with `receive_order_detail_id` → 500 before writing.
+- `PUT stock-opnames/{id}`, `PUT stock-opnames/{id}/details/{detail}` → 500; deleting an opname that has details → 500 (FK).
+- `POST delivery-orders/{id}/return` answers **200** with the exception text when it fails.
+- `per_page` is read in the controller constructor; a controller instance is reused within one app instance (matters for tests / Octane).
+- `SalesOrderController` has all permission middleware commented out; `SocialiteController` routes are commented out.
+- `php artisan route:list` crashes unless `ENABLE_DOCUMENT_COUNTER=true` (DocumentCounterController aborts in its constructor).
+- These are pinned by `test_known_quirk_*` tests — fixing one means updating its test on purpose.
 - `Feature/ExampleTest` fails (`/` redirects to the company site).
 - Full list of security items: `SECURITY_FINDINGS.md`.
 

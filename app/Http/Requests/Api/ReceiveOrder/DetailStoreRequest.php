@@ -1,0 +1,23 @@
+<?php
+
+namespace App\Http\Requests\Api\ReceiveOrder;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class DetailStoreRequest extends FormRequest
+{
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, mixed>
+     */
+    public function rules()
+    {
+        return [
+            'product_unit_id' => 'required|exists:product_units,id',
+            'qty' => 'required|integer',
+            'item_unit' => 'required',
+            'bruto_unit_price' => 'required|integer',
+        ];
+    }
+}

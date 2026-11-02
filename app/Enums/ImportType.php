@@ -2,32 +2,36 @@
 
 namespace App\Enums;
 
-use BenSampo\Enum\Enum;
+use App\Exports\VoucherExport;
+use App\Imports\VoucherImport;
+use App\Models\Voucher;
 
-final class ImportType extends Enum
+enum ImportType: string
 {
-    const VOUCHER = 'voucher';
+    use BaseEnum;
+
+    case VOUCHER = 'voucher';
 
     public function getImporter(): string
     {
-        return match ($this->value) {
-            self::VOUCHER => \App\Imports\VoucherImport::class,
+        return match ($this) {
+            self::VOUCHER => VoucherImport::class,
             default => null
         };
     }
 
     public function getExporter(): string
     {
-        return match ($this->value) {
-            self::VOUCHER => \App\Exports\VoucherExport::class,
+        return match ($this) {
+            self::VOUCHER => VoucherExport::class,
             default => null
         };
     }
 
     public function getModel(): string
     {
-        return match ($this->value) {
-            self::VOUCHER => \App\Models\Voucher::class,
+        return match ($this) {
+            self::VOUCHER => Voucher::class,
             default => null
         };
     }

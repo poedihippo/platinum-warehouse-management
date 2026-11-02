@@ -1,18 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Enums;
 
-use BenSampo\Enum\Enum;
-
-/**
- * @method static static NOMINAL()
- * @method static static PERCENTAGE()
- */
-final class DiscountType extends Enum
+enum DiscountType: string
 {
-    const NOMINAL = 'nominal';
+    use BaseEnum;
 
-    const PERCENTAGE = 'percentage';
+    case NOMINAL = 'nominal';
+
+    case PERCENTAGE = 'percentage';
 }

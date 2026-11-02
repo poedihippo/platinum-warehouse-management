@@ -2,236 +2,89 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Exports\InvoiceExport;
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\InvoiceStoreRequest;
-use App\Http\Requests\Api\InvoiceUpdateRequest;
-use App\Http\Requests\Api\SalesOrderItemStoreRequest;
+use App\Http\Requests\Api\Invoice\StoreRequest;
+use App\Http\Requests\Api\Invoice\UpdateRequest;
+use App\Http\Requests\Api\SalesOrder\ItemStoreRequest;
 use App\Http\Resources\DefaultResource;
-use App\Http\Resources\SalesOrderItemResource;
-use App\Http\Resources\SalesOrderResource;
-use App\Models\SalesOrder;
+use App\Http\Resources\SalesOrder\SalesOrderItemResource;
+use App\Http\Resources\SalesOrder\SalesOrderResource;
+use App\Interfaces\Services\Invoice\InvoiceServiceInterface;
+use App\Interfaces\Services\SalesOrder\SalesOrderServiceInterface;
 use App\Models\SalesOrderDetail;
-use App\Models\SalesOrderItem;
-use App\Models\StockProductUnit;
-use App\Models\Warehouse;
-use App\Services\SalesOrderService;
+use App\Rules\TenantedRule;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Facades\Excel;
-use Spatie\QueryBuilder\QueryBuilder;
 
-class InvoiceController extends Controller
+class InvoiceController extends BaseController
 {
-    public function __construct()
-    {
+    public function __construct(
+        private InvoiceServiceInterface $service,
+        private SalesOrderServiceInterface $salesOrderService,
+    ) {
         parent::__construct();
         $this->middleware('permission:invoice_read', ['only' => ['index', 'show', 'items']]);
         $this->middleware('permission:invoice_create', ['only' => ['store', 'verification']]);
-        // $this->middleware('permission:invoice_edit', ['only' => 'update']);
         $this->middleware('permission:invoice_delete', ['only' => 'destroy']);
-        // $this->middleware('permission:invoice_print', ['only' => 'print']);
         $this->middleware('permission:invoice_export_xml', ['only' => 'exportXml']);
     }
 
     public function index()
     {
-        return SalesOrderService::index($this->per_page, fn ($q) => $q->whereInvoice());
+        return SalesOrderResource::collection($this->salesOrderService->index($this->per_page, fn ($q) => $q->whereInvoice()));
     }
 
     public function show($id)
     {
-        $salesOrder = SalesOrderService::show($id, fn ($q) => $q->whereInvoice());
-        $salesOrder->id_hash = Crypt::encryptString($salesOrder->id);
-        $salesOrder->whatsapp_url = empty($salesOrder->invoice_no) ? '' : SalesOrderService::getWhatsappUrl($salesOrder, $salesOrder->id_hash);
+        return new SalesOrderResource($this->service->findForShow($id));
+    }
+
+    public function store(StoreRequest $request)
+    {
+        $this->service->ensureStockAvailable($request->items);
+
+        $isPreview = (bool) $request->is_preview ?? false;
+        $salesOrder = $this->service->createInvoice($request->validated(), $isPreview);
 
         return new SalesOrderResource($salesOrder);
     }
 
-    public function store(InvoiceStoreRequest $request)
-    {
-        foreach ($request->items ?? [] as $item) {
-            if (! empty($item['stock_ids'])) {
-                $error = $this->validateScannedStocks($item);
-                if ($error) {
-                    return $this->errorResponse(message: $error, code: \Illuminate\Http\Response::HTTP_UNPROCESSABLE_ENTITY);
-                }
-
-                continue;
-            }
-
-            $stocks = \App\Models\Stock::whereAvailableStock()
-                ->whereNull('description')
-                ->whereHas('stockProductUnit', fn ($q) => $q->where('product_unit_id', $item['product_unit_id'])->where('warehouse_id', $item['warehouse_id']))
-                ->limit($item['qty'])
-                ->get(['id']);
-
-            if ($stocks->count() < $item['qty']) {
-                return $this->errorResponse(message: sprintf('Stok %s tidak tersedia', \Illuminate\Support\Facades\DB::table('product_units')->where('id', $item['product_unit_id'])->first()?->name ?? ''), code: \Illuminate\Http\Response::HTTP_UNPROCESSABLE_ENTITY);
-            }
-        }
-
-        $isPreview = (bool) $request->is_preview ?? false;
-        $salesOrder = SalesOrderService::createOrder(SalesOrder::make(['raw_source' => $request->validated(), 'is_invoice' => true]), $isPreview, true);
-
-        // if ($salesOrder && $isPreview === false) {
-        //     // create history
-        //     $salesOrder->details->each(function ($salesOrderDetail) use ($salesOrder) {
-        //         $stockProductUnit = StockProductUnit::where('warehouse_id', $salesOrderDetail->warehouse_id)
-        //             ->where('product_unit_id', $salesOrderDetail->product_unit_id)
-        //             ->first(['id']);
-
-        //         $salesOrderDetail->histories()->create([
-        //             'user_id' => $salesOrder->user_id,
-        //             'stock_product_unit_id' => $stockProductUnit->id,
-        //             'value' => $salesOrderDetail->qty,
-        //             'is_increment' => 0,
-        //             'description' => 'Create SO invoice ' . $salesOrder->invoice_no,
-        //             'ip' => request()->ip(),
-        //             'agent' => request()->header('user-agent'),
-        //         ]);
-        //     });
-        // }
-
-        // if (! $isPreview) {
-        //     return $this->createdResponse();
-        // }
-
-        return new SalesOrderResource($salesOrder->loadMissing('vouchers.category'));
-    }
-
-    private function validateScannedStocks(array $item): ?string
-    {
-        $stockProductUnit = StockProductUnit::where('product_unit_id', $item['product_unit_id'])
-            ->where('warehouse_id', $item['warehouse_id'])
-            ->first(['id']);
-
-        if (! $stockProductUnit) {
-            return 'Stok produk tidak sesuai';
-        }
-
-        $matchedCount = \App\Models\Stock::whereIn('id', $item['stock_ids'])
-            ->where('stock_product_unit_id', $stockProductUnit->id)
-            ->whereDoesntHave('salesOrderItems', fn ($q) => $q->whereNotReturned())
-            ->count();
-
-        if ($matchedCount !== count($item['stock_ids'])) {
-            return 'Stok produk tidak sesuai';
-        }
-
-        return null;
-    }
-
     public function items(int $id, SalesOrderDetail $salesOrderDetail)
     {
-        $salesOrder = SalesOrder::whereInvoice()->findTenanted($id);
+        $salesOrder = $this->salesOrderService->findInvoice($id);
         abort_unless($salesOrderDetail->sales_order_id === $salesOrder->id, 404);
 
-        $items = QueryBuilder::for(
-            SalesOrderItem::query()
-                ->where('sales_order_detail_id', $salesOrderDetail->id)
-                ->select(SalesOrderItem::SELECT_COLUMNS)
-                ->with('stock')
-        )
-            ->allowedFilters([
-                'is_returned',
-                'is_parent',
-            ])
-            ->paginate($this->per_page);
-
-        return SalesOrderItemResource::collection($items);
+        return SalesOrderItemResource::collection($this->salesOrderService->paginateItems($salesOrderDetail, $this->per_page));
     }
 
-    public function verification(SalesOrderItemStoreRequest $request, int $id, SalesOrderDetail $salesOrderDetail)
+    public function verification(ItemStoreRequest $request, int $id, SalesOrderDetail $salesOrderDetail)
     {
-        $salesOrder = SalesOrder::whereInvoice()->findTenanted($id);
+        $salesOrder = $this->salesOrderService->findInvoice($id);
         abort_unless($salesOrderDetail->sales_order_id === $salesOrder->id, 404);
 
-        $salesOrderItem = SalesOrderService::verifyStockItem($salesOrderDetail, $request->stock_id);
-
-        return new SalesOrderItemResource($salesOrderItem);
+        return new SalesOrderItemResource($this->salesOrderService->verifyStockItem($salesOrderDetail, $request->stock_id));
     }
 
-    public function update(int $id, InvoiceUpdateRequest $request)
+    public function update(int $id, UpdateRequest $request)
     {
-        $salesOrder = SalesOrder::whereInvoice()->findTenanted($id);
-        if ($salesOrder->payment_status == 'paid') {
-            return response()->json(['message' => 'Invoice sudah lunas tidak dapat diupdate'], 400);
-        }
-        if (empty($salesOrder->invoice_no)) {
-            return response()->json(['message' => 'Konversi ke invoice terlebih dahulu untuk dapat mengedit.'], 400);
-        }
+        $salesOrder = $this->salesOrderService->findInvoice($id);
+        $this->service->ensureUpdatable($salesOrder);
 
         $salesOrder->raw_source = $request->validated();
         $isPreview = (bool) ($request->is_preview ?? false);
+        $salesOrder = $this->salesOrderService->updateOrder($salesOrder, $isPreview);
 
-        $salesOrder = SalesOrderService::updateOrder($salesOrder, $isPreview);
-        // if ($salesOrder && ! $isPreview === false) {
-        //     // delete old history
-        //     $oldSalesOrderDetails->each(fn($salesOrderDetail) => $salesOrderDetail->histories()->delete());
-
-        //     // create history
-        //     $salesOrder->details->each(function ($salesOrderDetail) use ($salesOrder) {
-        //         $stockProductUnit = StockProductUnit::where('warehouse_id', $salesOrderDetail->warehouse_id)
-        //             ->where('product_unit_id', $salesOrderDetail->product_unit_id)
-        //             ->first(['id']);
-
-        //         $salesOrderDetail->histories()->create([
-        //             'user_id' => $salesOrder->user_id,
-        //             'stock_product_unit_id' => $stockProductUnit->id,
-        //             'value' => $salesOrderDetail->qty,
-        //             'is_increment' => 0,
-        //             'description' => 'Create SO invoice ' . $salesOrder->invoice_no,
-        //             'ip' => request()->ip(),
-        //             'agent' => request()->header('user-agent'),
-        //         ]);
-        //     });
-        // }
-
-        // if (! $isPreview) {
-        //     return $this->updatedResponse();
-        // }
-
-        return (new SalesOrderResource($salesOrder->loadMissing('vouchers.category')))->response()->setStatusCode(\Illuminate\Http\Response::HTTP_ACCEPTED);
+        return (new SalesOrderResource($salesOrder->loadMissing('vouchers.category')))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
     public function destroy($id)
     {
-        $salesOrder = SalesOrder::whereInvoice()->findTenanted($id);
-        if ($salesOrder->deliveryOrder?->is_done) {
-            return response()->json(['message' => "Can't update SO if DO is already done"], 400);
-        }
+        $salesOrder = $this->salesOrderService->findInvoice($id);
+        $this->service->ensureDeletable($salesOrder);
 
-        // return stock if salesorder is invoice
-        DB::beginTransaction();
         try {
-
-            // if (! empty($salesOrder->invoice_no)) {
-            $salesOrder->details->each(function ($salesOrderDetail) use ($salesOrder) {
-                $stockProductUnit = StockProductUnit::where('warehouse_id', $salesOrderDetail->warehouse_id)
-                    ->where('product_unit_id', $salesOrderDetail->product_unit_id)
-                    ->first(['id']);
-
-                $salesOrderDetail->histories()->create([
-                    'user_id' => $salesOrder->user_id,
-                    'stock_product_unit_id' => $stockProductUnit->id,
-                    'value' => $salesOrderDetail->qty,
-                    'is_increment' => 1,
-                    'description' => 'Return stock from delete SO invoice '.$salesOrder->invoice_no,
-                    'ip' => request()->ip(),
-                    'agent' => request()->header('user-agent'),
-                ]);
-            });
-            // }
-
-            $salesOrder->details->each(fn ($salesOrderDetail) => $salesOrderDetail->salesOrderItems()->delete());
-
-            // $salesOrder->details->each(fn ($salesOrderDetail) => $salesOrderDetail->histories()->delete());
-            $salesOrder->forceDelete();
-            DB::commit();
+            $this->service->destroyInvoice($salesOrder);
         } catch (\Exception $e) {
-            DB::rollBack();
-
             return $this->errorResponse(message: $e->getMessage(), code: $e->getCode() ?? 500);
         }
 
@@ -245,42 +98,35 @@ class InvoiceController extends Controller
         } catch (\Throwable $th) {
         }
 
-        return SalesOrderService::print($id, 'print-invoice', fn ($q) => $q->whereInvoice());
+        return $this->salesOrderService->print($id, 'print-invoice', fn ($q) => $q->whereInvoice());
     }
 
     public function exportXml($id)
     {
-        return SalesOrderService::exportXml($id, fn ($q) => $q->whereInvoice());
+        return $this->salesOrderService->exportXml($id, fn ($q) => $q->whereInvoice());
     }
 
-    public function getInvoiceNo(\Illuminate\Http\Request $request)
+    public function getInvoiceNo(Request $request)
     {
         $request->validate([
-            'warehouse_id' => ['required', new \App\Rules\TenantedRule()],
+            'warehouse_id' => ['required', new TenantedRule()],
         ]);
 
-        $warehouse = Warehouse::findOrFail($request->warehouse_id, ['id', 'code']);
-
-        return SalesOrderService::getSoNumber($warehouse);
+        return $this->service->invoiceNumberFor($request->warehouse_id);
     }
 
     public function bill(string $id)
     {
-        return SalesOrderService::print($id, 'print-invoice', fn ($q) => $q->whereInvoice());
+        return $this->salesOrderService->print($id, 'print-invoice', fn ($q) => $q->whereInvoice());
     }
 
     public function export()
     {
-        return Excel::download(new InvoiceExport, 'invoices.xlsx');
+        return $this->service->export();
     }
 
     public function getCashiers()
     {
-        // use cache 1 hour to cache cashier list
-        $users = cache()->remember('cashiers', 60 * 60, function () {
-            return \App\Models\User::whereIn('id', config('app.cashier_ids'))->get(['id', 'name']);
-        });
-
-        return DefaultResource::collection($users);
+        return DefaultResource::collection($this->service->cashiers());
     }
 }

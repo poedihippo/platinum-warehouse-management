@@ -4,11 +4,11 @@ namespace Tests\Feature\Api;
 
 use App\Enums\CompanyEnum;
 use App\Enums\UserType;
-use App\Http\Requests\Api\DeliveryOrderStoreRequest;
-use App\Http\Requests\Api\DeliveryOrderUpdateRequest;
-use App\Http\Requests\Api\SalesOrderMergeRequest;
-use App\Http\Requests\Api\SalesOrderStoreRequest;
-use App\Http\Requests\Api\SalesOrderUpdateRequest;
+use App\Http\Requests\Api\DeliveryOrder\StoreRequest as DeliveryOrderStoreRequest;
+use App\Http\Requests\Api\DeliveryOrder\UpdateRequest as DeliveryOrderUpdateRequest;
+use App\Http\Requests\Api\SalesOrder\MergeRequest as SalesOrderMergeRequest;
+use App\Http\Requests\Api\SalesOrder\StoreRequest as SalesOrderStoreRequest;
+use App\Http\Requests\Api\SalesOrder\UpdateRequest as SalesOrderUpdateRequest;
 use App\Models\Permission;
 use App\Models\User;
 use Illuminate\Contracts\Validation\Validator;
@@ -41,7 +41,7 @@ class ManualInvoiceNumberTest extends TestCase
     private function salesOrderPayload(array $overrides = []): array
     {
         return array_merge([
-            'company' => CompanyEnum::PAS()->value,
+            'company' => CompanyEnum::PAS->value,
             'warehouse_id' => 1,
             'shipment_fee' => 0,
             'additional_discount' => 0,
@@ -62,7 +62,7 @@ class ManualInvoiceNumberTest extends TestCase
     private function deliveryOrderPayload(array $overrides = []): array
     {
         return array_merge([
-            'company' => CompanyEnum::PAS()->value,
+            'company' => CompanyEnum::PAS->value,
             'reseller_id' => 1,
             'warehouse_id' => 1,
             'transaction_date' => '2026-10-16 10:00:00',

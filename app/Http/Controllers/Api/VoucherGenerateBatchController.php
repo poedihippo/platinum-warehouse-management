@@ -2,20 +2,16 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\VoucherGenerateBatch\StoreRequest;
 use App\Http\Resources\DefaultResource;
+use App\Interfaces\Services\VoucherGenerateBatch\VoucherGenerateBatchServiceInterface;
 use App\Models\VoucherGenerateBatch;
-use Illuminate\Support\Facades\DB;
-use Spatie\QueryBuilder\AllowedFilter;
-use Spatie\QueryBuilder\QueryBuilder;
 
-class VoucherGenerateBatchController extends Controller
+class VoucherGenerateBatchController extends BaseController
 {
-    public function __construct()
+    public function __construct(private VoucherGenerateBatchServiceInterface $service)
     {
         parent::__construct();
-        // $this->middleware('permission:voucher_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:voucher_create', ['only' => 'store']);
         $this->middleware('permission:voucher_edit', ['only' => 'update']);
         $this->middleware('permission:voucher_delete', ['only' => 'destroy']);
@@ -23,15 +19,7 @@ class VoucherGenerateBatchController extends Controller
 
     public function index()
     {
-        $voucherGenerateBatchs = QueryBuilder::for(VoucherGenerateBatch::class)
-            ->allowedFilters([
-                AllowedFilter::exact('user_id'),
-            ])
-            ->allowedIncludes('user')
-            ->allowedSorts(['id', 'user_id', 'created_at'])
-            ->paginate($this->per_page);
-
-        return DefaultResource::collection($voucherGenerateBatchs);
+        return DefaultResource::collection($this->service->paginateIndex($this->per_page));
     }
 
     public function show(VoucherGenerateBatch $generateBatch)
@@ -41,39 +29,27 @@ class VoucherGenerateBatchController extends Controller
 
     public function store(StoreRequest $request)
     {
-        DB::beginTransaction();
-        try {
-            $voucherGenerateBatch = VoucherGenerateBatch::create($request->validated());
-
-            for ($i = 0; $i < $request->value; $i++) {
-                $voucherGenerateBatch->vouchers()->create([
-                    'voucher_category_id' => $request->voucher_category_id,
-                    'code' => $voucherGenerateBatch->id . '-' . $i,
-                    'start_date' => $request->start_date,
-                    'end_date' => $request->end_date,
-                ]);
-            }
-
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            return $this->errorResponse($e->getMessage());
-        }
+        $this->service->generate(
+            $request->validated(),
+            $request->value,
+            $request->voucher_category_id,
+            $request->start_date,
+            $request->end_date,
+        );
 
         return $this->createdResponse();
     }
 
     public function update(VoucherGenerateBatch $generateBatch, StoreRequest $request)
     {
-        $generateBatch->update($request->validated());
+        $this->service->update($generateBatch, $request->validated());
 
         return $this->updatedResponse();
     }
 
     public function destroy(VoucherGenerateBatch $generateBatch)
     {
-        $generateBatch->delete();
+        $this->service->delete($generateBatch);
 
         return $this->deletedResponse();
     }

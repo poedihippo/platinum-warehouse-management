@@ -2,19 +2,17 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ImportByFileRequest;
-use App\Http\Requests\Api\ProductStoreRequest;
-use App\Http\Requests\Api\ProductUpdateRequest;
-use App\Http\Resources\ProductResource;
+use App\Http\Requests\Api\Product\StoreRequest;
+use App\Http\Requests\Api\Product\UpdateRequest;
+use App\Http\Resources\Product\ProductResource;
+use App\Interfaces\Services\Product\ProductServiceInterface;
 use App\Models\Product;
-use Illuminate\Http\Response;
 use Spatie\QueryBuilder\AllowedFilter;
-use Spatie\QueryBuilder\QueryBuilder;
 
-class ProductController extends Controller
+class ProductController extends BaseController
 {
-    public function __construct()
+    public function __construct(private ProductServiceInterface $service)
     {
         parent::__construct();
         // $this->middleware('permission:product_access', ['only' => ['index', 'show']]);
@@ -26,19 +24,21 @@ class ProductController extends Controller
 
     public function index()
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('product_access'), 403);
-        $products = QueryBuilder::for(Product::with([
-            'productCategory' => fn($q) => $q->select('id', 'name'),
-            'productBrand' => fn($q) => $q->select('id', 'name')
-        ]))
-            ->allowedFilters([
+        $products = $this->service->findAllPaginate(
+            $this->per_page,
+            fn ($query) => $query->with([
+                'productCategory' => fn ($q) => $q->select('id', 'name'),
+                'productBrand' => fn ($q) => $q->select('id', 'name'),
+            ]),
+            [
                 AllowedFilter::exact('product_category_id'),
                 AllowedFilter::exact('product_brand_id'),
                 AllowedFilter::exact('company'),
                 'name',
-            ])
-            ->allowedSorts(['id', 'product_category_id', 'product_brand_id', 'company', 'name', 'created_at'])
-            ->paginate($this->per_page);
+            ],
+            [],
+            ['id', 'product_category_id', 'product_brand_id', 'company', 'name', 'created_at'],
+        );
 
         return ProductResource::collection($products);
     }
@@ -46,31 +46,30 @@ class ProductController extends Controller
     public function show(Product $product)
     {
         $product->load([
-            'productCategory' => fn($q) => $q->select('id', 'name'),
-            'productBrand' => fn($q) => $q->select('id', 'name')
+            'productCategory' => fn ($q) => $q->select('id', 'name'),
+            'productBrand' => fn ($q) => $q->select('id', 'name'),
         ]);
 
         return new ProductResource($product);
     }
 
-    public function store(ProductStoreRequest $request)
+    public function store(StoreRequest $request)
     {
-        $product = Product::create($request->validated());
+        $this->service->create($request->validated());
 
         return $this->createdResponse();
     }
 
-    public function update(Product $product, ProductUpdateRequest $request)
+    public function update(Product $product, UpdateRequest $request)
     {
-        $product->update($request->validated());
+        $this->service->update($product, $request->validated());
 
         return $this->updatedResponse();
     }
 
     public function destroy(Product $product)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('product_delete'), 403);
-        $product->delete();
+        $this->service->delete($product);
 
         return $this->deletedResponse();
     }
@@ -82,7 +81,7 @@ class ProductController extends Controller
 
     public function import(ImportByFileRequest $request)
     {
-        \Maatwebsite\Excel\Facades\Excel::import(new \App\Imports\ProductSeederImport, $request->file);
+        $this->service->import($request->file);
 
         return $this->createdResponse('Data imported successfully', 200);
     }

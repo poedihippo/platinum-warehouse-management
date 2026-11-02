@@ -2,16 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Http\Resources\ProductUnitBlacklistResource;
-use App\Models\ProductUnitBlacklist;
+use App\Http\Resources\ProductUnitBlacklist\ProductUnitBlacklistResource;
+use App\Interfaces\Services\ProductUnitBlacklist\ProductUnitBlacklistServiceInterface;
 use Illuminate\Http\Request;
 use Spatie\QueryBuilder\AllowedFilter;
-use Spatie\QueryBuilder\QueryBuilder;
 
-class ProductUnitBlacklistController extends Controller
+class ProductUnitBlacklistController extends BaseController
 {
-    public function __construct()
+    public function __construct(private ProductUnitBlacklistServiceInterface $service)
     {
         parent::__construct();
         // $this->middleware('permission:product_unit_blacklist_access', ['only' => 'index']);
@@ -22,34 +20,27 @@ class ProductUnitBlacklistController extends Controller
 
     public function index()
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('product_unit_blacklist_access'), 403);
-
-        $productUnitBlacklists = QueryBuilder::for(ProductUnitBlacklist::with('productUnit'))
-            ->allowedFilters([
+        $productUnitBlacklists = $this->service->findAllPaginate(
+            $this->per_page,
+            fn ($query) => $query->with('productUnit'),
+            [
                 AllowedFilter::exact('product_unit_id'),
-            ])
-            ->allowedSorts('product_unit_id')
-            ->paginate($this->per_page);
+            ],
+            [],
+            ['product_unit_id'],
+        );
 
         return ProductUnitBlacklistResource::collection($productUnitBlacklists);
     }
 
     public function store(Request $request)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('product_unit_blacklist_create'), 403);
-
         $request->validate([
             'product_unit_ids' => 'required|array',
             'product_unit_id.*' => 'exists:product_units,id',
         ]);
 
-        $dataInserted = 0;
-        foreach ($request->product_unit_ids as $id) {
-            if (ProductUnitBlacklist::where('product_unit_id', $id)->doesntExist()) {
-                ProductUnitBlacklist::create(['product_unit_id' => $id]);
-                $dataInserted++;
-            }
-        }
+        $dataInserted = $this->service->blacklist($request->product_unit_ids);
 
         return response()->json(['message' => $dataInserted.' inserted successfully']);
     }
@@ -58,7 +49,7 @@ class ProductUnitBlacklistController extends Controller
     {
         abort_if(! auth('sanctum')->user()->tokenCan('product_unit_blacklist_delete'), 403);
 
-        ProductUnitBlacklist::where('product_unit_id', $productUnitId)->delete();
+        $this->service->deleteByProductUnitId($productUnitId);
 
         return $this->deletedResponse();
     }

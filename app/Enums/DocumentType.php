@@ -1,18 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Enums;
 
-use BenSampo\Enum\Enum;
-
-/**
- * @method static static SO()
- * @method static static DO()
- */
-final class DocumentType extends Enum
+enum DocumentType: string
 {
-    const SO = 'so';
+    use BaseEnum;
 
-    const DO = 'do';
+    case SO = 'so';
+
+    case DO = 'do';
 }

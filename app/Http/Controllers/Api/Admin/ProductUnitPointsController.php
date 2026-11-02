@@ -2,17 +2,26 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseController;
 use App\Http\Resources\Loyalty\AdminProductUnitPointsResource;
-use App\Http\Resources\ProductUnitResource;
-use App\Models\Product;
+use App\Http\Resources\ProductUnit\ProductUnitResource;
+use App\Interfaces\Services\ProductUnit\ProductUnitServiceInterface;
 use App\Models\ProductUnit;
+use App\Traits\Controllers\DeniesUnlessCan;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
-class ProductUnitPointsController extends Controller
+class ProductUnitPointsController extends BaseController
 {
+    use DeniesUnlessCan;
+
     private const PERMISSION = 'manage loyalty points';
+
+    private const DENIED_MESSAGE = 'You are not authorized to manage loyalty points.';
+
+    public function __construct(private ProductUnitServiceInterface $service)
+    {
+        parent::__construct();
+    }
 
     /**
      * GET /api/admin/loyalty/points
@@ -25,26 +34,19 @@ class ProductUnitPointsController extends Controller
      */
     public function index(Request $request)
     {
-        if ($denied = $this->denyUnlessAuthorized($request)) {
+        if ($denied = $this->denyUnlessCan($request, self::PERMISSION, self::DENIED_MESSAGE)) {
             return $denied;
-        }
-
-        $query = ProductUnit::with(['product:id,name', 'uom:id,name'])
-            ->where(function ($q) {
-                $q->where('loyalty_eligible', true)
-                    ->orWhere('points_per_unit', '>', 0);
-            })
-            ->orderByRaw('points_per_unit > 0 DESC')
-            ->orderBy(Product::select('name')->whereColumn('products.id', 'product_units.product_id'));
-
-        if ($request->filled('q')) {
-            $query->search($request->input('q'));
         }
 
         $perPage = (int) $request->input('per_page', 200);
         $perPage = $perPage > 0 && $perPage <= 250 ? $perPage : 200;
 
-        return AdminProductUnitPointsResource::collection($query->paginate($perPage));
+        $productUnits = $this->service->paginateLoyaltyPoints(
+            $request->filled('q') ? $request->input('q') : null,
+            $perPage,
+        );
+
+        return AdminProductUnitPointsResource::collection($productUnits);
     }
 
     /**
@@ -54,13 +56,11 @@ class ProductUnitPointsController extends Controller
      */
     public function update(Request $request, ProductUnit $productUnit)
     {
-        if ($denied = $this->denyUnlessAuthorized($request)) {
+        if ($denied = $this->denyUnlessCan($request, self::PERMISSION, self::DENIED_MESSAGE)) {
             return $denied;
         }
 
-        if ($response = $this->applyPoints($request, $productUnit)) {
-            return $response;
-        }
+        $this->applyPoints($request, $productUnit);
 
         return new ProductUnitResource($productUnit);
     }
@@ -75,63 +75,21 @@ class ProductUnitPointsController extends Controller
      */
     public function updateLoyaltyPoints(Request $request, ProductUnit $productUnit)
     {
-        if ($denied = $this->denyUnlessAuthorized($request)) {
+        if ($denied = $this->denyUnlessCan($request, self::PERMISSION, self::DENIED_MESSAGE)) {
             return $denied;
         }
 
-        if ($response = $this->applyPoints($request, $productUnit)) {
-            return $response;
-        }
+        $this->applyPoints($request, $productUnit);
 
         return new AdminProductUnitPointsResource($productUnit->load(['product:id,name', 'uom:id,name']));
     }
 
-    /**
-     * Validates and applies points_per_unit. Returns a JSON error
-     * response if the write was rejected, else null on success.
-     * Setting 0 removes the unit from the program — there is no delete
-     * route, this is how "remove" works.
-     */
-    private function applyPoints(Request $request, ProductUnit $productUnit)
+    private function applyPoints(Request $request, ProductUnit $productUnit): void
     {
         $validated = $request->validate([
             'points_per_unit' => ['required', 'integer', 'min:0', 'max:1000000'],
         ]);
 
-        // An ineligible unit must never get points, regardless of which
-        // route this was reached through.
-        if (! $productUnit->loyalty_eligible) {
-            return response()->json([
-                'message' => 'Product unit ini tidak memenuhi syarat untuk program loyalty.',
-            ], 422);
-        }
-
-        Log::info('Product unit points updated', [
-            'product_unit_id' => $productUnit->id,
-            'old_value' => $productUnit->getOriginal('points_per_unit'),
-            'new_value' => $validated['points_per_unit'],
-            'changed_by' => auth()->id(),
-        ]);
-
-        // points_per_unit is intentionally absent from ProductUnit::$fillable.
-        $productUnit->points_per_unit = $validated['points_per_unit'];
-        $productUnit->save();
-
-        return null;
-    }
-
-    /**
-     * Returns a 403 JSON response when the admin lacks the loyalty-points
-     * permission, else null.
-     */
-    private function denyUnlessAuthorized(Request $request)
-    {
-        if ($request->user()?->can(self::PERMISSION)) {
-            return null;
-        }
-
-        return response()->json([
-            'message' => 'You are not authorized to manage loyalty points.',
-        ], 403);
+        $this->service->applyPoints($productUnit, $validated['points_per_unit']);
     }
 }

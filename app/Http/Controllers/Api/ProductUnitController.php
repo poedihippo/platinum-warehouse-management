@@ -2,30 +2,22 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ImportByFileRequest;
-use App\Http\Requests\Api\ProductUnit\ProductUnitRelationRequest;
-use App\Http\Requests\Api\ProductUnit\UpdateProductUnitRelationRequest;
-use App\Http\Requests\Api\ProductUnitChangeProductRequest;
-use App\Http\Requests\Api\ProductUnitStoreRequest;
-use App\Http\Requests\Api\ProductUnitUpdateRequest;
+use App\Http\Requests\Api\ProductUnit\ChangeProductRequest;
+use App\Http\Requests\Api\ProductUnit\RelationRequest;
+use App\Http\Requests\Api\ProductUnit\StoreRequest;
+use App\Http\Requests\Api\ProductUnit\UpdateRelationRequest;
+use App\Http\Requests\Api\ProductUnit\UpdateRequest;
 use App\Http\Resources\DefaultResource;
-use App\Http\Resources\ProductUnitResource;
-use App\Http\Resources\SalesOrderDetailResource;
+use App\Http\Resources\ProductUnit\ProductUnitResource;
+use App\Http\Resources\SalesOrder\SalesOrderDetailResource;
+use App\Interfaces\Services\ProductUnit\ProductUnitServiceInterface;
 use App\Models\ProductUnit;
-use App\Models\SalesOrderDetail;
-use App\Models\Stock;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
-use Spatie\QueryBuilder\AllowedFilter;
-use Spatie\QueryBuilder\AllowedInclude;
-use Spatie\QueryBuilder\QueryBuilder;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
-class ProductUnitController extends Controller
+class ProductUnitController extends BaseController
 {
-    public function __construct()
+    public function __construct(private ProductUnitServiceInterface $service)
     {
         parent::__construct();
         // $this->middleware('permission:product_unit_access', ['only' => ['index', 'show']]);
@@ -37,177 +29,66 @@ class ProductUnitController extends Controller
 
     public function index()
     {
-        $productUnits = QueryBuilder::for(ProductUnit::with('product')->has('product')->orderBy('id'))
-            ->allowedFilters([
-                // 'name',
-                AllowedFilter::exact('product_id'),
-                AllowedFilter::exact('is_generate_qr'),
-                // AllowedFilter::exact('is_auto_tempel'),
-                AllowedFilter::exact('is_ppn'),
-                AllowedFilter::scope('name', 'search'),
-                AllowedFilter::scope('product_brand_id', 'whereProductBrandId'),
-                AllowedFilter::scope('product_category_id', 'whereProductCategoryId'),
-                AllowedFilter::scope('company', 'whereCompany'),
-            ])
-            ->allowedIncludes([
-                AllowedInclude::callback('relations', fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select('id', 'name'))),
-                AllowedInclude::callback('refer', fn($q) => $q->select('id', 'name')),
-                AllowedInclude::callback('product', fn($q) => $q->select('id', 'name', 'product_category_id', 'product_brand_id')->with([
-                    'productCategory' => fn($q) => $q->select('id', 'name'),
-                    'productBrand' => fn($q) => $q->select('id', 'name'),
-                ])),
-                // uom
-                AllowedInclude::callback('uom', fn($q) => $q->select('id', 'name')),
-            ])
-            ->allowedSorts(['id', 'product_id', 'name', 'price', 'created_at'])
-            ->paginate($this->per_page);
+        $productUnits = $this->service->paginateIndex($this->per_page);
 
         return ProductUnitResource::collection($productUnits);
     }
 
     public function show($id)
     {
-        $productUnit = ProductUnit::with([
-            'uom' => fn($q) => $q->select('id', 'name'),
-            'product' => fn($q) => $q->with([
-                'productCategory' => fn($q) => $q->select('id', 'name'),
-                'productBrand' => fn($q) => $q->select('id', 'name')
-            ]),
-            'refer' => fn($q) => $q->select('id', 'name'),
-            'relations' => fn($q) => $q->with('relatedProductUnit', fn($q) => $q->select('id', 'name')),
-        ])->has('product')->findOrFail($id);
+        $productUnit = $this->service->findForShow($id);
 
         return new ProductUnitResource($productUnit);
     }
 
-    public function store(ProductUnitStoreRequest $request)
+    public function store(StoreRequest $request)
     {
-        ProductUnit::create($request->validated());
+        $this->service->create($request->validated());
 
         return $this->createdResponse();
     }
 
-    public function update(ProductUnit $productUnit, ProductUnitUpdateRequest $request)
+    public function update(ProductUnit $productUnit, UpdateRequest $request)
     {
-        if ($productUnit->refer_id) {
-            throw new BadRequestHttpException('Product Grouping can not update here');
-        }
-
-        $productUnit->update($request->validated());
+        $this->service->updateProductUnit($productUnit, $request->validated());
 
         return $this->updatedResponse();
     }
 
     public function destroy(ProductUnit $productUnit)
     {
-        $productUnit->delete();
+        $this->service->delete($productUnit);
 
         return $this->deletedResponse();
     }
 
-    public function createProductUnitRelations(ProductUnitRelationRequest $request, ProductUnit $productUnit)
+    public function createProductUnitRelations(RelationRequest $request, ProductUnit $productUnit)
     {
-        $relatedProductUnits = collect($request->related_product_units);
-
-        // ✅ Query ProductUnit untuk dapetin is_generate_qr
-        $totalProductUnitGenerateQr = ProductUnit::whereIn('id', $relatedProductUnits->pluck('id')->all())->where('is_generate_qr', 1)->count();
-
-        // ✅ 2. Pastikan hanya satu yang is_generate_qr == true
-        if ($totalProductUnitGenerateQr > 0) {
-            throw ValidationException::withMessages([
-                'related_product_units' => ['Can not related to product unit that have is_generate_qr = true.'],
-            ]);
-        }
-
-        DB::transaction(function () use ($request, $productUnit) {
-            $data = array_merge(
-                $productUnit->toArray(),
-                $request->validated(),
-                [
-                    'refer_id' => $productUnit->id,
-                ]
-            );
-
-            unset($data['id'], $data['created_at'], $data['updated_at']);
-
-            $groupingProductUnit = ProductUnit::create($data);
-
-            if ($request->related_product_units) {
-                $data = collect($request->related_product_units)->map(fn($req) => ['related_product_unit_id' => $req['id'], 'qty' => $req['qty']]);
-                $groupingProductUnit->relations()->createMany($data);
-            }
-        });
+        $this->service->createRelations($productUnit, $request->validated(), $request->related_product_units);
 
         return $this->createdResponse();
     }
 
-    public function updateProductUnitRelations(UpdateProductUnitRelationRequest $request, ProductUnit $productUnit, int $id)
+    public function updateProductUnitRelations(UpdateRelationRequest $request, ProductUnit $productUnit, int $id)
     {
-        $relatedProductUnits = collect($request->related_product_units);
-
-        // ✅ Query ProductUnit untuk dapetin is_generate_qr
-        $totalProductUnitGenerateQr = ProductUnit::whereIn('id', $relatedProductUnits->pluck('id')->all())->where('is_generate_qr', 1)->count();
-
-        // ✅ 2. Pastikan hanya satu yang is_generate_qr == true
-        if ($totalProductUnitGenerateQr > 0) {
-            throw ValidationException::withMessages([
-                'related_product_units' => ['Can not related to product unit that have is_generate_qr = true.'],
-            ]);
-        }
-
-        $groupingProductUnit = ProductUnit::where('id', $id)->where('refer_id', $productUnit->id)->firstOrFail();
-
-        DB::transaction(function () use ($groupingProductUnit, $request, $productUnit) {
-            $data = array_merge(
-                $productUnit->toArray(),
-                $request->validated(),
-            );
-            unset($data['id'], $data['refer_id'], $data['created_at'], $data['updated_at']);
-
-            $groupingProductUnit->update($data);
-            $groupingProductUnit->relations()->delete();
-
-            if ($request->related_product_units) {
-                $data = collect($request->related_product_units)->map(fn($req) => ['related_product_unit_id' => $req['id'], 'qty' => $req['qty']]);
-                $groupingProductUnit->relations()->createMany($data);
-            }
-        });
+        $this->service->updateRelations($productUnit, $id, $request->validated(), $request->related_product_units);
 
         return $this->updatedResponse();
     }
 
-    public function changeProduct(ProductUnit $productUnit, ProductUnitChangeProductRequest $request)
+    public function changeProduct(ProductUnit $productUnit, ChangeProductRequest $request)
     {
-        $productUnit->update($request->validated());
+        $this->service->update($productUnit, $request->validated());
 
         return (new ProductUnitResource($productUnit))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
     public function userPrice(ProductUnit $productUnit, int $userId)
     {
-        $datas = QueryBuilder::for(SalesOrderDetail::select('id', 'product_unit_id', 'warehouse_id', 'unit_price', 'created_at'))
-            ->with([
-                'warehouse' => fn($q) => $q->select('id', 'name'),
-                'productUnit' => fn($q) => $q->select('id', 'code', 'name'),
-            ])
-            ->where('product_unit_id', $productUnit->id)
-            ->whereHas('salesOrder', fn($q) => $q->where('reseller_id', $userId))
-            ->allowedSorts(['id', 'created_at'])
-            ->paginate($this->per_page);
+        $datas = $this->service->paginateUserPrices($productUnit, $userId, $this->per_page);
 
         return SalesOrderDetailResource::collection($datas);
     }
-
-    // public function setPackaging(ProductUnit $productUnit, Request $request)
-    // {
-    //     $request->validate([
-    //         'product_unit_id' => 'nullable|exists:product_units,id'
-    //     ]);
-
-    //     $productUnit->update(['packaging_id' => $request->product_unit_id ?? null]);
-
-    //     return $this->show($productUnit->load('packaging'));
-    // }
 
     public function sampleImport()
     {
@@ -216,30 +97,18 @@ class ProductUnitController extends Controller
 
     public function import(ImportByFileRequest $request)
     {
-        \Maatwebsite\Excel\Facades\Excel::import(new \App\Imports\ProductUnitSeederImport, $request->file);
+        $this->service->import($request->file);
 
         return $this->createdResponse('Data imported successfully', 200);
     }
 
     public function showProductUnitByStock(string $stockId)
     {
-        $stock = Stock::select('id', 'stock_product_unit_id', 'expired_date')->find($stockId);
-        if (! $stock) {
-            return response()->json(['message' => 'Product tidak ditemukan.'], 400);
-        }
-
-        $productUnit = ProductUnit::select('id', 'product_id', 'uom_id', 'name', 'price', 'code')
-            ->with([
-                'uom' => fn($q) => $q->select('id', 'name'),
-                'product' => fn($q) => $q->select('id', 'product_category_id', 'product_brand_id', 'name', 'article_url')->with('productCategory', fn($q) => $q->select('id', 'name'))->with('productBrand', fn($q) => $q->select('id', 'name')),
-            ])
-            ->whereHas('stockProductUnit', fn($q) => $q->where('id', $stock->stock_product_unit_id))
-            ->first();
+        $productUnit = $this->service->findByStock($stockId);
 
         if (! $productUnit) {
             return response()->json(['message' => 'Product tidak ditemukan.'], 400);
         }
-        $productUnit->expired_date = $stock->expired_date;
 
         return new DefaultResource($productUnit);
     }

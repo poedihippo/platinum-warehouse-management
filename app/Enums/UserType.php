@@ -1,30 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Enums;
 
-use BenSampo\Enum\Enum;
-
-/**
- * @method static static Admin()
- * @method static static Reseller()
- * @method static static Customer()
- * @method static static Dealer()
- * @method static static CustomerEvent()
- * @method static static Spg()
- */
-final class UserType extends Enum
+enum UserType: string
 {
-    const Admin = 'admin';
+    use BaseEnum;
 
-    const Reseller = 'reseller';
+    case Admin = 'admin';
 
-    const Customer = 'customer';
+    case Reseller = 'reseller';
 
-    const Dealer = 'dealer';
+    case Customer = 'customer';
 
-    const CustomerEvent = 'customer_event';
+    case Dealer = 'dealer';
 
-    const Spg = 'spg';
+    case CustomerEvent = 'customer_event';
+
+    case Spg = 'spg';
 }

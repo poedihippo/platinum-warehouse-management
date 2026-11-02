@@ -1,18 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Enums;
 
-use BenSampo\Enum\Enum;
-
-/**
- * @method static static UPLOAD()
- * @method static static IMPORT()
- */
-final class BatchSource extends Enum
+enum BatchSource: string
 {
-    const UPLOAD = 'upload';
+    use BaseEnum;
 
-    const IMPORT = 'import';
+    case UPLOAD = 'upload';
+
+    case IMPORT = 'import';
 }

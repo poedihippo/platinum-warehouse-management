@@ -2,21 +2,18 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\StockOpnameStoreRequest;
-use App\Http\Resources\StockOpnameResource;
-use App\Models\StockOpname;
+use App\Http\Requests\Api\StockOpname\StoreRequest;
+use App\Http\Resources\StockOpname\StockOpnameResource;
+use App\Interfaces\Services\StockOpname\StockOpnameServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Spatie\QueryBuilder\AllowedFilter;
-use Spatie\QueryBuilder\QueryBuilder;
 
-class StockOpnameController extends Controller
+class StockOpnameController extends BaseController
 {
-    public function __construct()
+    public function __construct(private StockOpnameServiceInterface $service)
     {
         parent::__construct();
-        // $this->middleware('permission:stock_opname_access', ['only' => ['index', 'show']]);
         $this->middleware('permission:stock_opname_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:stock_opname_create', ['only' => 'store']);
         $this->middleware('permission:stock_opname_edit', ['only' => 'update']);
@@ -26,57 +23,43 @@ class StockOpnameController extends Controller
 
     public function index()
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('stock_opname_access'), 403);
-        $stockOpnames = QueryBuilder::for(StockOpname::tenanted())
-            ->allowedFilters([
+        $stockOpnames = $this->service->findAllPaginate(
+            $this->per_page,
+            fn ($query) => $query->tenanted(),
+            [
                 AllowedFilter::exact('warehouse_id'),
                 'description',
                 'is_done',
-            ])
-            ->allowedSorts(['id', 'description', 'is_done', 'warehouse_id', 'created_at'])
-            ->paginate($this->per_page);
+            ],
+            [],
+            ['id', 'description', 'is_done', 'warehouse_id', 'created_at'],
+        );
 
         return StockOpnameResource::collection($stockOpnames);
     }
 
     public function show($id)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('stock_opname_access'), 403);
-        $stockOpname = StockOpname::findTenanted($id);
-
-        return new StockOpnameResource($stockOpname);
+        return new StockOpnameResource($this->service->findTenanted($id));
     }
 
-    public function store(StockOpnameStoreRequest $request)
+    public function store(StoreRequest $request)
     {
-        $stockOpname = StockOpname::create($request->validated());
-
-        return new StockOpnameResource($stockOpname);
+        return new StockOpnameResource($this->service->create($request->validated()));
     }
 
     public function destroy($id)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('stock_opname_delete'), 403);
-        $stockOpname = StockOpname::findTenanted($id);
-        $stockOpname->delete();
+        $this->service->delete($this->service->findTenanted($id));
 
         return $this->deletedResponse();
     }
 
     public function done($id, Request $request)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('stock_opname_done'), 403);
-
         $request->validate(['is_done' => 'required|boolean']);
 
-        $stockOpname = StockOpname::findTenanted($id);
-        if (! $stockOpname->details->every(fn ($detail) => $detail->is_done === true)) {
-            return response()->json(['message' => 'Semua data stock opname harus diset selesai'], 400);
-        }
-        $stockOpname->update([
-            'is_done' => $request->is_done,
-            'done_at' => now(),
-        ]);
+        $stockOpname = $this->service->setDone($this->service->findTenanted($id), $request->is_done);
 
         $message = 'Data set as '.($stockOpname->is_done ? 'Done' : 'Pending');
 
@@ -85,15 +68,9 @@ class StockOpnameController extends Controller
 
     public function setDone($id, Request $request)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('stock_opname_done'), 403);
-
         $request->validate(['is_done' => 'required|boolean']);
 
-        $stockOpname = StockOpname::findTenanted($id);
-        $stockOpname->details->each->update([
-            'is_done' => $request->is_done,
-            'done_at' => now(),
-        ]);
+        $this->service->setAllDetailsDone($this->service->findTenanted($id), $request->is_done);
 
         $message = 'All data set as '.($request->is_done ? 'Done' : 'Pending');
 

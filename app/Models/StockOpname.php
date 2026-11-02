@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Events\Stocks\StockOpnameCreated;
+use App\Interfaces\Repositories\StockHistory\StockHistoryRepositoryInterface;
 use App\Traits\Tenanted;
 use Illuminate\Database\Eloquent\Model;
 
@@ -39,7 +40,7 @@ class StockOpname extends Model
                             // }
                         });
 
-                        $stockOpnameDetail->histories()->create([
+                        app(StockHistoryRepositoryInterface::class)->record($stockOpnameDetail, [
                             'user_id' => auth('sanctum')->id(),
                             'stock_product_unit_id' => $stockOpnameDetail->stock_product_unit_id,
                             'value' => $stockOpnameItems?->count() ?? 0,
@@ -58,7 +59,7 @@ class StockOpname extends Model
                             // }
                         });
 
-                        $stockOpnameDetail->histories()->create([
+                        app(StockHistoryRepositoryInterface::class)->record($stockOpnameDetail, [
                             'user_id' => auth('sanctum')->id(),
                             'stock_product_unit_id' => $stockOpnameDetail->stock_product_unit_id,
                             'value' => $stockOpnameItems?->count() ?? 0,

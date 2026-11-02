@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Response;
 use Laravel\Socialite\Facades\Socialite;
 
-class SocialiteController extends Controller
+class SocialiteController extends BaseController
 {
     public function __construct()
     {

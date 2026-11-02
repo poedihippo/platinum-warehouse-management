@@ -2,22 +2,22 @@
 
 namespace App\Http\Controllers\Api\Loyalty;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseController;
 use App\Http\Resources\Loyalty\PrizeCategoryResource;
-use App\Models\Loyalty\PrizeCategory;
+use App\Interfaces\Services\Loyalty\PrizeCategory\PrizeCategoryServiceInterface;
 
-class PrizeCategoryController extends Controller
+class PrizeCategoryController extends BaseController
 {
+    public function __construct(private PrizeCategoryServiceInterface $service)
+    {
+        parent::__construct();
+    }
+
     /**
      * GET /api/loyalty/prize-categories
-     *
-     * Active categories only, for the prize catalog filter chips. The
-     * frontend adds its own "Lainnya" (uncategorized) chip client-side.
      */
     public function index()
     {
-        $categories = PrizeCategory::active()->orderBy('name')->get(['id', 'name']);
-
-        return PrizeCategoryResource::collection($categories);
+        return PrizeCategoryResource::collection($this->service->activeList());
     }
 }

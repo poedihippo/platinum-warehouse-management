@@ -2,40 +2,30 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Interfaces\Services\StockOpname\StockOpnameServiceInterface;
+use App\Models\StockOpname;
+use App\Models\StockOpnameDetail;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
-class StockOpnameItemController extends Controller
+class StockOpnameItemController extends BaseController
 {
-    public function __construct()
+    public function __construct(private StockOpnameServiceInterface $service)
     {
         parent::__construct();
     }
 
     public function index($stockOpnameId, $stockOpnameDetailId)
     {
-        $stockOpnameDetails = DB::table('stock_opname_items')->select('stock_id', 'is_scanned', 'created_at', 'updated_at')->where('stock_opname_detail_id', $stockOpnameDetailId)->get();
-
-        return response()->json($stockOpnameDetails);
+        return response()->json($this->service->items($stockOpnameDetailId));
     }
 
-    public function destroy(\App\Models\StockOpname $stockOpname, \App\Models\StockOpnameDetail $stockOpnameDetail, Request $request)
+    public function destroy(StockOpname $stockOpname, StockOpnameDetail $stockOpnameDetail, Request $request)
     {
         $request->validate([
             'stock_id' => 'required|exists:stocks,id',
         ]);
 
-        DB::beginTransaction();
-        try {
-            $stockOpnameDetail->stockOpnameItems()->where('stock_id', $request->stock_id)->delete();
-            // SalesOrderService::countFulfilledQty($stockOpnameDetail);
-            DB::commit();
-        } catch (\Throwable $th) {
-            DB::rollBack();
-
-            return response()->json(['message' => $th->getMessage()], 500);
-        }
+        $this->service->deleteItem($stockOpnameDetail, $request->stock_id);
 
         return $this->deletedResponse();
     }

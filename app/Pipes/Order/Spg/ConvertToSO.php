@@ -2,13 +2,17 @@
 
 namespace App\Pipes\Order\Spg;
 
+use App\Interfaces\Services\Invoice\InvoiceNumberServiceInterface;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderDetail;
-use App\Services\SalesOrderService;
 use Illuminate\Support\Facades\DB;
 
 class ConvertToSO
 {
+    public function __construct(protected InvoiceNumberServiceInterface $invoiceNumberService)
+    {
+    }
+
     public function handle(SalesOrder $salesOrder, \Closure $next)
     {
         $salesOrder = DB::transaction(function () use ($salesOrder) {
@@ -19,7 +23,7 @@ class ConvertToSO
             unset($salesOrder->details);
 
             if (request()->segment(2) != 'invoices' && request()->method() == 'PUT') {
-                $salesOrder->invoice_no = SalesOrderService::getSoNumber($salesOrder->warehouse);
+                $salesOrder->invoice_no = $this->invoiceNumberService->getSoNumber($salesOrder->warehouse);
             }
 
             $salesOrder->save();

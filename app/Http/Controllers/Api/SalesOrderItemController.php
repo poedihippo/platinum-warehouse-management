@@ -2,43 +2,27 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\SalesOrderItemStoreRequest;
-use App\Http\Resources\SalesOrderItemResource;
+use App\Http\Requests\Api\SalesOrder\ItemStoreRequest;
+use App\Http\Resources\SalesOrder\SalesOrderItemResource;
+use App\Interfaces\Services\SalesOrder\SalesOrderServiceInterface;
 use App\Models\SalesOrderDetail;
-use App\Models\Stock;
-use App\Services\SalesOrderService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
-class SalesOrderItemController extends Controller
+class SalesOrderItemController extends BaseController
 {
-    public function __construct()
+    public function __construct(private SalesOrderServiceInterface $service)
     {
         parent::__construct();
     }
 
     public function index(SalesOrderDetail $salesOrderDetail)
     {
-        // $salesOrderItems = SalesOrderItem::select(stock_id','created_at')->where('sales_order_detail_id', $salesOrderDetail->id)->get();
-        $salesOrderItems = DB::table('sales_order_items')->select('stock_id', 'created_at')->where('sales_order_detail_id', $salesOrderDetail->id)->get();
-
-        return response()->json($salesOrderItems);
+        return response()->json($this->service->scannedStockIds($salesOrderDetail));
     }
 
-    public function store(SalesOrderDetail $salesOrderDetail, SalesOrderItemStoreRequest $request)
+    public function store(SalesOrderDetail $salesOrderDetail, ItemStoreRequest $request)
     {
-        $stock = Stock::findOrFail($request->stock_id);
-
-        $cek = $salesOrderDetail->salesOrderItems()->whereNotReturned()->where('stock_id', $stock->id)->exists();
-
-        if ($cek) {
-            return response()->json(['message' => 'Product sudah di scan'], 400);
-        }
-
-        $salesOrderItem = $salesOrderDetail->salesOrderItems()->updateOrCreate(['stock_id' => $stock->id], ['is_returned' => false]);
-
-        return new SalesOrderItemResource($salesOrderItem);
+        return new SalesOrderItemResource($this->service->scanItem($salesOrderDetail, $request->stock_id));
     }
 
     public function destroy(SalesOrderDetail $salesOrderDetail, Request $request)
@@ -47,21 +31,7 @@ class SalesOrderItemController extends Controller
             'stock_id' => 'required|exists:stocks,id',
         ]);
 
-        DB::beginTransaction();
-        try {
-            $salesOrderItem = $salesOrderDetail->salesOrderItems()->where('stock_id', $request->stock_id)->first(['id']);
-
-            $salesOrderDetail->salesOrderItems()
-                ->where(fn ($q) => $q->where('id', $salesOrderItem->id)->orWhere('parent_id', $salesOrderItem->id))
-                ->delete();
-
-            SalesOrderService::countFulfilledQty($salesOrderDetail);
-            DB::commit();
-        } catch (\Throwable $th) {
-            DB::rollBack();
-
-            return response()->json(['message' => $th->getMessage()], 500);
-        }
+        $this->service->unscanItem($salesOrderDetail, $request->stock_id);
 
         return $this->deletedResponse();
     }

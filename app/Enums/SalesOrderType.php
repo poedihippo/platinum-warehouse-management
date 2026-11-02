@@ -1,24 +1,16 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Enums;
 
-use BenSampo\Enum\Enum;
-
-/**
- * @method static static DEFAULT()
- * @method static static DELIVERY()
- * @method static static PICKUP()
- * @method static static FREE()
- */
-final class SalesOrderType extends Enum
+enum SalesOrderType: string
 {
-    const DEFAULT = 'default';
+    use BaseEnum;
 
-    const DELIVERY = 'delivery';
+    case DEFAULT = 'default';
 
-    const PICKUP = 'pickup';
+    case DELIVERY = 'delivery';
 
-    const FREE = 'free';
+    case PICKUP = 'pickup';
+
+    case FREE = 'free';
 }

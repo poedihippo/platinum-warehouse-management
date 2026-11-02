@@ -21,6 +21,7 @@ class LoyaltyUserFactory extends Factory
             'password' => 'password',
             'email_verified_at' => now(),
             'phone' => fake()->numerify('08##########'),
+            'is_active' => true,
         ];
     }
 

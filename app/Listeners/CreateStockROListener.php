@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\VerifiedROEvent;
+use App\Interfaces\Repositories\StockHistory\StockHistoryRepositoryInterface;
 use App\Models\StockProductUnit;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
@@ -13,9 +14,8 @@ class CreateStockROListener implements ShouldQueue
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(protected StockHistoryRepositoryInterface $stockHistoryRepository)
     {
-        //
     }
 
     /**
@@ -62,7 +62,7 @@ class CreateStockROListener implements ShouldQueue
                 }
 
                 // create history
-                $receiveOrderDetail->histories()->create([
+                $this->stockHistoryRepository->record($receiveOrderDetail, [
                     'user_id' => $user->id,
                     'stock_product_unit_id' => $stockProductUnit->id,
                     'value' => $qty,

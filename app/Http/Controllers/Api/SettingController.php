@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Http\Resources\SettingResource;
+use App\Http\Resources\Setting\SettingResource;
+use App\Interfaces\Services\Setting\SettingServiceInterface;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 
-class SettingController extends Controller
+class SettingController extends BaseController
 {
-    public function __construct()
+    public function __construct(private SettingServiceInterface $service)
     {
         parent::__construct();
         // $this->middleware('permission:setting_access', ['only' => 'index']);
@@ -21,7 +21,7 @@ class SettingController extends Controller
     {
         abort_if(! auth('sanctum')->user()->tokenCan('setting_access'), 403);
 
-        return SettingResource::collection(Setting::all());
+        return SettingResource::collection($this->service->all());
     }
 
     public function update(Setting $setting, Request $request)
@@ -32,7 +32,7 @@ class SettingController extends Controller
             'value' => 'required',
         ]);
 
-        $setting->update(['value' => $request->value]);
+        $this->service->update($setting, ['value' => $request->value]);
 
         return (new SettingResource($setting))->response()->setStatusCode(202);
     }

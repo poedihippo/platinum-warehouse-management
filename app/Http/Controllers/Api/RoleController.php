@@ -2,18 +2,15 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\RoleStoreRequest;
-use App\Http\Requests\Api\RoleUpdateRequest;
-use App\Http\Resources\RoleResource;
-use App\Services\PermissionService;
-use Illuminate\Support\Facades\DB;
+use App\Http\Requests\Api\Role\StoreRequest;
+use App\Http\Requests\Api\Role\UpdateRequest;
+use App\Http\Resources\Role\RoleResource;
+use App\Interfaces\Services\Role\RoleServiceInterface;
 use Spatie\Permission\Models\Role;
-use Spatie\QueryBuilder\QueryBuilder;
 
-class RoleController extends Controller
+class RoleController extends BaseController
 {
-    public function __construct()
+    public function __construct(private RoleServiceInterface $service)
     {
         parent::__construct();
         // $this->middleware('permission:role_access', ['only' => ['index', 'show']]);
@@ -30,11 +27,13 @@ class RoleController extends Controller
      */
     public function index()
     {
-        $roles = QueryBuilder::for(Role::class)
-            ->with('permissions')
-            ->allowedFilters(['name'])
-            ->allowedSorts(['id', 'name', 'created_at'])
-            ->paginate($this->per_page);
+        $roles = $this->service->findAllPaginate(
+            $this->per_page,
+            fn ($query) => $query->with('permissions'),
+            ['name'],
+            [],
+            ['id', 'name', 'created_at'],
+        );
 
         return RoleResource::collection($roles);
     }
@@ -44,21 +43,9 @@ class RoleController extends Controller
      *
      * @return RoleResource
      */
-    public function store(RoleStoreRequest $request)
+    public function store(StoreRequest $request)
     {
-        $permissionNames = PermissionService::getPermissionNames($request->permission_ids ?? []);
-        $role = DB::transaction(function () use ($request, $permissionNames) {
-            $role = new Role();
-            $role->name = $request->name;
-            $role->guard_name = 'web';
-            $role->save();
-
-            $role->syncPermissions($permissionNames ?? []);
-
-            return $role;
-        });
-
-        cache()->flush();
+        $role = $this->service->createWithPermissions($request->name, $request->permission_ids ?? []);
 
         return new RoleResource($role);
     }
@@ -78,23 +65,13 @@ class RoleController extends Controller
      *
      * @return RoleResource
      */
-    public function update(Role $role, RoleUpdateRequest $request)
+    public function update(Role $role, UpdateRequest $request)
     {
         if ($role->id == 1) {
             return response()->json(['message' => 'Role admin tidak dapat diupdate!']);
         }
 
-        $permissionNames = PermissionService::getPermissionNames($request->permission_ids ?? []);
-        $role = DB::transaction(function () use ($role, $request, $permissionNames) {
-            $role->name = $request->name;
-            $role->save();
-
-            $role->syncPermissions($permissionNames ?? []);
-
-            return $role;
-        });
-
-        cache()->flush();
+        $role = $this->service->updateWithPermissions($role, $request->name, $request->permission_ids ?? []);
 
         return new RoleResource($role);
     }
@@ -110,7 +87,7 @@ class RoleController extends Controller
         if ($role->id == 1) {
             return response()->json(['message' => 'Role admin tidak dapat dihapus!']);
         }
-        $role->delete();
+        $this->service->delete($role);
 
         return $this->deletedResponse();
     }

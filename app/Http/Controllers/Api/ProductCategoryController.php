@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\ProductCategoryStoreRequest;
-use App\Http\Requests\Api\ProductCategoryUpdateRequest;
-use App\Http\Resources\ProductCategoryResource;
+use App\Http\Requests\Api\ProductCategory\StoreRequest;
+use App\Http\Requests\Api\ProductCategory\UpdateRequest;
+use App\Http\Resources\ProductCategory\ProductCategoryResource;
+use App\Interfaces\Services\ProductCategory\ProductCategoryServiceInterface;
 use App\Models\ProductCategory;
 use Illuminate\Http\Response;
-use Spatie\QueryBuilder\QueryBuilder;
 
-class ProductCategoryController extends Controller
+class ProductCategoryController extends BaseController
 {
-    public function __construct()
+    public function __construct(private ProductCategoryServiceInterface $service)
     {
         parent::__construct();
         // $this->middleware('permission:product_category_access', ['only' => ['index', 'show']]);
@@ -24,39 +23,39 @@ class ProductCategoryController extends Controller
 
     public function index()
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('product_category_access'), 403);
-        $productCategories = QueryBuilder::for(ProductCategory::class)
-            ->allowedFilters(['name'])
-            ->allowedSorts(['id', 'name', 'created_at'])
-            ->paginate($this->per_page);
+        $productCategories = $this->service->findAllPaginate(
+            $this->per_page,
+            null,
+            ['name'],
+            [],
+            ['id', 'name', 'created_at'],
+        );
 
         return ProductCategoryResource::collection($productCategories);
     }
 
     public function show(ProductCategory $productCategory)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('product_category_access'), 403);
         return new ProductCategoryResource($productCategory);
     }
 
-    public function store(ProductCategoryStoreRequest $request)
+    public function store(StoreRequest $request)
     {
-        $productCategory = ProductCategory::create($request->validated());
+        $productCategory = $this->service->create($request->validated());
 
         return new ProductCategoryResource($productCategory);
     }
 
-    public function update(ProductCategory $productCategory, ProductCategoryUpdateRequest $request)
+    public function update(ProductCategory $productCategory, UpdateRequest $request)
     {
-        $productCategory->update($request->validated());
+        $this->service->update($productCategory, $request->validated());
 
         return (new ProductCategoryResource($productCategory))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
     public function destroy(ProductCategory $productCategory)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('product_category_delete'), 403);
-        $productCategory->delete();
+        $this->service->delete($productCategory);
 
         return $this->deletedResponse();
     }

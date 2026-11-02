@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Http\Resources\DefaultResource;
 use App\Models\Order;
 use App\Models\OrderDetail;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
-class OrderDetailController extends Controller
+class OrderDetailController extends BaseController
 {
     public function __construct()
     {

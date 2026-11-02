@@ -2,34 +2,27 @@
 
 namespace App\Http\Controllers\Api\Loyalty\Auth;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\Loyalty\LoyaltyPasswordResetConfirmRequest;
-use App\Http\Requests\Api\Loyalty\LoyaltyPasswordResetRequest;
-use App\Mail\Loyalty\PasswordResetMail;
-use App\Models\Loyalty\LoyaltyUser;
-use App\Support\Loyalty\LoyaltySignedUrl;
-use Illuminate\Auth\Events\PasswordReset;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Password;
+use App\Http\Controllers\Api\BaseController;
+use App\Http\Requests\Api\Loyalty\Auth\PasswordResetConfirmRequest;
+use App\Http\Requests\Api\Loyalty\Auth\PasswordResetRequest;
+use App\Interfaces\Services\Loyalty\LoyaltyUser\LoyaltyAuthServiceInterface;
 
-class PasswordResetController extends Controller
+class PasswordResetController extends BaseController
 {
-    private const BROKER = 'loyalty_users';
+    public function __construct(private LoyaltyAuthServiceInterface $service)
+    {
+        parent::__construct();
+    }
 
     /**
-     * Request a reset token. Always returns the same generic success
-     * response so the endpoint cannot be used to probe which emails
-     * are registered.
+     * POST /api/loyalty/auth/password-reset/request
+     *
+     * Always answers with the same message so the endpoint cannot be used to
+     * find out which emails are registered.
      */
-    public function request(LoyaltyPasswordResetRequest $request)
+    public function request(PasswordResetRequest $request)
     {
-        $user = LoyaltyUser::where('email', $request->email)->first();
-
-        if ($user) {
-            $token = Password::broker(self::BROKER)->createToken($user);
-            $resetUrl = LoyaltySignedUrl::passwordReset($token, $user->email);
-            Mail::to($user->email)->send(new PasswordResetMail($user->email, $resetUrl));
-        }
+        $this->service->requestPasswordReset($request->email);
 
         return response()->json([
             'message' => 'Jika email terdaftar, tautan reset kata sandi telah dikirim.',
@@ -37,21 +30,11 @@ class PasswordResetController extends Controller
     }
 
     /**
-     * Confirm the token and set the new password via Laravel's password
-     * broker configured for the loyalty_users provider.
+     * POST /api/loyalty/auth/password-reset/confirm
      */
-    public function confirm(LoyaltyPasswordResetConfirmRequest $request)
+    public function confirm(PasswordResetConfirmRequest $request)
     {
-        $status = Password::broker(self::BROKER)->reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function (LoyaltyUser $user, string $password) {
-                // Model mutator hashes the password on assignment.
-                $user->forceFill(['password' => $password])->save();
-                event(new PasswordReset($user));
-            }
-        );
-
-        if ($status === Password::PASSWORD_RESET) {
+        if ($this->service->resetPassword($request->only('email', 'password', 'password_confirmation', 'token'))) {
             return response()->json(['message' => 'Kata sandi berhasil direset.']);
         }
 

@@ -16,32 +16,32 @@ class SettingSeeder extends Seeder
     public function run()
     {
         Setting::create([
-            'key' => SettingEnum::SO_NUMBER,
+            'key' => SettingEnum::SO_NUMBER->value,
             'value' => sprintf('PAS/SO/%s/%s/01', date('m'), date('y')),
         ]);
 
         Setting::create([
-            'key' => SettingEnum::DO_NUMBER,
+            'key' => SettingEnum::DO_NUMBER->value,
             'value' => sprintf('PAS/DO/%s/%s/01', date('m'), date('y')),
         ]);
 
         Setting::create([
-            'key' => SettingEnum::TAX_VALUE,
+            'key' => SettingEnum::TAX_VALUE->value,
             'value' => 11,
         ]);
 
         Setting::create([
-            'key' => SettingEnum::BANK_NAME,
+            'key' => SettingEnum::BANK_NAME->value,
             'value' => 'BCA',
         ]);
 
         Setting::create([
-            'key' => SettingEnum::BANK_HOLDER,
+            'key' => SettingEnum::BANK_HOLDER->value,
             'value' => 'PT. Platinum Adi Sentosa',
         ]);
 
         Setting::create([
-            'key' => SettingEnum::BANK_ACCOUNT,
+            'key' => SettingEnum::BANK_ACCOUNT->value,
             'value' => '2883123808',
         ]);
     }

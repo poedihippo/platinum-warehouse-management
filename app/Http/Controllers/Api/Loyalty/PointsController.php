@@ -2,53 +2,32 @@
 
 namespace App\Http\Controllers\Api\Loyalty;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseController;
 use App\Http\Resources\Loyalty\PointsTransactionResource;
-use App\Models\Loyalty\Claim;
-use App\Models\Loyalty\PointsTransaction;
+use App\Interfaces\Services\Loyalty\PointsTransaction\PointsServiceInterface;
 use Illuminate\Http\Request;
 
-class PointsController extends Controller
+class PointsController extends BaseController
 {
-    /**
-     * GET /api/loyalty/points/balance
-     *
-     * - pending  = sum of total_points over the user's pending claims
-     *              (no ledger rows exist until approval).
-     * - approved = spendable balance = earned - spent, derived purely
-     *              from the append-only ledger (spec §5.9). Never stored.
-     */
-    public function balance(Request $request)
+    public function __construct(private PointsServiceInterface $service)
     {
-        $userId = $request->user()->getKey();
-
-        $pending = (int) Claim::where('loyalty_user_id', $userId)
-            ->where('status', 'pending')
-            ->sum('total_points');
-
-        $earned = (int) PointsTransaction::where('loyalty_user_id', $userId)
-            ->where('direction', PointsTransaction::DIRECTION_EARN)
-            ->sum('amount');
-
-        $spent = (int) PointsTransaction::where('loyalty_user_id', $userId)
-            ->where('direction', PointsTransaction::DIRECTION_SPEND)
-            ->sum('amount');
-
-        return response()->json([
-            'pending' => $pending,
-            'approved' => $earned - $spent,
-        ]);
+        parent::__construct();
     }
 
     /**
-     * GET /api/loyalty/points/transactions — ledger, newest first, 20/page.
+     * GET /api/loyalty/points/balance
+     */
+    public function balance(Request $request)
+    {
+        return response()->json($this->service->balance($request->user()->getKey()));
+    }
+
+    /**
+     * GET /api/loyalty/points/transactions
      */
     public function transactions(Request $request)
     {
-        $transactions = PointsTransaction::where('loyalty_user_id', $request->user()->getKey())
-            ->orderByDesc('created_at')
-            ->orderByDesc('id')
-            ->paginate(20);
+        $transactions = $this->service->transactions($request->user()->getKey());
 
         return PointsTransactionResource::collection($transactions);
     }

@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
-class TestController extends Controller
+class TestController extends BaseController
 {
     public function index()
     {

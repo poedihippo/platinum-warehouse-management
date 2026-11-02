@@ -3,7 +3,7 @@
 namespace App\Http\Requests\Api\VoucherCategory;
 
 use App\Enums\DiscountType;
-use BenSampo\Enum\Rules\EnumValue;
+use App\Rules\EnumValue;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreRequest extends FormRequest

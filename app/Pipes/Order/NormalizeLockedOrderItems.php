@@ -2,14 +2,18 @@
 
 namespace App\Pipes\Order;
 
+use App\Interfaces\Services\DeliveryOrder\DeliveryOrderServiceInterface;
 use App\Models\SalesOrder;
-use App\Services\DeliveryOrderService;
 
 class NormalizeLockedOrderItems
 {
+    public function __construct(protected DeliveryOrderServiceInterface $deliveryOrderService)
+    {
+    }
+
     public function handle(SalesOrder $salesOrder, \Closure $next)
     {
-        DeliveryOrderService::normalizeLockedItems($salesOrder);
+        $this->deliveryOrderService->normalizeLockedItems($salesOrder);
 
         return $next($salesOrder);
     }

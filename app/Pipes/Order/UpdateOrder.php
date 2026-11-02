@@ -2,16 +2,20 @@
 
 namespace App\Pipes\Order;
 
+use App\Interfaces\Services\DeliveryOrder\DeliveryOrderServiceInterface;
 use App\Models\DeliveryOrderDetail;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderDetail;
-use App\Services\DeliveryOrderService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class UpdateOrder
 {
+    public function __construct(protected DeliveryOrderServiceInterface $deliveryOrderService)
+    {
+    }
+
     public function handle(SalesOrder $salesOrder, \Closure $next)
     {
         $salesOrder = DB::transaction(function () use ($salesOrder) {
@@ -21,8 +25,8 @@ class UpdateOrder
             $oldDetailIds = SalesOrderDetail::where('sales_order_id', $salesOrder->id)->pluck('id');
 
             if ($wasMarketplace) {
-                $deliveryOrder = DeliveryOrderService::assertEditable($salesOrder);
-                $lockedDetailIds = DeliveryOrderService::lockedSalesOrderDetailIds($salesOrder);
+                $deliveryOrder = $this->deliveryOrderService->assertEditable($salesOrder);
+                $lockedDetailIds = $this->deliveryOrderService->lockedSalesOrderDetailIds($salesOrder);
 
                 if (! $salesOrder->marketplace && $lockedDetailIds->isNotEmpty()) {
                     $this->throwVerifiedDetail();
@@ -51,10 +55,10 @@ class UpdateOrder
             }
 
             if ($deliveryOrder && ! $salesOrder->marketplace) {
-                DeliveryOrderService::deleteDeliveryOrder($deliveryOrder);
+                $this->deliveryOrderService->deleteDeliveryOrder($deliveryOrder);
             } elseif ($deliveryOrder) {
-                DeliveryOrderService::syncHeader($deliveryOrder, $salesOrder);
-                DeliveryOrderService::attachSalesOrderDetails($deliveryOrder, $salesOrder->details()->get());
+                $this->deliveryOrderService->syncHeader($deliveryOrder, $salesOrder);
+                $this->deliveryOrderService->attachSalesOrderDetails($deliveryOrder, $salesOrder->details()->get());
             }
 
             return $salesOrder;
@@ -123,7 +127,7 @@ class UpdateOrder
 
     private function throwVerifiedDetail(): void
     {
-        throw new BadRequestHttpException(DeliveryOrderService::VERIFIED_STOCK_MESSAGE);
+        throw new BadRequestHttpException(DeliveryOrderServiceInterface::VERIFIED_STOCK_MESSAGE);
     }
 
     private function voucherPivot(SalesOrder $salesOrder): array

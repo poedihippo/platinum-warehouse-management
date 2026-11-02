@@ -262,7 +262,7 @@ class DocumentCounterTest extends TestCase
             'next_sequence' => 7,
         ])->assertCreated();
 
-        $salesOrder = $this->createSalesOrder(CompanyEnum::PAS());
+        $salesOrder = $this->createSalesOrder(CompanyEnum::PAS);
 
         $this->assertSame('PAS/SO/10/26/07', $salesOrder->invoice_no);
         $this->assertSame(7, DocumentCounter::first()->sequence);
