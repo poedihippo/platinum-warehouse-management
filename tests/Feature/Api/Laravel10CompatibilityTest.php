@@ -130,4 +130,15 @@ class Laravel10CompatibilityTest extends TestCase
 
         $this->assertSame('text/csv; charset=utf-8', strtolower($response->headers->get('Content-Type')));
     }
+
+    public function test_protected_routes_answer_json_401_without_a_json_accept_header(): void
+    {
+        $this->get('/api/users/me', ['Accept' => '*/*'])
+            ->assertStatus(401)
+            ->assertExactJson(['message' => 'Unauthenticated.']);
+
+        $this->get('/api/loyalty/profile')
+            ->assertStatus(401)
+            ->assertExactJson(['message' => 'Unauthenticated.']);
+    }
 }

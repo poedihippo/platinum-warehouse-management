@@ -45,6 +45,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->statefulApi();
         $middleware->throttleApi();
 
+        $middleware->redirectGuestsTo(null);
         $middleware->redirectUsersTo('/home');
 
         $middleware->alias([
