@@ -2,24 +2,26 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Http\Resources\DefaultResource;
-use App\Models\TemporaryStock;
+use App\Interfaces\Services\TemporaryStock\TemporaryStockServiceInterface;
 use Illuminate\Http\Request;
-use Spatie\QueryBuilder\QueryBuilder;
 
-class TemporaryStockController extends Controller
+class TemporaryStockController extends BaseController
 {
+    public function __construct(private TemporaryStockServiceInterface $service)
+    {
+        parent::__construct();
+    }
+
     public function index()
     {
-        $products = QueryBuilder::for(
-            TemporaryStock::with(['stock' => fn ($q) => $q->select('id', 'stock_product_unit_id')->with('stockProductUnit', fn ($q) => $q->select('id', 'product_unit_id')->with('productUnit', fn ($q) => $q->select('id', 'name', 'code', 'price')))])
-        )
-            ->allowedFilters([
-                'id',
-            ])
-            ->allowedSorts(['id', 'created_at'])
-            ->paginate($this->per_page);
+        $products = $this->service->findAllPaginate(
+            $this->per_page,
+            fn ($query) => $query->with(['stock' => fn ($q) => $q->select('id', 'stock_product_unit_id')->with('stockProductUnit', fn ($q) => $q->select('id', 'product_unit_id')->with('productUnit', fn ($q) => $q->select('id', 'name', 'code', 'price')))]),
+            ['id'],
+            [],
+            ['id', 'created_at'],
+        );
 
         return DefaultResource::collection($products);
     }
@@ -30,7 +32,7 @@ class TemporaryStockController extends Controller
             'id' => ['required', 'exists:stocks,id'],
         ]);
 
-        TemporaryStock::create(['id' => $request->id, 'created_by_id' => auth()->id()]);
+        $this->service->scan($request->id);
 
         return response()->json([
             'message' => $request->id.' stock scanned successfully',

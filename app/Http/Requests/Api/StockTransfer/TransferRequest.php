@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Api;
+namespace App\Http\Requests\Api\StockTransfer;
 
 use App\Models\Stock;
 use App\Models\StockProductUnit;
@@ -8,7 +8,7 @@ use App\Rules\TenantedRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
-class TransferStockRequest extends FormRequest
+class TransferRequest extends FormRequest
 {
     public function rules(): array
     {

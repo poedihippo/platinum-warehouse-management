@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Api;
+namespace App\Http\Requests\Api\Stock;
 
 use App\Traits\Requests\RequestToBoolean;
 use Illuminate\Foundation\Http\FormRequest;

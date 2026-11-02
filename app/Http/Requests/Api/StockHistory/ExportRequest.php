@@ -4,7 +4,7 @@ namespace App\Http\Requests\Api\StockHistory;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StockHistoryExport extends FormRequest
+class ExportRequest extends FormRequest
 {
     /**
      * Prepare the data for validation.

@@ -16,11 +16,15 @@ use App\Http\Repositories\ProductBrand\ProductBrandRepository;
 use App\Http\Repositories\ProductCategory\ProductCategoryRepository;
 use App\Http\Repositories\ProductUnit\ProductUnitRepository;
 use App\Http\Repositories\ProductUnitBlacklist\ProductUnitBlacklistRepository;
+use App\Http\Repositories\ReceiveOrder\ReceiveOrderDetailRepository;
 use App\Http\Repositories\Role\RoleRepository;
 use App\Http\Repositories\Setting\SettingRepository;
 use App\Http\Repositories\Stock\StockRepository;
 use App\Http\Repositories\StockHistory\StockHistoryRepository;
+use App\Http\Repositories\StockProductUnit\StockProductUnitRepository;
+use App\Http\Repositories\StockTransfer\StockTransferRepository;
 use App\Http\Repositories\Supplier\SupplierRepository;
+use App\Http\Repositories\TemporaryStock\TemporaryStockRepository;
 use App\Http\Repositories\Uom\UomRepository;
 use App\Http\Repositories\User\UserRepository;
 use App\Http\Repositories\UserDiscount\UserDiscountRepository;
@@ -48,9 +52,14 @@ use App\Http\Services\ProductUnit\ProductUnitService;
 use App\Http\Services\ProductUnitBlacklist\ProductUnitBlacklistService;
 use App\Http\Services\Role\RoleService;
 use App\Http\Services\Setting\SettingService;
+use App\Http\Services\Stock\StockGroupingService;
+use App\Http\Services\Stock\StockRepackService;
 use App\Http\Services\Stock\StockService;
 use App\Http\Services\StockHistory\StockHistoryService;
+use App\Http\Services\StockProductUnit\StockProductUnitService;
+use App\Http\Services\StockTransfer\StockTransferService;
 use App\Http\Services\Supplier\SupplierService;
+use App\Http\Services\TemporaryStock\TemporaryStockService;
 use App\Http\Services\Uom\UomService;
 use App\Http\Services\User\UserService;
 use App\Http\Services\UserDiscount\UserDiscountService;
@@ -69,11 +78,15 @@ use App\Interfaces\Repositories\ProductBrand\ProductBrandRepositoryInterface;
 use App\Interfaces\Repositories\ProductCategory\ProductCategoryRepositoryInterface;
 use App\Interfaces\Repositories\ProductUnit\ProductUnitRepositoryInterface;
 use App\Interfaces\Repositories\ProductUnitBlacklist\ProductUnitBlacklistRepositoryInterface;
+use App\Interfaces\Repositories\ReceiveOrder\ReceiveOrderDetailRepositoryInterface;
 use App\Interfaces\Repositories\Role\RoleRepositoryInterface;
 use App\Interfaces\Repositories\Setting\SettingRepositoryInterface;
 use App\Interfaces\Repositories\Stock\StockRepositoryInterface;
 use App\Interfaces\Repositories\StockHistory\StockHistoryRepositoryInterface;
+use App\Interfaces\Repositories\StockProductUnit\StockProductUnitRepositoryInterface;
+use App\Interfaces\Repositories\StockTransfer\StockTransferRepositoryInterface;
 use App\Interfaces\Repositories\Supplier\SupplierRepositoryInterface;
+use App\Interfaces\Repositories\TemporaryStock\TemporaryStockRepositoryInterface;
 use App\Interfaces\Repositories\Uom\UomRepositoryInterface;
 use App\Interfaces\Repositories\User\UserRepositoryInterface;
 use App\Interfaces\Repositories\UserDiscount\UserDiscountRepositoryInterface;
@@ -101,9 +114,14 @@ use App\Interfaces\Services\ProductUnit\ProductUnitServiceInterface;
 use App\Interfaces\Services\ProductUnitBlacklist\ProductUnitBlacklistServiceInterface;
 use App\Interfaces\Services\Role\RoleServiceInterface;
 use App\Interfaces\Services\Setting\SettingServiceInterface;
+use App\Interfaces\Services\Stock\StockGroupingServiceInterface;
+use App\Interfaces\Services\Stock\StockRepackServiceInterface;
 use App\Interfaces\Services\Stock\StockServiceInterface;
 use App\Interfaces\Services\StockHistory\StockHistoryServiceInterface;
+use App\Interfaces\Services\StockProductUnit\StockProductUnitServiceInterface;
+use App\Interfaces\Services\StockTransfer\StockTransferServiceInterface;
 use App\Interfaces\Services\Supplier\SupplierServiceInterface;
+use App\Interfaces\Services\TemporaryStock\TemporaryStockServiceInterface;
 use App\Interfaces\Services\Uom\UomServiceInterface;
 use App\Interfaces\Services\User\UserServiceInterface;
 use App\Interfaces\Services\UserDiscount\UserDiscountServiceInterface;
@@ -180,6 +198,17 @@ class AppServiceProvider extends ServiceProvider
         AdjustmentRequestServiceInterface::class => AdjustmentRequestService::class,
         StockHistoryRepositoryInterface::class => StockHistoryRepository::class,
         StockHistoryServiceInterface::class => StockHistoryService::class,
+
+        StockTransferRepositoryInterface::class => StockTransferRepository::class,
+        StockTransferServiceInterface::class => StockTransferService::class,
+        TemporaryStockRepositoryInterface::class => TemporaryStockRepository::class,
+        TemporaryStockServiceInterface::class => TemporaryStockService::class,
+        StockProductUnitRepositoryInterface::class => StockProductUnitRepository::class,
+        StockProductUnitServiceInterface::class => StockProductUnitService::class,
+        StockGroupingServiceInterface::class => StockGroupingService::class,
+        StockRepackServiceInterface::class => StockRepackService::class,
+
+        ReceiveOrderDetailRepositoryInterface::class => ReceiveOrderDetailRepository::class,
     ];
 
     /**

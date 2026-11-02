@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Requests\Api;
+namespace App\Http\Requests\Api\Stock;
 
 use App\Models\ReceiveOrderDetail;
 use App\Models\StockProductUnit;
 use App\Rules\TenantedRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StockRecordRequest extends FormRequest
+class RecordRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.

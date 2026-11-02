@@ -2,14 +2,19 @@
 
 namespace App\Http\Controllers\Api\Public;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseController;
 use App\Http\Resources\StockVerificationResource;
-use App\Models\Stock;
+use App\Interfaces\Services\Stock\StockServiceInterface;
 
-class StockVerificationController extends Controller
+class StockVerificationController extends BaseController
 {
     // Crockford base32 alphabet (no I, L, O, U), 26 chars. Case-insensitive.
     private const ULID_PATTERN = '/^[0-9A-HJKMNP-TV-Z]{26}$/i';
+
+    public function __construct(private StockServiceInterface $service)
+    {
+        parent::__construct();
+    }
 
     public function show(string $ulid)
     {
@@ -17,19 +22,7 @@ class StockVerificationController extends Controller
             return $this->notFound();
         }
 
-        $stock = Stock::with([
-            'stockProductUnit:id,product_unit_id',
-            'stockProductUnit.productUnit:id,product_id,name',
-            'stockProductUnit.productUnit.product:id,product_brand_id',
-            // ProductBrand now uses the SoftDeletes trait (its own global
-            // scope already excludes trashed rows); this manual filter is
-            // redundant but harmless, kept for explicitness.
-            'stockProductUnit.productUnit.product.productBrand' => function ($query) {
-                $query->select('id', 'name', 'logo_path')->whereNull('deleted_at');
-            },
-        ])
-            ->select(['id', 'stock_product_unit_id', 'expired_date'])
-            ->find($ulid);
+        $stock = $this->service->findForPublicVerification($ulid);
 
         $product = $stock?->stockProductUnit?->productUnit?->product;
         if (! $stock || ! $product || ! $product->productBrand) {
