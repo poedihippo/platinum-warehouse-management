@@ -11,6 +11,7 @@ use App\Http\Repositories\Loyalty\PointsTransaction\PointsTransactionRepository;
 use App\Http\Repositories\Loyalty\Prize\PrizeRepository;
 use App\Http\Repositories\Loyalty\PrizeCategory\PrizeCategoryRepository;
 use App\Http\Repositories\Loyalty\Redemption\RedemptionRepository;
+use App\Http\Repositories\Payment\PaymentRepository;
 use App\Http\Repositories\Permission\PermissionRepository;
 use App\Http\Repositories\Product\ProductRepository;
 use App\Http\Repositories\ProductBrand\ProductBrandRepository;
@@ -32,6 +33,9 @@ use App\Http\Repositories\TemporaryStock\TemporaryStockRepository;
 use App\Http\Repositories\Uom\UomRepository;
 use App\Http\Repositories\User\UserRepository;
 use App\Http\Repositories\UserDiscount\UserDiscountRepository;
+use App\Http\Repositories\Voucher\VoucherRepository;
+use App\Http\Repositories\VoucherCategory\VoucherCategoryRepository;
+use App\Http\Repositories\VoucherGenerateBatch\VoucherGenerateBatchRepository;
 use App\Http\Repositories\Warehouse\WarehouseRepository;
 use App\Http\Services\AdjustmentRequest\AdjustmentRequestService;
 use App\Http\Services\Auth\AuthService;
@@ -50,6 +54,7 @@ use App\Http\Services\Loyalty\Prize\PrizeService;
 use App\Http\Services\Loyalty\PrizeCategory\PrizeCategoryService;
 use App\Http\Services\Loyalty\Redemption\RedemptionReviewService;
 use App\Http\Services\Loyalty\Redemption\RedemptionService;
+use App\Http\Services\Payment\PaymentService;
 use App\Http\Services\Permission\PermissionService;
 use App\Http\Services\Product\ProductService;
 use App\Http\Services\ProductBrand\ProductBrandService;
@@ -74,6 +79,9 @@ use App\Http\Services\TemporaryStock\TemporaryStockService;
 use App\Http\Services\Uom\UomService;
 use App\Http\Services\User\UserService;
 use App\Http\Services\UserDiscount\UserDiscountService;
+use App\Http\Services\Voucher\VoucherService;
+use App\Http\Services\VoucherCategory\VoucherCategoryService;
+use App\Http\Services\VoucherGenerateBatch\VoucherGenerateBatchService;
 use App\Http\Services\Warehouse\WarehouseService;
 use App\Interfaces\Repositories\AdjustmentRequest\AdjustmentRequestRepositoryInterface;
 use App\Interfaces\Repositories\DeliveryOrder\DeliveryOrderRepositoryInterface;
@@ -84,6 +92,7 @@ use App\Interfaces\Repositories\Loyalty\PointsTransaction\PointsTransactionRepos
 use App\Interfaces\Repositories\Loyalty\Prize\PrizeRepositoryInterface;
 use App\Interfaces\Repositories\Loyalty\PrizeCategory\PrizeCategoryRepositoryInterface;
 use App\Interfaces\Repositories\Loyalty\Redemption\RedemptionRepositoryInterface;
+use App\Interfaces\Repositories\Payment\PaymentRepositoryInterface;
 use App\Interfaces\Repositories\Permission\PermissionRepositoryInterface;
 use App\Interfaces\Repositories\Product\ProductRepositoryInterface;
 use App\Interfaces\Repositories\ProductBrand\ProductBrandRepositoryInterface;
@@ -105,6 +114,9 @@ use App\Interfaces\Repositories\TemporaryStock\TemporaryStockRepositoryInterface
 use App\Interfaces\Repositories\Uom\UomRepositoryInterface;
 use App\Interfaces\Repositories\User\UserRepositoryInterface;
 use App\Interfaces\Repositories\UserDiscount\UserDiscountRepositoryInterface;
+use App\Interfaces\Repositories\Voucher\VoucherRepositoryInterface;
+use App\Interfaces\Repositories\VoucherCategory\VoucherCategoryRepositoryInterface;
+use App\Interfaces\Repositories\VoucherGenerateBatch\VoucherGenerateBatchRepositoryInterface;
 use App\Interfaces\Repositories\Warehouse\WarehouseRepositoryInterface;
 use App\Interfaces\Services\AdjustmentRequest\AdjustmentRequestServiceInterface;
 use App\Interfaces\Services\Auth\AuthServiceInterface;
@@ -123,6 +135,7 @@ use App\Interfaces\Services\Loyalty\Prize\PrizeServiceInterface;
 use App\Interfaces\Services\Loyalty\PrizeCategory\PrizeCategoryServiceInterface;
 use App\Interfaces\Services\Loyalty\Redemption\RedemptionReviewServiceInterface;
 use App\Interfaces\Services\Loyalty\Redemption\RedemptionServiceInterface;
+use App\Interfaces\Services\Payment\PaymentServiceInterface;
 use App\Interfaces\Services\Permission\PermissionServiceInterface;
 use App\Interfaces\Services\Product\ProductServiceInterface;
 use App\Interfaces\Services\ProductBrand\ProductBrandServiceInterface;
@@ -147,6 +160,9 @@ use App\Interfaces\Services\TemporaryStock\TemporaryStockServiceInterface;
 use App\Interfaces\Services\Uom\UomServiceInterface;
 use App\Interfaces\Services\User\UserServiceInterface;
 use App\Interfaces\Services\UserDiscount\UserDiscountServiceInterface;
+use App\Interfaces\Services\Voucher\VoucherServiceInterface;
+use App\Interfaces\Services\VoucherCategory\VoucherCategoryServiceInterface;
+use App\Interfaces\Services\VoucherGenerateBatch\VoucherGenerateBatchServiceInterface;
 use App\Interfaces\Services\Warehouse\WarehouseServiceInterface;
 use App\Models\PersonalAccessToken;
 use Illuminate\Support\Facades\Mail;
@@ -245,6 +261,15 @@ class AppServiceProvider extends ServiceProvider
         SalesOrderRepositoryInterface::class => SalesOrderRepository::class,
         SalesOrderServiceInterface::class => SalesOrderService::class,
         DeliveryOrderDetailServiceInterface::class => DeliveryOrderDetailService::class,
+
+        PaymentRepositoryInterface::class => PaymentRepository::class,
+        PaymentServiceInterface::class => PaymentService::class,
+        VoucherRepositoryInterface::class => VoucherRepository::class,
+        VoucherServiceInterface::class => VoucherService::class,
+        VoucherCategoryRepositoryInterface::class => VoucherCategoryRepository::class,
+        VoucherCategoryServiceInterface::class => VoucherCategoryService::class,
+        VoucherGenerateBatchRepositoryInterface::class => VoucherGenerateBatchRepository::class,
+        VoucherGenerateBatchServiceInterface::class => VoucherGenerateBatchService::class,
     ];
 
     /**

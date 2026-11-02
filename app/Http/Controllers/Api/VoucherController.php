@@ -2,22 +2,17 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\Voucher\StoreRequest;
 use App\Http\Resources\DefaultResource;
-use App\Imports\VoucherImport;
+use App\Interfaces\Services\Voucher\VoucherServiceInterface;
 use App\Models\Voucher;
-use Illuminate\Support\Str;
-use Spatie\QueryBuilder\AllowedFilter;
-use Spatie\QueryBuilder\AllowedInclude;
-use Spatie\QueryBuilder\QueryBuilder;
+use Illuminate\Http\Request;
 
-class VoucherController extends Controller
+class VoucherController extends BaseController
 {
-    public function __construct()
+    public function __construct(private VoucherServiceInterface $service)
     {
         parent::__construct();
-        // $this->middleware('permission:voucher_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:voucher_create', ['only' => 'store']);
         $this->middleware('permission:voucher_edit', ['only' => 'update']);
         $this->middleware('permission:voucher_delete', ['only' => ['destroy', 'forceDelete', 'restore']]);
@@ -26,27 +21,7 @@ class VoucherController extends Controller
 
     public function index()
     {
-        $vouchers = QueryBuilder::for(Voucher::class)
-            ->allowedFilters([
-                AllowedFilter::exact('voucher_generate_batch_id'),
-                AllowedFilter::exact('voucher_category_id'),
-                'code',
-                AllowedFilter::callback('start_date', fn ($q, $v) => $q->where('start_date', '<=', $v)),
-                AllowedFilter::callback('end_date', fn ($q, $v) => $q->where('end_date', '>=', $v)),
-            ])
-            ->allowedIncludes([
-                'voucherGenerateBatch',
-                AllowedInclude::callback('category', function ($query) {
-                    $query->select('id', 'name', 'discount_type', 'discount_amount');
-                }),
-                AllowedInclude::callback('salesOrders', function ($query) {
-                    $query->select('id', 'invoice_no');
-                }),
-            ])
-            ->allowedSorts(['id', 'voucher_category_id', 'name', 'code', 'created_at'])
-            ->paginate($this->per_page);
-
-        return DefaultResource::collection($vouchers);
+        return DefaultResource::collection($this->service->paginateIndex($this->per_page));
     }
 
     public function show(Voucher $voucher)
@@ -60,66 +35,40 @@ class VoucherController extends Controller
 
     public function store(StoreRequest $request)
     {
-        $data = $request->validated();
-
-        if (empty($data['code'])) {
-            $data['code'] = self::generateUniqueCode();
-        }
-
-        $voucher = Voucher::create($data);
+        $this->service->createVoucher($request->validated());
 
         return $this->createdResponse();
     }
 
     public function update(Voucher $voucher, StoreRequest $request)
     {
-        $oldCode = $voucher->code;
-        $voucher->update($request->validated());
-
-        if ($oldCode !== $voucher->code) {
-            $voucher->salesOrders()->each(function ($so) {
-                $rawSource = $so->raw_source ?? [];
-                $rawSource['voucher_codes'] = $so->vouchers()->pluck('code')->values()->all();
-                $so->update(['raw_source' => $rawSource]);
-            });
-        }
+        $this->service->updateVoucher($voucher, $request->validated());
 
         return $this->updatedResponse();
     }
 
     public function destroy(Voucher $voucher)
     {
-        if ($voucher->is_used) {
-            return $this->errorResponse(message: 'Cannot delete used voucher. Voucher already used!', code: \Illuminate\Http\Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
-
-        $voucher->delete();
+        $this->service->deleteUnlessUsed($voucher);
 
         return $this->deletedResponse();
     }
 
     public function forceDelete($id)
     {
-        $voucher = Voucher::withTrashed()->findOrFail($id);
-
-        if ($voucher->is_used) {
-            return $this->errorResponse(message: 'Cannot delete used voucher. Voucher already used!', code: \Illuminate\Http\Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
-
-        $voucher->forceDelete();
+        $this->service->forceDeleteUnlessUsed($id);
 
         return $this->deletedResponse();
     }
 
     public function restore($id)
     {
-        $voucher = Voucher::withTrashed()->findOrFail($id);
-        $voucher->restore();
+        $this->service->restoreById($id);
 
         return $this->updatedResponse();
     }
 
-    public function import(\Illuminate\Http\Request $request)
+    public function import(Request $request)
     {
         $request->validate([
             'voucher_category_id' => 'required|exists:voucher_categories,id',
@@ -127,18 +76,8 @@ class VoucherController extends Controller
             'file' => 'required|mimes:xls,xlsx,csv',
         ]);
 
-        $import = new VoucherImport($request->voucher_category_id, $request->description);
-        $import->import($request->file('file'));
+        $totalInserted = $this->service->import($request->voucher_category_id, $request->description, $request->file('file'));
 
-        return $this->createdResponse($import->getTotalInserted().' data inserted successfully');
-    }
-
-    public static function generateUniqueCode(): string
-    {
-        do {
-            $code = strtoupper(Str::random(8));
-        } while (Voucher::withoutGlobalScopes()->where('code', $code)->exists());
-
-        return $code;
+        return $this->createdResponse($totalInserted.' data inserted successfully');
     }
 }

@@ -2,19 +2,17 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\VoucherCategory\StoreRequest;
 use App\Http\Resources\DefaultResource;
+use App\Interfaces\Services\VoucherCategory\VoucherCategoryServiceInterface;
 use App\Models\VoucherCategory;
-use Spatie\QueryBuilder\QueryBuilder;
+use Illuminate\Http\Response;
 
-class VoucherCategoryController extends Controller
+class VoucherCategoryController extends BaseController
 {
-    public function __construct()
+    public function __construct(private VoucherCategoryServiceInterface $service)
     {
         parent::__construct();
-        // $this->middleware('permission:voucher_access', ['only' => ['index', 'show']]);
-        // $this->middleware('permission:voucher_read', ['only' => ['index', 'show']]);
         $this->middleware('permission:voucher_create', ['only' => 'store']);
         $this->middleware('permission:voucher_edit', ['only' => 'update']);
         $this->middleware('permission:voucher_delete', ['only' => 'destroy', 'forceDelete', 'restore']);
@@ -22,12 +20,13 @@ class VoucherCategoryController extends Controller
 
     public function index()
     {
-        $voucherCategorys = QueryBuilder::for(VoucherCategory::class)
-            ->allowedFilters([
-                'name', 'discount_type',
-            ])
-            ->allowedSorts(['id', 'name', 'discount_type', 'created_at'])
-            ->paginate($this->per_page);
+        $voucherCategorys = $this->service->findAllPaginate(
+            $this->per_page,
+            null,
+            ['name', 'discount_type'],
+            [],
+            ['id', 'name', 'discount_type', 'created_at'],
+        );
 
         return DefaultResource::collection($voucherCategorys);
     }
@@ -39,37 +38,34 @@ class VoucherCategoryController extends Controller
 
     public function store(StoreRequest $request)
     {
-        $voucherCategory = VoucherCategory::create($request->validated());
-
-        return new DefaultResource($voucherCategory);
+        return new DefaultResource($this->service->create($request->validated()));
     }
 
     public function update(VoucherCategory $voucherCategory, StoreRequest $request)
     {
-        $voucherCategory->update($request->validated());
+        $this->service->update($voucherCategory, $request->validated());
 
-        return (new DefaultResource($voucherCategory))->response()->setStatusCode(\Illuminate\Http\Response::HTTP_ACCEPTED);
+        return (new DefaultResource($voucherCategory))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
     public function destroy(VoucherCategory $voucherCategory)
     {
-        $voucherCategory->delete();
+        $this->service->delete($voucherCategory);
 
         return $this->deletedResponse();
     }
 
     public function forceDelete($id)
     {
-        $voucherCategory = VoucherCategory::withTrashed()->findOrFail($id);
-        $voucherCategory->forceDelete();
+        $this->service->forceDelete($this->service->findWithTrashedOrFail($id));
 
         return $this->deletedResponse();
     }
 
     public function restore($id)
     {
-        $voucherCategory = VoucherCategory::withTrashed()->findOrFail($id);
-        $voucherCategory->restore();
+        $voucherCategory = $this->service->findWithTrashedOrFail($id);
+        $this->service->restore($voucherCategory);
 
         return new DefaultResource($voucherCategory);
     }
