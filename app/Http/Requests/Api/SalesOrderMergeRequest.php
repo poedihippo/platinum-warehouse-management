@@ -4,9 +4,9 @@ namespace App\Http\Requests\Api;
 
 use App\Enums\Marketplace;
 use App\Enums\UserType;
-use App\Rules\UniqueInvoiceNumber;
-use App\Services\NumberingService;
+use App\Interfaces\Services\DocumentCounter\NumberingServiceInterface;
 use App\Rules\EnumValue;
+use App\Rules\UniqueInvoiceNumber;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
@@ -70,7 +70,7 @@ class SalesOrderMergeRequest extends FormRequest
      */
     private function documentNumberRules(string $table, array $extraRules = []): array
     {
-        if (NumberingService::enabled()) {
+        if (app(NumberingServiceInterface::class)->enabled()) {
             return ['nullable'];
         }
 

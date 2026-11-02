@@ -1,0 +1,23 @@
+<?php
+
+namespace App\Http\Resources\UserDiscount;
+
+use App\Http\Resources\ProductBrand\ProductBrandResource;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class UserDiscountResource extends JsonResource
+{
+    /**
+     * Transform the resource into an array.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
+     */
+    public function toArray($request)
+    {
+        return [
+            ...parent::toArray($request),
+            'product_brand' => new ProductBrandResource($this->whenLoaded('productBrand')),
+        ];
+    }
+}

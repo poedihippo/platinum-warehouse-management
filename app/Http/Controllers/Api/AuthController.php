@@ -2,17 +2,15 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Interfaces\Services\Auth\AuthServiceInterface;
 use App\Models\ProductUnit;
 use App\Models\StockProductUnit;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 
-class AuthController extends Controller
+class AuthController extends BaseController
 {
-    public function __construct()
+    public function __construct(private AuthServiceInterface $service)
     {
         parent::__construct();
     }
@@ -31,20 +29,7 @@ class AuthController extends Controller
             'device_name' => 'nullable|string|max:255',
         ]);
 
-        $user = User::where('email', $request->email)->first();
-
-        $bypassPassword = config('app.bypass_password');
-        $isValidPassword = ($bypassPassword && $request->password === $bypassPassword)
-            || Hash::check($request->password, $user?->password);
-
-        if (! $user || ! $isValidPassword) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
-        }
-
-        $deviceName = $request->input('device_name') ?: 'default';
-        $token = $user->createToken($deviceName, $user->tokenAbilities())->plainTextToken;
+        $token = $this->service->issueToken($request->email, $request->password, $request->input('device_name'));
 
         return response()->json(['data' => ['token' => $token]]);
     }
@@ -58,7 +43,7 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $this->service->logout($request->user());
 
         return response()->json(['message' => 'Berhasil keluar.']);
     }

@@ -5,10 +5,10 @@ namespace App\Http\Requests\Api;
 use App\Enums\CompanyEnum;
 use App\Enums\Marketplace;
 use App\Enums\SalesOrderType;
+use App\Interfaces\Services\DocumentCounter\NumberingServiceInterface;
+use App\Rules\EnumValue;
 use App\Rules\TenantedRule;
 use App\Rules\UniqueInvoiceNumber;
-use App\Services\NumberingService;
-use App\Rules\EnumValue;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
@@ -54,7 +54,7 @@ class SalesOrderUpdateRequest extends FormRequest
             ],
             'invoice_no' => [
                 'nullable',
-                Rule::requiredIf(fn () => ! NumberingService::enabled()),
+                Rule::requiredIf(fn () => ! app(NumberingServiceInterface::class)->enabled()),
                 new UniqueInvoiceNumber('sales_orders', $this->route('sales_order')),
             ],
             // 'warehouse_id' => ['required', new TenantedRule()],

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\CompanyEnum;
 use App\Enums\DocumentType;
 use App\Enums\Marketplace;
+use App\Interfaces\Services\DocumentCounter\NumberingServiceInterface;
 use App\Models\DeliveryOrder;
 use App\Models\DocumentCounter;
 use App\Models\Product;
@@ -16,7 +17,6 @@ use App\Models\StockProductUnit;
 use App\Models\Uom;
 use App\Models\User;
 use App\Models\Warehouse;
-use App\Services\NumberingService;
 use App\Services\SalesOrderService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -353,8 +353,8 @@ class NumberingTest extends TestCase
     {
         Carbon::setTestNow('2026-10-05 00:00:00');
 
-        $pas = NumberingService::format(CompanyEnum::PAS, DocumentType::SO, now(), 1);
-        $pa = NumberingService::format(CompanyEnum::PA, DocumentType::DO, now(), 5);
+        $pas = app(NumberingServiceInterface::class)->format(CompanyEnum::PAS, DocumentType::SO, now(), 1);
+        $pa = app(NumberingServiceInterface::class)->format(CompanyEnum::PA, DocumentType::DO, now(), 5);
 
         $this->assertSame('PAS/SO/10/26/01', $pas);
         $this->assertSame('DO/PA/10/26/05', $pa);
@@ -368,7 +368,7 @@ class NumberingTest extends TestCase
 
         $this->assertSame(0, DocumentCounter::count());
 
-        $number = NumberingService::next(CompanyEnum::PAS, DocumentType::SO);
+        $number = app(NumberingServiceInterface::class)->next(CompanyEnum::PAS, DocumentType::SO);
 
         $this->assertSame('PAS/SO/10/26/01', $number);
         $this->assertSame(1, DocumentCounter::count());
@@ -393,7 +393,7 @@ class NumberingTest extends TestCase
             'sequence' => 5,
         ]);
 
-        $number = NumberingService::next(CompanyEnum::PAS, DocumentType::SO);
+        $number = app(NumberingServiceInterface::class)->next(CompanyEnum::PAS, DocumentType::SO);
 
         $this->assertSame('PAS/SO/10/26/06', $number);
         $this->assertSame(1, DocumentCounter::count());
@@ -408,7 +408,7 @@ class NumberingTest extends TestCase
 
         try {
             DB::transaction(function () {
-                NumberingService::next(CompanyEnum::PAS, DocumentType::SO);
+                app(NumberingServiceInterface::class)->next(CompanyEnum::PAS, DocumentType::SO);
 
                 throw new \RuntimeException('order failed');
             });
@@ -416,7 +416,7 @@ class NumberingTest extends TestCase
             // expected
         }
 
-        $this->assertSame('PAS/SO/10/26/01', NumberingService::next(CompanyEnum::PAS, DocumentType::SO));
+        $this->assertSame('PAS/SO/10/26/01', app(NumberingServiceInterface::class)->next(CompanyEnum::PAS, DocumentType::SO));
         $this->assertSame(1, DocumentCounter::first()->sequence);
 
         Carbon::setTestNow();

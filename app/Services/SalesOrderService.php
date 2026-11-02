@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Helpers\ContentDispositionHelper;
 use App\Http\Resources\SalesOrderResource;
+use App\Interfaces\Services\DocumentCounter\NumberingServiceInterface;
 use App\Models\DeliveryOrder;
 use App\Models\DeliveryOrderDetail;
 use App\Models\SalesOrder;
@@ -556,8 +557,8 @@ class SalesOrderService
             $firstSource = $sources->first();
 
             // Document numbers come from the request only while the counter is disabled.
-            $manualInvoiceNo = NumberingService::enabled() ? null : ($data['invoice_no'] ?? null);
-            $manualDeliveryOrderInvoiceNo = NumberingService::enabled() ? null : ($data['delivery_order_invoice_no'] ?? null);
+            $manualInvoiceNo = app(NumberingServiceInterface::class)->enabled() ? null : ($data['invoice_no'] ?? null);
+            $manualDeliveryOrderInvoiceNo = app(NumberingServiceInterface::class)->enabled() ? null : ($data['delivery_order_invoice_no'] ?? null);
 
             $rawSource = [
                 'user_id' => auth('sanctum')->id(),

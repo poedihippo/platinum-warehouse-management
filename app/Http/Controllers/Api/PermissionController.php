@@ -2,20 +2,17 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Helpers\PermissionsHelper;
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\PermissionStoreRequest;
-use App\Http\Requests\Api\PermissionUpdateRequest;
-use App\Http\Resources\PermissionResource;
+use App\Http\Requests\Api\Permission\StoreRequest;
+use App\Http\Requests\Api\Permission\UpdateRequest;
+use App\Http\Resources\Permission\PermissionResource;
+use App\Interfaces\Services\Permission\PermissionServiceInterface;
 use App\Models\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Spatie\QueryBuilder\AllowedFilter;
-use Spatie\QueryBuilder\QueryBuilder;
 
-class PermissionController extends Controller
+class PermissionController extends BaseController
 {
-    public function __construct()
+    public function __construct(private PermissionServiceInterface $service)
     {
         parent::__construct();
         // $this->middleware('permission:permission_access', ['only' => ['index', 'show']]);
@@ -28,67 +25,39 @@ class PermissionController extends Controller
     public function index(Request $request)
     {
         $perPage = $request->per_page ?? 100;
-        // abort_if(!auth('sanctum')->user()->tokenCan('permission_access'), 403);
-        $roles = QueryBuilder::for(Permission::class)
-            ->allowedFilters([
-                'name',
-                AllowedFilter::scope('role_id', 'whereRoleId'),
-            ])
-            ->allowedSorts(['id', 'name', 'created_at'])
-            ->orderBy('id', 'DESC')
-            ->paginate($perPage);
+        $roles = $this->service->paginateIndex($perPage);
 
         return PermissionResource::collection($roles);
     }
 
     public function show(Permission $permission)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('permission_access'), 403);
+        return new PermissionResource($permission);
+    }
+
+    public function store(StoreRequest $request)
+    {
+        $permission = $this->service->create($request->validated());
 
         return new PermissionResource($permission);
     }
 
-    public function store(PermissionStoreRequest $request)
+    public function update(Permission $permission, UpdateRequest $request)
     {
-        $permission = Permission::create($request->validated());
-
-        return new PermissionResource($permission);
-    }
-
-    public function update(Permission $permission, PermissionUpdateRequest $request)
-    {
-        $permission->update($request->validated());
+        $this->service->update($permission, $request->validated());
 
         return (new PermissionResource($permission))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
     public function destroy(Permission $permission)
     {
-        // abort_if(!auth('sanctum')->user()->tokenCan('permission_delete'), 403);
-        $permission->delete();
+        $this->service->delete($permission);
 
         return $this->deletedResponse();
     }
 
     public function all()
     {
-        return response()->json(PermissionsHelper::getAllPermissions());
-        // $permissions = Permission::select('id', 'name')
-        //     ->with('childs', fn ($q) => $q->select('id', 'name', 'parent_id'))
-        //     ->whereParent()
-        //     ->get();
-
-        // $allPermissions = [];
-
-        // foreach ($permissions as $permission) {
-        //     $allPermissions[$permission->id] = $permission->name;
-        //     // if ($permission->childs->count() > 0) {
-        //     //     foreach ($permission->childs as $child) {
-        //     //         // $allPermissions[$permission->id][][$child->id] = $child->name;
-        //     //         dd($allPermissions);
-        //     //     }
-        //     // }
-        // }
-        // return response()->json($allPermissions);
+        return response()->json($this->service->allPermissions());
     }
 }

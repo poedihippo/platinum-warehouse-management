@@ -3,10 +3,10 @@
 namespace App\Http\Requests\Api;
 
 use App\Enums\CompanyEnum;
+use App\Interfaces\Services\DocumentCounter\NumberingServiceInterface;
+use App\Rules\EnumValue;
 use App\Rules\TenantedRule;
 use App\Rules\UniqueInvoiceNumber;
-use App\Services\NumberingService;
-use App\Rules\EnumValue;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +29,7 @@ class DeliveryOrderStoreRequest extends FormRequest
             // }],
             'company' => ['required', new EnumValue(CompanyEnum::class)],
             'invoice_no' => [
-                Rule::requiredIf(fn () => ! NumberingService::enabled()),
+                Rule::requiredIf(fn () => ! app(NumberingServiceInterface::class)->enabled()),
                 'nullable',
                 new UniqueInvoiceNumber('delivery_orders'),
             ],

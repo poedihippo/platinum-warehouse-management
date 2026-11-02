@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Enums\CompanyEnum;
 use App\Enums\DocumentType;
-use App\Services\NumberingService;
+use App\Interfaces\Services\DocumentCounter\NumberingServiceInterface;
 use App\Traits\FilterStartEndDate;
 use App\Traits\Tenanted;
 use Illuminate\Database\Eloquent\Builder;
@@ -47,11 +47,11 @@ class DeliveryOrder extends Model
                 $model->description = '#Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih';
             }
 
-            if (! NumberingService::enabled() || ! empty($model->invoice_no) || ! $model->company) {
+            if (! app(NumberingServiceInterface::class)->enabled() || ! empty($model->invoice_no) || ! $model->company) {
                 return;
             }
 
-            $model->invoice_no = NumberingService::next($model->company, DocumentType::DO);
+            $model->invoice_no = app(NumberingServiceInterface::class)->next($model->company, DocumentType::DO);
         });
 
         static::saved(function ($model) {

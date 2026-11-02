@@ -7,7 +7,7 @@ use App\Enums\DocumentType;
 use App\Enums\Marketplace;
 use App\Enums\SalesOrderType;
 use App\Enums\UserType;
-use App\Services\NumberingService;
+use App\Interfaces\Services\DocumentCounter\NumberingServiceInterface;
 use App\Traits\FilterStartEndDate;
 use App\Traits\Tenanted;
 use Illuminate\Database\Eloquent\Builder;
@@ -95,11 +95,11 @@ class SalesOrder extends Model
                 $model->description = '#Barang yang sudah dibeli tidak dapat dikembalikan. Terimakasih';
             }
 
-            if (! NumberingService::enabled() || $model->is_invoice || ! empty($model->invoice_no) || ! $model->company) {
+            if (! app(NumberingServiceInterface::class)->enabled() || $model->is_invoice || ! empty($model->invoice_no) || ! $model->company) {
                 return;
             }
 
-            $model->invoice_no = NumberingService::next($model->company, DocumentType::SO);
+            $model->invoice_no = app(NumberingServiceInterface::class)->next($model->company, DocumentType::SO);
         });
     }
 
@@ -122,7 +122,7 @@ class SalesOrder extends Model
     protected function hasDeliveryOrder(): Attribute
     {
         return Attribute::make(
-            get: fn() => $this->details()->whereHas('deliveryOrderDetails', function ($q) {
+            get: fn () => $this->details()->whereHas('deliveryOrderDetails', function ($q) {
                 $q->whereColumn(
                     \Illuminate\Support\Facades\DB::raw('(SELECT COALESCE(SUM(qty), 0) FROM delivery_order_details WHERE delivery_order_details.sales_order_detail_id = sales_order_details.id)'),
                     '>=',
@@ -257,8 +257,8 @@ class SalesOrder extends Model
     public function scopeSearch(Builder $query, string $search)
     {
         return $query->where(function ($q) use ($search) {
-            $q->where('invoice_no', 'like', '%' . $search . '%')
-                ->orWhereHas('reseller', fn($q) => $q->where('name', 'like', '%' . $search . '%'));
+            $q->where('invoice_no', 'like', '%'.$search.'%')
+                ->orWhereHas('reseller', fn ($q) => $q->where('name', 'like', '%'.$search.'%'));
             // ->orWhereHas('user', fn ($q) => $q->where('name', 'like', '%'.$search.'%'))
             // ->orWhereHas('spg', fn ($q) => $q->where('name', 'like', '%'.$search.'%'));
         });
@@ -267,7 +267,7 @@ class SalesOrder extends Model
     public function scopeIsWhereMarketplace(Builder $query, bool $condition = true)
     {
         if ($condition) {
-            return $query->where(fn($q) => $q->whereNotNull('marketplace')->orHas('mergedSalesOrders'));
+            return $query->where(fn ($q) => $q->whereNotNull('marketplace')->orHas('mergedSalesOrders'));
         }
 
         return $query->whereNull('marketplace');
@@ -282,12 +282,12 @@ class SalesOrder extends Model
     {
         // if ($value) return $query->whereHas('details', fn ($q) => $q->has('deliveryOrderDetail'));
         // return $query->whereHas('details', fn ($q) => $q->doesntHave('deliveryOrderDetail'));
-        return $query->whereHas('details', fn($q) => $q->hasDeliveryOrder((bool) $value));
+        return $query->whereHas('details', fn ($q) => $q->hasDeliveryOrder((bool) $value));
     }
 
     public function scopeHasSalesOrder(Builder $query, bool $value = true)
     {
-        $query->when($value === true, fn($q) => $q->whereNotNull('warehouse_id')->whereNotNull('invoice_no')->where('invoice_no', '!=', ''));
+        $query->when($value === true, fn ($q) => $q->whereNotNull('warehouse_id')->whereNotNull('invoice_no')->where('invoice_no', '!=', ''));
         // $query->when($value === true, fn ($q) => $q->whereNotNull('warehouse_id')->where(fn ($q) => $q->whereNotNull('invoice_no')->orWhere('invoice_no', '')));
     }
 
@@ -296,11 +296,11 @@ class SalesOrder extends Model
         $query
             ->when(
                 $value === true,
-                fn($q) => $q->whereHas('details.salesOrderItems')
+                fn ($q) => $q->whereHas('details.salesOrderItems')
             )
             ->when(
                 $value === false,
-                fn($q) => $q->where(function ($q) {
+                fn ($q) => $q->where(function ($q) {
                     $q->whereDoesntHave('details.salesOrderItems')
                         ->orWhereHas('details', function ($q) {
                             $q->whereRaw(
@@ -341,21 +341,21 @@ class SalesOrder extends Model
      */
     public function scopeMergeable(Builder $query, mixed $value = true): void
     {
-        $isMergeable = fn(Builder $q) => $q
+        $isMergeable = fn (Builder $q) => $q
             ->whereNotNull('marketplace')
             ->whereNull('merged_into_sales_order_id')
             ->whereHas('details')
-            ->whereDoesntHave('details', fn(Builder $q) => $q->whereColumn('fulfilled_qty', '<', 'qty'))
+            ->whereDoesntHave('details', fn (Builder $q) => $q->whereColumn('fulfilled_qty', '<', 'qty'))
             ->whereDoesntHave('mergedSalesOrders');
 
         $query->when(
             filter_var($value, FILTER_VALIDATE_BOOLEAN),
             $isMergeable,
-            fn(Builder $q) => $q->where(fn(Builder $q) => $q
+            fn (Builder $q) => $q->where(fn (Builder $q) => $q
                 ->whereNull('marketplace')
                 ->orWhereNotNull('merged_into_sales_order_id')
                 ->orWhereDoesntHave('details')
-                ->orWhereHas('details', fn(Builder $q) => $q->whereColumn('fulfilled_qty', '<', 'qty'))
+                ->orWhereHas('details', fn (Builder $q) => $q->whereColumn('fulfilled_qty', '<', 'qty'))
                 ->orWhereHas('mergedSalesOrders'))
         );
     }
