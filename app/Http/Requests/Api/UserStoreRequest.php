@@ -7,7 +7,7 @@ use App\Enums\UserType;
 use App\Rules\PhoneRule;
 use App\Rules\StringRule;
 use App\Rules\TenantedRule;
-use BenSampo\Enum\Rules\EnumValue;
+use App\Rules\EnumValue;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UserStoreRequest extends FormRequest
@@ -22,8 +22,8 @@ class UserStoreRequest extends FormRequest
         return [
             'name' => ['required', new StringRule()],
             'email' => ['nullable', 'email', 'unique:users,email', 'max:255'],
-            'code' => ['nullable', 'required_if:type,' . UserType::Reseller],
-            'password' => ['nullable', 'required_unless:type,' . UserType::Reseller],
+            'code' => ['nullable', 'required_if:type,' . UserType::Reseller->value],
+            'password' => ['nullable', 'required_unless:type,' . UserType::Reseller->value],
             'type' => ['nullable', new EnumValue(UserType::class, false)],
             'company' => ['nullable', new EnumValue(CompanyEnum::class, false)],
             'phone' => ['nullable', new PhoneRule(100)],

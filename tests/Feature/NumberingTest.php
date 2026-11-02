@@ -115,10 +115,10 @@ class NumberingTest extends TestCase
     {
         Carbon::setTestNow('2026-10-16 00:00:00');
 
-        $soPas1 = $this->createNonInvoiceSo(CompanyEnum::PAS());
-        $soPas2 = $this->createNonInvoiceSo(CompanyEnum::PAS());
-        $soPa1 = $this->createNonInvoiceSo(CompanyEnum::PA());
-        $soPa2 = $this->createNonInvoiceSo(CompanyEnum::PA());
+        $soPas1 = $this->createNonInvoiceSo(CompanyEnum::PAS);
+        $soPas2 = $this->createNonInvoiceSo(CompanyEnum::PAS);
+        $soPa1 = $this->createNonInvoiceSo(CompanyEnum::PA);
+        $soPa2 = $this->createNonInvoiceSo(CompanyEnum::PA);
 
         $this->assertSame('PAS/SO/10/26/01', $soPas1->invoice_no);
         $this->assertSame('PAS/SO/10/26/02', $soPas2->invoice_no);
@@ -138,7 +138,7 @@ class NumberingTest extends TestCase
             'user_id' => $ctx['user']->id,
             'warehouse_id' => $ctx['warehouse']->id,
             'reseller_id' => $ctx['user']->id,
-            'company' => CompanyEnum::PAS()->value,
+            'company' => CompanyEnum::PAS->value,
             'transaction_date' => now()->format('Y-m-d H:i:s'),
             'shipment_estimation_datetime' => now()->format('Y-m-d H:i:s'),
         ]);
@@ -147,7 +147,7 @@ class NumberingTest extends TestCase
             'user_id' => $ctx['user']->id,
             'warehouse_id' => $ctx['warehouse']->id,
             'reseller_id' => $ctx['user']->id,
-            'company' => CompanyEnum::PA()->value,
+            'company' => CompanyEnum::PA->value,
             'transaction_date' => now()->format('Y-m-d H:i:s'),
             'shipment_estimation_datetime' => now()->format('Y-m-d H:i:s'),
         ]);
@@ -168,7 +168,7 @@ class NumberingTest extends TestCase
             'user_id' => $ctx['user']->id,
             'reseller_id' => $ctx['user']->id,
             'warehouse_id' => $ctx['warehouse']->id,
-            'company' => CompanyEnum::PAS()->value,
+            'company' => CompanyEnum::PAS->value,
             'transaction_date' => now()->format('Y-m-d H:i:s'),
             'shipment_estimation_datetime' => now()->format('Y-m-d H:i:s'),
             'shipment_fee' => 0,
@@ -193,7 +193,7 @@ class NumberingTest extends TestCase
             'user_id' => $ctx['user']->id,
             'warehouse_id' => $ctx['warehouse']->id,
             'reseller_id' => $ctx['user']->id,
-            'company' => CompanyEnum::PAS()->value,
+            'company' => CompanyEnum::PAS->value,
             'transaction_date' => now()->format('Y-m-d H:i:s'),
             'shipment_estimation_datetime' => now()->format('Y-m-d H:i:s'),
         ]);
@@ -208,12 +208,12 @@ class NumberingTest extends TestCase
     {
         Carbon::setTestNow('2026-10-16 00:00:00');
 
-        $so1 = $this->createNonInvoiceSo(CompanyEnum::PAS());
+        $so1 = $this->createNonInvoiceSo(CompanyEnum::PAS);
         $this->assertSame('PAS/SO/10/26/01', $so1->invoice_no);
 
         Carbon::setTestNow('2026-11-01 00:00:00');
 
-        $so2 = $this->createNonInvoiceSo(CompanyEnum::PAS());
+        $so2 = $this->createNonInvoiceSo(CompanyEnum::PAS);
         $this->assertSame('PAS/SO/11/26/01', $so2->invoice_no);
 
         Carbon::setTestNow();
@@ -224,13 +224,13 @@ class NumberingTest extends TestCase
         Carbon::setTestNow('2026-10-16 00:00:00');
 
         DocumentCounter::create([
-            'company' => CompanyEnum::PAS()->value,
-            'document_type' => DocumentType::SO()->value,
+            'company' => CompanyEnum::PAS->value,
+            'document_type' => DocumentType::SO->value,
             'period' => '2026-10',
             'sequence' => 99,
         ]);
 
-        $so = $this->createNonInvoiceSo(CompanyEnum::PAS());
+        $so = $this->createNonInvoiceSo(CompanyEnum::PAS);
         $this->assertSame('PAS/SO/10/26/100', $so->invoice_no);
 
         Carbon::setTestNow();
@@ -246,7 +246,7 @@ class NumberingTest extends TestCase
             'user_id' => $ctx['user']->id,
             'reseller_id' => $ctx['user']->id,
             'warehouse_id' => $ctx['warehouse']->id,
-            'company' => CompanyEnum::PAS()->value,
+            'company' => CompanyEnum::PAS->value,
             'invoice_no' => 'MANUAL/001',
             'transaction_date' => now()->format('Y-m-d H:i:s'),
             'shipment_estimation_datetime' => now()->format('Y-m-d H:i:s'),
@@ -284,7 +284,7 @@ class NumberingTest extends TestCase
             'user_id' => $ctx['user']->id,
             'reseller_id' => $ctx['user']->id,
             'warehouse_id' => $ctx['warehouse']->id,
-            'company' => CompanyEnum::PAS()->value,
+            'company' => CompanyEnum::PAS->value,
             'invoice_no' => '',
             'transaction_date' => now()->format('Y-m-d H:i:s'),
             'shipment_estimation_datetime' => now()->format('Y-m-d H:i:s'),
@@ -322,7 +322,7 @@ class NumberingTest extends TestCase
             'user_id' => $ctx['user']->id,
             'reseller_id' => $ctx['user']->id,
             'warehouse_id' => $ctx['warehouse']->id,
-            'company' => CompanyEnum::PAS()->value,
+            'company' => CompanyEnum::PAS->value,
             'transaction_date' => now()->format('Y-m-d H:i:s'),
             'shipment_estimation_datetime' => now()->format('Y-m-d H:i:s'),
             'shipment_fee' => 0,
@@ -353,8 +353,8 @@ class NumberingTest extends TestCase
     {
         Carbon::setTestNow('2026-10-05 00:00:00');
 
-        $pas = NumberingService::format(CompanyEnum::PAS(), DocumentType::SO(), now(), 1);
-        $pa = NumberingService::format(CompanyEnum::PA(), DocumentType::DO(), now(), 5);
+        $pas = NumberingService::format(CompanyEnum::PAS, DocumentType::SO, now(), 1);
+        $pa = NumberingService::format(CompanyEnum::PA, DocumentType::DO, now(), 5);
 
         $this->assertSame('PAS/SO/10/26/01', $pas);
         $this->assertSame('DO/PA/10/26/05', $pa);
@@ -368,14 +368,14 @@ class NumberingTest extends TestCase
 
         $this->assertSame(0, DocumentCounter::count());
 
-        $number = NumberingService::next(CompanyEnum::PAS(), DocumentType::SO());
+        $number = NumberingService::next(CompanyEnum::PAS, DocumentType::SO);
 
         $this->assertSame('PAS/SO/10/26/01', $number);
         $this->assertSame(1, DocumentCounter::count());
 
         $counter = DocumentCounter::first();
-        $this->assertSame(CompanyEnum::PAS()->value, $counter->company->value);
-        $this->assertSame(DocumentType::SO()->value, $counter->document_type->value);
+        $this->assertSame(CompanyEnum::PAS->value, $counter->company->value);
+        $this->assertSame(DocumentType::SO->value, $counter->document_type->value);
         $this->assertSame('2026-10', $counter->period);
         $this->assertSame(1, $counter->sequence);
 
@@ -387,13 +387,13 @@ class NumberingTest extends TestCase
         Carbon::setTestNow('2026-10-16 00:00:00');
 
         DocumentCounter::create([
-            'company' => CompanyEnum::PAS()->value,
-            'document_type' => DocumentType::SO()->value,
+            'company' => CompanyEnum::PAS->value,
+            'document_type' => DocumentType::SO->value,
             'period' => '2026-10',
             'sequence' => 5,
         ]);
 
-        $number = NumberingService::next(CompanyEnum::PAS(), DocumentType::SO());
+        $number = NumberingService::next(CompanyEnum::PAS, DocumentType::SO);
 
         $this->assertSame('PAS/SO/10/26/06', $number);
         $this->assertSame(1, DocumentCounter::count());
@@ -408,7 +408,7 @@ class NumberingTest extends TestCase
 
         try {
             DB::transaction(function () {
-                NumberingService::next(CompanyEnum::PAS(), DocumentType::SO());
+                NumberingService::next(CompanyEnum::PAS, DocumentType::SO);
 
                 throw new \RuntimeException('order failed');
             });
@@ -416,7 +416,7 @@ class NumberingTest extends TestCase
             // expected
         }
 
-        $this->assertSame('PAS/SO/10/26/01', NumberingService::next(CompanyEnum::PAS(), DocumentType::SO()));
+        $this->assertSame('PAS/SO/10/26/01', NumberingService::next(CompanyEnum::PAS, DocumentType::SO));
         $this->assertSame(1, DocumentCounter::first()->sequence);
 
         Carbon::setTestNow();
@@ -434,7 +434,7 @@ class NumberingTest extends TestCase
                     'user_id' => $ctx['user']->id,
                     'warehouse_id' => $ctx['warehouse']->id,
                     'reseller_id' => $ctx['user']->id,
-                    'company' => CompanyEnum::PAS()->value,
+                    'company' => CompanyEnum::PAS->value,
                     'transaction_date' => now()->format('Y-m-d H:i:s'),
                     'shipment_estimation_datetime' => now()->format('Y-m-d H:i:s'),
                 ]);
@@ -451,7 +451,7 @@ class NumberingTest extends TestCase
             'user_id' => $ctx['user']->id,
             'warehouse_id' => $ctx['warehouse']->id,
             'reseller_id' => $ctx['user']->id,
-            'company' => CompanyEnum::PAS()->value,
+            'company' => CompanyEnum::PAS->value,
             'transaction_date' => now()->format('Y-m-d H:i:s'),
             'shipment_estimation_datetime' => now()->format('Y-m-d H:i:s'),
         ]);
@@ -466,7 +466,7 @@ class NumberingTest extends TestCase
         config(['app.enable_document_counter' => false]);
         Carbon::setTestNow('2026-10-16 00:00:00');
 
-        $salesOrder = $this->createNonInvoiceSo(CompanyEnum::PAS());
+        $salesOrder = $this->createNonInvoiceSo(CompanyEnum::PAS);
 
         $this->assertNull($salesOrder->invoice_no);
         $this->assertSame(0, DocumentCounter::count());
@@ -485,7 +485,7 @@ class NumberingTest extends TestCase
             'user_id' => $ctx['user']->id,
             'warehouse_id' => $ctx['warehouse']->id,
             'reseller_id' => $ctx['user']->id,
-            'company' => CompanyEnum::PAS()->value,
+            'company' => CompanyEnum::PAS->value,
             'transaction_date' => now()->format('Y-m-d H:i:s'),
             'shipment_estimation_datetime' => now()->format('Y-m-d H:i:s'),
         ]);
@@ -501,7 +501,7 @@ class NumberingTest extends TestCase
         config(['app.enable_document_counter' => false]);
         Carbon::setTestNow('2026-10-16 00:00:00');
 
-        $salesOrder = $this->createNonInvoiceSo(CompanyEnum::PAS(), 'MANUAL/OFF/01');
+        $salesOrder = $this->createNonInvoiceSo(CompanyEnum::PAS, 'MANUAL/OFF/01');
 
         $this->assertSame('MANUAL/OFF/01', $salesOrder->invoice_no);
         $this->assertSame(0, DocumentCounter::count());
@@ -521,7 +521,7 @@ class NumberingTest extends TestCase
                 'user_id' => $ctx['user']->id,
                 'reseller_id' => $ctx['user']->id,
                 'warehouse_id' => $ctx['warehouse']->id,
-                'company' => CompanyEnum::PAS()->value,
+                'company' => CompanyEnum::PAS->value,
                 'marketplace' => Marketplace::SHOPEE,
                 'transaction_date' => now()->format('Y-m-d H:i:s'),
                 'shipment_estimation_datetime' => now()->format('Y-m-d H:i:s'),

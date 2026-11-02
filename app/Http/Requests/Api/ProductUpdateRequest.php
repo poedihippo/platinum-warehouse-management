@@ -3,7 +3,7 @@
 namespace App\Http\Requests\Api;
 
 use App\Enums\CompanyEnum;
-use BenSampo\Enum\Rules\EnumValue;
+use App\Rules\EnumValue;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ProductUpdateRequest extends FormRequest

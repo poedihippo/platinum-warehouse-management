@@ -4,7 +4,7 @@ namespace App\Http\Requests\Api\Order;
 
 use App\Enums\SalesOrderType;
 use App\Rules\TenantedRule;
-use BenSampo\Enum\Rules\EnumValue;
+use App\Rules\EnumValue;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;

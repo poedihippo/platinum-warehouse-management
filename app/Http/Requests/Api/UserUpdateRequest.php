@@ -7,7 +7,7 @@ use App\Enums\UserType;
 use App\Rules\PhoneRule;
 use App\Rules\StringRule;
 use App\Rules\TenantedRule;
-use BenSampo\Enum\Rules\EnumValue;
+use App\Rules\EnumValue;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UserUpdateRequest extends FormRequest
@@ -22,8 +22,8 @@ class UserUpdateRequest extends FormRequest
         return [
             'name' => ['sometimes', 'required', new StringRule()],
             'email' => ['sometimes', 'email', 'unique:users,email,' . $this->user->id, 'max:255'],
-            'code' => ['sometimes', 'nullable', 'required_if:type,' . UserType::Reseller],
-            'password' => ['sometimes', 'required_unless:type,' . UserType::Reseller],
+            'code' => ['sometimes', 'nullable', 'required_if:type,' . UserType::Reseller->value],
+            'password' => ['sometimes', 'required_unless:type,' . UserType::Reseller->value],
             'type' => ['sometimes', new EnumValue(UserType::class, false)],
             'company' => ['sometimes', 'nullable', new EnumValue(CompanyEnum::class, false)],
             'phone' => ['sometimes', 'nullable', new PhoneRule(100)],

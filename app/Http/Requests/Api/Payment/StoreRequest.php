@@ -6,7 +6,7 @@ use App\Enums\PaymentType;
 use App\Models\SalesOrder;
 use App\Rules\TenantedRule;
 use App\Traits\Requests\RequestToBoolean;
-use BenSampo\Enum\Rules\EnumValue;
+use App\Rules\EnumValue;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreRequest extends FormRequest

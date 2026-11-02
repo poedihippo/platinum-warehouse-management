@@ -81,6 +81,16 @@ class EnumBehaviorTest extends TestCase
             ->assertJsonPath('data.company', 'pa');
     }
 
+    public function test_user_resource_exposes_the_type_description(): void
+    {
+        $this->actingAsAdmin();
+        $customerEvent = $this->makeUser(['type' => 'customer_event']);
+        $spg = $this->makeUser(['type' => 'spg']);
+
+        $this->getJson("/api/users/{$customerEvent->id}")->assertOk()->assertJsonPath('data.type', 'Customer event');
+        $this->getJson("/api/users/{$spg->id}")->assertOk()->assertJsonPath('data.type', 'Spg');
+    }
+
     public function test_creating_a_reseller_creates_one_discount_per_brand(): void
     {
         ProductBrand::create(['name' => 'Brand A']);

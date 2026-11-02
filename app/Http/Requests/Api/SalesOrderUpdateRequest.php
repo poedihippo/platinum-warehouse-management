@@ -8,7 +8,7 @@ use App\Enums\SalesOrderType;
 use App\Rules\TenantedRule;
 use App\Rules\UniqueInvoiceNumber;
 use App\Services\NumberingService;
-use BenSampo\Enum\Rules\EnumValue;
+use App\Rules\EnumValue;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;

@@ -18,6 +18,6 @@ class ExportController extends Controller
             return redirect()->back()->with('error', 'Data import not found');
         }
 
-        return Excel::download(new ImportSampleExport($importType), $importType->description.'.csv', \Maatwebsite\Excel\Excel::CSV);
+        return Excel::download(new ImportSampleExport($importType), $importType->getDescription().'.csv', \Maatwebsite\Excel\Excel::CSV);
     }
 }

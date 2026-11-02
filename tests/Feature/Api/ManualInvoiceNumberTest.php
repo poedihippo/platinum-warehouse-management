@@ -41,7 +41,7 @@ class ManualInvoiceNumberTest extends TestCase
     private function salesOrderPayload(array $overrides = []): array
     {
         return array_merge([
-            'company' => CompanyEnum::PAS()->value,
+            'company' => CompanyEnum::PAS->value,
             'warehouse_id' => 1,
             'shipment_fee' => 0,
             'additional_discount' => 0,
@@ -62,7 +62,7 @@ class ManualInvoiceNumberTest extends TestCase
     private function deliveryOrderPayload(array $overrides = []): array
     {
         return array_merge([
-            'company' => CompanyEnum::PAS()->value,
+            'company' => CompanyEnum::PAS->value,
             'reseller_id' => 1,
             'warehouse_id' => 1,
             'transaction_date' => '2026-10-16 10:00:00',

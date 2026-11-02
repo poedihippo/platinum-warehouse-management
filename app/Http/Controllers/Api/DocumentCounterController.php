@@ -17,7 +17,7 @@ class DocumentCounterController extends Controller
     /**
      * Every company and document type pair handled by NumberingService.
      *
-     * Each entry holds the value of a CompanyEnum followed by the value of a DocumentType.
+     * Each entry holds a CompanyEnum case followed by a DocumentType case.
      */
     private const SCOPES = [
         [CompanyEnum::PAS, DocumentType::SO],
@@ -55,9 +55,9 @@ class DocumentCounterController extends Controller
             ->keyBy(fn (DocumentCounter $counter) => $this->scopeKey($counter->company->value, $counter->document_type->value));
 
         $counters = collect(self::SCOPES)
-            ->filter(fn (array $scope) => $company === null || $scope[0] === $company)
-            ->filter(fn (array $scope) => $documentType === null || $scope[1] === $documentType)
-            ->map(fn (array $scope) => $stored->get($this->scopeKey($scope[0], $scope[1])) ?? new DocumentCounter([
+            ->filter(fn (array $scope) => $company === null || $scope[0]->value === $company)
+            ->filter(fn (array $scope) => $documentType === null || $scope[1]->value === $documentType)
+            ->map(fn (array $scope) => $stored->get($this->scopeKey($scope[0]->value, $scope[1]->value)) ?? new DocumentCounter([
                 'company' => $scope[0],
                 'document_type' => $scope[1],
                 'period' => $period,

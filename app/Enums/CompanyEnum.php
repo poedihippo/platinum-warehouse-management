@@ -1,20 +1,14 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Enums;
 
-use BenSampo\Enum\Enum;
-
-/**
- * @method static static PAS()
- * @method static static PA()
- */
-final class CompanyEnum extends Enum
+enum CompanyEnum: string
 {
-    const PAS = 'pas';
+    use BaseEnum;
 
-    const PA = 'pa';
+    case PAS = 'pas';
+
+    case PA = 'pa';
 
     /**
      * Document number template of this company, rendered by NumberingService.
@@ -24,7 +18,7 @@ final class CompanyEnum extends Enum
      */
     public function invoiceNumberFormat(): string
     {
-        return match ($this->value) {
+        return match ($this) {
             self::PAS => '{company}/{type}/{month}/{year}/{sequence}',
             self::PA => '{type}/{company}/{month}/{year}/{sequence}',
         };

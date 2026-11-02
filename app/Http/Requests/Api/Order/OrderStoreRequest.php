@@ -5,7 +5,7 @@ namespace App\Http\Requests\Api\Order;
 use App\Enums\SalesOrderType;
 use App\Models\Voucher;
 use App\Traits\Requests\RequestToBoolean;
-use BenSampo\Enum\Rules\EnumValue;
+use App\Rules\EnumValue;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;

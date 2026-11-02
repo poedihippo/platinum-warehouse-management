@@ -17,7 +17,7 @@ class UserResource extends JsonResource
     {
         $data = parent::toArray($request);
         if ($this->type) {
-            $data['type'] = $this->type->description;
+            $data['type'] = $this->type->getDescription();
         }
         $data['roles'] = RoleResource::collection($this->whenLoaded('roles'));
         $data['warehouses'] = DefaultResource::collection($this->whenLoaded('warehouses'));

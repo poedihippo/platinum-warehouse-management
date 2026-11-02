@@ -7,7 +7,7 @@ use App\Models\Voucher;
 use App\Rules\TenantedRule;
 use App\Rules\UniqueInvoiceNumber;
 use App\Traits\Requests\RequestToBoolean;
-use BenSampo\Enum\Rules\EnumValue;
+use App\Rules\EnumValue;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;

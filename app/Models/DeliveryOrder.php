@@ -51,7 +51,7 @@ class DeliveryOrder extends Model
                 return;
             }
 
-            $model->invoice_no = NumberingService::next($model->company, DocumentType::DO());
+            $model->invoice_no = NumberingService::next($model->company, DocumentType::DO);
         });
 
         static::saved(function ($model) {

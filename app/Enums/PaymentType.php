@@ -1,23 +1,16 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Enums;
 
-use BenSampo\Enum\Enum;
-
-/**
- * @method static static CASH()
- * @method static static TRANSFER()
- * @method static static CREDIT_CARD()
- */
-final class PaymentType extends Enum
+enum PaymentType: string
 {
-    const CASH = 'cash';
+    use BaseEnum;
 
-    const TRANSFER = 'transfer';
+    case CASH = 'cash';
 
-    const CREDIT_CARD = 'credit_card';
+    case TRANSFER = 'transfer';
 
-    const QRIS = 'qris';
+    case CREDIT_CARD = 'credit_card';
+
+    case QRIS = 'qris';
 }

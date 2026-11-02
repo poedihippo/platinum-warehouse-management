@@ -4,7 +4,7 @@ namespace App\Http\Requests\Api;
 
 use App\Enums\CompanyEnum;
 use App\Models\Product;
-use BenSampo\Enum\Rules\EnumValue;
+use App\Rules\EnumValue;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 

@@ -99,7 +99,7 @@ class SalesOrder extends Model
                 return;
             }
 
-            $model->invoice_no = NumberingService::next($model->company, DocumentType::SO());
+            $model->invoice_no = NumberingService::next($model->company, DocumentType::SO);
         });
     }
 
