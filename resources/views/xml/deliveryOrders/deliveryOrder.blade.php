@@ -129,7 +129,7 @@
                 @endif
             @endforeach
             <INVOICENO>{{ $deliveryOrder->invoice_no }}</INVOICENO>
-            <INVOICEDATE>{{ date('Y-m-d', strtotime($deliveryOrder->created_at)) }}</INVOICEDATE>
+            <INVOICEDATE>{{ date('Y-m-d', strtotime($deliveryOrder->transaction_date)) }}</INVOICEDATE>
             <INVOICEAMOUNT>0</INVOICEAMOUNT>
             <PURCHASEORDERNO />
             <WAREHOUSEID>{{ $deliveryOrder->warehouse?->code }}</WAREHOUSEID>
