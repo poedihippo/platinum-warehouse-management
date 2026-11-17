@@ -12,7 +12,7 @@ class BaseController extends Controller
     public function __construct()
     {
         $perPage = (int) request()->per_page;
-        $this->per_page = $perPage > 0 ? $perPage : 15;
+        $this->per_page = $perPage > 0 ? $perPage : 20;
     }
 
     public function createdResponse(?string $message = null, int $code = 201): JsonResponse
