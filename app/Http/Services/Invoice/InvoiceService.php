@@ -47,14 +47,17 @@ class InvoiceService implements InvoiceServiceInterface
                 continue;
             }
 
+            $productUnit = DB::table('product_units')->where('id', $item['product_unit_id'])->first(['name', 'multiply_qty']);
+            $requiredQty = $item['qty'] * max(1, (int) ($productUnit?->multiply_qty ?? 1));
+
             $stocks = Stock::whereAvailableStock()
                 ->whereNull('description')
                 ->whereHas('stockProductUnit', fn ($q) => $q->where('product_unit_id', $item['product_unit_id'])->where('warehouse_id', $item['warehouse_id']))
-                ->limit($item['qty'])
+                ->limit($requiredQty)
                 ->get(['id']);
 
-            if ($stocks->count() < $item['qty']) {
-                throw new ApiResponseException(sprintf('Stok %s tidak tersedia', DB::table('product_units')->where('id', $item['product_unit_id'])->first()?->name ?? ''), Response::HTTP_UNPROCESSABLE_ENTITY);
+            if ($stocks->count() < $requiredQty) {
+                throw new ApiResponseException(sprintf('Stok %s tidak tersedia', $productUnit?->name ?? ''), Response::HTTP_UNPROCESSABLE_ENTITY);
             }
         }
     }
@@ -109,7 +112,7 @@ class InvoiceService implements InvoiceServiceInterface
                 $this->stockHistoryRepository->record($salesOrderDetail, [
                     'user_id' => $salesOrder->user_id,
                     'stock_product_unit_id' => $stockProductUnit->id,
-                    'value' => $salesOrderDetail->qty,
+                    'value' => $salesOrderDetail->stockQty(),
                     'is_increment' => 1,
                     'description' => 'Return stock from delete SO invoice '.$salesOrder->invoice_no,
                     'ip' => request()->ip(),

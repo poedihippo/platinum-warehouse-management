@@ -42,6 +42,7 @@ class StoreRequest extends FormRequest
             // 'is_auto_tempel' => 'nullable|boolean',
             'is_ppn' => 'required|boolean',
             'is_auto_stock' => 'required|boolean',
+            'multiply_qty' => 'sometimes|required|integer|min:1',
         ];
     }
 }

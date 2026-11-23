@@ -235,8 +235,9 @@ class DeliveryOrderService extends BaseService implements DeliveryOrderServiceIn
             throw new ApiResponseException('Product sudah pernah di verifikasi', 400);
         }
 
+        $requiredQty = $salesOrderDetail->stockQty($deliveryOrderDetail->qty);
         $fulfilledQty = $salesOrderDetail->salesOrderItems()->where('delivery_order_detail_id', $deliveryOrderDetail->id)->where('is_parent', 0)->count();
-        if ($fulfilledQty >= $deliveryOrderDetail->qty) {
+        if ($fulfilledQty >= $requiredQty) {
             throw new ApiResponseException('Qty sudah terpenuhi', 400);
         }
 
@@ -260,8 +261,8 @@ class DeliveryOrderService extends BaseService implements DeliveryOrderServiceIn
                 $totalStockScanned = $fulfilledQty + $totalChilds;
             }
 
-            if ($totalStockScanned > $deliveryOrderDetail->qty) {
-                throw new ApiResponseException(sprintf('Jumlah barang yang di scan (%d) melebihi qty. Tersisa %d lagi', $totalChilds - $stockIds->count(), $deliveryOrderDetail->qty - $fulfilledQty), 400);
+            if ($totalStockScanned > $requiredQty) {
+                throw new ApiResponseException(sprintf('Jumlah barang yang di scan (%d) melebihi qty. Tersisa %d lagi', $totalChilds - $stockIds->count(), $requiredQty - $fulfilledQty), 400);
             }
 
             $dataStocks = [];
@@ -458,7 +459,7 @@ class DeliveryOrderService extends BaseService implements DeliveryOrderServiceIn
     private function moveRelatedUnits(SalesOrderDetail $salesOrderDetail, $history, mixed $increment): void
     {
         if ($salesOrderDetail->productUnit->refer_id && $salesOrderDetail->productUnit->relations->count()) {
-            $multiply = floor($salesOrderDetail->qty / $salesOrderDetail->productUnit->refer_qty);
+            $multiply = floor($salesOrderDetail->stockQty() / $salesOrderDetail->productUnit->refer_qty);
             foreach ($salesOrderDetail->productUnit->relations as $relation) {
                 $stockProductUnit = StockProductUnit::where('product_unit_id', $relation->related_product_unit_id)->where('warehouse_id', $salesOrderDetail?->warehouse_id)->first();
                 if ($stockProductUnit) {

@@ -15,6 +15,7 @@ class SalesOrderDetail extends Model
         'product_unit_id',
         'warehouse_id',
         'qty',
+        'multiply_qty',
         'fulfilled_qty',
         'unit_price',
         'discount',
@@ -24,6 +25,7 @@ class SalesOrderDetail extends Model
 
     protected $casts = [
         'qty' => 'integer',
+        'multiply_qty' => 'integer',
         'fulfilled_qty' => 'integer',
         'unit_price' => 'integer',
         'discount' => 'integer',
@@ -76,6 +78,20 @@ class SalesOrderDetail extends Model
     public function deliveryOrderDetails(): HasMany
     {
         return $this->hasMany(DeliveryOrderDetail::class);
+    }
+
+    /**
+     * Stocks that leave the warehouse for $qty units of this line: every unit counted
+     * in Accurate (SO / DO qty) is multiply_qty real stocks.
+     */
+    public function stockQty(?int $qty = null): int
+    {
+        return ($qty ?? $this->qty) * max(1, (int) $this->multiply_qty);
+    }
+
+    public function scopeWhereNotFullyFulfilled(Builder $query): Builder
+    {
+        return $query->whereRaw('sales_order_details.fulfilled_qty < sales_order_details.qty * sales_order_details.multiply_qty');
     }
 
     public function getScheduledQtyAttribute(): int

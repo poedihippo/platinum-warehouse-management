@@ -21,6 +21,7 @@ class ProductUnitResource extends JsonResource
             'id' => $this->id,
             'refer_id' => $this->refer_id,
             'refer_qty' => $this->refer_qty,
+            'multiply_qty' => (int) ($this->multiply_qty ?? 1),
             'name' => $this->name,
             'price' => $this->price,
             'points_per_unit' => (int) ($this->points_per_unit ?? 0),

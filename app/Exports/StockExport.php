@@ -11,7 +11,7 @@ class StockExport implements FromView
 {
     public function view(): View
     {
-        $productUnits = ProductUnit::get(['id', 'code', 'name', 'price']);
+        $productUnits = ProductUnit::get(['id', 'code', 'name', 'price', 'multiply_qty']);
 
         return view('exports.stock', [
             'productUnits' => $productUnits,

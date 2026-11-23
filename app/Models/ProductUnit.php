@@ -15,6 +15,7 @@ class ProductUnit extends Model
         'product_id',
         'refer_id',
         'refer_qty',
+        'multiply_qty',
         'uom_id',
         'name',
         'price',
@@ -27,6 +28,7 @@ class ProductUnit extends Model
     ];
 
     protected $casts = [
+        'multiply_qty' => 'integer',
         'is_generate_qr' => 'boolean',
         // 'is_auto_tempel' => 'boolean',
         'is_auto_stock' => 'boolean',

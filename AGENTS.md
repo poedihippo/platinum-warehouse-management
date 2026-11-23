@@ -190,7 +190,8 @@ Create pipeline (SalesOrderService::createOrder):
   1. FillOrderAttributes          raw_source → model attributes
   2. FillOrderRecords             snapshot reseller etc. into `records` JSON
   3. NormalizeLockedOrderItems    keep lines that already have scanned stock locked
-  4. MakeOrderDetails             build SalesOrderDetail collection, resolve ProductUnits, prices
+  4. MakeOrderDetails             build SalesOrderDetail collection, resolve ProductUnits, prices,
+                                  snapshot product_units.multiply_qty (see §11.3)
                                   (does NOT check or reserve stock)
   5. CalculateAutoDiscount        tiers in config('app.min_trx_auto_discount') — currently all
                                   commented out (effectively 0); skipped if is_auto_discount_enabled=false
@@ -216,13 +217,16 @@ Update pipeline (SalesOrderService::updateOrder): same steps 1–9, ending in Up
    with a remaining-qty check
 3. POST delivery-orders/{id}/verification/{deliveryOrderDetail} — scan Stock ULIDs:
    matches warehouse + product unit (or its refer_id for bundle units); a group parent creates a
-   parent item plus child items; incomplete groupings are rejected (Stock::hasIncompleteGrouping)
+   parent item plus child items; incomplete groupings are rejected (Stock::hasIncompleteGrouping);
+   at most DO detail qty × multiply_qty stocks per DO detail
 4. PUT delivery-orders/{id}/done — StockHistory decrement (value = fulfilled_qty); for bundle units
-   also decrements related non-QR SPUs by relation.qty × floor(qty / refer_qty). Undone reverses.
+   also decrements related non-QR SPUs by relation.qty × floor(qty × multiply_qty / refer_qty).
+   Undone reverses.
 5. POST delivery-orders/{id}/return — sets is_returned; deletes stocks or creates an auto-approved
    AdjustmentRequest
 ```
-`fulfilled_qty` = count of non-parent, non-returned SalesOrderItems. One SO can have many DOs.
+`fulfilled_qty` = count of non-parent, non-returned SalesOrderItems (stock units, compare it with
+`qty × multiply_qty` — `SalesOrderDetail::stockQty()` / `whereNotFullyFulfilled()`). One SO can have many DOs.
 Shared scan logic: `SalesOrderService::verifyStockItem()`.
 
 ### 5.6 Stock Opname (Physical Count)
@@ -583,6 +587,8 @@ Gated by `config('app.enable_document_counter')` (`ENABLE_DOCUMENT_COUNTER`, def
 |------|------|----------|
 | QR items | `is_generate_qr = true` | Individual `Stock` rows |
 | Non-QR items | `is_generate_qr = false` | `StockProductUnit.qty` |
+
+**Multiply qty (Accurate units).** `product_units.multiply_qty` (default 1) is how many real stocks leave for 1 qty counted in Accurate. It is snapshotted into `sales_order_details.multiply_qty` when the line is built (`MakeOrderDetails`; in-place marketplace edits refresh it on unlocked lines; merge keeps the sources' snapshot via `SalesOrder::$keep_item_multiply_qty`). SO/DO `qty`, prices, PDFs and the Accurate XML export stay in Accurate units; scanning limits, `fulfilled_qty` checks, invoice stock pre-checks and stock-history values use `qty × multiply_qty`. Stock counts stay real QR counts in the API (`GET stocks` `qty`, pickers' `stocks_count`); the frontend divides them by `product_unit.multiply_qty` for display/limits, and the stock Excel export (`exports/stock.blade.php`) appends a `Multiply` column plus one `{warehouse} (Accurate)` column per warehouse (`round(count ÷ multiply_qty, 2)`).
 
 Every stock change writes a polymorphic `StockHistory` explicitly via `$model->histories()->create([...])` (`model_type`/`model_id` = ReceiveOrderDetail, SalesOrderDetail, StockOpnameDetail, AdjustmentRequest, StockTransfer, StockProductUnit).
 

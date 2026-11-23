@@ -28,6 +28,8 @@ class SalesOrder extends Model
 
     public ?array $vouchers_discount_amount = null;
 
+    public bool $keep_item_multiply_qty = false;
+
     protected $appends = [
         'cashier_name',
         'additional_discount_percentage',
@@ -337,7 +339,7 @@ class SalesOrder extends Model
     /**
      * Sales Orders that are eligible to be merged: a marketplace order that has not been
      * merged yet, is not a merge result, has at least one detail and every detail has been
-     * fully verified (fulfilled_qty >= qty).
+     * fully verified (fulfilled_qty >= qty × multiply_qty).
      */
     public function scopeMergeable(Builder $query, mixed $value = true): void
     {
@@ -345,7 +347,7 @@ class SalesOrder extends Model
             ->whereNotNull('marketplace')
             ->whereNull('merged_into_sales_order_id')
             ->whereHas('details')
-            ->whereDoesntHave('details', fn (Builder $q) => $q->whereColumn('fulfilled_qty', '<', 'qty'))
+            ->whereDoesntHave('details', fn (Builder $q) => $q->whereNotFullyFulfilled())
             ->whereDoesntHave('mergedSalesOrders');
 
         $query->when(
@@ -355,7 +357,7 @@ class SalesOrder extends Model
                 ->whereNull('marketplace')
                 ->orWhereNotNull('merged_into_sales_order_id')
                 ->orWhereDoesntHave('details')
-                ->orWhereHas('details', fn (Builder $q) => $q->whereColumn('fulfilled_qty', '<', 'qty'))
+                ->orWhereHas('details', fn (Builder $q) => $q->whereNotFullyFulfilled())
                 ->orWhereHas('mergedSalesOrders'))
         );
     }

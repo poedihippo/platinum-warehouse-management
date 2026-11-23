@@ -36,7 +36,7 @@ class DeliveryOrderDetailService implements DeliveryOrderDetailServiceInterface
                             'reseller',
                             'mergedSalesOrders' => fn ($q) => $q->select('id', 'invoice_no', 'merged_into_sales_order_id'),
                         ]),
-                    'salesOrderDetail' => fn ($q) => $q->select('id', 'sales_order_id', 'product_unit_id', 'fulfilled_qty', 'total_price')
+                    'salesOrderDetail' => fn ($q) => $q->select('id', 'sales_order_id', 'product_unit_id', 'qty', 'multiply_qty', 'fulfilled_qty', 'total_price')
                         ->with([
                             'salesOrder' => fn ($q) => $q->select('id', 'invoice_no', 'reseller_id')
                                 ->with('reseller', fn ($q) => $q->select('id', 'name', 'phone', 'address')),

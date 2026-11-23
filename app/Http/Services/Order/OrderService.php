@@ -118,7 +118,7 @@ class OrderService implements OrderServiceInterface
                 $this->stockHistoryRepository->record($salesOrderDetail, [
                     'user_id' => $salesOrder->user_id,
                     'stock_product_unit_id' => $stockProductUnit->id,
-                    'value' => $salesOrderDetail->qty,
+                    'value' => $salesOrderDetail->stockQty(),
                     'is_increment' => 0,
                     'description' => 'Create SO invoice '.$salesOrder->invoice_no,
                     'ip' => request()->ip(),

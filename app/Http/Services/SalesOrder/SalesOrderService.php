@@ -116,7 +116,7 @@ class SalesOrderService extends BaseService implements SalesOrderServiceInterfac
         }
 
         $fulfilledQty = $salesOrderDetail->salesOrderItems()->where('is_parent', 0)->count();
-        if ($fulfilledQty >= $salesOrderDetail->qty) {
+        if ($fulfilledQty >= $salesOrderDetail->stockQty()) {
             throw new BadRequestHttpException('Qty sudah terpenuhi');
         }
 
@@ -293,7 +293,7 @@ class SalesOrderService extends BaseService implements SalesOrderServiceInterfac
         $salesOrders = \Spatie\QueryBuilder\QueryBuilder::for(
             SalesOrder::tenanted()->with('mergedSalesOrders:id,merged_into_sales_order_id,invoice_no')->withCount([
                 'details',
-                'details as unverified_details_count' => fn ($q) => $q->whereColumn('fulfilled_qty', '<', 'qty'),
+                'details as unverified_details_count' => fn ($q) => $q->whereNotFullyFulfilled(),
                 'deliveryOrders',
                 'deliveryOrders as pending_delivery_orders_count' => fn ($q) => $q->where('is_done', false),
                 'mergedSalesOrders',
@@ -360,7 +360,7 @@ class SalesOrderService extends BaseService implements SalesOrderServiceInterfac
             'reseller' => fn ($q) => $q->select('id', 'name', 'type', 'type', 'email', 'phone', 'address'),
         ])->loadCount([
             'details',
-            'details as unverified_details_count' => fn ($q) => $q->whereColumn('fulfilled_qty', '<', 'qty'),
+            'details as unverified_details_count' => fn ($q) => $q->whereNotFullyFulfilled(),
             'deliveryOrders',
             'deliveryOrders as pending_delivery_orders_count' => fn ($q) => $q->where('is_done', false),
             'mergedSalesOrders',
@@ -563,7 +563,9 @@ class SalesOrderService extends BaseService implements SalesOrderServiceInterfac
                 $rawSource['invoice_no'] = $manualInvoiceNo;
             }
 
-            $mergedSalesOrder = $this->createOrder(SalesOrder::make(['raw_source' => $rawSource]));
+            $mergedSalesOrder = SalesOrder::make(['raw_source' => $rawSource]);
+            $mergedSalesOrder->keep_item_multiply_qty = true;
+            $mergedSalesOrder = $this->createOrder($mergedSalesOrder);
 
             $deliveryOrder = DeliveryOrder::where('sales_order_id', $mergedSalesOrder->id)->first()
                 ?? $this->deliveryOrderService->createForSalesOrder($mergedSalesOrder, true, $manualDeliveryOrderInvoiceNo);
@@ -666,7 +668,7 @@ class SalesOrderService extends BaseService implements SalesOrderServiceInterfac
     private function hasUnverifiedDetails(SalesOrder $salesOrder): bool
     {
         return $salesOrder->details()->doesntExist()
-            || $salesOrder->details()->whereColumn('fulfilled_qty', '<', 'qty')->exists();
+            || $salesOrder->details()->whereNotFullyFulfilled()->exists();
     }
 
     /**
@@ -686,6 +688,7 @@ class SalesOrderService extends BaseService implements SalesOrderServiceInterfac
                 return [
                     'product_unit_id' => (int) $first->product_unit_id,
                     'qty' => (int) $group->sum('qty'),
+                    'multiply_qty' => (int) $first->multiply_qty,
                     'unit_price' => (int) $first->unit_price,
                     'discount' => (int) $first->discount,
                     'tax' => (int) $first->tax === 11 ? 1 : 0,
@@ -704,6 +707,7 @@ class SalesOrderService extends BaseService implements SalesOrderServiceInterfac
     {
         return implode('|', [
             $detail->product_unit_id,
+            $detail->multiply_qty,
             $detail->unit_price,
             $detail->discount,
             $detail->tax,
@@ -917,7 +921,7 @@ class SalesOrderService extends BaseService implements SalesOrderServiceInterfac
                 'warehouse' => fn ($q) => $q->select('id', 'code'),
             ]);
 
-        $query = ProductUnit::select('id', 'refer_id', 'uom_id', 'name', 'price', 'is_ppn', 'code')
+        $query = ProductUnit::select('id', 'refer_id', 'uom_id', 'name', 'price', 'is_ppn', 'code', 'multiply_qty')
             ->where('is_generate_qr', true)
             ->with([
                 'refer' => fn ($q) => $q->select('id', 'name')->with('stockProductUnit', $stockProductUnitQuery),
@@ -958,7 +962,7 @@ class SalesOrderService extends BaseService implements SalesOrderServiceInterfac
             ->with([
                 'warehouse' => fn ($q) => $q->select('id', 'code'),
                 'productUnit' => function ($q) {
-                    $q->select('id', 'uom_id', 'product_id', 'name', 'price', 'is_ppn')
+                    $q->select('id', 'uom_id', 'product_id', 'name', 'price', 'is_ppn', 'multiply_qty')
                         ->with([
                             'uom' => fn ($q) => $q->select('id', 'name'),
                             'product' => fn ($q) => $q->select('id', 'name', 'product_brand_id'),
