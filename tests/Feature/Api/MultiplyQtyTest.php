@@ -3,6 +3,7 @@
 namespace Tests\Feature\Api;
 
 use App\Exports\StockExport;
+use App\Models\DeliveryOrder;
 use App\Models\ProductUnit;
 use App\Models\ProductUnitRelation;
 use App\Models\SalesOrder;
@@ -57,7 +58,7 @@ class MultiplyQtyTest extends TestCase
         $warehouse = $this->makeWarehouse();
         $unit = $this->makeProductUnit(true, ['multiply_qty' => $multiplyQty]);
         $so = $this->makeSalesOrder($warehouse, [[$unit, $qty]], $attributes);
-        $so->details->each->update(['multiply_qty' => $multiplyQty]);
+        $so->details->each->update(['multiply_qty' => $multiplyQty, 'product_multiply_qty' => $multiplyQty]);
 
         return [$warehouse, $unit, $this->spu($unit, $warehouse), $so->load('details')];
     }
@@ -98,7 +99,9 @@ class MultiplyQtyTest extends TestCase
         $detail = $salesOrder->details()->firstOrFail();
         $this->assertSame(2, $detail->qty);
         $this->assertSame(100, $detail->multiply_qty);
+        $this->assertSame(100, $detail->product_multiply_qty);
         $this->assertSame(200, $detail->stockQty());
+        $this->assertSame(2, $detail->accurateQty());
 
         $unit->update(['multiply_qty' => 10]);
         $this->assertSame(100, $detail->fresh()->multiply_qty);
@@ -180,36 +183,72 @@ class MultiplyQtyTest extends TestCase
         $this->assertHistory($packagingSpu, ['value' => 3, 'is_increment' => 0]);
     }
 
-    public function test_marketplace_sales_order_verification_requires_qty_times_multiply_qty_stocks(): void
+    private function marketplaceOrder($warehouse, $unit, $reseller, int $qty = 1): SalesOrder
     {
-        $this->actingAsAdmin();
-        [, , $spu, $so] = $this->salesOrderWithMultiply(1, 2, ['marketplace' => 'shopee']);
-        $detail = $so->details->first();
-        $url = "/api/sales-orders/{$so->id}/verification/{$detail->id}";
-        [$first, $second, $third] = $this->makeStocks($spu, 3)->all();
+        $created = $this->postJson('/api/sales-orders', [
+            ...$this->salesOrderPayload($warehouse, $unit, $reseller, $qty),
+            'marketplace' => 'shopee',
+        ])->assertStatus(201);
 
-        $this->postJson($url, ['stock_id' => $first->id])->assertStatus(201);
-        $this->getJson('/api/sales-orders?filter[is_mergeable]=1')->assertOk()->assertJsonCount(0, 'data');
-
-        $this->postJson($url, ['stock_id' => $second->id])->assertStatus(201);
-        $this->postJson($url, ['stock_id' => $third->id])->assertStatus(400)->assertJsonPath('message', 'Qty sudah terpenuhi');
-        $this->getJson('/api/sales-orders?filter[is_mergeable]=1')->assertOk()->assertJsonPath('data.0.id', $so->id);
+        return SalesOrder::findOrFail($created->json('data.id'));
     }
 
-    public function test_merge_keeps_the_multiply_qty_snapshot_of_the_sources(): void
+    public function test_marketplace_order_qty_is_in_stock_units(): void
     {
         $this->actingAsAdmin();
         $warehouse = $this->makeWarehouse();
-        $unit = $this->makeProductUnit(true, ['multiply_qty' => 2]);
+        $unit = $this->makeProductUnit(true, ['multiply_qty' => 20]);
+        $spu = $this->spu($unit, $warehouse);
+        $so = $this->marketplaceOrder($warehouse, $unit, $this->makeUser(['type' => 'reseller', 'company' => 'pas']));
+
+        $detail = $so->details()->sole();
+        $this->assertSame([1, 1, 20], [$detail->qty, $detail->multiply_qty, $detail->product_multiply_qty]);
+        $this->assertSame(0.05, $detail->accurateQty());
+
+        $url = "/api/sales-orders/{$so->id}/verification/{$detail->id}";
+        [$first, $second] = $this->makeStocks($spu, 2)->all();
+        $this->getJson('/api/sales-orders?filter[is_mergeable]=1')->assertOk()->assertJsonCount(0, 'data');
+        $this->postJson($url, ['stock_id' => $first->id])->assertStatus(201);
+        $this->postJson($url, ['stock_id' => $second->id])->assertStatus(400)->assertJsonPath('message', 'Qty sudah terpenuhi');
+        $this->getJson('/api/sales-orders?filter[is_mergeable]=1')->assertOk()->assertJsonPath('data.0.id', $so->id);
+
+        $xml = $this->get("/api/sales-orders/{$so->id}/export-xml")->assertOk()->getContent();
+        $this->assertStringContainsString('<QUANTITY>0.05</QUANTITY>', $xml);
+        $this->assertStringContainsString('<QTYSHIPPED>0.05</QTYSHIPPED>', $xml);
+    }
+
+    public function test_invoice_qty_is_in_stock_units(): void
+    {
+        $this->actingAsAdmin();
+        $warehouse = $this->makeWarehouse();
+        $unit = $this->makeProductUnit(true, ['multiply_qty' => 20]);
+        $this->makeStocks($this->spu($unit, $warehouse), 1);
+        $payload = [
+            'type' => 'default', 'warehouse_id' => $warehouse->id, 'customer_name' => 'Walk In', 'customer_phone' => '0811',
+            'transaction_date' => '2026-11-01 10:00:00', 'shipment_estimation_datetime' => '2026-11-01 10:00:00',
+            'items' => [['product_unit_id' => $unit->id, 'qty' => 1, 'unit_price' => 10000, 'discount' => 0, 'tax' => 0, 'total_price' => 10000]],
+        ];
+
+        $this->postJson('/api/invoices', [...$payload, 'items' => [[...$payload['items'][0], 'qty' => 2, 'total_price' => 20000]]])
+            ->assertStatus(422)->assertJsonPath('message', 'Stok '.$unit->name.' tidak tersedia');
+
+        $id = $this->postJson('/api/invoices', $payload)->assertStatus(201)->json('data.id');
+        $detail = SalesOrderDetail::where('sales_order_id', $id)->sole();
+        $this->assertSame([1, 1, 20], [$detail->qty, $detail->multiply_qty, $detail->product_multiply_qty]);
+
+        $this->assertStringContainsString('<QUANTITY>0.05</QUANTITY>', $this->get("/api/invoices/{$id}/export-xml")->assertOk()->getContent());
+    }
+
+    public function test_merge_keeps_stock_unit_qty_and_exports_the_accurate_qty(): void
+    {
+        $this->actingAsAdmin();
+        $warehouse = $this->makeWarehouse();
+        $unit = $this->makeProductUnit(true, ['multiply_qty' => 20]);
         $spu = $this->spu($unit, $warehouse);
         $sources = collect([1, 2])->map(function () use ($warehouse, $unit, $spu) {
-            $so = $this->makeSalesOrder($warehouse, [[$unit, 1]], ['marketplace' => 'shopee']);
-            $detail = $so->details->first();
-            $detail->update(['multiply_qty' => 2]);
-
-            foreach ($this->makeStocks($spu, 2) as $stock) {
-                $this->postJson("/api/sales-orders/{$so->id}/verification/{$detail->id}", ['stock_id' => $stock->id])->assertStatus(201);
-            }
+            $so = $this->marketplaceOrder($warehouse, $unit, $this->makeUser(['type' => 'reseller', 'company' => 'pas']));
+            $detail = $so->details()->sole();
+            $this->postJson("/api/sales-orders/{$so->id}/verification/{$detail->id}", ['stock_id' => $this->makeStocks($spu, 1)->first()->id])->assertStatus(201);
 
             return $so;
         });
@@ -225,10 +264,26 @@ class MultiplyQtyTest extends TestCase
         ])->assertSuccessful();
 
         $detail = SalesOrderDetail::where('sales_order_id', $merged->json('data.id'))->sole();
-        $this->assertSame(2, $detail->qty);
-        $this->assertSame(2, $detail->multiply_qty);
-        $this->assertSame(4, $detail->fulfilled_qty);
-        $this->assertSame(4, SalesOrderItem::where('sales_order_detail_id', $detail->id)->count());
+        $this->assertSame([2, 1, 20, 2], [$detail->qty, $detail->multiply_qty, $detail->product_multiply_qty, $detail->fulfilled_qty]);
+        $this->assertSame(2, SalesOrderItem::where('sales_order_detail_id', $detail->id)->count());
+
+        $deliveryOrder = DeliveryOrder::where('sales_order_id', $detail->sales_order_id)->sole();
+        foreach (["/api/sales-orders/{$detail->sales_order_id}/export-xml", "/api/delivery-orders/{$deliveryOrder->id}/export-xml"] as $url) {
+            $this->assertStringContainsString('<QUANTITY>0.1</QUANTITY>', $this->get($url)->assertOk()->getContent(), $url);
+        }
+    }
+
+    public function test_accurate_qty_is_rounded_to_four_decimals(): void
+    {
+        $line = fn (int $qty, int $multiplyQty, int $productMultiplyQty) => new SalesOrderDetail([
+            'qty' => $qty, 'multiply_qty' => $multiplyQty, 'product_multiply_qty' => $productMultiplyQty,
+        ]);
+
+        $this->assertSame(0.3333, $line(1, 1, 3)->accurateQty());
+        $this->assertSame(0.005, $line(1, 1, 200)->accurateQty());
+        $this->assertSame(2, $line(40, 1, 20)->accurateQty());
+        $this->assertSame(2, $line(2, 20, 20)->accurateQty());
+        $this->assertSame(1.5, $line(1, 1, 20)->accurateQty(30));
     }
 
     public function test_stock_index_returns_the_qr_count_with_the_product_unit_multiply_qty(): void

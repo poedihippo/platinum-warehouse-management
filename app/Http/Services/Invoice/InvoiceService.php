@@ -47,17 +47,14 @@ class InvoiceService implements InvoiceServiceInterface
                 continue;
             }
 
-            $productUnit = DB::table('product_units')->where('id', $item['product_unit_id'])->first(['name', 'multiply_qty']);
-            $requiredQty = $item['qty'] * max(1, (int) ($productUnit?->multiply_qty ?? 1));
-
             $stocks = Stock::whereAvailableStock()
                 ->whereNull('description')
                 ->whereHas('stockProductUnit', fn ($q) => $q->where('product_unit_id', $item['product_unit_id'])->where('warehouse_id', $item['warehouse_id']))
-                ->limit($requiredQty)
+                ->limit($item['qty'])
                 ->get(['id']);
 
-            if ($stocks->count() < $requiredQty) {
-                throw new ApiResponseException(sprintf('Stok %s tidak tersedia', $productUnit?->name ?? ''), Response::HTTP_UNPROCESSABLE_ENTITY);
+            if ($stocks->count() < $item['qty']) {
+                throw new ApiResponseException(sprintf('Stok %s tidak tersedia', DB::table('product_units')->where('id', $item['product_unit_id'])->first()?->name ?? ''), Response::HTTP_UNPROCESSABLE_ENTITY);
             }
         }
     }

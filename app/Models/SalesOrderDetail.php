@@ -16,6 +16,7 @@ class SalesOrderDetail extends Model
         'warehouse_id',
         'qty',
         'multiply_qty',
+        'product_multiply_qty',
         'fulfilled_qty',
         'unit_price',
         'discount',
@@ -26,6 +27,7 @@ class SalesOrderDetail extends Model
     protected $casts = [
         'qty' => 'integer',
         'multiply_qty' => 'integer',
+        'product_multiply_qty' => 'integer',
         'fulfilled_qty' => 'integer',
         'unit_price' => 'integer',
         'discount' => 'integer',
@@ -81,12 +83,24 @@ class SalesOrderDetail extends Model
     }
 
     /**
-     * Stocks that leave the warehouse for $qty units of this line: every unit counted
-     * in Accurate (SO / DO qty) is multiply_qty real stocks.
+     * Stocks that leave the warehouse for $qty units of this line: each line qty is
+     * multiply_qty real stocks (the product multiply on a normal SO, 1 on pameran /
+     * marketplace / merged lines whose qty is already in stock units).
      */
     public function stockQty(?int $qty = null): int
     {
         return ($qty ?? $this->qty) * max(1, (int) $this->multiply_qty);
+    }
+
+    /**
+     * The line qty in Accurate units (stocks ÷ the product multiply snapshot), times
+     * $per for bundle component lines, rounded to 4 decimals.
+     */
+    public function accurateQty(int|float $per = 1): int|float
+    {
+        $qty = round($this->stockQty() * $per / max(1, (int) $this->product_multiply_qty), 4);
+
+        return floor($qty) == $qty ? (int) $qty : $qty;
     }
 
     public function scopeWhereNotFullyFulfilled(Builder $query): Builder

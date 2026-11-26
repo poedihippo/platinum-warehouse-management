@@ -224,6 +224,17 @@ class SalesOrder extends Model
         return $this->mergedSalesOrders()->exists();
     }
 
+    /**
+     * Pameran (invoice / SPG) and marketplace orders, merged ones included, take qty
+     * in BEJO stock units (1 qty = 1 stock) instead of Accurate units.
+     */
+    public function isQtyInStockUnits(): bool
+    {
+        return (bool) $this->is_invoice
+            || ! is_null($this->marketplace)
+            || ($this->exists && $this->isMergeResult());
+    }
+
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);

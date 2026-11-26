@@ -22,7 +22,7 @@
                 <ITEMLINE operation="Add">
                     <KeyID>{{ $keyId++ }}</KeyID>
                     <ITEMNO>{{ $hasRelation ? rtrim($productUnit->code, '*') . '*' : $productUnit->code }}</ITEMNO>
-                    <QUANTITY>{{ $detail->qty }}</QUANTITY>
+                    <QUANTITY>{{ $detail->accurateQty() }}</QUANTITY>
                     <ITEMUNIT>{{ $productUnit->uom?->name }}</ITEMUNIT>
                     <UNITRATIO>1</UNITRATIO>
                     <ITEMRESERVED1 />
@@ -45,14 +45,14 @@
                         <TAXCODES />
                     @endif
                     <GROUPSEQ />
-                    <QTYSHIPPED>{{ $detail->qty }}</QTYSHIPPED>
+                    <QTYSHIPPED>{{ $detail->accurateQty() }}</QTYSHIPPED>
                 </ITEMLINE>
                 @if ($hasRelation)
                     @foreach ($relations ?? [] as $relation)
                         <ITEMLINE operation="Add">
                             <KeyID>{{ $keyId++ }}</KeyID>
                             <ITEMNO>{{ $relation->relatedProductUnit->code }}</ITEMNO>
-                            <QUANTITY>{{ $detail->qty * $relation->qty }}</QUANTITY>
+                            <QUANTITY>{{ $detail->accurateQty($relation->qty) }}</QUANTITY>
                             <ITEMUNIT>{{ $relation->relatedProductUnit->uom?->name }}</ITEMUNIT>
                             <UNITRATIO>1</UNITRATIO>
                             <ITEMRESERVED1 />
@@ -70,13 +70,13 @@
                             <DISCPC />
                             <TAXCODES />
                             <GROUPSEQ>{{ $mainKeyId }}</GROUPSEQ>
-                            <QTYSHIPPED>{{ $detail->qty * $relation->qty }}</QTYSHIPPED>
+                            <QTYSHIPPED>{{ $detail->accurateQty($relation->qty) }}</QTYSHIPPED>
                         </ITEMLINE>
                     @endforeach
                     <ITEMLINE operation="Add">
                         <KeyID>{{ $keyId++ }}</KeyID>
                         <ITEMNO>{{ $baseUnit->code }}</ITEMNO>
-                        <QUANTITY>{{ $detail->qty * $productUnit->refer_qty }}</QUANTITY>
+                        <QUANTITY>{{ $detail->accurateQty($productUnit->refer_qty) }}</QUANTITY>
                         <ITEMUNIT>{{ $baseUnit->uom?->name }}</ITEMUNIT>
                         <UNITRATIO>1</UNITRATIO>
                         <ITEMRESERVED1 />
@@ -94,7 +94,7 @@
                         <DISCPC />
                         <TAXCODES />
                         <GROUPSEQ>{{ $mainKeyId }}</GROUPSEQ>
-                        <QTYSHIPPED>{{ $detail->qty * $productUnit->refer_qty }}</QTYSHIPPED>
+                        <QTYSHIPPED>{{ $detail->accurateQty($productUnit->refer_qty) }}</QTYSHIPPED>
                     </ITEMLINE>
                 @endif
             @endforeach

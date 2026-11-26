@@ -689,6 +689,7 @@ class SalesOrderService extends BaseService implements SalesOrderServiceInterfac
                     'product_unit_id' => (int) $first->product_unit_id,
                     'qty' => (int) $group->sum('qty'),
                     'multiply_qty' => (int) $first->multiply_qty,
+                    'product_multiply_qty' => (int) $first->product_multiply_qty,
                     'unit_price' => (int) $first->unit_price,
                     'discount' => (int) $first->discount,
                     'tax' => (int) $first->tax === 11 ? 1 : 0,
@@ -708,6 +709,7 @@ class SalesOrderService extends BaseService implements SalesOrderServiceInterfac
         return implode('|', [
             $detail->product_unit_id,
             $detail->multiply_qty,
+            $detail->product_multiply_qty,
             $detail->unit_price,
             $detail->discount,
             $detail->tax,

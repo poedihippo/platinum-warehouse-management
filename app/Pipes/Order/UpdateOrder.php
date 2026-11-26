@@ -105,6 +105,7 @@ class UpdateOrder
 
             $oldDetail->qty = $newDetail->qty;
             $oldDetail->multiply_qty = $newDetail->multiply_qty;
+            $oldDetail->product_multiply_qty = $newDetail->product_multiply_qty;
             $oldDetail->unit_price = $newDetail->unit_price;
             $oldDetail->discount = $newDetail->discount;
             $oldDetail->tax = $newDetail->tax;

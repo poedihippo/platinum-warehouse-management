@@ -191,7 +191,7 @@ Create pipeline (SalesOrderService::createOrder):
   2. FillOrderRecords             snapshot reseller etc. into `records` JSON
   3. NormalizeLockedOrderItems    keep lines that already have scanned stock locked
   4. MakeOrderDetails             build SalesOrderDetail collection, resolve ProductUnits, prices,
-                                  snapshot product_units.multiply_qty (see §11.3)
+                                  snapshot multiply_qty / product_multiply_qty (see §11.3)
                                   (does NOT check or reserve stock)
   5. CalculateAutoDiscount        tiers in config('app.min_trx_auto_discount') — currently all
                                   commented out (effectively 0); skipped if is_auto_discount_enabled=false
@@ -588,7 +588,11 @@ Gated by `config('app.enable_document_counter')` (`ENABLE_DOCUMENT_COUNTER`, def
 | QR items | `is_generate_qr = true` | Individual `Stock` rows |
 | Non-QR items | `is_generate_qr = false` | `StockProductUnit.qty` |
 
-**Multiply qty (Accurate units).** `product_units.multiply_qty` (default 1) is how many real stocks leave for 1 qty counted in Accurate. It is snapshotted into `sales_order_details.multiply_qty` when the line is built (`MakeOrderDetails`; in-place marketplace edits refresh it on unlocked lines; merge keeps the sources' snapshot via `SalesOrder::$keep_item_multiply_qty`). SO/DO `qty`, prices, PDFs and the Accurate XML export stay in Accurate units; scanning limits, `fulfilled_qty` checks, invoice stock pre-checks and stock-history values use `qty × multiply_qty`. Stock counts stay real QR counts in the API (`GET stocks` `qty`, pickers' `stocks_count`); the frontend divides them by `product_unit.multiply_qty` for display/limits, and the stock Excel export (`exports/stock.blade.php`) appends a `Multiply` column plus one `{warehouse} (Accurate)` column per warehouse (`round(count ÷ multiply_qty, 2)`).
+**Multiply qty (Accurate units).** `product_units.multiply_qty` (default 1, min 1) is how many real stocks make 1 qty in Accurate. `MakeOrderDetails` snapshots two numbers per line (in-place marketplace edits refresh them on unlocked lines; merge keeps the sources' snapshots via `SalesOrder::$keep_item_multiply_qty`):
+- `sales_order_details.product_multiply_qty` — the product's multiply.
+- `sales_order_details.multiply_qty` — real stocks per 1 line qty: the product's multiply on a normal SO (qty in Accurate units), **1** when `SalesOrder::isQtyInStockUnits()` (pameran: `is_invoice` invoices/SPG orders; marketplace orders and merge results — qty typed in BEJO stock units).
+
+Scanning limits, `fulfilled_qty` checks and stock-history values use `SalesOrderDetail::stockQty()` = `qty × multiply_qty` (invoice store pre-check: `qty`). The Accurate XML exports (SO / invoice / marketplace / merged SO and DO) write `SalesOrderDetail::accurateQty()` = `qty × multiply_qty ÷ product_multiply_qty`, max 4 decimals (normal SO → qty; marketplace qty 1 × multiply 20 → 0.05). SO/DO `qty`, prices and PDFs stay as typed. Stock counts stay real QR counts in the API (`GET stocks` `qty`, pickers' `stocks_count`); the frontend divides them by `product_unit.multiply_qty` for display/limits, and the stock Excel export (`exports/stock.blade.php`) appends a `Multiply` column plus one `{warehouse} (Accurate)` column per warehouse (`round(count ÷ multiply_qty, 2)`).
 
 Every stock change writes a polymorphic `StockHistory` explicitly via `$model->histories()->create([...])` (`model_type`/`model_id` = ReceiveOrderDetail, SalesOrderDetail, StockOpnameDetail, AdjustmentRequest, StockTransfer, StockProductUnit).
 

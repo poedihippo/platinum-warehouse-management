@@ -24,7 +24,7 @@
                     $mainKeyId = $keyId;
                     $warehouseCode = $detail->salesOrderDetail?->warehouse?->code;
                     $SONumber = $detail->salesOrderDetail?->salesOrder?->invoice_no;
-                    $SODetailQty = $detail->salesOrderDetail?->qty ?? 0;
+                    $SODetailQty = $detail->salesOrderDetail?->accurateQty() ?? 0;
 
                     $unitPrice = $detail->salesOrderDetail?->unit_price ?? $productUnit?->price ?? 0;
                 @endphp
@@ -68,7 +68,7 @@
                     <ITEMLINE operation="Add">
                         <KeyID>{{ $keyId++ }}</KeyID>
                         <ITEMNO>{{ $relation->relatedProductUnit?->code }}</ITEMNO>
-                        <QUANTITY>{{ $SODetailQty * $relation->qty }}</QUANTITY>
+                        <QUANTITY>{{ $detail->salesOrderDetail->accurateQty($relation->qty) }}</QUANTITY>
                         <ITEMUNIT>{{ $relation->relatedProductUnit?->uom?->name }}</ITEMUNIT>
                         <UNITRATIO>1</UNITRATIO>
                         <ITEMRESERVED1 />
@@ -99,7 +99,7 @@
                     <ITEMLINE operation="Add">
                         <KeyID>{{ $keyId++ }}</KeyID>
                         <ITEMNO>{{ $baseUnit->code }}</ITEMNO>
-                        <QUANTITY>{{ $SODetailQty * $productUnit->refer_qty }}</QUANTITY>
+                        <QUANTITY>{{ $detail->salesOrderDetail->accurateQty($productUnit->refer_qty) }}</QUANTITY>
                         <ITEMUNIT>{{ $baseUnit->uom?->name }}</ITEMUNIT>
                         <UNITRATIO>1</UNITRATIO>
                         <ITEMRESERVED1 />
