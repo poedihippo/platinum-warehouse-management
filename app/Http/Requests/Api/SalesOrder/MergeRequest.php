@@ -34,7 +34,7 @@ class MergeRequest extends FormRequest
             'sales_order_ids' => ['required', 'array', 'min:2'],
             'sales_order_ids.*' => ['required', 'integer', 'distinct', 'exists:sales_orders,id'],
             'reseller_id' => [
-                'nullable',
+                'required',
                 function (string $attribute, mixed $value, Closure $fail) {
                     if (! DB::table('users')->where('id', $value)->where('type', UserType::Reseller)->exists()) {
                         $fail('Reseller Tidak ditemukan');
@@ -55,6 +55,7 @@ class MergeRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'reseller_id.required' => 'Reseller wajib dipilih',
             'delivery_order_invoice_no.different' => 'Nomor DO tidak boleh sama dengan nomor SO',
         ];
     }

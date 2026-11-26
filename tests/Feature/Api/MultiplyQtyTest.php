@@ -257,6 +257,7 @@ class MultiplyQtyTest extends TestCase
 
         $merged = $this->postJson('/api/sales-orders/merge', [
             'sales_order_ids' => $sources->pluck('id')->all(),
+            'reseller_id' => $this->makeUser(['type' => 'reseller', 'company' => 'pas'])->id,
             'marketplace' => 'shopee',
             'invoice_no' => 'SO-MERGE-'.uniqid(),
             'delivery_order_invoice_no' => 'DO-MERGE-'.uniqid(),

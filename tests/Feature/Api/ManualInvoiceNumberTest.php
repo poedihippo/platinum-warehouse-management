@@ -143,6 +143,13 @@ class ManualInvoiceNumberTest extends TestCase
         $this->assertTrue($errors->has('delivery_order_invoice_no'));
     }
 
+    public function test_merge_requires_a_reseller(): void
+    {
+        $errors = $this->validate(SalesOrderMergeRequest::class, $this->mergePayload())->errors();
+
+        $this->assertSame(['Reseller wajib dipilih'], $errors->get('reseller_id'));
+    }
+
     public function test_merge_rejects_a_delivery_order_number_equal_to_the_sales_order_number(): void
     {
         $errors = $this->validate(SalesOrderMergeRequest::class, $this->mergePayload([
